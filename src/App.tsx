@@ -12,6 +12,7 @@ const Identity = lazy(() => import("@/screens/Identity"));
 const Wallet = lazy(() => import("@/screens/Wallet"));
 const Travel = lazy(() => import("@/screens/Travel"));
 const Profile = lazy(() => import("@/screens/Profile"));
+const KioskSimulator = lazy(() => import("@/screens/KioskSimulator"));
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
                       <Route path="/wallet" element={<Wallet />} />
                       <Route path="/travel" element={<Travel />} />
                       <Route path="/profile" element={<Profile />} />
+                      <Route path="/kiosk-sim" element={<KioskSimulator />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </Suspense>
