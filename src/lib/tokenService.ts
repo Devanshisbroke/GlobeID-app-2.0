@@ -50,16 +50,28 @@ function simSign(payload: string): string {
   return base64url(Math.abs(h).toString(36).padStart(12, "0"));
 }
 
-export function createToken(claims: Omit<TokenPayload, "iss" | "iat" | "nonce"> & { iss?: string; iat?: number; nonce?: string }): { token: string; payload: TokenPayload } {
+export function createToken(claims: {
+  kid: string;
+  exp: number;
+  iss?: string;
+  iat?: number;
+  nonce?: string;
+  session_id?: string;
+  user_id?: string;
+  kiosk_id?: string;
+  country_code?: string;
+}): { token: string; payload: TokenPayload } {
   const now = Math.floor(Date.now() / 1000);
-  const { iss: claimsIss, iat: claimsIat, nonce: claimsNonce, ...rest } = claims;
   const payload: TokenPayload = {
-    iss: claimsIss ?? "terracore",
+    iss: claims.iss ?? "terracore",
     kid: claims.kid,
-    iat: claimsIat ?? now,
+    iat: claims.iat ?? now,
     exp: claims.exp,
-    nonce: claimsNonce ?? generateNonce(),
-    ...rest,
+    nonce: claims.nonce ?? generateNonce(),
+    session_id: claims.session_id,
+    user_id: claims.user_id,
+    kiosk_id: claims.kiosk_id,
+    country_code: claims.country_code,
   };
 
   const header = base64url(JSON.stringify({ alg: "ES256", typ: "JWT", kid: payload.kid }));
