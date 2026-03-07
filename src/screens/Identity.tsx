@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { demoDocuments } from "@/lib/demoData";
@@ -16,6 +17,7 @@ const statusConfig = {
 };
 
 const Identity: React.FC = () => {
+  const navigate = useNavigate();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showLinkSection, setShowLinkSection] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -27,6 +29,7 @@ const Identity: React.FC = () => {
     expiresAt,
     sessionId,
     countryCode,
+    receipt,
     generateQR,
     reset,
   } = useVerificationSession();
@@ -46,6 +49,9 @@ const Identity: React.FC = () => {
   const handleWelcomeComplete = () => {
     setShowWelcome(false);
     setShowLinkSection(false);
+    if (receipt) {
+      navigate("/receipt", { state: { receipt } });
+    }
     reset();
   };
 
