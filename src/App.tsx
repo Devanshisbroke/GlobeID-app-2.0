@@ -11,6 +11,7 @@ const Home = lazy(() => import("@/screens/Home"));
 const Identity = lazy(() => import("@/screens/Identity"));
 const Wallet = lazy(() => import("@/screens/Wallet"));
 const Travel = lazy(() => import("@/screens/Travel"));
+const Services = lazy(() => import("@/screens/Services"));
 const Profile = lazy(() => import("@/screens/Profile"));
 const KioskSimulator = lazy(() => import("@/screens/KioskSimulator"));
 const EntryReceipt = lazy(() => import("@/screens/EntryReceipt"));
@@ -42,6 +43,7 @@ const App = () => (
                       <Route path="/identity" element={<Identity />} />
                       <Route path="/wallet" element={<Wallet />} />
                       <Route path="/travel" element={<Travel />} />
+                      <Route path="/services" element={<Services />} />
                       <Route path="/profile" element={<Profile />} />
                       <Route path="/kiosk-sim" element={<KioskSimulator />} />
                       <Route path="/receipt" element={<EntryReceipt />} />
