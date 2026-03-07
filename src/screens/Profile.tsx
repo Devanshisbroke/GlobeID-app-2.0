@@ -38,7 +38,7 @@ const settingSections: { title: string; items: SettingItem[] }[] = [
   {
     title: "Preferences",
     items: [
-      { icon: Globe, label: "Currency & Region", description: "USD — United States", color: "text-neon-indigo" },
+      { icon: Globe, label: "Currency & Region", description: "INR — India", color: "text-neon-indigo" },
       { icon: Languages, label: "Language", description: "English", color: "text-neon-cyan" },
       { icon: Bell, label: "Notifications", description: "Push, email, in-app", color: "text-accent" },
     ],
@@ -62,27 +62,33 @@ const Profile: React.FC = () => {
     <div className="px-4 py-6 space-y-6">
       {/* Profile Header */}
       <AnimatedPage>
-        <GlassCard className="flex items-center gap-4">
-          <img
-            src={demoUser.avatar}
-            alt={demoUser.name}
-            className="w-16 h-16 rounded-full object-cover ring-2 ring-accent/30"
-          />
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold text-foreground">{demoUser.name}</h2>
+        <GlassCard className="flex items-center gap-4 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-neon-indigo/5 via-transparent to-neon-cyan/5 pointer-events-none" />
+          <div className="relative">
+            <img
+              src={demoUser.avatar}
+              alt={demoUser.name}
+              className="w-16 h-16 rounded-2xl object-cover ring-2 ring-accent/30"
+            />
+            <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-accent rounded-full flex items-center justify-center">
+              <ShieldCheck className="w-3 h-3 text-accent-foreground" />
+            </span>
+          </div>
+          <div className="flex-1 min-w-0 relative">
+            <h2 className="text-lg font-bold text-foreground">{demoUser.name}</h2>
             <p className="text-xs text-muted-foreground">{demoUser.email}</p>
             <p className="text-xs text-accent mt-0.5">
               {demoUser.identityLevel} · Member since {demoUser.memberSince}
             </p>
           </div>
-          <Settings className="w-5 h-5 text-muted-foreground" />
+          <Settings className="w-5 h-5 text-muted-foreground relative" />
         </GlassCard>
       </AnimatedPage>
 
       {/* Settings Sections */}
       {settingSections.map((section, si) => (
         <AnimatedPage key={section.title} staggerIndex={si + 1}>
-          <h3 className="text-sm font-medium text-muted-foreground mb-3 px-1">
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-wider">
             {section.title}
           </h3>
           <div className="space-y-2">
@@ -95,7 +101,9 @@ const Profile: React.FC = () => {
                   style={{ animationDelay: staggerDelay(ii, 50) }}
                   onClick={() => item.route && navigate(item.route)}
                 >
-                  <Icon className={cn("w-5 h-5 shrink-0", item.color)} />
+                  <div className="w-9 h-9 rounded-xl bg-secondary/80 flex items-center justify-center shrink-0">
+                    <Icon className={cn("w-4.5 h-4.5", item.color)} />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground">{item.label}</p>
                     <p className="text-xs text-muted-foreground">{item.description}</p>
@@ -136,7 +144,7 @@ const Profile: React.FC = () => {
       </AnimatedPage>
 
       <p className="text-center text-[10px] text-muted-foreground pb-4">
-        GlobeID v1.0.0 · TerraCore · Phase 1
+        GlobeID v2.0.0 · TerraCore · Phase 2
       </p>
     </div>
   );
