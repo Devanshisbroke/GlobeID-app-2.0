@@ -62,33 +62,32 @@ const Profile: React.FC = () => {
     <div className="px-4 py-6 space-y-6">
       {/* Profile Header */}
       <AnimatedPage>
-        <GlassCard className="flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-neon-indigo/5 via-transparent to-neon-cyan/5 pointer-events-none" />
+        <GlassCard className="flex items-center gap-4 relative overflow-hidden light-sweep" glow depth="lg">
           <div className="relative">
             <img
               src={demoUser.avatar}
               alt={demoUser.name}
-              className="w-16 h-16 rounded-2xl object-cover ring-2 ring-accent/30"
+              className="w-16 h-16 rounded-2xl object-cover ring-2 ring-accent/25"
             />
-            <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-accent rounded-full flex items-center justify-center">
+            <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-accent rounded-full flex items-center justify-center shadow-glow-sm">
               <ShieldCheck className="w-3 h-3 text-accent-foreground" />
             </span>
           </div>
           <div className="flex-1 min-w-0 relative">
             <h2 className="text-lg font-bold text-foreground">{demoUser.name}</h2>
             <p className="text-xs text-muted-foreground">{demoUser.email}</p>
-            <p className="text-xs text-accent mt-0.5">
+            <p className="text-xs text-accent mt-0.5 font-semibold">
               {demoUser.identityLevel} · Member since {demoUser.memberSince}
             </p>
           </div>
-          <Settings className="w-5 h-5 text-muted-foreground relative" />
+          <Settings className="w-5 h-5 text-muted-foreground/60 relative" />
         </GlassCard>
       </AnimatedPage>
 
       {/* Settings Sections */}
       {settingSections.map((section, si) => (
         <AnimatedPage key={section.title} staggerIndex={si + 1}>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-wider">
+          <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">
             {section.title}
           </h3>
           <div className="space-y-2">
@@ -97,18 +96,18 @@ const Profile: React.FC = () => {
               return (
                 <GlassCard
                   key={item.label}
-                  className="flex items-center gap-3 py-3 cursor-pointer active:scale-[0.98] transition-transform animate-fade-in"
+                  className="flex items-center gap-3 py-3 cursor-pointer animate-fade-in"
                   style={{ animationDelay: staggerDelay(ii, 50) }}
                   onClick={() => item.route && navigate(item.route)}
                 >
-                  <div className="w-9 h-9 rounded-xl bg-secondary/80 flex items-center justify-center shrink-0">
-                    <Icon className={cn("w-4.5 h-4.5", item.color)} />
+                  <div className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center shrink-0 border border-border/20">
+                    <Icon className={cn("w-4 h-4", item.color)} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground">{item.label}</p>
                     <p className="text-xs text-muted-foreground">{item.description}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
                 </GlassCard>
               );
             })}
@@ -126,8 +125,8 @@ const Profile: React.FC = () => {
           <button
             onClick={() => setDemoMode(!demoMode)}
             className={cn(
-              "w-12 h-7 rounded-full transition-colors duration-[var(--motion-small)] relative",
-              demoMode ? "bg-accent" : "bg-secondary"
+              "w-12 h-7 rounded-full transition-all duration-[var(--motion-small)] relative",
+              demoMode ? "bg-accent shadow-glow-sm" : "bg-secondary"
             )}
             role="switch"
             aria-checked={demoMode}
@@ -135,7 +134,7 @@ const Profile: React.FC = () => {
           >
             <span
               className={cn(
-                "absolute top-0.5 w-6 h-6 rounded-full bg-primary-foreground shadow transition-transform duration-[var(--motion-small)]",
+                "absolute top-0.5 w-6 h-6 rounded-full bg-primary-foreground shadow-depth-sm transition-transform duration-[var(--motion-small)]",
                 demoMode ? "translate-x-5" : "translate-x-0.5"
               )}
             />
@@ -143,7 +142,7 @@ const Profile: React.FC = () => {
         </GlassCard>
       </AnimatedPage>
 
-      <p className="text-center text-[10px] text-muted-foreground pb-4">
+      <p className="text-center text-[10px] text-muted-foreground/60 pb-4 tracking-wide">
         GlobeID v2.0.0 · TerraCore · Phase 2
       </p>
     </div>

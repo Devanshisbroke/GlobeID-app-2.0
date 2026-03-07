@@ -19,8 +19,15 @@ const BottomTabBar: React.FC = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-border pb-safe"
-      style={{ backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}
+      className={cn(
+        "fixed bottom-0 left-0 right-0 z-50 pb-safe",
+        "border-t border-border/50"
+      )}
+      style={{
+        background: "linear-gradient(to top, hsl(240 15% 2% / 0.95), hsl(240 15% 2% / 0.85))",
+        backdropFilter: "blur(24px) saturate(1.5)",
+        WebkitBackdropFilter: "blur(24px) saturate(1.5)",
+      }}
       role="tablist"
       aria-label="Main navigation"
     >
@@ -36,27 +43,32 @@ const BottomTabBar: React.FC = () => {
               aria-label={tab.label}
               onClick={() => navigate(tab.path)}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-0.5 min-w-[56px] min-h-[44px] rounded-xl",
-                "transition-all duration-[var(--motion-small)] ease-[var(--ease-out-expo)]",
+                "relative flex flex-col items-center justify-center gap-1 min-w-[56px] min-h-[44px] rounded-xl",
+                "transition-all duration-[var(--motion-small)] ease-[var(--ease-cinematic)]",
                 isActive
                   ? "text-accent"
-                  : "text-muted-foreground hover:text-foreground active:scale-95"
+                  : "text-muted-foreground hover:text-foreground/70 active:scale-90"
               )}
             >
+              {/* Active glow backdrop */}
+              {isActive && (
+                <span className="absolute inset-0 rounded-xl bg-accent/5 animate-scale-in" />
+              )}
               <Icon
                 className={cn(
-                  "w-5 h-5 transition-all duration-[var(--motion-small)]",
+                  "w-[22px] h-[22px] relative transition-all duration-[var(--motion-small)]",
                   isActive && "tab-glow scale-110"
                 )}
+                strokeWidth={isActive ? 2.2 : 1.8}
               />
               <span className={cn(
-                "text-[10px] font-medium leading-none transition-colors",
-                isActive && "text-accent"
+                "text-[10px] font-medium leading-none relative transition-colors",
+                isActive ? "text-accent" : "text-muted-foreground"
               )}>
                 {tab.label}
               </span>
               {isActive && (
-                <span className="absolute -bottom-0 w-8 h-[3px] rounded-full bg-gradient-to-r from-primary to-accent" />
+                <span className="absolute -bottom-0 w-10 h-[2.5px] rounded-full bg-gradient-to-r from-primary via-accent to-neon-teal" />
               )}
             </button>
           );

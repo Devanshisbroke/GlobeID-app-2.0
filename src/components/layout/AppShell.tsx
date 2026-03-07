@@ -10,6 +10,8 @@ interface AppShellProps {
 const AppShell: React.FC<AppShellProps> = ({ children }) => {
   return (
     <div className="relative min-h-[100dvh] max-w-lg mx-auto overflow-x-hidden">
+      {/* Subtle ambient gradient */}
+      <div className="fixed inset-0 pointer-events-none bg-mesh opacity-50 -z-10" />
       <main className="pb-20 pt-safe">{children}</main>
       <FAB />
       <AIAssistantButton />
