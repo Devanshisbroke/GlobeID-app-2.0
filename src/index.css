@@ -38,7 +38,7 @@
     /* ── Glass Tokens ── */
     --glass-bg: 240 8% 8% / 0.6;
     --glass-border: 0 0% 100% / 0.08;
-    --glass-blur: 12px;
+    --glass-blur: 16px;
     --glass-shine: 0 0% 100% / 0.04;
 
     /* ── Neon Accent System ── */
@@ -46,6 +46,11 @@
     --neon-cyan: 185 72% 48%;
     --neon-teal: 168 70% 45%;
     --neon-glow: 225 73% 57% / 0.3;
+
+    /* ── Gradient Tokens ── */
+    --gradient-primary: linear-gradient(135deg, hsl(225, 73%, 57%), hsl(185, 72%, 48%));
+    --gradient-accent: linear-gradient(135deg, hsl(185, 72%, 48%), hsl(168, 70%, 45%));
+    --gradient-warm: linear-gradient(135deg, hsl(25, 95%, 53%), hsl(0, 72%, 51%));
 
     /* ── Motion Tokens ── */
     --motion-micro: 160ms;
@@ -135,6 +140,11 @@
                 0 0 40px hsl(var(--neon-glow));
   }
 
+  .neon-glow-subtle {
+    box-shadow: 0 0 12px hsl(var(--neon-glow)),
+                0 0 24px hsl(225 73% 57% / 0.15);
+  }
+
   .neon-border {
     border-image: linear-gradient(
       135deg,
@@ -142,6 +152,43 @@
       hsl(var(--neon-cyan)),
       hsl(var(--neon-teal))
     ) 1;
+  }
+
+  /* ── Animated Border Glow ── */
+  .animated-border-glow {
+    position: relative;
+    overflow: hidden;
+  }
+  .animated-border-glow::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from 0deg,
+      hsl(var(--neon-indigo)),
+      hsl(var(--neon-cyan)),
+      hsl(var(--neon-teal)),
+      hsl(var(--neon-indigo))
+    );
+    z-index: -1;
+    animation: border-rotate 4s linear infinite;
+    opacity: 0.5;
+  }
+
+  /* ── Background Effects ── */
+  .bg-grid-pattern {
+    background-image: 
+      radial-gradient(circle at 1px 1px, hsl(var(--glass-border)) 1px, transparent 0);
+    background-size: 40px 40px;
+  }
+
+  .bg-gradient-radial {
+    background: radial-gradient(
+      ellipse at 50% 0%,
+      hsl(225 73% 57% / 0.08) 0%,
+      transparent 60%
+    );
   }
 
   /* ── Safe Area ── */
@@ -169,4 +216,19 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  /* ── Tab Bar Glow ── */
+  .tab-glow {
+    filter: drop-shadow(0 0 6px hsl(var(--neon-cyan)));
+  }
+
+  /* ── Section Reveal ── */
+  .section-reveal {
+    animation: fade-in var(--motion-medium, 400ms) var(--ease-out-expo, cubic-bezier(0.22,1,0.36,1)) both;
+  }
+}
+
+@keyframes border-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

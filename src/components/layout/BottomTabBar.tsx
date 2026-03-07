@@ -20,6 +20,7 @@ const BottomTabBar: React.FC = () => {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-border pb-safe"
+      style={{ backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}
       role="tablist"
       aria-label="Main navigation"
     >
@@ -35,22 +36,27 @@ const BottomTabBar: React.FC = () => {
               aria-label={tab.label}
               onClick={() => navigate(tab.path)}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 min-w-[56px] min-h-[44px] rounded-xl",
+                "relative flex flex-col items-center justify-center gap-0.5 min-w-[56px] min-h-[44px] rounded-xl",
                 "transition-all duration-[var(--motion-small)] ease-[var(--ease-out-expo)]",
                 isActive
-                  ? "text-accent scale-105"
+                  ? "text-accent"
                   : "text-muted-foreground hover:text-foreground active:scale-95"
               )}
             >
               <Icon
                 className={cn(
-                  "w-5 h-5 transition-transform duration-[var(--motion-micro)]",
-                  isActive && "drop-shadow-[0_0_6px_hsl(var(--neon-cyan))]"
+                  "w-5 h-5 transition-all duration-[var(--motion-small)]",
+                  isActive && "tab-glow scale-110"
                 )}
               />
-              <span className="text-[10px] font-medium leading-none">{tab.label}</span>
+              <span className={cn(
+                "text-[10px] font-medium leading-none transition-colors",
+                isActive && "text-accent"
+              )}>
+                {tab.label}
+              </span>
               {isActive && (
-                <span className="absolute -bottom-0 w-6 h-0.5 rounded-full bg-accent" />
+                <span className="absolute -bottom-0 w-8 h-[3px] rounded-full bg-gradient-to-r from-primary to-accent" />
               )}
             </button>
           );

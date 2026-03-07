@@ -2,14 +2,16 @@ export const DEMO_MODE = true;
 
 export const demoUser = {
   id: "usr-001",
-  name: "Arjun Shah",
-  maskedName: "A***n S***h",
-  email: "arjun@globeid.io",
-  avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+  name: "Devansh",
+  maskedName: "D***h",
+  email: "devansh@globeid.io",
+  avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face",
   identityLevel: "Verified" as const,
-  identityScore: 87,
-  countryFlags: ["🇮🇳", "🇺🇸", "🇸🇬"],
+  identityScore: 92,
+  countryFlags: ["🇮🇳", "🇺🇸", "🇦🇪", "🇸🇬"],
   memberSince: "2024",
+  currentCountry: "Singapore",
+  currentFlag: "🇸🇬",
 };
 
 export interface Document {
@@ -58,6 +60,17 @@ export const demoDocuments: Document[] = [
     expiryDate: "N/A",
     status: "verified",
   },
+  {
+    id: "doc-4",
+    type: "visa",
+    label: "UAE Residence Visa",
+    country: "UAE",
+    countryFlag: "🇦🇪",
+    number: "R•••••67",
+    issueDate: "2024-01-20",
+    expiryDate: "2027-01-19",
+    status: "verified",
+  },
 ];
 
 export interface WalletBalance {
@@ -68,10 +81,12 @@ export interface WalletBalance {
 }
 
 export const demoBalances: WalletBalance[] = [
-  { currency: "USD", symbol: "$", amount: 5000.0, flag: "🇺🇸" },
-  { currency: "EUR", symbol: "€", amount: 2340.5, flag: "🇪🇺" },
-  { currency: "INR", symbol: "₹", amount: 50000.0, flag: "🇮🇳" },
-  { currency: "SGD", symbol: "S$", amount: 1200.75, flag: "🇸🇬" },
+  { currency: "INR", symbol: "₹", amount: 24800, flag: "🇮🇳" },
+  { currency: "USD", symbol: "$", amount: 2100, flag: "🇺🇸" },
+  { currency: "CNY", symbol: "¥", amount: 5000, flag: "🇨🇳" },
+  { currency: "AED", symbol: "د.إ", amount: 3400, flag: "🇦🇪" },
+  { currency: "SGD", symbol: "S$", amount: 1850.75, flag: "🇸🇬" },
+  { currency: "EUR", symbol: "€", amount: 1240.50, flag: "🇪🇺" },
 ];
 
 export interface Transaction {
@@ -94,6 +109,8 @@ export const demoTransactions: Transaction[] = [
   { id: "tx-6", type: "send", description: "To Priya M.", amount: -200, currency: "USD", date: "2026-03-03", category: "transfer", icon: "📤" },
   { id: "tx-7", type: "payment", description: "Uber — Downtown", amount: -18, currency: "SGD", date: "2026-03-03", category: "transport", icon: "🚗" },
   { id: "tx-8", type: "payment", description: "Uniqlo Orchard", amount: -89, currency: "SGD", date: "2026-03-02", category: "shopping", icon: "🛍️" },
+  { id: "tx-9", type: "receive", description: "From Rahul S.", amount: 500, currency: "INR", date: "2026-03-01", category: "transfer", icon: "📥" },
+  { id: "tx-10", type: "payment", description: "Careem — Dubai Mall", amount: -35, currency: "AED", date: "2026-02-28", category: "transport", icon: "🚗" },
 ];
 
 export interface Booking {
@@ -164,7 +181,7 @@ export interface ActivityItem {
 
 export const demoActivity: ActivityItem[] = [
   { id: "act-1", type: "scan", title: "Passport Verified", description: "Indian passport scanned and stored", timestamp: "2 hours ago", icon: "🛂" },
-  { id: "act-2", type: "payment", title: "Payment Sent", description: "$200 sent to Priya M.", timestamp: "5 hours ago", icon: "💸" },
+  { id: "act-2", type: "payment", title: "Payment Sent", description: "₹24,800 received from Rahul", timestamp: "5 hours ago", icon: "💸" },
   { id: "act-3", type: "booking", title: "Hotel Booked", description: "Marina Bay Sands — Mar 10-14", timestamp: "Yesterday", icon: "🏨" },
   { id: "act-4", type: "travel", title: "Flight Confirmed", description: "SQ31 SFO→SIN Business", timestamp: "Yesterday", icon: "✈️" },
   { id: "act-5", type: "security", title: "Biometric Updated", description: "Face ID re-enrolled", timestamp: "2 days ago", icon: "🔐" },
@@ -176,11 +193,11 @@ export const demoActivity: ActivityItem[] = [
 ];
 
 export const quickActions = [
-  { id: "qa-1", label: "Scan Passport", icon: "🛂", route: "/identity" },
-  { id: "qa-2", label: "Open Wallet", icon: "💳", route: "/wallet" },
-  { id: "qa-3", label: "Book Hotel", icon: "🏨", route: "/travel" },
-  { id: "qa-4", label: "Book Flight", icon: "✈️", route: "/travel" },
-  { id: "qa-5", label: "Request Ride", icon: "🚗", route: "/travel" },
-  { id: "qa-6", label: "Order Food", icon: "🍽️", route: "/travel" },
-  { id: "qa-7", label: "AI Assistant", icon: "✨", route: "" },
+  { id: "qa-1", label: "Scan Passport", icon: "🛂", route: "/identity", gradient: "from-primary to-neon-indigo" },
+  { id: "qa-2", label: "Send Payment", icon: "💸", route: "/wallet", gradient: "from-neon-cyan to-neon-teal" },
+  { id: "qa-3", label: "Book Flight", icon: "✈️", route: "/travel", gradient: "from-neon-indigo to-primary" },
+  { id: "qa-4", label: "Book Hotel", icon: "🏨", route: "/travel", gradient: "from-neon-teal to-neon-cyan" },
+  { id: "qa-5", label: "Request Ride", icon: "🚗", route: "/services", gradient: "from-amber-500 to-orange-600" },
+  { id: "qa-6", label: "Order Food", icon: "🍽️", route: "/services", gradient: "from-rose-500 to-pink-600" },
+  { id: "qa-7", label: "AI Assistant", icon: "✨", route: "", gradient: "from-violet-500 to-purple-600" },
 ];
