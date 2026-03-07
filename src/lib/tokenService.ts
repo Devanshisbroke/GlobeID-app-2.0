@@ -52,13 +52,14 @@ function simSign(payload: string): string {
 
 export function createToken(claims: Omit<TokenPayload, "iss" | "iat" | "nonce"> & { iss?: string; iat?: number; nonce?: string }): { token: string; payload: TokenPayload } {
   const now = Math.floor(Date.now() / 1000);
+  const { iss: claimsIss, iat: claimsIat, nonce: claimsNonce, ...rest } = claims;
   const payload: TokenPayload = {
-    iss: claims.iss ?? "terracore",
+    iss: claimsIss ?? "terracore",
     kid: claims.kid,
-    iat: claims.iat ?? now,
+    iat: claimsIat ?? now,
     exp: claims.exp,
-    nonce: claims.nonce ?? generateNonce(),
-    ...claims,
+    nonce: claimsNonce ?? generateNonce(),
+    ...rest,
   };
 
   const header = base64url(JSON.stringify({ alg: "ES256", typ: "JWT", kid: payload.kid }));
