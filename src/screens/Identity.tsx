@@ -21,7 +21,6 @@ const Identity: React.FC = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showLinkSection, setShowLinkSection] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
 
   const {
     status,
