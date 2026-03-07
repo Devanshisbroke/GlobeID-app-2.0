@@ -3,6 +3,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { demoBookings } from "@/lib/demoData";
 import { demoFlightResults, demoHotelResults } from "@/lib/demoServices";
+import { getIcon } from "@/lib/iconMap";
 import { staggerDelay } from "@/hooks/useMotion";
 import { Plane, Hotel, Search, Star, Clock, ChevronRight, QrCode } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,32 +24,23 @@ const Travel: React.FC = () => {
 
   return (
     <div className="px-4 py-6 space-y-6">
-      {/* Tab Switcher */}
       <AnimatedPage>
         <div className="flex gap-1.5 p-1 rounded-2xl glass border border-border/40">
           {tabs.map((t) => {
             const Icon = t.icon;
             const active = tab === t.key;
             return (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-[var(--motion-small)] min-h-[44px]",
-                  active
-                    ? `${t.color} text-primary-foreground shadow-depth-sm`
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {t.label}
+              <button key={t.key} onClick={() => setTab(t.key)} className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-[var(--motion-small)] min-h-[44px]",
+                active ? `${t.color} text-primary-foreground shadow-depth-sm` : "text-muted-foreground hover:text-foreground"
+              )}>
+                <Icon className="w-3.5 h-3.5" strokeWidth={1.8} />{t.label}
               </button>
             );
           })}
         </div>
       </AnimatedPage>
 
-      {/* Bookings */}
       {tab === "bookings" && (
         <div className="space-y-3">
           <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">Upcoming Flights</h3>
@@ -57,7 +49,7 @@ const Travel: React.FC = () => {
               <GlassCard className="cursor-pointer" depth="md">
                 <div className="flex items-center gap-3">
                   <div className="w-11 h-11 rounded-xl bg-gradient-blue flex items-center justify-center shrink-0 shadow-glow-sm">
-                    <Plane className="w-5 h-5 text-primary-foreground" />
+                    <Plane className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-foreground">{bk.title}</p>
@@ -109,7 +101,6 @@ const Travel: React.FC = () => {
         </div>
       )}
 
-      {/* Flights */}
       {tab === "flights" && (
         <div className="space-y-3">
           <AnimatedPage>
@@ -120,42 +111,45 @@ const Travel: React.FC = () => {
                 <div className="px-3 py-2.5 rounded-xl bg-secondary/40 border border-border/20"><p className="text-[10px] text-muted-foreground">To</p><p className="text-sm font-bold text-foreground">BOM</p></div>
               </div>
               <div className="px-3 py-2.5 rounded-xl bg-secondary/40 border border-border/20 mb-3"><p className="text-[10px] text-muted-foreground">Date</p><p className="text-sm font-bold text-foreground">Mar 15, 2026</p></div>
-              <p className="text-[10px] text-muted-foreground">Powered by Skyscanner, Expedia, Airline APIs</p>
             </GlassCard>
           </AnimatedPage>
 
-          {demoFlightResults.map((fl, i) => (
-            <AnimatedPage key={fl.id} staggerIndex={i}>
-              <GlassCard className="cursor-pointer">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{fl.icon}</span>
-                    <div><p className="text-sm font-bold text-foreground">{fl.airline}</p><p className="text-[10px] text-muted-foreground">{fl.airlineCode} · {fl.class}</p></div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-gradient-blue">${fl.price}</p>
-                    <p className="text-[10px] text-muted-foreground">{fl.currency}</p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-xs mt-1">
-                  <div className="text-center"><p className="font-bold text-foreground">{fl.departure}</p><p className="text-[10px] text-muted-foreground">{fl.from}</p></div>
-                  <div className="flex-1 mx-3 flex flex-col items-center">
-                    <p className="text-[10px] text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />{fl.duration}</p>
-                    <div className="w-full h-px bg-gradient-to-r from-primary/50 via-primary to-primary/50 relative my-1.5">
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-glow-sm" />
-                      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-glow-sm" />
+          {demoFlightResults.map((fl, i) => {
+            const FlIcon = getIcon(fl.icon);
+            return (
+              <AnimatedPage key={fl.id} staggerIndex={i}>
+                <GlassCard className="cursor-pointer">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-blue flex items-center justify-center">
+                        <FlIcon className="w-4 h-4 text-primary-foreground" strokeWidth={1.8} />
+                      </div>
+                      <div><p className="text-sm font-bold text-foreground">{fl.airline}</p><p className="text-[10px] text-muted-foreground">{fl.airlineCode} · {fl.class}</p></div>
                     </div>
-                    <p className="text-[10px] text-muted-foreground">{fl.stops === 0 ? "Direct" : `${fl.stops} stop`}</p>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-gradient-blue">${fl.price}</p>
+                      <p className="text-[10px] text-muted-foreground">{fl.currency}</p>
+                    </div>
                   </div>
-                  <div className="text-center"><p className="font-bold text-foreground">{fl.arrival}</p><p className="text-[10px] text-muted-foreground">{fl.to}</p></div>
-                </div>
-              </GlassCard>
-            </AnimatedPage>
-          ))}
+                  <div className="flex items-center justify-between text-xs mt-1">
+                    <div className="text-center"><p className="font-bold text-foreground">{fl.departure}</p><p className="text-[10px] text-muted-foreground">{fl.from}</p></div>
+                    <div className="flex-1 mx-3 flex flex-col items-center">
+                      <p className="text-[10px] text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />{fl.duration}</p>
+                      <div className="w-full h-px bg-gradient-to-r from-primary/50 via-primary to-primary/50 relative my-1.5">
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-glow-sm" />
+                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-glow-sm" />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">{fl.stops === 0 ? "Direct" : `${fl.stops} stop`}</p>
+                    </div>
+                    <div className="text-center"><p className="font-bold text-foreground">{fl.arrival}</p><p className="text-[10px] text-muted-foreground">{fl.to}</p></div>
+                  </div>
+                </GlassCard>
+              </AnimatedPage>
+            );
+          })}
         </div>
       )}
 
-      {/* Hotels */}
       {tab === "hotels" && (
         <div className="space-y-3">
           <AnimatedPage>
@@ -166,7 +160,6 @@ const Travel: React.FC = () => {
                 <div className="px-3 py-2.5 rounded-xl bg-secondary/40 border border-border/20"><p className="text-[10px] text-muted-foreground">Check-in</p><p className="text-sm font-bold text-foreground">Mar 15</p></div>
                 <div className="px-3 py-2.5 rounded-xl bg-secondary/40 border border-border/20"><p className="text-[10px] text-muted-foreground">Check-out</p><p className="text-sm font-bold text-foreground">Mar 18</p></div>
               </div>
-              <p className="text-[10px] text-muted-foreground">Powered by Booking.com, Expedia, Hotels.com</p>
             </GlassCard>
           </AnimatedPage>
 
@@ -177,25 +170,20 @@ const Travel: React.FC = () => {
                   <img src={h.image} alt={h.name} className="w-full h-36 object-cover" loading="lazy" />
                   <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
                   <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full glass">
-                    <Star className="w-3 h-3 text-neon-amber" />
-                    <span className="text-xs font-bold text-foreground">{h.rating}</span>
+                    <Star className="w-3 h-3 text-neon-amber" /><span className="text-xs font-bold text-foreground">{h.rating}</span>
                   </div>
                 </div>
                 <div className="p-4">
                   <p className="text-sm font-bold text-foreground">{h.name}</p>
                   <p className="text-xs text-muted-foreground">{h.location}</p>
                   <div className="flex flex-wrap gap-1.5 mt-2">
-                    {h.amenities.map((a) => (
-                      <span key={a} className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/50 text-muted-foreground border border-border/20">{a}</span>
-                    ))}
+                    {h.amenities.map((a) => <span key={a} className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/50 text-muted-foreground border border-border/20">{a}</span>)}
                   </div>
                   <div className="flex items-center justify-between mt-3">
                     <div><span className="text-xl font-bold text-foreground">${h.price}</span><span className="text-xs text-muted-foreground"> /night</span></div>
                     {h.available ? (
                       <button className="px-4 py-2 rounded-xl bg-gradient-blue text-primary-foreground text-xs font-semibold active:scale-95 transition-transform min-h-[36px] shadow-glow-sm btn-ripple">Book Now</button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">Sold out</span>
-                    )}
+                    ) : <span className="text-xs text-muted-foreground">Sold out</span>}
                   </div>
                 </div>
               </GlassCard>
@@ -204,13 +192,12 @@ const Travel: React.FC = () => {
         </div>
       )}
 
-      {/* Pass */}
       {tab === "pass" && (
         <div className="space-y-4">
           <AnimatedPage>
             <GlassCard neonBorder className="text-center py-8 light-sweep" depth="lg">
               <div className="w-14 h-14 rounded-2xl bg-gradient-tropical flex items-center justify-center mx-auto mb-4 shadow-glow-md">
-                <QrCode className="w-7 h-7 text-primary-foreground" />
+                <QrCode className="w-7 h-7 text-primary-foreground" strokeWidth={1.8} />
               </div>
               <h3 className="text-sm font-bold text-foreground mb-1">Travel Pass</h3>
               <p className="text-xs text-muted-foreground mb-5">Your unified boarding pass & hotel reservation</p>
@@ -224,16 +211,7 @@ const Travel: React.FC = () => {
                 <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-2 font-medium">Hotel</p>
                 <p className="text-xl font-bold text-foreground tracking-tight">Marina Bay Sands</p>
                 <p className="text-xs text-muted-foreground mt-1">Room 4012 · Mar 10–14</p>
-                <p className="text-xs text-accent mt-1 font-semibold">Confirmed ✓</p>
-              </div>
-            </GlassCard>
-          </AnimatedPage>
-          <AnimatedPage staggerIndex={1}>
-            <GlassCard>
-              <div className="flex items-center gap-2 mb-2"><span className="text-lg">🛂</span><h3 className="text-sm font-bold text-foreground">Entry Status</h3></div>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between"><span className="text-muted-foreground">Singapore</span><span className="text-accent font-semibold">Verified ✓</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">India (upcoming)</span><span className="text-muted-foreground">Pending</span></div>
+                <p className="text-xs text-accent mt-1 font-semibold">Confirmed</p>
               </div>
             </GlassCard>
           </AnimatedPage>
