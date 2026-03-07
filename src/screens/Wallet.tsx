@@ -3,20 +3,14 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { demoBalances, demoTransactions } from "@/lib/demoData";
 import { demoPaymentNetworks } from "@/lib/demoServices";
+import { getIcon } from "@/lib/iconMap";
 import { staggerDelay } from "@/hooks/useMotion";
 import { ArrowUpRight, ArrowDownLeft, RefreshCw, Search, SlidersHorizontal, QrCode, TrendingUp, Zap, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type TxFilter = "all" | "send" | "receive" | "payment" | "convert";
 
-const currencyGradients = [
-  "bg-gradient-warm",
-  "bg-gradient-blue",
-  "bg-gradient-magenta",
-  "bg-gradient-tropical",
-  "bg-gradient-purple",
-  "bg-gradient-blue",
-];
+const currencyGradients = ["bg-gradient-warm", "bg-gradient-blue", "bg-gradient-magenta", "bg-gradient-tropical", "bg-gradient-purple", "bg-gradient-blue"];
 
 const Wallet: React.FC = () => {
   const [filter, setFilter] = useState<TxFilter>("all");
@@ -70,17 +64,11 @@ const Wallet: React.FC = () => {
               ].map((btn) => {
                 const Icon = btn.icon;
                 return (
-                  <button
-                    key={btn.label}
-                    className={cn(
-                      "flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold active:scale-95 transition-all min-h-[44px] btn-ripple",
-                      btn.accent
-                        ? "bg-gradient-blue text-primary-foreground shadow-glow-md"
-                        : "glass border border-border/40 text-foreground hover:border-primary/30 hover:shadow-glow-sm"
-                    )}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {btn.label}
+                  <button key={btn.label} className={cn(
+                    "flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold active:scale-95 transition-all min-h-[44px] btn-ripple",
+                    btn.accent ? "bg-gradient-blue text-primary-foreground shadow-glow-md" : "glass border border-border/40 text-foreground hover:border-primary/30 hover:shadow-glow-sm"
+                  )}>
+                    <Icon className="w-4 h-4" strokeWidth={1.8} />{btn.label}
                   </button>
                 );
               })}
@@ -89,25 +77,19 @@ const Wallet: React.FC = () => {
         </GlassCard>
       </AnimatedPage>
 
-      {/* Currency Cards — colorful */}
+      {/* Currency Cards */}
       <AnimatedPage staggerIndex={1}>
         <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">Currencies</h3>
         <div className="grid grid-cols-2 gap-2.5">
           {demoBalances.map((b, i) => (
-            <GlassCard
-              key={b.currency}
-              className="animate-fade-in cursor-pointer relative overflow-hidden"
-              style={{ animationDelay: staggerDelay(i, 60) }}
-            >
+            <GlassCard key={b.currency} className="animate-fade-in cursor-pointer relative overflow-hidden" style={{ animationDelay: staggerDelay(i, 60) }}>
               <div className={cn("absolute top-0 right-0 w-16 h-16 rounded-full blur-2xl opacity-20", currencyGradients[i % currencyGradients.length])} />
               <div className="relative">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg">{b.flag}</span>
                   <span className="text-xs font-semibold text-muted-foreground tracking-wide">{b.currency}</span>
                 </div>
-                <p className="text-lg font-bold text-foreground tabular-nums tracking-tight">
-                  {b.symbol}{b.amount.toLocaleString()}
-                </p>
+                <p className="text-lg font-bold text-foreground tabular-nums tracking-tight">{b.symbol}{b.amount.toLocaleString()}</p>
               </div>
             </GlassCard>
           ))}
@@ -118,27 +100,31 @@ const Wallet: React.FC = () => {
       <AnimatedPage staggerIndex={2}>
         <button onClick={() => setShowNetworks(!showNetworks)} className="flex items-center justify-between w-full mb-3 px-1">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5 text-neon-amber" />
-            Payment Networks
+            <Zap className="w-3.5 h-3.5 text-neon-amber" /> Payment Networks
           </h3>
           <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", showNetworks && "rotate-180")} />
         </button>
         {showNetworks && (
           <div className="grid grid-cols-2 gap-2 animate-fade-in">
-            {demoPaymentNetworks.map((n, i) => (
-              <GlassCard key={n.id} className="flex items-center gap-2.5 py-3 animate-fade-in" style={{ animationDelay: staggerDelay(i, 40) }}>
-                <span className="text-lg">{n.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-foreground truncate">{n.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{n.region}</p>
-                </div>
-                {n.connected ? (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">✓</span>
-                ) : (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground">Add</span>
-                )}
-              </GlassCard>
-            ))}
+            {demoPaymentNetworks.map((n, i) => {
+              const NIcon = getIcon(n.icon);
+              return (
+                <GlassCard key={n.id} className="flex items-center gap-2.5 py-3 animate-fade-in" style={{ animationDelay: staggerDelay(i, 40) }}>
+                  <div className="w-8 h-8 rounded-lg bg-secondary/60 flex items-center justify-center border border-border/20">
+                    <NIcon className="w-4 h-4 text-muted-foreground" strokeWidth={1.8} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-foreground truncate">{n.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{n.region}</p>
+                  </div>
+                  {n.connected ? (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">✓</span>
+                  ) : (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground">Add</span>
+                  )}
+                </GlassCard>
+              );
+            })}
           </div>
         )}
       </AnimatedPage>
@@ -151,48 +137,36 @@ const Wallet: React.FC = () => {
         </div>
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search transactions..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 rounded-xl glass border border-border/40 text-xs text-foreground bg-transparent focus:border-primary/50 focus:shadow-glow-sm outline-none min-h-[44px] transition-all"
-          />
+          <input type="text" placeholder="Search transactions..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-2.5 rounded-xl glass border border-border/40 text-xs text-foreground bg-transparent focus:border-primary/50 focus:shadow-glow-sm outline-none min-h-[44px] transition-all" />
         </div>
         <div className="flex gap-1.5 mb-3 overflow-x-auto hide-scrollbar">
           {filters.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className={cn(
-                "px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all min-h-[32px]",
-                filter === f.key
-                  ? "bg-primary text-primary-foreground shadow-glow-sm"
-                  : "glass text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {f.label}
-            </button>
+            <button key={f.key} onClick={() => setFilter(f.key)} className={cn(
+              "px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all min-h-[32px]",
+              filter === f.key ? "bg-primary text-primary-foreground shadow-glow-sm" : "glass text-muted-foreground hover:text-foreground"
+            )}>{f.label}</button>
           ))}
         </div>
         <div className="space-y-2">
-          {filteredTx.map((tx, i) => (
-            <GlassCard key={tx.id} className="flex items-center gap-3 py-3 px-4 animate-fade-in cursor-pointer" style={{ animationDelay: staggerDelay(i, 40) }}>
-              <div className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center shrink-0 border border-border/20">
-                <span className="text-base">{tx.icon}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{tx.description}</p>
-                <p className="text-xs text-muted-foreground">{tx.date} · {tx.category}</p>
-              </div>
-              <p className={cn("text-sm font-bold tabular-nums tracking-tight", tx.amount > 0 ? "text-accent" : "text-foreground")}>
-                {tx.amount > 0 ? "+" : ""}{tx.amount.toLocaleString()} {tx.currency}
-              </p>
-            </GlassCard>
-          ))}
-          {filteredTx.length === 0 && (
-            <p className="text-xs text-muted-foreground text-center py-8">No transactions found</p>
-          )}
+          {filteredTx.map((tx, i) => {
+            const TxIcon = getIcon(tx.icon);
+            return (
+              <GlassCard key={tx.id} className="flex items-center gap-3 py-3 px-4 animate-fade-in cursor-pointer" style={{ animationDelay: staggerDelay(i, 40) }}>
+                <div className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center shrink-0 border border-border/20">
+                  <TxIcon className="w-4 h-4 text-muted-foreground" strokeWidth={1.8} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{tx.description}</p>
+                  <p className="text-xs text-muted-foreground">{tx.date} · {tx.category}</p>
+                </div>
+                <p className={cn("text-sm font-bold tabular-nums tracking-tight", tx.amount > 0 ? "text-accent" : "text-foreground")}>
+                  {tx.amount > 0 ? "+" : ""}{tx.amount.toLocaleString()} {tx.currency}
+                </p>
+              </GlassCard>
+            );
+          })}
+          {filteredTx.length === 0 && <p className="text-xs text-muted-foreground text-center py-8">No transactions found</p>}
         </div>
       </AnimatedPage>
     </div>

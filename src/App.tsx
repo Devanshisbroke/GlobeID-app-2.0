@@ -14,6 +14,7 @@ const Wallet = lazy(() => import("@/screens/Wallet"));
 const Travel = lazy(() => import("@/screens/Travel"));
 const Services = lazy(() => import("@/screens/Services"));
 const Profile = lazy(() => import("@/screens/Profile"));
+const GlobalMap = lazy(() => import("@/screens/GlobalMap"));
 const KioskSimulator = lazy(() => import("@/screens/KioskSimulator"));
 const EntryReceipt = lazy(() => import("@/screens/EntryReceipt"));
 
@@ -29,7 +30,6 @@ const App = () => {
   const [showSplash, setShowSplash] = useState(true);
   const handleSplashComplete = useCallback(() => setShowSplash(false), []);
 
-  // Initialize dark mode from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("globe-theme");
     if (saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
@@ -59,6 +59,7 @@ const App = () => {
                         <Route path="/travel" element={<Travel />} />
                         <Route path="/services" element={<Services />} />
                         <Route path="/profile" element={<Profile />} />
+                        <Route path="/map" element={<GlobalMap />} />
                         <Route path="/kiosk-sim" element={<KioskSimulator />} />
                         <Route path="/receipt" element={<EntryReceipt />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
