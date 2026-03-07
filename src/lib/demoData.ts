@@ -10,8 +10,8 @@ export const demoUser = {
   identityScore: 92,
   countryFlags: ["🇮🇳", "🇺🇸", "🇦🇪", "🇸🇬"],
   memberSince: "2024",
-  currentCountry: "Singapore",
-  currentFlag: "🇸🇬",
+  currentCountry: "United States",
+  currentFlag: "🇺🇸",
 };
 
 export interface Document {
