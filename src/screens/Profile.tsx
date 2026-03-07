@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { demoUser } from "@/lib/demoData";
@@ -12,6 +13,9 @@ import {
   Globe,
   Bell,
   Languages,
+  Monitor,
+  ScrollText,
+  RotateCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +24,7 @@ interface SettingItem {
   label: string;
   description: string;
   color?: string;
+  route?: string;
 }
 
 const settingSections: { title: string; items: SettingItem[] }[] = [
@@ -41,12 +46,16 @@ const settingSections: { title: string; items: SettingItem[] }[] = [
   {
     title: "Developer",
     items: [
+      { icon: Monitor, label: "Kiosk Simulator", description: "Test identity verification flow", color: "text-accent", route: "/kiosk-sim" },
+      { icon: ScrollText, label: "Audit Logs", description: "View session & verification events", color: "text-muted-foreground", route: "/kiosk-sim" },
       { icon: Code2, label: "Developer Tools", description: "Demo mode, debug overlays", color: "text-muted-foreground" },
+      { icon: RotateCcw, label: "Reset Demo Data", description: "Clear all sessions & receipts", color: "text-destructive" },
     ],
   },
 ];
 
 const Profile: React.FC = () => {
+  const navigate = useNavigate();
   const [demoMode, setDemoMode] = useState(true);
 
   return (
@@ -84,6 +93,7 @@ const Profile: React.FC = () => {
                   key={item.label}
                   className="flex items-center gap-3 py-3 cursor-pointer active:scale-[0.98] transition-transform animate-fade-in"
                   style={{ animationDelay: staggerDelay(ii, 50) }}
+                  onClick={() => item.route && navigate(item.route)}
                 >
                   <Icon className={cn("w-5 h-5 shrink-0", item.color)} />
                   <div className="flex-1 min-w-0">
@@ -126,7 +136,7 @@ const Profile: React.FC = () => {
       </AnimatedPage>
 
       <p className="text-center text-[10px] text-muted-foreground pb-4">
-        GlobeID v1.0.0 — Phase 1
+        GlobeID v1.0.0 · TerraCore · Phase 1
       </p>
     </div>
   );

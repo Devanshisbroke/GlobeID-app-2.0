@@ -5,7 +5,7 @@ import { IdentityScore } from "@/components/ui/IdentityScore";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { demoUser, quickActions, demoActivity } from "@/lib/demoData";
 import { staggerDelay } from "@/hooks/useMotion";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, MapPin, ShieldCheck, Banknote, Globe, User } from "lucide-react";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ const Home: React.FC = () => {
       {/* Profile Card */}
       <AnimatedPage>
         <GlassCard className="flex items-center gap-4">
-          <div className="relative shrink-0">
+          <div className="relative shrink-0 cursor-pointer" onClick={() => navigate("/profile")}>
             <img
               src={demoUser.avatar}
               alt={demoUser.name}
@@ -40,8 +40,48 @@ const Home: React.FC = () => {
         </GlassCard>
       </AnimatedPage>
 
-      {/* Quick Actions */}
+      {/* Travel Status */}
       <AnimatedPage staggerIndex={1}>
+        <GlassCard className="border border-accent/20">
+          <div className="flex items-center gap-2 mb-3">
+            <MapPin className="w-4 h-4 text-accent" />
+            <h3 className="text-sm font-semibold text-foreground">Travel Status</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-center gap-2">
+              <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+              <div>
+                <p className="text-[10px] text-muted-foreground">Current Country</p>
+                <p className="text-xs font-medium text-foreground">🇸🇬 Singapore</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-3.5 h-3.5 text-accent" />
+              <div>
+                <p className="text-[10px] text-muted-foreground">Entry Status</p>
+                <p className="text-xs font-medium text-accent">Verified ✓</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Banknote className="w-3.5 h-3.5 text-muted-foreground" />
+              <div>
+                <p className="text-[10px] text-muted-foreground">Local Currency</p>
+                <p className="text-xs font-medium text-foreground">SGD Enabled</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <User className="w-3.5 h-3.5 text-muted-foreground" />
+              <div>
+                <p className="text-[10px] text-muted-foreground">Nearby Services</p>
+                <p className="text-xs font-medium text-foreground">12 available</p>
+              </div>
+            </div>
+          </div>
+        </GlassCard>
+      </AnimatedPage>
+
+      {/* Quick Actions */}
+      <AnimatedPage staggerIndex={2}>
         <h3 className="text-sm font-medium text-muted-foreground mb-3 px-1">Quick Actions</h3>
         <div className="grid grid-cols-4 gap-2">
           {quickActions.map((action, i) => (
@@ -62,7 +102,7 @@ const Home: React.FC = () => {
       </AnimatedPage>
 
       {/* Activity Feed */}
-      <AnimatedPage staggerIndex={2}>
+      <AnimatedPage staggerIndex={3}>
         <div className="flex items-center justify-between mb-3 px-1">
           <h3 className="text-sm font-medium text-muted-foreground">Recent Activity</h3>
           <button className="text-xs text-accent">View all</button>

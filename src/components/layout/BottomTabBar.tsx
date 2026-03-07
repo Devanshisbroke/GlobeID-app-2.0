@@ -1,21 +1,20 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, Shield, Wallet, Plane, User } from "lucide-react";
+import { Home, Shield, Wallet, Plane, LayoutGrid } from "lucide-react";
 
 const tabs = [
   { path: "/", icon: Home, label: "Home" },
   { path: "/identity", icon: Shield, label: "Identity" },
   { path: "/wallet", icon: Wallet, label: "Wallet" },
   { path: "/travel", icon: Plane, label: "Travel" },
-  { path: "/profile", icon: User, label: "Profile" },
+  { path: "/services", icon: LayoutGrid, label: "Services" },
 ];
 
 const BottomTabBar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Hide on lock screen
   if (location.pathname === "/lock") return null;
 
   return (
