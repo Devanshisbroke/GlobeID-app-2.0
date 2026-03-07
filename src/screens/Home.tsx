@@ -6,15 +6,15 @@ import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { demoUser, quickActions, demoActivity, demoBalances, demoBookings } from "@/lib/demoData";
 import { getIcon } from "@/lib/iconMap";
 import { staggerDelay } from "@/hooks/useMotion";
-import { ChevronRight, MapPin, ShieldCheck, Globe, TrendingUp, Plane, QrCode, Car, ArrowRightLeft } from "lucide-react";
+import { ChevronRight, MapPin, ShieldCheck, Globe, TrendingUp, Plane, QrCode, Car, ArrowRightLeft, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const actionGradients = [
-  "bg-gradient-blue",
-  "bg-gradient-tropical",
-  "bg-gradient-purple",
-  "bg-gradient-warm",
-  "bg-gradient-magenta",
+  "bg-gradient-ocean",
+  "bg-gradient-forest",
+  "bg-gradient-cosmic",
+  "bg-gradient-sunset",
+  "bg-gradient-aurora",
   "bg-gradient-blue",
   "bg-gradient-purple",
   "bg-gradient-tropical",
@@ -37,35 +37,38 @@ const Home: React.FC = () => {
   const greeting = new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 18 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="px-4 py-6 space-y-6 bg-gradient-radial min-h-screen">
+    <div className="px-4 py-6 space-y-5 bg-gradient-radial min-h-screen">
       {/* Ambient orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="orb w-[300px] h-[300px] top-[-5%] left-[-10%]" style={{ background: "hsl(var(--blue-start) / 0.2)" }} />
-        <div className="orb w-[250px] h-[250px] bottom-[20%] right-[-15%]" style={{ background: "hsl(var(--tropical-start) / 0.15)", animationDelay: "-7s" }} />
-        <div className="orb w-[200px] h-[200px] top-[40%] left-[50%]" style={{ background: "hsl(var(--purple-start) / 0.1)", animationDelay: "-13s" }} />
+        <div className="orb w-[320px] h-[320px] top-[-5%] left-[-10%]" style={{ background: "hsl(var(--ocean-aqua) / 0.18)" }} />
+        <div className="orb w-[280px] h-[280px] bottom-[20%] right-[-15%]" style={{ background: "hsl(var(--forest-jade) / 0.12)", animationDelay: "-7s" }} />
+        <div className="orb w-[220px] h-[220px] top-[40%] left-[50%]" style={{ background: "hsl(var(--aurora-purple) / 0.1)", animationDelay: "-13s" }} />
       </div>
 
-      {/* Greeting + Travel Status Hero */}
+      {/* Greeting + Identity Hero */}
       <AnimatedPage>
-        <GlassCard className="relative overflow-hidden p-5" glow depth="lg">
+        <GlassCard className="relative overflow-hidden p-5" variant="premium" glow depth="lg">
           <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent animate-shimmer" />
           </div>
 
           <div className="relative">
-            <p className="text-sm text-muted-foreground mb-1">{greeting},</p>
-            <h2 className="text-2xl font-bold text-foreground mb-1">{demoUser.name}</h2>
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-3.5 h-3.5 text-neon-amber" strokeWidth={1.8} />
+              <p className="text-xs text-muted-foreground font-medium">{greeting},</p>
+            </div>
+            <h2 className="text-2xl font-bold text-foreground mb-1 tracking-tight">{demoUser.name}</h2>
 
             {nextFlight && (
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-4">
                 <Plane className="w-3.5 h-3.5 text-primary" />
-                <span>You are flying to <span className="text-foreground font-semibold">Singapore</span> today</span>
+                <span>Flying to <span className="text-foreground font-semibold">Singapore</span> today</span>
               </div>
             )}
 
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-blue flex items-center justify-center shrink-0 shadow-glow-sm cursor-pointer" onClick={() => navigate("/profile")}>
-                <ShieldCheck className="w-5 h-5 text-primary-foreground" />
+              <div className="w-13 h-13 rounded-2xl bg-gradient-cosmic flex items-center justify-center shrink-0 shadow-glow-sm cursor-pointer touch-bounce" onClick={() => navigate("/profile")}>
+                <ShieldCheck className="w-5.5 h-5.5 text-primary-foreground" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
@@ -77,7 +80,7 @@ const Home: React.FC = () => {
                 </div>
                 <div className="flex gap-1.5 mt-2">
                   {demoUser.countryFlags.map((flag, i) => (
-                    <span key={i} className="text-sm">{flag}</span>
+                    <span key={i} className="text-sm w-7 h-7 rounded-lg bg-secondary/40 flex items-center justify-center border border-border/20">{flag}</span>
                   ))}
                 </div>
               </div>
@@ -98,35 +101,35 @@ const Home: React.FC = () => {
       {/* Boarding Pass */}
       {nextFlight && (
         <AnimatedPage staggerIndex={1}>
-          <GlassCard className="relative overflow-hidden cursor-pointer p-0" depth="lg" onClick={() => navigate("/travel")}>
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-accent/6 pointer-events-none" />
+          <GlassCard className="relative overflow-hidden cursor-pointer p-0" variant="premium" depth="lg" onClick={() => navigate("/travel")}>
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-accent/5 pointer-events-none" />
             <div className="p-5 relative">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-blue flex items-center justify-center">
-                  <Plane className="w-4 h-4 text-primary-foreground" />
+                <div className="w-9 h-9 rounded-xl bg-gradient-ocean flex items-center justify-center shadow-glow-sm">
+                  <Plane className="w-4.5 h-4.5 text-primary-foreground" />
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Boarding Pass</p>
                   <p className="text-xs text-foreground font-semibold">{nextFlight.subtitle}</p>
                 </div>
-                <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">{nextFlight.status}</span>
+                <span className="ml-auto text-[10px] px-2.5 py-1 rounded-full bg-accent/15 text-accent font-semibold">{nextFlight.status}</span>
               </div>
 
               <div className="flex items-center justify-between mb-3">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-foreground">SFO</p>
+                  <p className="text-2xl font-bold text-foreground tracking-tight">SFO</p>
                   <p className="text-[10px] text-muted-foreground">San Francisco</p>
                 </div>
                 <div className="flex-1 mx-4 flex flex-col items-center">
-                  <div className="w-full h-px bg-gradient-to-r from-primary/50 via-primary to-primary/50 relative">
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-glow-sm" />
+                  <div className="w-full h-px bg-gradient-to-r from-primary/40 via-primary to-accent/40 relative">
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-primary shadow-glow-sm" />
                     <Plane className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-accent shadow-glow-sm" />
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-accent shadow-glow-sm" />
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-2">18h 15m · Direct</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-foreground">SIN</p>
+                  <p className="text-2xl font-bold text-foreground tracking-tight">SIN</p>
                   <p className="text-[10px] text-muted-foreground">Singapore</p>
                 </div>
               </div>
@@ -153,8 +156,8 @@ const Home: React.FC = () => {
 
       {/* Portfolio Value */}
       <AnimatedPage staggerIndex={2}>
-        <GlassCard className="flex items-center gap-4 py-4" depth="md">
-          <div className="w-11 h-11 rounded-xl bg-gradient-tropical flex items-center justify-center shrink-0 shadow-glow-sm">
+        <GlassCard className="flex items-center gap-4 py-4" depth="md" onClick={() => navigate("/wallet")}>
+          <div className="w-11 h-11 rounded-xl bg-gradient-forest flex items-center justify-center shrink-0 shadow-glow-sm">
             <TrendingUp className="w-5 h-5 text-primary-foreground" />
           </div>
           <div className="flex-1">
@@ -165,7 +168,7 @@ const Home: React.FC = () => {
           </div>
           <div className="flex -space-x-1.5">
             {demoBalances.slice(0, 4).map((b) => (
-              <span key={b.currency} className="text-sm w-8 h-8 rounded-full glass flex items-center justify-center text-[11px] shadow-depth-sm">
+              <span key={b.currency} className="text-sm w-8 h-8 rounded-full glass flex items-center justify-center text-[11px] shadow-depth-sm border border-border/20">
                 {b.flag}
               </span>
             ))}
@@ -173,7 +176,7 @@ const Home: React.FC = () => {
         </GlassCard>
       </AnimatedPage>
 
-      {/* Quick Actions — vector icons */}
+      {/* Quick Actions */}
       <AnimatedPage staggerIndex={3}>
         <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">Quick Actions</h3>
         <div className="grid grid-cols-4 gap-2.5">
@@ -193,7 +196,7 @@ const Home: React.FC = () => {
                 style={{ animationDelay: staggerDelay(i, 50) }}
                 aria-label={action.label}
               >
-                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", actionGradients[i % actionGradients.length])}>
+                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-depth-sm", actionGradients[i % actionGradients.length])}>
                   <ActionIcon className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
                 </div>
                 <span className="text-[10px] font-medium text-muted-foreground text-center leading-tight">
@@ -205,9 +208,9 @@ const Home: React.FC = () => {
         </div>
       </AnimatedPage>
 
-      {/* Travel Status — vector icons */}
+      {/* Travel Status */}
       <AnimatedPage staggerIndex={4}>
-        <GlassCard className="border-gradient" depth="md">
+        <GlassCard className="border-gradient" variant="premium" depth="md">
           <div className="flex items-center gap-2 mb-3">
             <Globe className="w-4 h-4 text-accent" />
             <h3 className="text-sm font-semibold text-foreground">Travel Status</h3>
@@ -233,13 +236,13 @@ const Home: React.FC = () => {
         </GlassCard>
       </AnimatedPage>
 
-      {/* Country Adaptive Cards — vector icons */}
+      {/* Suggestions */}
       <AnimatedPage staggerIndex={5}>
         <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">Suggestions</h3>
         <div className="space-y-2.5">
-          <GlassCard className="cursor-pointer" onClick={() => navigate("/services")}>
+          <GlassCard className="cursor-pointer touch-bounce" onClick={() => navigate("/services")}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-warm flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-gradient-sunset flex items-center justify-center shrink-0 shadow-depth-sm">
                 <Car className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
               </div>
               <div className="flex-1">
@@ -249,9 +252,9 @@ const Home: React.FC = () => {
               <ChevronRight className="w-4 h-4 text-muted-foreground/60" />
             </div>
           </GlassCard>
-          <GlassCard className="cursor-pointer" onClick={() => navigate("/wallet")}>
+          <GlassCard className="cursor-pointer touch-bounce" onClick={() => navigate("/wallet")}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-purple flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-gradient-aurora flex items-center justify-center shrink-0 shadow-depth-sm">
                 <ArrowRightLeft className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
               </div>
               <div className="flex-1">
@@ -264,7 +267,7 @@ const Home: React.FC = () => {
         </div>
       </AnimatedPage>
 
-      {/* Activity Feed — vector icons */}
+      {/* Activity Feed */}
       <AnimatedPage staggerIndex={6}>
         <div className="flex items-center justify-between mb-3 px-1">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Activity</h3>

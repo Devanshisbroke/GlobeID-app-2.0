@@ -20,7 +20,7 @@ const settingSections: { title: string; items: SettingItem[] }[] = [
   {
     title: "Preferences",
     items: [
-      { icon: Globe, label: "Currency & Region", description: "INR — India", color: "text-primary" },
+      { icon: Globe, label: "Currency & Region", description: "USD — United States", color: "text-primary" },
       { icon: Languages, label: "Language", description: "English", color: "text-neon-cyan" },
       { icon: Bell, label: "Notifications", description: "Push, email, in-app", color: "text-accent" },
     ],
@@ -41,10 +41,10 @@ const Profile: React.FC = () => {
   const [demoMode, setDemoMode] = useState(true);
 
   return (
-    <div className="px-4 py-6 space-y-6">
+    <div className="px-4 py-6 space-y-5">
       <AnimatedPage>
-        <GlassCard className="flex items-center gap-4 relative overflow-hidden light-sweep" glow depth="lg">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-blue flex items-center justify-center shrink-0 shadow-glow-sm">
+        <GlassCard className="flex items-center gap-4 relative overflow-hidden light-sweep" variant="premium" glow depth="lg">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-cosmic flex items-center justify-center shrink-0 shadow-glow-sm">
             <ShieldCheck className="w-6 h-6 text-primary-foreground" />
           </div>
           <div className="flex-1 min-w-0 relative">
@@ -63,7 +63,7 @@ const Profile: React.FC = () => {
             {section.items.map((item, ii) => {
               const Icon = item.icon;
               return (
-                <GlassCard key={item.label} className="flex items-center gap-3 py-3 cursor-pointer animate-fade-in" style={{ animationDelay: staggerDelay(ii, 50) }} onClick={() => item.route && navigate(item.route)}>
+                <GlassCard key={item.label} className="flex items-center gap-3 py-3 cursor-pointer animate-fade-in touch-bounce" style={{ animationDelay: staggerDelay(ii, 50) }} onClick={() => item.route && navigate(item.route)}>
                   <div className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center shrink-0 border border-border/20">
                     <Icon className={cn("w-4 h-4", item.color)} />
                   </div>
@@ -95,7 +95,7 @@ const Profile: React.FC = () => {
         </GlassCard>
       </AnimatedPage>
 
-      <p className="text-center text-[10px] text-muted-foreground/60 pb-4 tracking-wide">GlobeID v3.0.0 · Adaptive · Phase 3</p>
+      <p className="text-center text-[10px] text-muted-foreground/60 pb-4 tracking-wide">GlobeID v4.0.0 · Premium · Phase 4</p>
     </div>
   );
 };

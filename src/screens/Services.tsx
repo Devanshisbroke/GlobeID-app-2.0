@@ -18,11 +18,11 @@ const Services: React.FC = () => {
   const [pickup] = useState("Marina Bay Sands");
   const [dropoff] = useState("Changi Airport T3");
 
-  const tabs: { key: Tab; label: string; icon: React.ElementType; color: string }[] = [
-    { key: "rides", label: "Rides", icon: Car, color: "bg-gradient-warm" },
-    { key: "food", label: "Food", icon: UtensilsCrossed, color: "bg-gradient-magenta" },
-    { key: "local", label: "Local", icon: MapPin, color: "bg-gradient-blue" },
-    { key: "safety", label: "Safety", icon: Shield, color: "bg-gradient-tropical" },
+  const tabs: { key: Tab; label: string; icon: React.ElementType; gradient: string }[] = [
+    { key: "rides", label: "Rides", icon: Car, gradient: "bg-gradient-sunset" },
+    { key: "food", label: "Food", icon: UtensilsCrossed, gradient: "bg-gradient-aurora" },
+    { key: "local", label: "Local", icon: MapPin, gradient: "bg-gradient-ocean" },
+    { key: "safety", label: "Safety", icon: Shield, gradient: "bg-gradient-forest" },
   ];
 
   const handleRequestRide = (providerId: string) => {
@@ -31,7 +31,7 @@ const Services: React.FC = () => {
   };
 
   return (
-    <div className="px-4 py-6 space-y-6">
+    <div className="px-4 py-6 space-y-5">
       <AnimatedPage>
         <h1 className="text-xl font-bold text-foreground mb-1">Services</h1>
         <p className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -47,7 +47,7 @@ const Services: React.FC = () => {
             return (
               <button key={t.key} onClick={() => setTab(t.key)} className={cn(
                 "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-[var(--motion-small)] min-h-[44px]",
-                active ? `${t.color} text-primary-foreground shadow-depth-sm` : "text-muted-foreground hover:text-foreground"
+                active ? `${t.gradient} text-primary-foreground shadow-depth-sm` : "text-muted-foreground hover:text-foreground"
               )}>
                 <Icon className="w-3.5 h-3.5" strokeWidth={1.8} />{t.label}
               </button>
@@ -60,7 +60,7 @@ const Services: React.FC = () => {
         <div className="space-y-3">
           {activeRide && (
             <AnimatedPage>
-              <GlassCard neonBorder depth="lg">
+              <GlassCard neonBorder variant="premium" depth="lg">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-6 h-6 rounded-full bg-accent/15 flex items-center justify-center"><Check className="w-3.5 h-3.5 text-accent" /></div>
                   <span className="text-sm font-bold text-accent">Ride Confirmed</span>
@@ -87,8 +87,8 @@ const Services: React.FC = () => {
             const PIcon = getIcon(provider.icon);
             return (
               <AnimatedPage key={provider.id} staggerIndex={i}>
-                <GlassCard className={cn("flex items-center gap-3 cursor-pointer", !provider.available && "opacity-40")} onClick={() => provider.available && handleRequestRide(provider.id)}>
-                  <div className="w-10 h-10 rounded-xl bg-gradient-warm flex items-center justify-center shrink-0">
+                <GlassCard className={cn("flex items-center gap-3 cursor-pointer touch-bounce", !provider.available && "opacity-40")} onClick={() => provider.available && handleRequestRide(provider.id)}>
+                  <div className="w-10 h-10 rounded-xl bg-gradient-sunset flex items-center justify-center shrink-0 shadow-depth-sm">
                     <PIcon className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -114,11 +114,11 @@ const Services: React.FC = () => {
             const RIcon = getIcon(r.icon);
             return (
               <AnimatedPage key={r.id} staggerIndex={i}>
-                <GlassCard className="overflow-hidden p-0 cursor-pointer" depth="md">
+                <GlassCard className="overflow-hidden p-0 cursor-pointer touch-bounce" depth="md">
                   <div className="relative">
                     <img src={r.image} alt={r.name} className="w-full h-36 object-cover" loading="lazy" />
                     <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-                    <span className="absolute top-3 right-3 text-[10px] px-2.5 py-1 rounded-full glass font-semibold text-foreground">{r.provider}</span>
+                    <span className="absolute top-3 right-3 text-[10px] px-2.5 py-1 rounded-full glass font-semibold text-foreground border border-border/30">{r.provider}</span>
                   </div>
                   <div className="p-4">
                     <div className="flex items-center gap-2">
@@ -145,7 +145,7 @@ const Services: React.FC = () => {
             const SIcon = getIcon(s.icon);
             return (
               <AnimatedPage key={s.id} staggerIndex={i}>
-                <GlassCard className="flex items-center gap-3 cursor-pointer">
+                <GlassCard className="flex items-center gap-3 cursor-pointer touch-bounce">
                   <div className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center shrink-0 border border-border/20">
                     <SIcon className="w-4 h-4 text-muted-foreground" strokeWidth={1.8} />
                   </div>
@@ -164,7 +164,7 @@ const Services: React.FC = () => {
       {tab === "safety" && (
         <div className="space-y-3">
           <AnimatedPage>
-            <GlassCard neonBorder depth="md">
+            <GlassCard neonBorder variant="premium" depth="md">
               <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
                 <Shield className="w-4 h-4 text-accent" /> Emergency Contacts — Singapore
               </h3>
@@ -177,7 +177,7 @@ const Services: React.FC = () => {
                         <CIcon className="w-4 h-4 text-muted-foreground" strokeWidth={1.8} />
                       </div>
                       <div className="flex-1"><p className="text-sm font-medium text-foreground">{c.name}</p></div>
-                      <a href={`tel:${c.number}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 text-accent text-xs font-semibold min-h-[36px] hover:bg-accent/20 transition-colors">
+                      <a href={`tel:${c.number}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 text-accent text-xs font-semibold min-h-[36px] hover:bg-accent/20 transition-colors touch-bounce">
                         <Phone className="w-3 h-3" />{c.number}
                       </a>
                     </div>

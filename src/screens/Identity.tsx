@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { demoDocuments } from "@/lib/demoData";
-import { Shield, ShieldCheck, Clock, AlertTriangle, ChevronDown, ScanLine, Link2 } from "lucide-react";
+import { Shield, ShieldCheck, Clock, AlertTriangle, ChevronDown, ScanLine, Link2, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import QRDisplay from "@/components/identity/QRDisplay";
 import SessionStatus from "@/components/identity/SessionStatus";
@@ -12,9 +12,11 @@ import { useVerificationSession } from "@/hooks/useVerificationSession";
 
 const statusConfig = {
   verified: { icon: ShieldCheck, color: "text-accent", label: "Verified" },
-  pending: { icon: Clock, color: "text-yellow-400", label: "Pending" },
+  pending: { icon: Clock, color: "text-neon-amber", label: "Pending" },
   expired: { icon: AlertTriangle, color: "text-destructive", label: "Expired" },
 };
+
+const docGradients = ["bg-gradient-ocean", "bg-gradient-cosmic", "bg-gradient-forest", "bg-gradient-sunset", "bg-gradient-aurora"];
 
 const Identity: React.FC = () => {
   const navigate = useNavigate();
@@ -39,7 +41,6 @@ const Identity: React.FC = () => {
     generateQR();
   };
 
-  // Watch for verified status to trigger welcome animation
   React.useEffect(() => {
     if (status === "verified" && countryCode) {
       setShowWelcome(true);
@@ -56,8 +57,7 @@ const Identity: React.FC = () => {
   };
 
   return (
-    <div className="px-4 py-6 space-y-6">
-      {/* Welcome overlay */}
+    <div className="px-4 py-6 space-y-5">
       {showWelcome && countryCode && (
         <WelcomeOverlay countryCode={countryCode} onComplete={handleWelcomeComplete} />
       )}
@@ -77,14 +77,14 @@ const Identity: React.FC = () => {
           <div className="flex gap-2">
             <button
               onClick={handleStartLink}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl glass text-accent text-xs font-medium active:scale-95 transition-transform min-h-[44px]"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl glass text-accent text-xs font-medium active:scale-95 transition-transform min-h-[44px] touch-bounce"
               aria-label="Link at kiosk"
             >
               <Link2 className="w-4 h-4" />
               Link
             </button>
             <button
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-neon-indigo to-neon-cyan text-primary-foreground text-xs font-medium active:scale-95 transition-transform min-h-[44px]"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-cosmic text-primary-foreground text-xs font-medium active:scale-95 transition-transform min-h-[44px] shadow-glow-sm btn-ripple"
               aria-label="Scan new document"
             >
               <ScanLine className="w-4 h-4" />
@@ -97,7 +97,7 @@ const Identity: React.FC = () => {
       {/* Link at Kiosk section */}
       {showLinkSection && (
         <AnimatedPage>
-          <GlassCard neonBorder className="flex flex-col items-center py-6 gap-4">
+          <GlassCard neonBorder variant="premium" className="flex flex-col items-center py-6 gap-4">
             <h3 className="text-sm font-semibold text-foreground">Link at Kiosk</h3>
             <p className="text-xs text-muted-foreground text-center px-4">
               Show this QR code at any GlobeID kiosk to verify your identity
@@ -134,14 +134,16 @@ const Identity: React.FC = () => {
           return (
             <AnimatedPage key={doc.id} staggerIndex={i}>
               <GlassCard
-                className="cursor-pointer active:scale-[0.98] transition-transform"
+                className="cursor-pointer touch-bounce"
                 onClick={() => setExpandedId(isExpanded ? null : doc.id)}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{doc.countryFlag}</span>
+                  <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-depth-sm", docGradients[i % docGradients.length])}>
+                    <Globe className="w-4.5 h-4.5 text-primary-foreground" strokeWidth={1.8} />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-foreground">{doc.label}</p>
-                    <p className="text-xs text-muted-foreground">{doc.number}</p>
+                    <p className="text-xs text-muted-foreground">{doc.countryFlag} {doc.country} · {doc.number}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <StatusIcon className={cn("w-4 h-4", Status.color)} />
@@ -155,7 +157,7 @@ const Identity: React.FC = () => {
                 </div>
 
                 {isExpanded && (
-                  <div className="mt-3 pt-3 border-t border-border space-y-2 animate-fade-in">
+                  <div className="mt-3 pt-3 border-t border-border/30 space-y-2 animate-fade-in">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Country</span>
                       <span className="text-foreground">{doc.country}</span>

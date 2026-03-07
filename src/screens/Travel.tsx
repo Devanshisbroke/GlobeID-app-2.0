@@ -15,15 +15,15 @@ const Travel: React.FC = () => {
   const flights = demoBookings.filter((b) => b.type === "flight");
   const hotels = demoBookings.filter((b) => b.type === "hotel");
 
-  const tabs: { key: Tab; label: string; icon: React.ElementType; color: string }[] = [
-    { key: "bookings", label: "My Trips", icon: Plane, color: "bg-gradient-blue" },
-    { key: "flights", label: "Flights", icon: Search, color: "bg-gradient-purple" },
-    { key: "hotels", label: "Hotels", icon: Hotel, color: "bg-gradient-warm" },
-    { key: "pass", label: "Pass", icon: QrCode, color: "bg-gradient-tropical" },
+  const tabs: { key: Tab; label: string; icon: React.ElementType; gradient: string }[] = [
+    { key: "bookings", label: "My Trips", icon: Plane, gradient: "bg-gradient-ocean" },
+    { key: "flights", label: "Flights", icon: Search, gradient: "bg-gradient-cosmic" },
+    { key: "hotels", label: "Hotels", icon: Hotel, gradient: "bg-gradient-sunset" },
+    { key: "pass", label: "Pass", icon: QrCode, gradient: "bg-gradient-forest" },
   ];
 
   return (
-    <div className="px-4 py-6 space-y-6">
+    <div className="px-4 py-6 space-y-5">
       <AnimatedPage>
         <div className="flex gap-1.5 p-1 rounded-2xl glass border border-border/40">
           {tabs.map((t) => {
@@ -32,7 +32,7 @@ const Travel: React.FC = () => {
             return (
               <button key={t.key} onClick={() => setTab(t.key)} className={cn(
                 "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-[var(--motion-small)] min-h-[44px]",
-                active ? `${t.color} text-primary-foreground shadow-depth-sm` : "text-muted-foreground hover:text-foreground"
+                active ? `${t.gradient} text-primary-foreground shadow-depth-sm` : "text-muted-foreground hover:text-foreground"
               )}>
                 <Icon className="w-3.5 h-3.5" strokeWidth={1.8} />{t.label}
               </button>
@@ -46,9 +46,9 @@ const Travel: React.FC = () => {
           <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">Upcoming Flights</h3>
           {flights.map((bk, i) => (
             <AnimatedPage key={bk.id} staggerIndex={i}>
-              <GlassCard className="cursor-pointer" depth="md">
+              <GlassCard className="cursor-pointer touch-bounce" depth="md">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-blue flex items-center justify-center shrink-0 shadow-glow-sm">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-ocean flex items-center justify-center shrink-0 shadow-glow-sm">
                     <Plane className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -75,7 +75,7 @@ const Travel: React.FC = () => {
           <h3 className="text-xs font-semibold text-muted-foreground px-1 mt-4 uppercase tracking-widest">Hotels</h3>
           {hotels.map((bk, i) => (
             <AnimatedPage key={bk.id} staggerIndex={i + flights.length}>
-              <GlassCard className="overflow-hidden cursor-pointer p-0" depth="md">
+              <GlassCard className="overflow-hidden cursor-pointer p-0 touch-bounce" depth="md">
                 {bk.image && (
                   <div className="relative">
                     <img src={bk.image} alt={bk.title} className="w-full h-36 object-cover" loading="lazy" />
@@ -104,7 +104,7 @@ const Travel: React.FC = () => {
       {tab === "flights" && (
         <div className="space-y-3">
           <AnimatedPage>
-            <GlassCard depth="md">
+            <GlassCard variant="premium" depth="md">
               <h3 className="text-sm font-bold text-foreground mb-3">Search Flights</h3>
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <div className="px-3 py-2.5 rounded-xl bg-secondary/40 border border-border/20"><p className="text-[10px] text-muted-foreground">From</p><p className="text-sm font-bold text-foreground">SIN</p></div>
@@ -118,10 +118,10 @@ const Travel: React.FC = () => {
             const FlIcon = getIcon(fl.icon);
             return (
               <AnimatedPage key={fl.id} staggerIndex={i}>
-                <GlassCard className="cursor-pointer">
+                <GlassCard className="cursor-pointer touch-bounce">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-blue flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-ocean flex items-center justify-center shadow-depth-sm">
                         <FlIcon className="w-4 h-4 text-primary-foreground" strokeWidth={1.8} />
                       </div>
                       <div><p className="text-sm font-bold text-foreground">{fl.airline}</p><p className="text-[10px] text-muted-foreground">{fl.airlineCode} · {fl.class}</p></div>
@@ -135,7 +135,7 @@ const Travel: React.FC = () => {
                     <div className="text-center"><p className="font-bold text-foreground">{fl.departure}</p><p className="text-[10px] text-muted-foreground">{fl.from}</p></div>
                     <div className="flex-1 mx-3 flex flex-col items-center">
                       <p className="text-[10px] text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />{fl.duration}</p>
-                      <div className="w-full h-px bg-gradient-to-r from-primary/50 via-primary to-primary/50 relative my-1.5">
+                      <div className="w-full h-px bg-gradient-to-r from-primary/40 via-primary to-primary/40 relative my-1.5">
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-glow-sm" />
                         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-glow-sm" />
                       </div>
@@ -153,7 +153,7 @@ const Travel: React.FC = () => {
       {tab === "hotels" && (
         <div className="space-y-3">
           <AnimatedPage>
-            <GlassCard depth="md">
+            <GlassCard variant="premium" depth="md">
               <h3 className="text-sm font-bold text-foreground mb-3">Search Hotels</h3>
               <div className="px-3 py-2.5 rounded-xl bg-secondary/40 border border-border/20 mb-2"><p className="text-[10px] text-muted-foreground">Destination</p><p className="text-sm font-bold text-foreground">Mumbai, India</p></div>
               <div className="grid grid-cols-2 gap-2 mb-3">
@@ -165,11 +165,11 @@ const Travel: React.FC = () => {
 
           {demoHotelResults.map((h, i) => (
             <AnimatedPage key={h.id} staggerIndex={i}>
-              <GlassCard className={cn("overflow-hidden p-0 cursor-pointer", !h.available && "opacity-50")} depth="md">
+              <GlassCard className={cn("overflow-hidden p-0 cursor-pointer touch-bounce", !h.available && "opacity-50")} depth="md">
                 <div className="relative">
                   <img src={h.image} alt={h.name} className="w-full h-36 object-cover" loading="lazy" />
                   <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-                  <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full glass">
+                  <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full glass border border-border/30">
                     <Star className="w-3 h-3 text-neon-amber" /><span className="text-xs font-bold text-foreground">{h.rating}</span>
                   </div>
                 </div>
@@ -182,7 +182,7 @@ const Travel: React.FC = () => {
                   <div className="flex items-center justify-between mt-3">
                     <div><span className="text-xl font-bold text-foreground">${h.price}</span><span className="text-xs text-muted-foreground"> /night</span></div>
                     {h.available ? (
-                      <button className="px-4 py-2 rounded-xl bg-gradient-blue text-primary-foreground text-xs font-semibold active:scale-95 transition-transform min-h-[36px] shadow-glow-sm btn-ripple">Book Now</button>
+                      <button className="px-4 py-2 rounded-xl bg-gradient-ocean text-primary-foreground text-xs font-semibold active:scale-95 transition-transform min-h-[36px] shadow-glow-sm btn-ripple">Book Now</button>
                     ) : <span className="text-xs text-muted-foreground">Sold out</span>}
                   </div>
                 </div>
@@ -195,8 +195,8 @@ const Travel: React.FC = () => {
       {tab === "pass" && (
         <div className="space-y-4">
           <AnimatedPage>
-            <GlassCard neonBorder className="text-center py-8 light-sweep" depth="lg">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-tropical flex items-center justify-center mx-auto mb-4 shadow-glow-md">
+            <GlassCard neonBorder className="text-center py-8 light-sweep" variant="premium" depth="lg">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-forest flex items-center justify-center mx-auto mb-4 shadow-glow-md">
                 <QrCode className="w-7 h-7 text-primary-foreground" strokeWidth={1.8} />
               </div>
               <h3 className="text-sm font-bold text-foreground mb-1">Travel Pass</h3>
