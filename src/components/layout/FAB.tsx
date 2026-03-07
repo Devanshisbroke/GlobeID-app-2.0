@@ -24,7 +24,7 @@ const FAB: React.FC = () => {
       className={cn(
         "fixed z-50 right-4 bottom-[88px] w-14 h-14 rounded-full",
         "flex items-center justify-center",
-        "bg-gradient-to-br from-neon-indigo via-neon-cyan to-neon-teal",
+        "bg-gradient-cosmic",
         "shadow-glow-lg",
         "transition-all duration-[var(--motion-micro)] ease-[var(--ease-cinematic)]",
         "active:scale-90",
