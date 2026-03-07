@@ -4,7 +4,7 @@ import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { demoBalances, demoTransactions } from "@/lib/demoData";
 import { demoPaymentNetworks } from "@/lib/demoServices";
 import { staggerDelay } from "@/hooks/useMotion";
-import { ArrowUpRight, ArrowDownLeft, RefreshCw, Search, SlidersHorizontal, QrCode, TrendingUp, Zap } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, RefreshCw, Search, SlidersHorizontal, QrCode, TrendingUp, Zap, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type TxFilter = "all" | "send" | "receive" | "payment" | "convert";
@@ -42,17 +42,17 @@ const Wallet: React.FC = () => {
     <div className="px-4 py-6 space-y-6">
       {/* Total Balance */}
       <AnimatedPage>
-        <GlassCard className="text-center py-6 relative overflow-hidden" glow>
-          <div className="absolute inset-0 bg-gradient-to-br from-neon-indigo/5 via-transparent to-neon-cyan/5 pointer-events-none" />
+        <GlassCard className="text-center py-8 relative overflow-hidden light-sweep" glow depth="lg">
+          <div className="absolute inset-0 bg-gradient-to-br from-neon-indigo/8 via-transparent to-neon-cyan/6 pointer-events-none" />
           <div className="relative">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-neon-indigo to-neon-cyan flex items-center justify-center mx-auto mb-3">
-              <TrendingUp className="w-6 h-6 text-primary-foreground" />
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-neon-indigo to-neon-cyan flex items-center justify-center mx-auto mb-4 shadow-glow-md">
+              <TrendingUp className="w-7 h-7 text-primary-foreground" />
             </div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Total Balance</p>
-            <p className="text-3xl font-bold text-foreground tabular-nums">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1 font-medium">Total Balance</p>
+            <p className="text-4xl font-bold text-foreground tabular-nums tracking-tight">
               ${totalUSD.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <div className="flex gap-2 justify-center mt-5 flex-wrap">
+            <div className="flex gap-2 justify-center mt-6 flex-wrap">
               {[
                 { icon: ArrowUpRight, label: "Send", accent: true },
                 { icon: ArrowDownLeft, label: "Receive" },
@@ -64,10 +64,10 @@ const Wallet: React.FC = () => {
                   <button
                     key={btn.label}
                     className={cn(
-                      "flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium active:scale-95 transition-all min-h-[44px]",
+                      "flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold active:scale-95 transition-all min-h-[44px] btn-ripple",
                       btn.accent
-                        ? "bg-gradient-to-r from-neon-indigo to-neon-cyan text-primary-foreground shadow-[0_0_16px_hsl(var(--neon-cyan)/0.3)]"
-                        : "glass border border-border text-foreground hover:border-accent/30"
+                        ? "bg-gradient-to-r from-neon-indigo to-neon-cyan text-primary-foreground shadow-glow-md"
+                        : "glass border border-border/40 text-foreground hover:border-accent/30 hover:shadow-glow-sm"
                     )}
                   >
                     <Icon className="w-4 h-4" />
@@ -82,19 +82,19 @@ const Wallet: React.FC = () => {
 
       {/* Currency Cards */}
       <AnimatedPage staggerIndex={1}>
-        <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-wider">Currencies</h3>
-        <div className="grid grid-cols-2 gap-2">
+        <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">Currencies</h3>
+        <div className="grid grid-cols-2 gap-2.5">
           {demoBalances.map((b, i) => (
             <GlassCard
               key={b.currency}
-              className="animate-fade-in cursor-pointer active:scale-[0.98] transition-all hover:border-accent/20"
+              className="animate-fade-in cursor-pointer"
               style={{ animationDelay: staggerDelay(i, 60) }}
             >
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg">{b.flag}</span>
-                <span className="text-xs font-semibold text-muted-foreground">{b.currency}</span>
+                <span className="text-xs font-semibold text-muted-foreground tracking-wide">{b.currency}</span>
               </div>
-              <p className="text-base font-bold text-foreground tabular-nums">
+              <p className="text-lg font-bold text-foreground tabular-nums tracking-tight">
                 {b.symbol}{b.amount.toLocaleString()}
               </p>
             </GlassCard>
@@ -108,11 +108,11 @@ const Wallet: React.FC = () => {
           onClick={() => setShowNetworks(!showNetworks)}
           className="flex items-center justify-between w-full mb-3 px-1"
         >
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5" />
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-neon-amber" />
             Payment Networks
           </h3>
-          <span className="text-xs text-accent font-medium">{showNetworks ? "Hide" : "Show"}</span>
+          <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", showNetworks && "rotate-180")} />
         </button>
         {showNetworks && (
           <div className="grid grid-cols-2 gap-2 animate-fade-in">
@@ -128,7 +128,7 @@ const Wallet: React.FC = () => {
                   <p className="text-[10px] text-muted-foreground">{n.region}</p>
                 </div>
                 {n.connected ? (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/20 text-accent font-medium">✓</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">✓</span>
                 ) : (
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground">Add</span>
                 )}
@@ -141,7 +141,7 @@ const Wallet: React.FC = () => {
       {/* Transactions */}
       <AnimatedPage staggerIndex={3}>
         <div className="flex items-center justify-between mb-3 px-1">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Transactions</h3>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Transactions</h3>
           <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
         </div>
 
@@ -153,7 +153,7 @@ const Wallet: React.FC = () => {
             placeholder="Search transactions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 rounded-xl glass border border-border text-xs text-foreground bg-transparent focus:border-accent outline-none min-h-[44px]"
+            className="w-full pl-9 pr-3 py-2.5 rounded-xl glass border border-border/40 text-xs text-foreground bg-transparent focus:border-accent/50 focus:shadow-glow-sm outline-none min-h-[44px] transition-all"
           />
         </div>
 
@@ -164,10 +164,10 @@ const Wallet: React.FC = () => {
               key={f.key}
               onClick={() => setFilter(f.key)}
               className={cn(
-                "px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all min-h-[32px]",
+                "px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all min-h-[32px]",
                 filter === f.key
-                  ? "bg-accent text-accent-foreground shadow-[0_0_10px_hsl(var(--neon-cyan)/0.3)]"
-                  : "glass text-muted-foreground"
+                  ? "bg-accent text-accent-foreground shadow-glow-sm"
+                  : "glass text-muted-foreground hover:text-foreground"
               )}
             >
               {f.label}
@@ -180,10 +180,10 @@ const Wallet: React.FC = () => {
           {filteredTx.map((tx, i) => (
             <GlassCard
               key={tx.id}
-              className="flex items-center gap-3 py-3 px-4 animate-fade-in cursor-pointer active:scale-[0.98] transition-transform"
+              className="flex items-center gap-3 py-3 px-4 animate-fade-in cursor-pointer"
               style={{ animationDelay: staggerDelay(i, 40) }}
             >
-              <div className="w-9 h-9 rounded-xl bg-secondary/80 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center shrink-0 border border-border/20">
                 <span className="text-base">{tx.icon}</span>
               </div>
               <div className="flex-1 min-w-0">
@@ -192,7 +192,7 @@ const Wallet: React.FC = () => {
               </div>
               <p
                 className={cn(
-                  "text-sm font-bold tabular-nums",
+                  "text-sm font-bold tabular-nums tracking-tight",
                   tx.amount > 0 ? "text-accent" : "text-foreground"
                 )}
               >

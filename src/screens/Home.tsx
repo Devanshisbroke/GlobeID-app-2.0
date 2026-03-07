@@ -23,22 +23,29 @@ const Home: React.FC = () => {
 
   return (
     <div className="px-4 py-6 space-y-6 bg-gradient-radial min-h-screen">
+      {/* Ambient orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="orb w-[300px] h-[300px] bg-neon-indigo/20 top-[-5%] left-[-10%]" />
+        <div className="orb w-[250px] h-[250px] bg-neon-cyan/15 bottom-[20%] right-[-15%]" style={{ animationDelay: "-7s" }} />
+        <div className="orb w-[200px] h-[200px] bg-neon-magenta/10 top-[40%] left-[50%]" style={{ animationDelay: "-13s" }} />
+      </div>
+
       {/* Identity Card — Hero */}
       <AnimatedPage>
-        <GlassCard className="relative overflow-hidden p-5" glow>
+        <GlassCard className="relative overflow-hidden p-5" glow depth="lg">
           {/* Shimmer overlay */}
           <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent animate-shimmer" />
           </div>
 
           <div className="relative flex items-center gap-4">
-            <div className="relative shrink-0 cursor-pointer" onClick={() => navigate("/profile")}>
+            <div className="relative shrink-0 cursor-pointer group" onClick={() => navigate("/profile")}>
               <img
                 src={demoUser.avatar}
                 alt={demoUser.name}
-                className="w-16 h-16 rounded-2xl object-cover ring-2 ring-accent/40 shadow-[0_0_20px_hsl(var(--neon-cyan)/0.2)]"
+                className="w-16 h-16 rounded-2xl object-cover ring-2 ring-accent/30 shadow-glow-sm group-hover:ring-accent/50 transition-all"
               />
-              <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-accent rounded-full flex items-center justify-center shadow-lg">
+              <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-accent rounded-full flex items-center justify-center shadow-glow-sm">
                 <ShieldCheck className="w-3 h-3 text-accent-foreground" />
               </span>
             </div>
@@ -47,13 +54,13 @@ const Home: React.FC = () => {
                 {demoUser.name}
               </h2>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/20 text-accent font-medium">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-semibold tracking-wide">
                   {demoUser.identityLevel}
                 </span>
                 <span className="text-[10px] text-muted-foreground">·</span>
                 <span className="text-[10px] text-muted-foreground">Passport Linked</span>
               </div>
-              <div className="flex gap-1.5 mt-1.5">
+              <div className="flex gap-1.5 mt-2">
                 {demoUser.countryFlags.map((flag, i) => (
                   <span key={i} className="text-sm">{flag}</span>
                 ))}
@@ -63,29 +70,29 @@ const Home: React.FC = () => {
           </div>
 
           {/* Current location strip */}
-          <div className="relative mt-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/50">
+          <div className="relative mt-4 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-secondary/40 border border-border/30">
             <MapPin className="w-3.5 h-3.5 text-accent" />
             <span className="text-xs text-foreground font-medium">{demoUser.currentFlag} Currently in {demoUser.currentCountry}</span>
-            <span className="ml-auto text-[10px] text-accent font-medium">Entry Verified ✓</span>
+            <span className="ml-auto text-[10px] text-accent font-semibold animate-pulse-subtle">Entry Verified ✓</span>
           </div>
         </GlassCard>
       </AnimatedPage>
 
       {/* Portfolio Value */}
       <AnimatedPage staggerIndex={1}>
-        <GlassCard className="flex items-center gap-4 py-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-indigo to-neon-cyan flex items-center justify-center shrink-0">
+        <GlassCard className="flex items-center gap-4 py-4" depth="md">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-neon-indigo to-neon-cyan flex items-center justify-center shrink-0 shadow-glow-sm">
             <TrendingUp className="w-5 h-5 text-primary-foreground" />
           </div>
           <div className="flex-1">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Balance</p>
-            <p className="text-2xl font-bold text-foreground tabular-nums">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Total Balance</p>
+            <p className="text-2xl font-bold text-foreground tabular-nums tracking-tight">
               ${totalUSD.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </div>
-          <div className="flex -space-x-1">
+          <div className="flex -space-x-1.5">
             {demoBalances.slice(0, 4).map((b) => (
-              <span key={b.currency} className="text-sm w-7 h-7 rounded-full glass flex items-center justify-center text-[11px]">
+              <span key={b.currency} className="text-sm w-8 h-8 rounded-full glass flex items-center justify-center text-[11px] shadow-depth-sm">
                 {b.flag}
               </span>
             ))}
@@ -95,20 +102,20 @@ const Home: React.FC = () => {
 
       {/* Quick Actions */}
       <AnimatedPage staggerIndex={2}>
-        <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-wider">Quick Actions</h3>
+        <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">Quick Actions</h3>
         <div className="grid grid-cols-4 gap-2.5">
-          {quickActions.map((action, i) => (
+          {quickActions.slice(0, 8).map((action, i) => (
             <button
               key={action.id}
               onClick={() => action.route && navigate(action.route)}
               className={cn(
                 "relative flex flex-col items-center gap-2 p-3 rounded-2xl min-h-[84px]",
-                "glass border border-border/50",
-                "transition-all duration-[var(--motion-micro)]",
-                "active:scale-90 hover:border-accent/30 hover:shadow-[0_0_20px_hsl(var(--neon-cyan)/0.1)]",
-                "animate-fade-in"
+                "glass border border-border/30",
+                "transition-all duration-[var(--motion-small)] ease-[var(--ease-cinematic)]",
+                "active:scale-90 hover:border-accent/20 hover:shadow-glow-sm",
+                "btn-ripple animate-fade-in"
               )}
-              style={{ animationDelay: staggerDelay(i, 40) }}
+              style={{ animationDelay: staggerDelay(i, 50) }}
               aria-label={action.label}
             >
               <span className="text-2xl">{action.icon}</span>
@@ -122,23 +129,23 @@ const Home: React.FC = () => {
 
       {/* Travel Status */}
       <AnimatedPage staggerIndex={3}>
-        <GlassCard className="border border-accent/10">
+        <GlassCard className="border-gradient" depth="md">
           <div className="flex items-center gap-2 mb-3">
             <Globe className="w-4 h-4 text-accent" />
             <h3 className="text-sm font-semibold text-foreground">Travel Status</h3>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5">
             {[
               { icon: "🇸🇬", label: "Current Country", value: "Singapore" },
               { icon: "✅", label: "Entry Status", value: "Verified", accent: true },
               { icon: "💱", label: "Local Currency", value: "SGD Enabled" },
               { icon: "📍", label: "Nearby Services", value: "12 available" },
             ].map((item, i) => (
-              <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg bg-secondary/30">
+              <div key={i} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-secondary/30 border border-border/20">
                 <span className="text-sm">{item.icon}</span>
                 <div>
                   <p className="text-[10px] text-muted-foreground">{item.label}</p>
-                  <p className={cn("text-xs font-medium", item.accent ? "text-accent" : "text-foreground")}>{item.value}</p>
+                  <p className={cn("text-xs font-semibold", item.accent ? "text-accent" : "text-foreground")}>{item.value}</p>
                 </div>
               </div>
             ))}
@@ -149,17 +156,17 @@ const Home: React.FC = () => {
       {/* Activity Feed */}
       <AnimatedPage staggerIndex={4}>
         <div className="flex items-center justify-between mb-3 px-1">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Activity</h3>
-          <button className="text-xs text-accent font-medium">View all</button>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Activity</h3>
+          <button className="text-xs text-accent font-medium hover:text-accent/80 transition-colors">View all</button>
         </div>
         <div className="space-y-2">
           {demoActivity.slice(0, 6).map((item, i) => (
             <GlassCard
               key={item.id}
-              className="flex items-center gap-3 py-3 px-4 animate-fade-in cursor-pointer active:scale-[0.98] transition-transform"
-              style={{ animationDelay: staggerDelay(i, 50) }}
+              className="flex items-center gap-3 py-3 px-4 animate-fade-in cursor-pointer"
+              style={{ animationDelay: staggerDelay(i, 60) }}
             >
-              <div className="w-9 h-9 rounded-xl bg-secondary/80 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center shrink-0 border border-border/20">
                 <span className="text-base">{item.icon}</span>
               </div>
               <div className="flex-1 min-w-0">
@@ -174,7 +181,7 @@ const Home: React.FC = () => {
                 <span className="text-[10px] text-muted-foreground">
                   {item.timestamp}
                 </span>
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
               </div>
             </GlassCard>
           ))}

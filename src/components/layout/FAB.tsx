@@ -25,10 +25,10 @@ const FAB: React.FC = () => {
         "fixed z-50 right-4 bottom-[88px] w-14 h-14 rounded-full",
         "flex items-center justify-center",
         "bg-gradient-to-br from-neon-indigo via-neon-cyan to-neon-teal",
-        "shadow-[0_0_24px_hsl(var(--neon-cyan)/0.4)]",
-        "transition-transform duration-[var(--motion-micro)] ease-[var(--ease-out-expo)]",
+        "shadow-glow-lg",
+        "transition-all duration-[var(--motion-micro)] ease-[var(--ease-cinematic)]",
         "active:scale-90",
-        pressed ? "scale-90" : "scale-100"
+        pressed ? "scale-90 shadow-glow-sm" : "scale-100"
       )}
     >
       <Icon className="w-6 h-6 text-primary-foreground" />
