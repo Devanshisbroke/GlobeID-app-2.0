@@ -4,28 +4,10 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { demoUser } from "@/lib/demoData";
 import { staggerDelay } from "@/hooks/useMotion";
-import {
-  ShieldCheck,
-  Landmark,
-  Settings,
-  Code2,
-  ChevronRight,
-  Globe,
-  Bell,
-  Languages,
-  Monitor,
-  ScrollText,
-  RotateCcw,
-} from "lucide-react";
+import { ShieldCheck, Landmark, Settings, Code2, ChevronRight, Globe, Bell, Languages, Monitor, ScrollText, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface SettingItem {
-  icon: React.ElementType;
-  label: string;
-  description: string;
-  color?: string;
-  route?: string;
-}
+interface SettingItem { icon: React.ElementType; label: string; description: string; color?: string; route?: string; }
 
 const settingSections: { title: string; items: SettingItem[] }[] = [
   {
@@ -38,7 +20,7 @@ const settingSections: { title: string; items: SettingItem[] }[] = [
   {
     title: "Preferences",
     items: [
-      { icon: Globe, label: "Currency & Region", description: "INR — India", color: "text-neon-indigo" },
+      { icon: Globe, label: "Currency & Region", description: "INR — India", color: "text-primary" },
       { icon: Languages, label: "Language", description: "English", color: "text-neon-cyan" },
       { icon: Bell, label: "Notifications", description: "Push, email, in-app", color: "text-accent" },
     ],
@@ -46,7 +28,7 @@ const settingSections: { title: string; items: SettingItem[] }[] = [
   {
     title: "Developer",
     items: [
-      { icon: Monitor, label: "Kiosk Simulator", description: "Test identity verification flow", color: "text-accent", route: "/kiosk-sim" },
+      { icon: Monitor, label: "Kiosk Simulator", description: "Test identity verification flow", color: "text-primary", route: "/kiosk-sim" },
       { icon: ScrollText, label: "Audit Logs", description: "View session & verification events", color: "text-muted-foreground", route: "/kiosk-sim" },
       { icon: Code2, label: "Developer Tools", description: "Demo mode, debug overlays", color: "text-muted-foreground" },
       { icon: RotateCcw, label: "Reset Demo Data", description: "Clear all sessions & receipts", color: "text-destructive" },
@@ -60,46 +42,31 @@ const Profile: React.FC = () => {
 
   return (
     <div className="px-4 py-6 space-y-6">
-      {/* Profile Header */}
       <AnimatedPage>
         <GlassCard className="flex items-center gap-4 relative overflow-hidden light-sweep" glow depth="lg">
           <div className="relative">
-            <img
-              src={demoUser.avatar}
-              alt={demoUser.name}
-              className="w-16 h-16 rounded-2xl object-cover ring-2 ring-accent/25"
-            />
-            <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-accent rounded-full flex items-center justify-center shadow-glow-sm">
-              <ShieldCheck className="w-3 h-3 text-accent-foreground" />
+            <img src={demoUser.avatar} alt={demoUser.name} className="w-16 h-16 rounded-2xl object-cover ring-2 ring-primary/25" />
+            <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-blue rounded-full flex items-center justify-center shadow-glow-sm">
+              <ShieldCheck className="w-3 h-3 text-primary-foreground" />
             </span>
           </div>
           <div className="flex-1 min-w-0 relative">
             <h2 className="text-lg font-bold text-foreground">{demoUser.name}</h2>
             <p className="text-xs text-muted-foreground">{demoUser.email}</p>
-            <p className="text-xs text-accent mt-0.5 font-semibold">
-              {demoUser.identityLevel} · Member since {demoUser.memberSince}
-            </p>
+            <p className="text-xs text-primary mt-0.5 font-semibold">{demoUser.identityLevel} · Member since {demoUser.memberSince}</p>
           </div>
           <Settings className="w-5 h-5 text-muted-foreground/60 relative" />
         </GlassCard>
       </AnimatedPage>
 
-      {/* Settings Sections */}
       {settingSections.map((section, si) => (
         <AnimatedPage key={section.title} staggerIndex={si + 1}>
-          <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">
-            {section.title}
-          </h3>
+          <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">{section.title}</h3>
           <div className="space-y-2">
             {section.items.map((item, ii) => {
               const Icon = item.icon;
               return (
-                <GlassCard
-                  key={item.label}
-                  className="flex items-center gap-3 py-3 cursor-pointer animate-fade-in"
-                  style={{ animationDelay: staggerDelay(ii, 50) }}
-                  onClick={() => item.route && navigate(item.route)}
-                >
+                <GlassCard key={item.label} className="flex items-center gap-3 py-3 cursor-pointer animate-fade-in" style={{ animationDelay: staggerDelay(ii, 50) }} onClick={() => item.route && navigate(item.route)}>
                   <div className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center shrink-0 border border-border/20">
                     <Icon className={cn("w-4 h-4", item.color)} />
                   </div>
@@ -115,7 +82,6 @@ const Profile: React.FC = () => {
         </AnimatedPage>
       ))}
 
-      {/* Demo Mode Toggle */}
       <AnimatedPage staggerIndex={4}>
         <GlassCard className="flex items-center justify-between">
           <div>
@@ -124,27 +90,15 @@ const Profile: React.FC = () => {
           </div>
           <button
             onClick={() => setDemoMode(!demoMode)}
-            className={cn(
-              "w-12 h-7 rounded-full transition-all duration-[var(--motion-small)] relative",
-              demoMode ? "bg-accent shadow-glow-sm" : "bg-secondary"
-            )}
-            role="switch"
-            aria-checked={demoMode}
-            aria-label="Toggle demo mode"
+            className={cn("w-12 h-7 rounded-full transition-all duration-[var(--motion-small)] relative", demoMode ? "bg-primary shadow-glow-sm" : "bg-secondary")}
+            role="switch" aria-checked={demoMode} aria-label="Toggle demo mode"
           >
-            <span
-              className={cn(
-                "absolute top-0.5 w-6 h-6 rounded-full bg-primary-foreground shadow-depth-sm transition-transform duration-[var(--motion-small)]",
-                demoMode ? "translate-x-5" : "translate-x-0.5"
-              )}
-            />
+            <span className={cn("absolute top-0.5 w-6 h-6 rounded-full bg-primary-foreground shadow-depth-sm transition-transform duration-[var(--motion-small)]", demoMode ? "translate-x-5" : "translate-x-0.5")} />
           </button>
         </GlassCard>
       </AnimatedPage>
 
-      <p className="text-center text-[10px] text-muted-foreground/60 pb-4 tracking-wide">
-        GlobeID v2.0.0 · TerraCore · Phase 2
-      </p>
+      <p className="text-center text-[10px] text-muted-foreground/60 pb-4 tracking-wide">GlobeID v3.0.0 · Adaptive · Phase 3</p>
     </div>
   );
 };

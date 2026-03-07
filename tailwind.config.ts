@@ -13,9 +13,7 @@ export default {
     container: {
       center: true,
       padding: "1rem",
-      screens: {
-        "2xl": "1400px",
-      },
+      screens: { "2xl": "1400px" },
     },
     extend: {
       colors: {
@@ -160,24 +158,18 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in":
-          "fade-in var(--motion-small, 240ms) var(--ease-cinematic, cubic-bezier(0.16,1,0.3,1)) forwards",
-        "fade-out":
-          "fade-out var(--motion-small, 240ms) var(--ease-out-expo) forwards",
-        "scale-in":
-          "scale-in var(--motion-small, 240ms) var(--ease-cinematic) forwards",
-        "slide-up":
-          "slide-up var(--motion-medium, 400ms) var(--ease-cinematic) forwards",
-        "slide-down":
-          "slide-down var(--motion-medium, 400ms) var(--ease-cinematic) forwards",
+        "fade-in": "fade-in var(--motion-small, 250ms) var(--ease-cinematic, cubic-bezier(0.16,1,0.3,1)) forwards",
+        "fade-out": "fade-out var(--motion-small, 250ms) var(--ease-out-expo) forwards",
+        "scale-in": "scale-in var(--motion-small, 250ms) var(--ease-cinematic) forwards",
+        "slide-up": "slide-up var(--motion-medium, 400ms) var(--ease-cinematic) forwards",
+        "slide-down": "slide-down var(--motion-medium, 400ms) var(--ease-cinematic) forwards",
         "glow-pulse": "glow-pulse 2.5s ease-in-out infinite",
         float: "float 5s ease-in-out infinite",
         "orb-drift": "orb-drift 20s ease-in-out infinite",
-        "score-fill":
-          "score-fill var(--motion-long, 800ms) var(--ease-out-expo) forwards",
+        "score-fill": "score-fill var(--motion-long, 800ms) var(--ease-out-expo) forwards",
         shimmer: "shimmer 2.5s linear infinite",
         "qr-pulse": "qr-pulse 1400ms var(--ease-out-expo) infinite",
-        "card-lift": "card-lift var(--motion-small, 240ms) var(--ease-out-expo) forwards",
+        "card-lift": "card-lift var(--motion-small, 250ms) var(--ease-out-expo) forwards",
         "pulse-subtle": "pulse-subtle 3s ease-in-out infinite",
       },
     },

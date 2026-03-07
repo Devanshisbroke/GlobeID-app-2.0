@@ -1,17 +1,10 @@
-/**
- * Services screen — local ecosystem hub for rides, food, and local services.
- */
 import React, { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { staggerDelay } from "@/hooks/useMotion";
 import {
-  demoRideProviders,
-  demoRestaurants,
-  demoLocalServices,
-  demoEmergencyContacts,
-  simulateRideRequest,
-  type RideRequest,
+  demoRideProviders, demoRestaurants, demoLocalServices, demoEmergencyContacts,
+  simulateRideRequest, type RideRequest,
 } from "@/lib/demoServices";
 import { Car, UtensilsCrossed, MapPin, Shield, ChevronRight, Star, Clock, Check, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,11 +17,11 @@ const Services: React.FC = () => {
   const [pickup] = useState("Marina Bay Sands");
   const [dropoff] = useState("Changi Airport T3");
 
-  const tabs: { key: Tab; label: string; icon: React.ElementType }[] = [
-    { key: "rides", label: "Rides", icon: Car },
-    { key: "food", label: "Food", icon: UtensilsCrossed },
-    { key: "local", label: "Local", icon: MapPin },
-    { key: "safety", label: "Safety", icon: Shield },
+  const tabs: { key: Tab; label: string; icon: React.ElementType; color: string }[] = [
+    { key: "rides", label: "Rides", icon: Car, color: "bg-gradient-warm" },
+    { key: "food", label: "Food", icon: UtensilsCrossed, color: "bg-gradient-magenta" },
+    { key: "local", label: "Local", icon: MapPin, color: "bg-gradient-blue" },
+    { key: "safety", label: "Safety", icon: Shield, color: "bg-gradient-tropical" },
   ];
 
   const handleRequestRide = (providerId: string) => {
@@ -46,9 +39,9 @@ const Services: React.FC = () => {
         </p>
       </AnimatedPage>
 
-      {/* Tab Switcher */}
+      {/* Tab Switcher — colorful */}
       <AnimatedPage>
-        <div className="flex gap-1 p-1 rounded-2xl glass border border-border/40">
+        <div className="flex gap-1.5 p-1 rounded-2xl glass border border-border/40">
           {tabs.map((t) => {
             const Icon = t.icon;
             const active = tab === t.key;
@@ -59,7 +52,7 @@ const Services: React.FC = () => {
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-[var(--motion-small)] min-h-[44px]",
                   active
-                    ? "bg-accent text-accent-foreground shadow-glow-sm"
+                    ? `${t.color} text-primary-foreground shadow-depth-sm`
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -74,7 +67,6 @@ const Services: React.FC = () => {
       {/* Rides */}
       {tab === "rides" && (
         <div className="space-y-3">
-          {/* Active ride */}
           {activeRide && (
             <AnimatedPage>
               <GlassCard neonBorder depth="lg">
@@ -94,12 +86,11 @@ const Services: React.FC = () => {
             </AnimatedPage>
           )}
 
-          {/* Route */}
           <AnimatedPage>
             <GlassCard>
               <div className="space-y-2">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-accent shadow-glow-sm" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-glow-sm" />
                   <span className="text-xs text-foreground font-medium">{pickup}</span>
                 </div>
                 <div className="ml-[5px] border-l border-dashed border-border/40 h-5" />
@@ -111,14 +102,10 @@ const Services: React.FC = () => {
             </GlassCard>
           </AnimatedPage>
 
-          {/* Providers */}
           {demoRideProviders.map((provider, i) => (
             <AnimatedPage key={provider.id} staggerIndex={i}>
               <GlassCard
-                className={cn(
-                  "flex items-center gap-3 cursor-pointer",
-                  !provider.available && "opacity-40"
-                )}
+                className={cn("flex items-center gap-3 cursor-pointer", !provider.available && "opacity-40")}
                 onClick={() => provider.available && handleRequestRide(provider.id)}
               >
                 <span className="text-2xl">{provider.icon}</span>
@@ -128,10 +115,8 @@ const Services: React.FC = () => {
                     <span className="text-[10px] text-muted-foreground">{provider.vehicleType}</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                    <Clock className="w-3 h-3" />
-                    <span>{provider.eta}</span>
-                    <Star className="w-3 h-3 text-neon-amber" />
-                    <span>{provider.rating}</span>
+                    <Clock className="w-3 h-3" /><span>{provider.eta}</span>
+                    <Star className="w-3 h-3 text-neon-amber" /><span>{provider.rating}</span>
                   </div>
                 </div>
                 <div className="text-right">
@@ -171,7 +156,7 @@ const Services: React.FC = () => {
         </div>
       )}
 
-      {/* Local Services */}
+      {/* Local */}
       {tab === "local" && (
         <div className="space-y-2">
           {demoLocalServices.map((s, i) => (
@@ -209,15 +194,13 @@ const Services: React.FC = () => {
                       href={`tel:${c.number}`}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 text-accent text-xs font-semibold min-h-[36px] hover:bg-accent/20 transition-colors"
                     >
-                      <Phone className="w-3 h-3" />
-                      {c.number}
+                      <Phone className="w-3 h-3" />{c.number}
                     </a>
                   </div>
                 ))}
               </div>
             </GlassCard>
           </AnimatedPage>
-
           <AnimatedPage staggerIndex={1}>
             <GlassCard>
               <button className="w-full py-3.5 rounded-xl bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground text-sm font-bold active:scale-95 transition-transform min-h-[44px] shadow-depth-md btn-ripple">
