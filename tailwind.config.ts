@@ -71,6 +71,38 @@ export default {
           DEFAULT: "hsl(var(--glass-bg))",
           border: "hsl(var(--glass-border))",
         },
+        // Palette families
+        ocean: {
+          deep: "hsl(var(--ocean-deep))",
+          blue: "hsl(var(--ocean-blue))",
+          aqua: "hsl(var(--ocean-aqua))",
+          turquoise: "hsl(var(--ocean-turquoise))",
+          sky: "hsl(var(--ocean-sky))",
+        },
+        sunset: {
+          coral: "hsl(var(--sunset-coral))",
+          orange: "hsl(var(--sunset-orange))",
+          gold: "hsl(var(--sunset-gold))",
+          red: "hsl(var(--sunset-red))",
+        },
+        aurora: {
+          purple: "hsl(var(--aurora-purple))",
+          violet: "hsl(var(--aurora-violet))",
+          magenta: "hsl(var(--aurora-magenta))",
+          pink: "hsl(var(--aurora-pink))",
+        },
+        forest: {
+          emerald: "hsl(var(--forest-emerald))",
+          mint: "hsl(var(--forest-mint))",
+          jade: "hsl(var(--forest-jade))",
+          teal: "hsl(var(--forest-teal))",
+        },
+        cosmic: {
+          indigo: "hsl(var(--cosmic-indigo))",
+          ultra: "hsl(var(--cosmic-ultra))",
+          electric: "hsl(var(--cosmic-electric))",
+          neon: "hsl(var(--cosmic-neon))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
