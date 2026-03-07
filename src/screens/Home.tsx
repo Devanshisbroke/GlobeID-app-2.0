@@ -214,10 +214,10 @@ const Home: React.FC = () => {
           </div>
           <div className="grid grid-cols-2 gap-2.5">
             {([
-              { Icon: Globe, label: "Current Country", value: "United States", gradient: "from-primary/10 to-primary/5" },
+              { Icon: Globe, label: "Current Country", value: "United States", accent: false, gradient: "from-primary/10 to-primary/5" },
               { Icon: ShieldCheck, label: "Entry Status", value: "Verified", accent: true, gradient: "from-accent/10 to-accent/5" },
-              { Icon: ArrowRightLeft, label: "Local Currency", value: "USD Active", gradient: "from-neon-amber/10 to-neon-amber/5" },
-              { Icon: MapPin, label: "Nearby Services", value: "12 available", gradient: "from-neon-magenta/10 to-neon-magenta/5" },
+              { Icon: ArrowRightLeft, label: "Local Currency", value: "USD Active", accent: false, gradient: "from-neon-amber/10 to-neon-amber/5" },
+              { Icon: MapPin, label: "Nearby Services", value: "12 available", accent: false, gradient: "from-neon-magenta/10 to-neon-magenta/5" },
             ] as const).map((item, i) => (
               <div key={i} className={cn("flex items-center gap-2.5 p-2.5 rounded-xl border border-border/20", `bg-gradient-to-br ${item.gradient}`)}>
                 <div className="w-7 h-7 rounded-lg bg-secondary/50 flex items-center justify-center">
