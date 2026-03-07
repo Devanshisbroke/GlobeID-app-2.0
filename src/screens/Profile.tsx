@@ -44,11 +44,8 @@ const Profile: React.FC = () => {
     <div className="px-4 py-6 space-y-6">
       <AnimatedPage>
         <GlassCard className="flex items-center gap-4 relative overflow-hidden light-sweep" glow depth="lg">
-          <div className="relative">
-            <img src={demoUser.avatar} alt={demoUser.name} className="w-16 h-16 rounded-2xl object-cover ring-2 ring-primary/25" />
-            <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-blue rounded-full flex items-center justify-center shadow-glow-sm">
-              <ShieldCheck className="w-3 h-3 text-primary-foreground" />
-            </span>
+          <div className="w-14 h-14 rounded-2xl bg-gradient-blue flex items-center justify-center shrink-0 shadow-glow-sm">
+            <ShieldCheck className="w-6 h-6 text-primary-foreground" />
           </div>
           <div className="flex-1 min-w-0 relative">
             <h2 className="text-lg font-bold text-foreground">{demoUser.name}</h2>
