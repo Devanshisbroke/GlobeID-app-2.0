@@ -130,6 +130,10 @@ export default {
           "0%": { transform: "translateX(-100%)" },
           "100%": { transform: "translateX(100%)" },
         },
+        "qr-pulse": {
+          "0%, 100%": { transform: "scale(1)", opacity: "1" },
+          "50%": { transform: "scale(1.02)", opacity: "0.95" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -150,6 +154,7 @@ export default {
         "score-fill":
           "score-fill var(--motion-long, 800ms) var(--ease-out-expo) forwards",
         shimmer: "shimmer 2s linear infinite",
+        "qr-pulse": "qr-pulse 1400ms var(--ease-out-expo, cubic-bezier(0.22,1,0.36,1)) infinite",
       },
     },
   },
