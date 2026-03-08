@@ -616,6 +616,52 @@
     transform: translateZ(0);
     backface-visibility: hidden;
   }
+
+  /* ── Parallax Scroll ── */
+  .parallax-slow {
+    will-change: transform;
+    transition: transform 0s linear;
+  }
+
+  /* ── Floating Particles ── */
+  .particle-field {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0;
+    animation: particle-float var(--particle-duration, 6s) var(--ease-cinematic) infinite;
+    animation-delay: var(--particle-delay, 0s);
+  }
+
+  /* ── Focus Ring ── */
+  .focus-ring:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: inherit;
+  }
+
+  /* ── Gradient Shimmer Button ── */
+  .btn-premium {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.12), transparent);
+    animation: shimmer 3s ease-in-out infinite;
+    pointer-events: none;
+  }
 }
 
 @keyframes border-rotate {
@@ -630,7 +676,7 @@
 
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  100% { transform: translateX(200%); }
 }
 
 @keyframes pulse-ring {
@@ -665,4 +711,11 @@
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+@keyframes particle-float {
+  0% { opacity: 0; transform: translateY(0) scale(0); }
+  15% { opacity: 0.5; transform: translateY(-10px) scale(1); }
+  85% { opacity: 0.3; transform: translateY(-60px) scale(0.8); }
+  100% { opacity: 0; transform: translateY(-80px) scale(0); }
 }
