@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
-import { useSocialStore } from "@/store/socialStore";
+import { useSocialStore, leaderboard } from "@/store/socialStore";
 import PostCard from "@/components/social/PostCard";
 import StoriesBar from "@/components/social/StoriesBar";
 import CreatePost from "@/components/social/CreatePost";
