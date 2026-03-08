@@ -6,7 +6,7 @@ import { useUserStore } from "@/store/userStore";
 import { demoBookings } from "@/lib/demoData";
 import { demoFlightResults, demoHotelResults } from "@/lib/demoServices";
 import { getIcon } from "@/lib/iconMap";
-import { Plane, Hotel, Search, Star, Clock, ChevronRight, QrCode, History, CalendarDays, Map } from "lucide-react";
+import { Plane, Hotel, Search, Star, Clock, ChevronRight, QrCode, History, CalendarDays, Map, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TripCard from "@/components/travel/TripCard";
 
@@ -80,6 +80,23 @@ const Travel: React.FC = () => {
               <div className="flex-1">
                 <p className="text-sm font-bold text-foreground">Trip Planner</p>
                 <p className="text-xs text-muted-foreground">Design your next journey</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </GlassCard>
+          </AnimatedPage>
+          <AnimatedPage staggerIndex={2}>
+            <GlassCard
+              className="flex items-center gap-3 cursor-pointer"
+              depth="md"
+              neonBorder
+              onClick={() => navigate("/copilot")}
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 shadow-glow-sm">
+                <Sparkles className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-foreground">AI Copilot</p>
+                <p className="text-xs text-muted-foreground">Let AI plan your trip</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </GlassCard>
