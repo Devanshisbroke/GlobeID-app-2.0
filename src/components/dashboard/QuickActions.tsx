@@ -1,13 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ScanLine, FileText, Globe, PlusCircle } from "lucide-react";
+import { ScanLine, FileText, Globe, PlusCircle, BrainCircuit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { springs } from "@/hooks/useMotion";
 
 const actions = [
   { icon: PlusCircle, label: "Add Trip", route: "/travel", gradient: "bg-gradient-ocean" },
   { icon: ScanLine, label: "Scan Passport", route: "/identity", gradient: "bg-gradient-cosmic" },
+  { icon: BrainCircuit, label: "Intelligence", route: "/intelligence", gradient: "bg-gradient-to-br from-accent to-primary" },
   { icon: FileText, label: "Add Document", route: "/wallet", gradient: "bg-gradient-sunset" },
   { icon: Globe, label: "Open Map", route: "/map", gradient: "bg-gradient-forest" },
 ];
@@ -19,7 +20,7 @@ const QuickActions: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <motion.div className="grid grid-cols-4 gap-2.5" variants={container} initial="initial" animate="animate">
+    <motion.div className="grid grid-cols-5 gap-2" variants={container} initial="initial" animate="animate">
       {actions.map((action) => {
         const Icon = action.icon;
         return (
