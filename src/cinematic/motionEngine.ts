@@ -68,17 +68,15 @@ export const cinematicSlide: Variants = {
 
 /* ── Cinematic Scale (zoom in from center) ── */
 export const cinematicScale: Variants = {
-  initial: { opacity: 0, scale: 0.88, filter: "blur(6px)" },
+  initial: { opacity: 0, scale: 0.92 },
   animate: {
     opacity: 1,
     scale: 1,
-    filter: "blur(0px)",
     transition: { duration: cinematicDuration.cinematic, ease: cinematicEase },
   },
   exit: {
     opacity: 0,
-    scale: 1.05,
-    filter: "blur(4px)",
+    scale: 1.03,
     transition: { duration: cinematicDuration.medium, ease: cinematicEaseIn },
   },
 };
