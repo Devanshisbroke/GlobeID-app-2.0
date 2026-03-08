@@ -49,8 +49,8 @@ const Globe: React.FC = () => {
         uBumpMap: { value: bumpMap },
         uWaterMap: { value: waterMap },
         uSunDir: { value: new THREE.Vector3(1.0, 0.3, 0.8).normalize() },
-        uLandColor: { value: new THREE.Color("#0f1e33") },
-        uOceanColor: { value: new THREE.Color("#071425") },
+        uLandColor: { value: new THREE.Color("#1e3a5f") },
+        uOceanColor: { value: new THREE.Color("#0a2a4a") },
         uAtmoColor: { value: new THREE.Color("#78b4ff") },
         uCityLightColor: { value: new THREE.Color("#ffd27a") },
       },
@@ -103,9 +103,9 @@ const Globe: React.FC = () => {
           // Directional lighting for depth
           float sunDot = dot(vNormal, uSunDir);
           float dayFactor = smoothstep(-0.15, 0.25, sunDot);
-          float ambient = 0.55;
-          float diffuse = max(sunDot, 0.0) * 0.35;
-          surface *= (ambient + diffuse + 0.2);
+          float ambient = 0.65;
+          float diffuse = max(sunDot, 0.0) * 0.5;
+          surface *= (ambient + diffuse + 0.25);
 
           // City night lights on dark side — faint warm glow
           float nightFactor = 1.0 - dayFactor;
@@ -115,7 +115,7 @@ const Globe: React.FC = () => {
           // Fresnel atmosphere rim
           float fresnel = 1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0)));
           fresnel = pow(fresnel, 3.0);
-          surface += uAtmoColor * fresnel * 0.15;
+          surface += uAtmoColor * fresnel * 0.25;
 
           gl_FragColor = vec4(surface, 1.0);
         }
