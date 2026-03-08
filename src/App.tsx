@@ -18,6 +18,7 @@ const Profile = lazy(() => import("@/screens/Profile"));
 const GlobalMap = lazy(() => import("@/screens/GlobalMap"));
 const KioskSimulator = lazy(() => import("@/screens/KioskSimulator"));
 const EntryReceipt = lazy(() => import("@/screens/EntryReceipt"));
+const TravelTimeline = lazy(() => import("@/screens/TravelTimeline"));
 
 const queryClient = new QueryClient();
 
