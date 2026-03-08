@@ -16,7 +16,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       <div className="fixed top-4 right-4 z-40">
         <ThemeToggle />
       </div>
-      <main className="pb-20 pt-safe">{children}</main>
+      <main className="pb-20 pt-safe momentum-scroll gpu-layer">{children}</main>
       <FAB />
       <AIAssistantButton />
       <BottomTabBar />
