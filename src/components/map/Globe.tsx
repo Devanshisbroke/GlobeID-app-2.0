@@ -8,22 +8,21 @@ const Globe: React.FC = () => {
   const cloudRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
-  const [dayMap, nightMap, bumpMap, waterMap] = useLoader(THREE.TextureLoader, [
+  const [dayMap, nightMap, bumpMap] = useLoader(THREE.TextureLoader, [
     "/textures/earth-day.jpg",
     "/textures/earth-night.jpg",
     "/textures/earth-bump.png",
-    "/textures/earth-water.png",
   ]);
 
   useMemo(() => {
-    [dayMap, nightMap, bumpMap, waterMap].forEach((tex) => {
+    [dayMap, nightMap, bumpMap].forEach((tex) => {
       if (tex) {
         tex.minFilter = THREE.LinearMipMapLinearFilter;
         tex.magFilter = THREE.LinearFilter;
         tex.anisotropy = 4;
       }
     });
-  }, [dayMap, nightMap, bumpMap, waterMap]);
+  }, [dayMap, nightMap, bumpMap]);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
@@ -41,6 +40,7 @@ const Globe: React.FC = () => {
     }
   });
 
+  // Clean globe shader — texture-only, no derivative edge detection
   const globeMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
@@ -48,109 +48,69 @@ const Globe: React.FC = () => {
         uDayMap: { value: dayMap },
         uNightMap: { value: nightMap },
         uBumpMap: { value: bumpMap },
-        uWaterMap: { value: waterMap },
         uSunDir: { value: new THREE.Vector3(1.0, 0.3, 0.8).normalize() },
-        uOceanDeep: { value: new THREE.Color("#08121f") },
-        uContinentDark: { value: new THREE.Color("#0f1e33") },
         uAtmoColor: { value: new THREE.Color("#4da6e6") },
-        uCoastGlow: { value: new THREE.Color("#00e0ff") },
-        uGridColor: { value: new THREE.Color("#1a4a7a") },
       },
       vertexShader: `
         varying vec3 vNormal;
         varying vec3 vPosition;
         varying vec2 vUv;
-        varying vec3 vWorldPos;
         uniform sampler2D uBumpMap;
         void main() {
           vNormal = normalize(normalMatrix * normal);
           vPosition = position;
           vUv = uv;
-          vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+          // Subtle bump displacement
           float bump = texture2D(uBumpMap, uv).r;
-          vec3 displaced = position + normal * bump * 0.01;
+          vec3 displaced = position + normal * bump * 0.008;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
         }
       `,
       fragmentShader: `
         uniform sampler2D uDayMap;
         uniform sampler2D uNightMap;
-        uniform sampler2D uBumpMap;
-        uniform sampler2D uWaterMap;
         uniform vec3 uSunDir;
-        uniform vec3 uOceanDeep;
-        uniform vec3 uContinentDark;
         uniform vec3 uAtmoColor;
-        uniform vec3 uCoastGlow;
-        uniform vec3 uGridColor;
         uniform float uTime;
         varying vec3 vNormal;
         varying vec3 vPosition;
         varying vec2 vUv;
-        varying vec3 vWorldPos;
 
         void main() {
+          // Sample textures directly — no processing artifacts
           vec3 dayColor = texture2D(uDayMap, vUv).rgb;
           vec3 nightColor = texture2D(uNightMap, vUv).rgb;
-          float bump = texture2D(uBumpMap, vUv).r;
-          float water = texture2D(uWaterMap, vUv).r;
 
+          // Day/night blend based on sun direction
           float sunDot = dot(vNormal, uSunDir);
-          float dayFactor = smoothstep(-0.2, 0.3, sunDot);
+          float dayFactor = smoothstep(-0.15, 0.25, sunDot);
 
-          // Land vs ocean — smooth blend instead of hard branch
-          float isLand = smoothstep(0.45, 0.55, water);
-          
-          // Land: tint with continent color, add elevation
-          vec3 landColor = mix(dayColor * 0.8, uContinentDark * 1.8 + dayColor * 0.5, 0.3);
-          landColor += vec3(0.03, 0.04, 0.06) * bump;
+          // Slightly darken day side for cinematic feel
+          vec3 day = dayColor * 0.88;
 
-          // Ocean: deep blue with subtle specular
-          vec3 oceanColor = mix(uOceanDeep, dayColor * 0.4, 0.2);
-          vec3 viewDir = normalize(-vWorldPos);
-          vec3 halfDir = normalize(uSunDir + viewDir);
-          float spec = pow(max(dot(vNormal, halfDir), 0.0), 80.0);
-          oceanColor += vec3(0.06, 0.12, 0.22) * spec * dayFactor * 0.5;
+          // Warm night city lights
+          vec3 night = nightColor * vec3(1.3, 1.0, 0.7) * 1.1;
 
-          vec3 tintedDay = mix(oceanColor, landColor, isLand) * 0.85;
+          // Smooth day/night blend
+          vec3 surface = mix(night, day, dayFactor);
 
-          // Night city lights
-          vec3 nightBoosted = nightColor * vec3(1.3, 1.0, 0.7) * 1.2;
-          vec3 surface = mix(nightBoosted, tintedDay, dayFactor);
+          // Simple diffuse lighting
+          float ambient = 0.15;
+          float diffuse = max(sunDot, 0.0) * 0.4;
+          surface *= (ambient + diffuse + 0.5);
 
-          // Coastline glow — use smooth texture sampling instead of dFdx/dFdy
-          vec2 texel = vec2(1.0 / 2048.0, 1.0 / 1024.0);
-          float wR = texture2D(uWaterMap, vUv + vec2(texel.x, 0.0)).r;
-          float wL = texture2D(uWaterMap, vUv - vec2(texel.x, 0.0)).r;
-          float wU = texture2D(uWaterMap, vUv + vec2(0.0, texel.y)).r;
-          float wD = texture2D(uWaterMap, vUv - vec2(0.0, texel.y)).r;
-          float coastEdge = length(vec2(wR - wL, wU - wD)) * 8.0;
-          coastEdge = smoothstep(0.1, 0.6, coastEdge) * 0.25;
-          surface += uCoastGlow * coastEdge * (0.5 + dayFactor * 0.5);
-
-          // Subtle lat/lng grid
-          float lat = asin(vPosition.y) * 57.2957795;
-          float lng = atan(vPosition.z, -vPosition.x) * 57.2957795;
-          float latGrid = smoothstep(0.0, 0.9, abs(fract(lat / 30.0) - 0.5) * 2.0);
-          float lngGrid = smoothstep(0.0, 0.9, abs(fract(lng / 30.0) - 0.5) * 2.0);
-          float grid = (1.0 - min(latGrid, lngGrid)) * 0.015;
-          surface += uGridColor * grid;
-
-          // Fresnel atmosphere rim
+          // Fresnel atmosphere rim — soft edge glow
           float fresnel = 1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0)));
           fresnel = pow(fresnel, 3.5);
-          surface += uAtmoColor * fresnel * 0.2;
-
-          float ambient = 0.14;
-          float diffuse = max(sunDot, 0.0) * 0.45;
-          surface *= (ambient + diffuse + 0.5);
+          surface += uAtmoColor * fresnel * 0.18;
 
           gl_FragColor = vec4(surface, 1.0);
         }
       `,
     });
-  }, [dayMap, nightMap, bumpMap, waterMap]);
+  }, [dayMap, nightMap, bumpMap]);
 
+  // Inner atmosphere
   const atmosphereMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
@@ -180,11 +140,10 @@ const Globe: React.FC = () => {
     });
   }, []);
 
+  // Outer glow
   const outerGlowMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
-      uniforms: {
-        uColor: { value: new THREE.Color("#78b4ff") },
-      },
+      uniforms: { uColor: { value: new THREE.Color("#78b4ff") } },
       vertexShader: `
         varying vec3 vNormal;
         void main() {
@@ -206,6 +165,7 @@ const Globe: React.FC = () => {
     });
   }, []);
 
+  // Procedural clouds
   const proceduralCloudMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       vertexShader: `
@@ -240,10 +200,10 @@ const Globe: React.FC = () => {
           float lat = asin(vPosition.y) * 57.2957795;
           float lng = atan(vPosition.z, -vPosition.x) * 57.2957795;
           float clouds = fbm(vec2(lng * 0.035, lat * 0.045) + vec2(2.0, 5.0));
-          clouds = smoothstep(0.48, 0.72, clouds) * 0.2;
+          clouds = smoothstep(0.48, 0.72, clouds) * 0.18;
           float fresnel = 1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0)));
           clouds *= (1.0 - pow(fresnel, 2.0));
-          gl_FragColor = vec4(vec3(0.82, 0.88, 1.0), clouds);
+          gl_FragColor = vec4(vec3(0.85, 0.9, 1.0), clouds);
         }
       `,
       transparent: true,
@@ -254,20 +214,16 @@ const Globe: React.FC = () => {
 
   return (
     <group>
-      {/* Main globe */}
       <mesh>
         <sphereGeometry args={[1, 128, 128]} />
         <shaderMaterial ref={materialRef} attach="material" {...globeMaterial} />
       </mesh>
-      {/* Cloud layer */}
       <mesh ref={cloudRef} material={proceduralCloudMaterial}>
         <sphereGeometry args={[1.005, 64, 64]} />
       </mesh>
-      {/* Inner atmosphere */}
       <mesh ref={atmosphereRef} material={atmosphereMaterial}>
         <sphereGeometry args={[1.055, 64, 64]} />
       </mesh>
-      {/* Outer glow */}
       <mesh ref={outerGlowRef} material={outerGlowMaterial}>
         <sphereGeometry args={[1.12, 48, 48]} />
       </mesh>
