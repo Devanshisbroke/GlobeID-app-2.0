@@ -247,8 +247,26 @@ const Home: React.FC = () => {
         <QuickActions />
       </AnimatedPage>
 
-      {/* 8. Travel Suggestions */}
+      {/* Social Feed Link */}
       <AnimatedPage staggerIndex={7}>
+        <GlassCard
+          className="flex items-center gap-3 cursor-pointer"
+          depth="md"
+          onClick={() => navigate("/social")}
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 shadow-glow-sm">
+            <Users className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-foreground">Travel Feed</p>
+            <p className="text-xs text-muted-foreground">See what travelers are sharing</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </GlassCard>
+      </AnimatedPage>
+
+      {/* 8. Travel Suggestions */}
+      <AnimatedPage staggerIndex={8}>
         <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">Travel Suggestions</h3>
         <Suggestions />
       </AnimatedPage>
