@@ -98,36 +98,45 @@ const Globe: React.FC = () => {
           float sunDot = dot(vNormal, uSunDir);
           float dayFactor = smoothstep(-0.2, 0.3, sunDot);
 
-          vec3 tintedDay = mix(dayColor, dayColor * 1.1, bump) * 0.82;
+          // Land vs ocean — smooth blend instead of hard branch
+          float isLand = smoothstep(0.45, 0.55, water);
+          
+          // Land: tint with continent color, add elevation
+          vec3 landColor = mix(dayColor * 0.8, uContinentDark * 1.8 + dayColor * 0.5, 0.3);
+          landColor += vec3(0.03, 0.04, 0.06) * bump;
 
-          if (water < 0.5) {
-            vec3 oceanBase = mix(uOceanDeep, dayColor * 0.6, 0.3);
-            vec3 viewDir = normalize(-vWorldPos);
-            vec3 halfDir = normalize(uSunDir + viewDir);
-            float spec = pow(max(dot(vNormal, halfDir), 0.0), 120.0);
-            float microWave = sin(vUv.x * 800.0 + uTime * 0.3) * sin(vUv.y * 600.0 + uTime * 0.2) * 0.02;
-            oceanBase += vec3(0.08, 0.16, 0.28) * spec * dayFactor * 0.7;
-            oceanBase += microWave * dayFactor;
-            tintedDay = oceanBase;
-          }
+          // Ocean: deep blue with subtle specular
+          vec3 oceanColor = mix(uOceanDeep, dayColor * 0.4, 0.2);
+          vec3 viewDir = normalize(-vWorldPos);
+          vec3 halfDir = normalize(uSunDir + viewDir);
+          float spec = pow(max(dot(vNormal, halfDir), 0.0), 80.0);
+          oceanColor += vec3(0.06, 0.12, 0.22) * spec * dayFactor * 0.5;
 
-          vec3 nightBoosted = nightColor * vec3(1.4, 1.1, 0.7) * 1.5;
+          vec3 tintedDay = mix(oceanColor, landColor, isLand) * 0.85;
+
+          // Night city lights
+          vec3 nightBoosted = nightColor * vec3(1.3, 1.0, 0.7) * 1.2;
           vec3 surface = mix(nightBoosted, tintedDay, dayFactor);
 
-          float bumpEdge = length(vec2(dFdx(bump), dFdy(bump))) * 18.0;
-          float waterEdge = length(vec2(dFdx(water), dFdy(water))) * 22.0;
-          float coastGlow = smoothstep(0.06, 0.5, max(bumpEdge, waterEdge)) * 0.3;
-          surface += uCoastGlow * coastGlow * (0.6 + dayFactor * 0.4);
+          // Coastline glow — use smooth texture sampling instead of dFdx/dFdy
+          vec2 texel = vec2(1.0 / 2048.0, 1.0 / 1024.0);
+          float wR = texture2D(uWaterMap, vUv + vec2(texel.x, 0.0)).r;
+          float wL = texture2D(uWaterMap, vUv - vec2(texel.x, 0.0)).r;
+          float wU = texture2D(uWaterMap, vUv + vec2(0.0, texel.y)).r;
+          float wD = texture2D(uWaterMap, vUv - vec2(0.0, texel.y)).r;
+          float coastEdge = length(vec2(wR - wL, wU - wD)) * 8.0;
+          coastEdge = smoothstep(0.1, 0.6, coastEdge) * 0.25;
+          surface += uCoastGlow * coastEdge * (0.5 + dayFactor * 0.5);
 
-          surface += vec3(0.03, 0.04, 0.06) * bump * dayFactor;
-
+          // Subtle lat/lng grid
           float lat = asin(vPosition.y) * 57.2957795;
           float lng = atan(vPosition.z, -vPosition.x) * 57.2957795;
           float latGrid = smoothstep(0.0, 0.9, abs(fract(lat / 30.0) - 0.5) * 2.0);
           float lngGrid = smoothstep(0.0, 0.9, abs(fract(lng / 30.0) - 0.5) * 2.0);
-          float grid = (1.0 - min(latGrid, lngGrid)) * 0.02;
+          float grid = (1.0 - min(latGrid, lngGrid)) * 0.015;
           surface += uGridColor * grid;
 
+          // Fresnel atmosphere rim
           float fresnel = 1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0)));
           fresnel = pow(fresnel, 3.5);
           surface += uAtmoColor * fresnel * 0.2;
