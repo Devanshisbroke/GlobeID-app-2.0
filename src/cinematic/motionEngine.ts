@@ -118,17 +118,16 @@ export const cinematicDepth: Variants = {
 export const cinematicStagger: Variants = {
   initial: {},
   animate: {
-    transition: { staggerChildren: 0.08, delayChildren: 0.15 },
+    transition: { staggerChildren: 0.05, delayChildren: 0.08 },
   },
 };
 
 /* ── Stagger Item ── */
 export const cinematicStaggerItem: Variants = {
-  initial: { opacity: 0, y: 20, filter: "blur(4px)" },
+  initial: { opacity: 0, y: 14 },
   animate: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: { duration: cinematicDuration.cinematic, ease: cinematicEase },
   },
 };
