@@ -1,14 +1,16 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, useAnimation, PanInfo } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { demoBalances, demoBookings, demoActivity } from "@/lib/demoData";
 import { getIcon } from "@/lib/iconMap";
 import { springs } from "@/hooks/useMotion";
-import { ChevronRight, TrendingUp, Plane, QrCode, Bell } from "lucide-react";
+import { ChevronRight, TrendingUp, Plane, QrCode, Bell, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAlertsStore } from "@/store/alertsStore";
+import { spring as motionSpring } from "@/motion/motionConfig";
+import { haptics } from "@/utils/haptics";
 
 import ProfileCard from "@/components/dashboard/ProfileCard";
 import TravelStats from "@/components/dashboard/TravelStats";
@@ -26,10 +28,15 @@ const item = {
   animate: { opacity: 1, y: 0, scale: 1 },
 };
 
+const PULL_THRESHOLD = 80;
+
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const [showAssistant, setShowAssistant] = useState(false);
   const unreadCount = useAlertsStore((s) => s.alerts.filter((a) => !a.read).length);
+  const [refreshing, setRefreshing] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const totalUSD = useMemo(() => demoBalances.reduce((acc, b) => {
     if (b.currency === "USD") return acc + b.amount;
@@ -43,13 +50,75 @@ const Home: React.FC = () => {
 
   const nextFlight = demoBookings.find((b) => b.type === "flight" && b.status === "upcoming");
 
+  const handlePanEnd = useCallback(async () => {
+    if (pullDistance >= PULL_THRESHOLD && !refreshing) {
+      setRefreshing(true);
+      haptics.medium();
+      // Simulate refresh
+      await new Promise((r) => setTimeout(r, 1200));
+      haptics.success();
+      setRefreshing(false);
+    }
+    setPullDistance(0);
+  }, [pullDistance, refreshing]);
+
+  const handlePan = useCallback((_: any, info: PanInfo) => {
+    if (refreshing) return;
+    // Only allow pull down when at top of scroll
+    const el = containerRef.current;
+    if (el && el.scrollTop > 5) return;
+    const d = Math.max(0, info.offset.y);
+    setPullDistance(Math.min(d * 0.5, 120));
+    if (d * 0.5 >= PULL_THRESHOLD) {
+      haptics.selection();
+    }
+  }, [refreshing]);
+
+  const pullProgress = Math.min(pullDistance / PULL_THRESHOLD, 1);
+  const showPullIndicator = pullDistance > 10 || refreshing;
+
   return (
     <motion.div
-      className="px-4 py-6 space-y-5 bg-gradient-radial min-h-screen"
+      ref={containerRef}
+      className="px-4 py-6 space-y-5 bg-gradient-radial min-h-screen relative"
       variants={container}
       initial="initial"
       animate="animate"
+      onPan={handlePan}
+      onPanEnd={handlePanEnd}
+      style={{ touchAction: "pan-x" }}
     >
+      {/* Pull-to-refresh indicator */}
+      <motion.div
+        className="absolute top-0 left-0 right-0 flex items-center justify-center z-20 pointer-events-none"
+        animate={{
+          height: refreshing ? 60 : pullDistance > 0 ? pullDistance : 0,
+          opacity: showPullIndicator ? 1 : 0,
+        }}
+        transition={motionSpring.snappy}
+      >
+        <motion.div
+          className="flex items-center gap-2"
+          animate={{ opacity: showPullIndicator ? 1 : 0 }}
+        >
+          <motion.div
+            animate={{ rotate: refreshing ? 360 : pullProgress * 270 }}
+            transition={refreshing ? { repeat: Infinity, duration: 0.8, ease: "linear" } : { type: "spring", stiffness: 200 }}
+          >
+            <RefreshCw className={cn("w-5 h-5", pullProgress >= 1 || refreshing ? "text-primary" : "text-muted-foreground")} strokeWidth={2} />
+          </motion.div>
+          <span className={cn("text-xs font-medium", pullProgress >= 1 || refreshing ? "text-primary" : "text-muted-foreground")}>
+            {refreshing ? "Refreshing..." : pullProgress >= 1 ? "Release to refresh" : "Pull to refresh"}
+          </span>
+        </motion.div>
+      </motion.div>
+
+      {/* Content wrapper with pull offset */}
+      <motion.div
+        className="space-y-5"
+        animate={{ y: refreshing ? 50 : pullDistance > 0 ? pullDistance * 0.4 : 0 }}
+        transition={motionSpring.snappy}
+      >
       {/* Ambient orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <div className="orb w-[320px] h-[320px] top-[-5%] left-[-10%]" style={{ background: "hsl(var(--ocean-aqua) / 0.18)" }} />
