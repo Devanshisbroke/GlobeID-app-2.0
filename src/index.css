@@ -273,9 +273,11 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
-    overscroll-behavior: none;
+    overscroll-behavior-y: contain;
     background-image: var(--gradient-mesh);
     background-attachment: fixed;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
 
   h1 {
