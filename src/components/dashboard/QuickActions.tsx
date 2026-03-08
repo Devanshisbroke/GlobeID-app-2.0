@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ScanLine, FileText, Globe, PlusCircle } from "lucide-react";
+import { ScanLine, FileText, Globe, PlusCircle, BrainCircuit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { springs } from "@/hooks/useMotion";
 
