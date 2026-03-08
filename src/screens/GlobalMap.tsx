@@ -1,23 +1,26 @@
-import React, { useState, useEffect, lazy, Suspense } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { flightRoutes, getAirport, visitedCountries, upcomingCountries } from "@/lib/airports";
 import { getGlobalStats } from "@/lib/destinationAnalytics";
 import { springs } from "@/hooks/useMotion";
-import { Globe, Plane, Clock, ChevronRight, Navigation, Activity, Users, Route } from "lucide-react";
+import { Globe, Plane, Clock, ChevronRight, Navigation, Activity, Users, Route, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MapControls from "@/components/map/MapControls";
+import SimulationHUD from "@/components/simulation/SimulationHUD";
+import TravelTimelineSim from "@/components/simulation/TravelTimeline";
+import ContinentTraffic from "@/components/simulation/ContinentTraffic";
+import SpeedControl from "@/components/simulation/SpeedControl";
 
 const GlobeScene = lazy(() => import("@/components/map/GlobeScene"));
 
 const USER_LAT = 37.7749;
 const USER_LNG = -122.4194;
-
 const stats = getGlobalStats();
 
 function useAnimatedNum(target: number, dur = 1500): number {
-  const [val, setVal] = useState(0);
-  useEffect(() => {
+  const [val, setVal] = React.useState(0);
+  React.useEffect(() => {
     const start = performance.now();
     const tick = (now: number) => {
       const p = Math.min((now - start) / dur, 1);
@@ -59,6 +62,9 @@ const GlobalMap: React.FC = () => {
   const [showAirports, setShowAirports] = useState(true);
   const [showPanel, setShowPanel] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [simMode, setSimMode] = useState(false);
+  const [simSpeed, setSimSpeed] = useState(1);
+  const [simHour, setSimHour] = useState(12);
 
   const upcomingFlights = flightRoutes.filter(r => r.type === "upcoming");
   const pastFlights = flightRoutes.filter(r => r.type === "past");
@@ -89,6 +95,8 @@ const GlobalMap: React.FC = () => {
               showAirports={showAirports}
               userLat={USER_LAT}
               userLng={USER_LNG}
+              showSimulation={simMode}
+              simSpeed={simSpeed}
             />
           </motion.div>
         </Suspense>
@@ -101,6 +109,37 @@ const GlobalMap: React.FC = () => {
         onToggleHistory={() => setShowHistory(!showHistory)}
         onToggleAirports={() => setShowAirports(!showAirports)}
       />
+
+      {/* Simulation mode toggle — top left */}
+      <motion.button
+        onClick={() => setSimMode(!simMode)}
+        whileTap={{ scale: 0.9 }}
+        className={cn(
+          "absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-2 rounded-xl border shadow-depth-sm transition-colors",
+          simMode
+            ? "bg-primary/20 border-primary/40 text-primary backdrop-blur-xl"
+            : "bg-background/60 border-border/[0.15] text-muted-foreground backdrop-blur-xl"
+        )}
+      >
+        <Radio className="w-3.5 h-3.5" strokeWidth={2} />
+        <span className="text-[10px] font-bold uppercase tracking-wider">Simulation</span>
+        {simMode && <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />}
+      </motion.button>
+
+      {/* Simulation HUD overlay */}
+      <AnimatePresence>
+        {simMode && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute top-14 left-4 right-4 z-10 space-y-2"
+          >
+            <SimulationHUD speed={simSpeed} />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Bottom panel toggle */}
       <motion.button
@@ -128,6 +167,15 @@ const GlobalMap: React.FC = () => {
             transition={springs.gentle}
             className="absolute bottom-20 left-0 right-0 z-10 px-4 pb-2 space-y-3 max-h-[45vh] overflow-y-auto momentum-scroll"
           >
+            {/* Simulation controls when in sim mode */}
+            {simMode && (
+              <GlassCard className="space-y-3 py-3 px-3" interactive={false}>
+                <SpeedControl speed={simSpeed} onSpeedChange={setSimSpeed} />
+                <TravelTimelineSim hour={simHour} onHourChange={setSimHour} />
+                <ContinentTraffic />
+              </GlassCard>
+            )}
+
             {/* Live global stats */}
             <LiveFlightStats />
 
