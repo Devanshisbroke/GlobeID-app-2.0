@@ -68,6 +68,7 @@ const Travel: React.FC = () => {
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </GlassCard>
           </AnimatedPage>
+          {upcomingTrips.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">Upcoming</h3>
               {upcomingTrips.map((trip, i) => (
