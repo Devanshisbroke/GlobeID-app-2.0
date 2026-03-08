@@ -21,6 +21,12 @@ const EntryReceipt = lazy(() => import("@/screens/EntryReceipt"));
 const TravelTimeline = lazy(() => import("@/screens/TravelTimeline"));
 const TripPlanner = lazy(() => import("@/screens/TripPlanner"));
 const AICopilot = lazy(() => import("@/components/ai/TravelCopilot"));
+const ServicesHub = lazy(() => import("@/screens/ServicesHub"));
+const HotelBooking = lazy(() => import("@/screens/services/HotelBooking"));
+const RideBooking = lazy(() => import("@/screens/services/RideBooking"));
+const FoodDiscovery = lazy(() => import("@/screens/services/FoodDiscovery"));
+const ActivitiesScreen = lazy(() => import("@/screens/services/Activities"));
+const TransportScreen = lazy(() => import("@/screens/services/Transport"));
 
 const queryClient = new QueryClient();
 
