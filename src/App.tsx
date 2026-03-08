@@ -30,6 +30,7 @@ const TransportScreen = lazy(() => import("@/screens/services/Transport"));
 const SocialFeed = lazy(() => import("@/screens/SocialFeed"));
 const Explore = lazy(() => import("@/screens/Explore"));
 const UserProfile = lazy(() => import("@/screens/UserProfile"));
+const IdentityVault = lazy(() => import("@/screens/IdentityVault"));
 
 const queryClient = new QueryClient();
 
@@ -100,6 +101,7 @@ const App = () => {
                           <Route path="/social" element={<SocialFeed />} />
                           <Route path="/explore" element={<Explore />} />
                           <Route path="/profile/:userId" element={<UserProfile />} />
+                          <Route path="/passport-book" element={<IdentityVault />} />
                           <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                       </Suspense>
