@@ -65,6 +65,7 @@ const App = () => {
                           <Route path="/map" element={<GlobalMap />} />
                           <Route path="/kiosk-sim" element={<KioskSimulator />} />
                           <Route path="/receipt" element={<EntryReceipt />} />
+                          <Route path="/timeline" element={<TravelTimeline />} />
                           <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                       </Suspense>
