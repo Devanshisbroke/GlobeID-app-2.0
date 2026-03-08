@@ -31,6 +31,7 @@ const SocialFeed = lazy(() => import("@/screens/SocialFeed"));
 const Explore = lazy(() => import("@/screens/Explore"));
 const UserProfile = lazy(() => import("@/screens/UserProfile"));
 const IdentityVault = lazy(() => import("@/screens/IdentityVault"));
+const TravelIntelligence = lazy(() => import("@/screens/TravelIntelligence"));
 
 const queryClient = new QueryClient();
 
