@@ -33,9 +33,21 @@ const UserProfile = lazy(() => import("@/screens/UserProfile"));
 
 const queryClient = new QueryClient();
 
+const CinematicLoaderLazy = lazy(() => import("@/components/ui/CinematicLoader"));
+
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[60dvh]">
-    <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+    <div className="flex flex-col items-center gap-3">
+      <div className="relative w-12 h-12">
+        <svg width="48" height="48" viewBox="0 0 48 48" className="absolute inset-0 animate-spin" style={{ animationDuration: "2.5s" }}>
+          <circle cx="24" cy="24" r="20" fill="none" stroke="hsl(var(--primary) / 0.15)" strokeWidth="2.5" />
+          <circle cx="24" cy="24" r="20" fill="none" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="round" strokeDasharray={`${40 * Math.PI}`} strokeDashoffset={`${40 * Math.PI * 0.7}`} />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ boxShadow: "0 0 12px hsl(var(--primary) / 0.4)" }} />
+        </div>
+      </div>
+    </div>
   </div>
 );
 
