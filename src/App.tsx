@@ -85,6 +85,9 @@ const App = () => {
                           <Route path="/services/food" element={<FoodDiscovery />} />
                           <Route path="/services/activities" element={<ActivitiesScreen />} />
                           <Route path="/services/transport" element={<TransportScreen />} />
+                          <Route path="/social" element={<SocialFeed />} />
+                          <Route path="/explore" element={<Explore />} />
+                          <Route path="/profile/:userId" element={<UserProfile />} />
                           <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                       </Suspense>
