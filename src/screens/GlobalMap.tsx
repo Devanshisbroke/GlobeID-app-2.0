@@ -87,6 +87,9 @@ const GlobalMap: React.FC = () => {
             transition={springs.gentle}
             className="absolute bottom-20 left-0 right-0 z-10 px-4 pb-2 space-y-3 max-h-[45vh] overflow-y-auto momentum-scroll"
           >
+            {/* Live global stats */}
+            <LiveFlightStats />
+
             {/* Stats bar */}
             <div className="flex gap-2">
               <GlassCard className="flex-1 py-2.5 px-3 flex items-center gap-2" interactive={false}>
