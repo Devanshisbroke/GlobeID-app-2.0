@@ -8,14 +8,17 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PageTransition } from "@/components/layout/PageTransition";
 import SplashScreen from "@/components/SplashScreen";
 
+// ── Core tab screens: eagerly imported for instant switching ──
+import Home from "@/screens/Home";
+import Identity from "@/screens/Identity";
+import Wallet from "@/screens/Wallet";
+import Travel from "@/screens/Travel";
+import Services from "@/screens/Services";
+import GlobalMap from "@/screens/GlobalMap";
+
+// ── Secondary screens: lazy loaded ──
 const LockScreen = lazy(() => import("@/screens/LockScreen"));
-const Home = lazy(() => import("@/screens/Home"));
-const Identity = lazy(() => import("@/screens/Identity"));
-const Wallet = lazy(() => import("@/screens/Wallet"));
-const Travel = lazy(() => import("@/screens/Travel"));
-const Services = lazy(() => import("@/screens/Services"));
 const Profile = lazy(() => import("@/screens/Profile"));
-const GlobalMap = lazy(() => import("@/screens/GlobalMap"));
 const KioskSimulator = lazy(() => import("@/screens/KioskSimulator"));
 const EntryReceipt = lazy(() => import("@/screens/EntryReceipt"));
 const TravelTimeline = lazy(() => import("@/screens/TravelTimeline"));
@@ -34,29 +37,32 @@ const IdentityVault = lazy(() => import("@/screens/IdentityVault"));
 const TravelIntelligence = lazy(() => import("@/screens/TravelIntelligence"));
 const PlanetExplorer = lazy(() => import("@/screens/PlanetExplorer"));
 
+// ── Preload secondary screens after initial load ──
+const preloadScreens = () => {
+  import("@/screens/Profile");
+  import("@/screens/SocialFeed");
+  import("@/screens/TravelTimeline");
+  import("@/screens/TripPlanner");
+  import("@/screens/TravelIntelligence");
+  import("@/screens/PlanetExplorer");
+};
+
 const queryClient = new QueryClient();
 
-const CinematicLoaderLazy = lazy(() => import("@/components/ui/CinematicLoader"));
-
+/** Minimal inline fallback — no heavy spinner, just a soft fade placeholder */
 const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-[60dvh]">
-    <div className="flex flex-col items-center gap-3">
-      <div className="relative w-12 h-12">
-        <svg width="48" height="48" viewBox="0 0 48 48" className="absolute inset-0 animate-spin" style={{ animationDuration: "2.5s" }}>
-          <circle cx="24" cy="24" r="20" fill="none" stroke="hsl(var(--primary) / 0.15)" strokeWidth="2.5" />
-          <circle cx="24" cy="24" r="20" fill="none" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="round" strokeDasharray={`${40 * Math.PI}`} strokeDashoffset={`${40 * Math.PI * 0.7}`} />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ boxShadow: "0 0 12px hsl(var(--primary) / 0.4)" }} />
-        </div>
-      </div>
-    </div>
+  <div className="flex items-center justify-center min-h-[40dvh]">
+    <div className="w-2 h-2 rounded-full bg-primary/40 animate-pulse" />
   </div>
 );
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
-  const handleSplashComplete = useCallback(() => setShowSplash(false), []);
+  const handleSplashComplete = useCallback(() => {
+    setShowSplash(false);
+    // Preload secondary screens after splash dismisses
+    requestIdleCallback ? requestIdleCallback(preloadScreens) : setTimeout(preloadScreens, 500);
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem("globe-theme");
@@ -72,49 +78,53 @@ const App = () => {
         <Sonner />
         {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
         <BrowserRouter>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/lock" element={<LockScreen />} />
-              <Route
-                path="/*"
-                element={
-                  <AppShell>
-                    <PageTransition>
-                      <Suspense fallback={<PageLoader />}>
-                        <Routes>
-                          <Route path="/" element={<Home />} />
-                          <Route path="/identity" element={<Identity />} />
-                          <Route path="/wallet" element={<Wallet />} />
-                          <Route path="/travel" element={<Travel />} />
-                          <Route path="/services" element={<Services />} />
-                          <Route path="/profile" element={<Profile />} />
-                          <Route path="/map" element={<GlobalMap />} />
-                          <Route path="/kiosk-sim" element={<KioskSimulator />} />
-                          <Route path="/receipt" element={<EntryReceipt />} />
-                          <Route path="/timeline" element={<TravelTimeline />} />
-                          <Route path="/planner" element={<TripPlanner />} />
-                          <Route path="/copilot" element={<AICopilot />} />
-                          <Route path="/services/hub" element={<ServicesHub />} />
-                          <Route path="/services/hotels" element={<HotelBooking />} />
-                          <Route path="/services/rides" element={<RideBooking />} />
-                          <Route path="/services/food" element={<FoodDiscovery />} />
-                          <Route path="/services/activities" element={<ActivitiesScreen />} />
-                          <Route path="/services/transport" element={<TransportScreen />} />
-                          <Route path="/social" element={<SocialFeed />} />
-                          <Route path="/explore" element={<Explore />} />
-                          <Route path="/profile/:userId" element={<UserProfile />} />
-                          <Route path="/passport-book" element={<IdentityVault />} />
-                          <Route path="/intelligence" element={<TravelIntelligence />} />
-                          <Route path="/explorer" element={<PlanetExplorer />} />
-                          <Route path="*" element={<Navigate to="/" replace />} />
-                        </Routes>
-                      </Suspense>
-                    </PageTransition>
-                  </AppShell>
-                }
-              />
-            </Routes>
-          </Suspense>
+          <Routes>
+            <Route path="/lock" element={
+              <Suspense fallback={<PageLoader />}>
+                <LockScreen />
+              </Suspense>
+            } />
+            <Route
+              path="/*"
+              element={
+                <AppShell>
+                  <PageTransition>
+                    <Suspense fallback={<PageLoader />}>
+                      <Routes>
+                        {/* Core tabs — eagerly loaded, instant switch */}
+                        <Route path="/" element={<Home />} />
+                        <Route path="/identity" element={<Identity />} />
+                        <Route path="/wallet" element={<Wallet />} />
+                        <Route path="/travel" element={<Travel />} />
+                        <Route path="/services" element={<Services />} />
+                        <Route path="/map" element={<GlobalMap />} />
+                        {/* Secondary screens */}
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/kiosk-sim" element={<KioskSimulator />} />
+                        <Route path="/receipt" element={<EntryReceipt />} />
+                        <Route path="/timeline" element={<TravelTimeline />} />
+                        <Route path="/planner" element={<TripPlanner />} />
+                        <Route path="/copilot" element={<AICopilot />} />
+                        <Route path="/services/hub" element={<ServicesHub />} />
+                        <Route path="/services/hotels" element={<HotelBooking />} />
+                        <Route path="/services/rides" element={<RideBooking />} />
+                        <Route path="/services/food" element={<FoodDiscovery />} />
+                        <Route path="/services/activities" element={<ActivitiesScreen />} />
+                        <Route path="/services/transport" element={<TransportScreen />} />
+                        <Route path="/social" element={<SocialFeed />} />
+                        <Route path="/explore" element={<Explore />} />
+                        <Route path="/profile/:userId" element={<UserProfile />} />
+                        <Route path="/passport-book" element={<IdentityVault />} />
+                        <Route path="/intelligence" element={<TravelIntelligence />} />
+                        <Route path="/explorer" element={<PlanetExplorer />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                      </Routes>
+                    </Suspense>
+                  </PageTransition>
+                </AppShell>
+              }
+            />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

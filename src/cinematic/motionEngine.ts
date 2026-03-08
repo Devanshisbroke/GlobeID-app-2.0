@@ -13,11 +13,11 @@ export const cinematicBounce = [0.34, 1.3, 0.64, 1] as [number, number, number, 
 
 /* ── Duration Tokens ── */
 export const cinematicDuration = {
-  short: 0.18,
-  medium: 0.32,
-  cinematic: 0.6,
-  hero: 0.9,
-  epic: 1.2,
+  short: 0.12,
+  medium: 0.22,
+  cinematic: 0.35,
+  hero: 0.55,
+  epic: 0.8,
 } as const;
 
 /* ── Cinematic Transition Presets ── */
@@ -38,51 +38,45 @@ export const cinematicFade: Variants = {
 
 /* ── Cinematic Reveal (blur + fade + slide) ── */
 export const cinematicReveal: Variants = {
-  initial: { opacity: 0, y: 24, filter: "blur(8px)" },
+  initial: { opacity: 0, y: 16 },
   animate: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: { duration: cinematicDuration.cinematic, ease: cinematicEase },
   },
   exit: {
     opacity: 0,
-    y: -12,
-    filter: "blur(4px)",
+    y: -8,
     transition: { duration: cinematicDuration.medium, ease: cinematicEaseIn },
   },
 };
 
 /* ── Cinematic Slide ── */
 export const cinematicSlide: Variants = {
-  initial: { opacity: 0, x: 40, filter: "blur(4px)" },
+  initial: { opacity: 0, x: 24 },
   animate: {
     opacity: 1,
     x: 0,
-    filter: "blur(0px)",
     transition: { duration: cinematicDuration.cinematic, ease: cinematicEase },
   },
   exit: {
     opacity: 0,
-    x: -20,
-    filter: "blur(3px)",
+    x: -12,
     transition: { duration: cinematicDuration.medium, ease: cinematicEaseIn },
   },
 };
 
 /* ── Cinematic Scale (zoom in from center) ── */
 export const cinematicScale: Variants = {
-  initial: { opacity: 0, scale: 0.88, filter: "blur(6px)" },
+  initial: { opacity: 0, scale: 0.92 },
   animate: {
     opacity: 1,
     scale: 1,
-    filter: "blur(0px)",
     transition: { duration: cinematicDuration.cinematic, ease: cinematicEase },
   },
   exit: {
     opacity: 0,
-    scale: 1.05,
-    filter: "blur(4px)",
+    scale: 1.03,
     transition: { duration: cinematicDuration.medium, ease: cinematicEaseIn },
   },
 };
@@ -124,17 +118,16 @@ export const cinematicDepth: Variants = {
 export const cinematicStagger: Variants = {
   initial: {},
   animate: {
-    transition: { staggerChildren: 0.08, delayChildren: 0.15 },
+    transition: { staggerChildren: 0.05, delayChildren: 0.08 },
   },
 };
 
 /* ── Stagger Item ── */
 export const cinematicStaggerItem: Variants = {
-  initial: { opacity: 0, y: 20, filter: "blur(4px)" },
+  initial: { opacity: 0, y: 14 },
   animate: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: { duration: cinematicDuration.cinematic, ease: cinematicEase },
   },
 };

@@ -49,9 +49,9 @@ export const transition: Record<string, Transition> = {
 
 /* ── Page Transition Variants ── */
 export const pageSlide: Variants = {
-  initial: { opacity: 0, x: 20, filter: "blur(4px)" },
-  animate: { opacity: 1, x: 0, filter: "blur(0px)" },
-  exit: { opacity: 0, x: -20, filter: "blur(4px)" },
+  initial: { opacity: 0, x: 16 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: -16 },
 };
 
 export const pageFade: Variants = {

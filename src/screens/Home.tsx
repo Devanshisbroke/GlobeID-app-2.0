@@ -28,8 +28,8 @@ const container = {
   animate: { transition: { staggerChildren: 0.06 } },
 };
 const item = {
-  initial: { opacity: 0, y: 16, scale: 0.97, filter: "blur(4px)" },
-  animate: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" },
+  initial: { opacity: 0, y: 12, scale: 0.98 },
+  animate: { opacity: 1, y: 0, scale: 1 },
 };
 
 const PULL_THRESHOLD = 80;
