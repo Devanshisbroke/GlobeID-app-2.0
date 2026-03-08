@@ -69,9 +69,26 @@ const Services: React.FC = () => {
 
       {tab === "services" && (
         <div className="space-y-3">
+          <AnimatedPage>
+            <GlassCard
+              neonBorder
+              className="flex items-center gap-3 cursor-pointer"
+              depth="md"
+              onClick={() => navigate("/services/hub")}
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 shadow-glow-sm">
+                <Sparkles className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-foreground">Services Hub</p>
+                <p className="text-xs text-muted-foreground">Hotels, rides, food, activities & more</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </GlassCard>
+          </AnimatedPage>
           <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">Travel Services</h3>
           {travelServices.map((svc, i) => (
-            <AnimatedPage key={svc.id} staggerIndex={i}>
+            <AnimatedPage key={svc.id} staggerIndex={i + 1}>
               <ServiceCard
                 title={svc.title}
                 description={svc.description}
