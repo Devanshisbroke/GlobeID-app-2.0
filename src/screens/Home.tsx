@@ -282,6 +282,7 @@ const Home: React.FC = () => {
           })}
         </motion.div>
       </AnimatedPage>
+      </motion.div>
     </motion.div>
   );
 };
