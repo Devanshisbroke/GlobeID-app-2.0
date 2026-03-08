@@ -6,7 +6,7 @@ import { useUserStore } from "@/store/userStore";
 import { demoBookings } from "@/lib/demoData";
 import { demoFlightResults, demoHotelResults } from "@/lib/demoServices";
 import { getIcon } from "@/lib/iconMap";
-import { Plane, Hotel, Search, Star, Clock, ChevronRight, QrCode, History, CalendarDays, Map } from "lucide-react";
+import { Plane, Hotel, Search, Star, Clock, ChevronRight, QrCode, History, CalendarDays, Map, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TripCard from "@/components/travel/TripCard";
 
