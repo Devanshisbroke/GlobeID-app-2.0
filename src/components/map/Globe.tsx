@@ -62,8 +62,11 @@ const Globe: React.FC = () => {
           value: new THREE.Vector3(1, 0.3, 0.8).normalize()
         },
 
-        uLandColor: { value: new THREE.Color("#1e3a5f") },
-        uOceanColor: { value: new THREE.Color("#081e36") },
+        // darker land
+        uLandColor: { value: new THREE.Color("#132f52") },
+
+        // brighter ocean
+        uOceanColor: { value: new THREE.Color("#2f7edb") },
 
         uAtmoColor: { value: new THREE.Color("#78b4ff") },
         uCityLightColor: { value: new THREE.Color("#ffd27a") }
@@ -119,8 +122,8 @@ const Globe: React.FC = () => {
 
           float isLand = 1.0 - smoothstep(0.45,0.55,water);
 
-          vec3 land = uLandColor * 1.3;
-          vec3 ocean = uOceanColor * 1.4;
+          vec3 land = uLandColor;
+          vec3 ocean = uOceanColor;
 
           land += vec3(0.02,0.03,0.05) * bump;
 
@@ -133,7 +136,11 @@ const Globe: React.FC = () => {
             smoothstep(-0.15,0.25,sunDot);
 
           float ambient = 0.7;
-          float diffuse = max(sunDot,0.0) * 0.35;
+
+          float landDiffuse = max(sunDot,0.0) * 0.35;
+          float waterDiffuse = max(sunDot,0.0) * 0.55;
+
+          float diffuse = mix(waterDiffuse, landDiffuse, isLand);
 
           surface *= (ambient + diffuse);
 
@@ -160,18 +167,16 @@ const Globe: React.FC = () => {
             fresnel *
             0.25;
 
-          // tone mapping to stop daylight blowout
+          // tone mapping
           surface = surface / (surface + vec3(1.0));
 
-          // final brightness
-          surface *= 1.6;
+          surface *= 1.5;
 
           gl_FragColor =
             vec4(surface,1.0);
         }
 
       `
-
     });
 
   }, [nightMap, bumpMap, waterMap]);
@@ -181,37 +186,27 @@ const Globe: React.FC = () => {
     return new THREE.ShaderMaterial({
 
       uniforms: {
-
         uColor: { value: new THREE.Color("#1a5a9e") },
         uColor2: { value: new THREE.Color("#78b4ff") }
-
       },
 
       vertexShader: `
-
         varying vec3 vNormal;
-
         void main(){
-
           vNormal = normalize(normalMatrix * normal);
-
           gl_Position =
             projectionMatrix *
             modelViewMatrix *
             vec4(position,1.0);
         }
-
       `,
 
       fragmentShader: `
-
         uniform vec3 uColor;
         uniform vec3 uColor2;
-
         varying vec3 vNormal;
 
         void main(){
-
           float intensity =
             pow(0.6 - dot(vNormal,vec3(0,0,1)),2.5);
 
@@ -221,13 +216,11 @@ const Globe: React.FC = () => {
           gl_FragColor =
             vec4(color,intensity * 0.25);
         }
-
       `,
 
       side: THREE.BackSide,
       transparent: true,
       depthWrite: false
-
     });
 
   }, []);
@@ -241,42 +234,32 @@ const Globe: React.FC = () => {
       },
 
       vertexShader: `
-
         varying vec3 vNormal;
-
         void main(){
-
           vNormal = normalize(normalMatrix * normal);
-
           gl_Position =
             projectionMatrix *
             modelViewMatrix *
             vec4(position,1.0);
         }
-
       `,
 
       fragmentShader: `
-
         uniform vec3 uColor;
-
         varying vec3 vNormal;
 
         void main(){
-
           float intensity =
             pow(0.45 - dot(vNormal,vec3(0,0,1)),4.5);
 
           gl_FragColor =
             vec4(uColor,intensity * 0.1);
         }
-
       `,
 
       side: THREE.BackSide,
       transparent: true,
       depthWrite: false
-
     });
 
   }, []);
@@ -286,7 +269,6 @@ const Globe: React.FC = () => {
     <group>
 
       <mesh>
-
         <sphereGeometry args={[1,128,128]} />
 
         <primitive
