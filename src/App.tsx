@@ -20,6 +20,7 @@ const KioskSimulator = lazy(() => import("@/screens/KioskSimulator"));
 const EntryReceipt = lazy(() => import("@/screens/EntryReceipt"));
 const TravelTimeline = lazy(() => import("@/screens/TravelTimeline"));
 const TripPlanner = lazy(() => import("@/screens/TripPlanner"));
+const AICopilot = lazy(() => import("@/components/ai/TravelCopilot"));
 
 const queryClient = new QueryClient();
 
