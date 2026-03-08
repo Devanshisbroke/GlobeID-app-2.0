@@ -8,6 +8,7 @@ import { springs } from "@/hooks/useMotion";
 const actions = [
   { icon: PlusCircle, label: "Add Trip", route: "/travel", gradient: "bg-gradient-ocean" },
   { icon: ScanLine, label: "Scan Passport", route: "/identity", gradient: "bg-gradient-cosmic" },
+  { icon: BrainCircuit, label: "Intelligence", route: "/intelligence", gradient: "bg-gradient-to-br from-accent to-primary" },
   { icon: FileText, label: "Add Document", route: "/wallet", gradient: "bg-gradient-sunset" },
   { icon: Globe, label: "Open Map", route: "/map", gradient: "bg-gradient-forest" },
 ];
