@@ -6,7 +6,7 @@ import { useUserStore } from "@/store/userStore";
 import { demoBookings } from "@/lib/demoData";
 import { demoFlightResults, demoHotelResults } from "@/lib/demoServices";
 import { getIcon } from "@/lib/iconMap";
-import { Plane, Hotel, Search, Star, Clock, ChevronRight, QrCode, History, CalendarDays } from "lucide-react";
+import { Plane, Hotel, Search, Star, Clock, ChevronRight, QrCode, History, CalendarDays, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TripCard from "@/components/travel/TripCard";
 
@@ -64,6 +64,22 @@ const Travel: React.FC = () => {
               <div className="flex-1">
                 <p className="text-sm font-bold text-foreground">Travel Timeline</p>
                 <p className="text-xs text-muted-foreground">View your journey & achievements</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </GlassCard>
+          </AnimatedPage>
+          <AnimatedPage staggerIndex={1}>
+            <GlassCard
+              className="flex items-center gap-3 cursor-pointer"
+              depth="md"
+              onClick={() => navigate("/planner")}
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-ocean flex items-center justify-center shrink-0 shadow-depth-sm">
+                <Map className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-foreground">Trip Planner</p>
+                <p className="text-xs text-muted-foreground">Design your next journey</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </GlassCard>
