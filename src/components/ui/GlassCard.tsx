@@ -1,7 +1,9 @@
 import React from "react";
+import { motion, type HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { cardPress, springs } from "@/hooks/useMotion";
 
-interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
+interface GlassCardProps extends Omit<HTMLMotionProps<"div">, "children"> {
   glow?: boolean;
   neonBorder?: boolean;
   depth?: "sm" | "md" | "lg" | "xl";
@@ -12,27 +14,27 @@ interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
   ({ className, glow, neonBorder, depth = "sm", variant = "default", interactive = true, children, ...props }, ref) => (
-    <div
+    <motion.div
       ref={ref}
       className={cn(
         "rounded-2xl p-4",
         variant === "default" && "glass glass-shine",
         variant === "premium" && "glass-premium glass-shine",
         variant === "ultra" && "glass-ultra glass-shine",
-        "transition-all duration-[var(--motion-small)] ease-[var(--ease-cinematic)]",
         depth === "sm" && "shadow-depth-sm",
         depth === "md" && "shadow-depth-md",
         depth === "lg" && "shadow-depth-lg",
         depth === "xl" && "shadow-depth-xl",
         glow && "shadow-glow-md border-gradient",
         neonBorder && "border-gradient",
-        interactive && "hover:shadow-depth-md active:scale-[0.985]",
         className
       )}
+      {...(interactive ? cardPress : {})}
+      transition={springs.card}
       {...props}
     >
       {children}
-    </div>
+    </motion.div>
   )
 );
 GlassCard.displayName = "GlassCard";

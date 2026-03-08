@@ -110,14 +110,15 @@
                      radial-gradient(at 50% 50%, hsl(310 65% 55% / 0.03) 0%, transparent 60%);
 
     /* ── Motion Tokens ── */
-    --motion-micro: 150ms;
-    --motion-small: 250ms;
-    --motion-medium: 400ms;
-    --motion-long: 800ms;
-    --motion-cinematic: 600ms;
+    --motion-micro: 120ms;
+    --motion-small: 180ms;
+    --motion-medium: 260ms;
+    --motion-long: 380ms;
+    --motion-cinematic: 500ms;
     --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
     --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-snap: cubic-bezier(0.2, 0, 0, 1);
 
     /* ── Depth Shadows (Light) ── */
     --shadow-sm: 0 1px 3px hsl(220 20% 70% / 0.12), 0 1px 2px hsl(220 20% 70% / 0.08);
@@ -272,9 +273,11 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
-    overscroll-behavior: none;
+    overscroll-behavior-y: contain;
     background-image: var(--gradient-mesh);
     background-attachment: fixed;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
 
   h1 {
@@ -583,7 +586,35 @@
     transition: transform var(--motion-micro) var(--ease-spring);
   }
   .touch-bounce:active {
-    transform: scale(0.95);
+    transform: scale(0.97);
+  }
+
+  /* ── Edge Fade Scroll ── */
+  .scroll-edge-fade {
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 24px, black calc(100% - 24px), transparent);
+    mask-image: linear-gradient(to bottom, transparent, black 24px, black calc(100% - 24px), transparent);
+  }
+
+  /* ── Momentum Scroll Container ── */
+  .momentum-scroll {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    scroll-behavior: smooth;
+  }
+
+  /* ── Will-change hints for perf ── */
+  .will-change-transform {
+    will-change: transform;
+  }
+  .will-change-opacity {
+    will-change: opacity;
+  }
+
+  /* ── GPU Layer ── */
+  .gpu-layer {
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 }
 

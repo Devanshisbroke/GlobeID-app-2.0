@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { IdentityScore } from "@/components/ui/IdentityScore";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { demoUser, quickActions, demoActivity, demoBalances, demoBookings } from "@/lib/demoData";
 import { getIcon } from "@/lib/iconMap";
-import { staggerDelay } from "@/hooks/useMotion";
+import { springs } from "@/hooks/useMotion";
 import { ChevronRight, MapPin, ShieldCheck, Globe, TrendingUp, Plane, QrCode, Car, ArrowRightLeft, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,10 +21,18 @@ const actionGradients = [
   "bg-gradient-tropical",
 ];
 
+const container = {
+  animate: { transition: { staggerChildren: 0.05 } },
+};
+const item = {
+  initial: { opacity: 0, y: 12, scale: 0.97 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+};
+
 const Home: React.FC = () => {
   const navigate = useNavigate();
 
-  const totalUSD = demoBalances.reduce((acc, b) => {
+  const totalUSD = useMemo(() => demoBalances.reduce((acc, b) => {
     if (b.currency === "USD") return acc + b.amount;
     if (b.currency === "INR") return acc + b.amount * 0.012;
     if (b.currency === "CNY") return acc + b.amount * 0.14;
@@ -31,13 +40,18 @@ const Home: React.FC = () => {
     if (b.currency === "SGD") return acc + b.amount * 0.74;
     if (b.currency === "EUR") return acc + b.amount * 1.08;
     return acc;
-  }, 0);
+  }, 0), []);
 
   const nextFlight = demoBookings.find((b) => b.type === "flight" && b.status === "upcoming");
   const greeting = new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 18 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="px-4 py-6 space-y-5 bg-gradient-radial min-h-screen">
+    <motion.div
+      className="px-4 py-6 space-y-5 bg-gradient-radial min-h-screen"
+      variants={container}
+      initial="initial"
+      animate="animate"
+    >
       {/* Ambient orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <div className="orb w-[320px] h-[320px] top-[-5%] left-[-10%]" style={{ background: "hsl(var(--ocean-aqua) / 0.18)" }} />
@@ -47,7 +61,7 @@ const Home: React.FC = () => {
 
       {/* Greeting + Identity Hero */}
       <AnimatedPage>
-        <GlassCard className="relative overflow-hidden p-5" variant="premium" glow depth="lg">
+        <GlassCard className="relative overflow-hidden p-5" variant="premium" glow depth="lg" onClick={() => navigate("/profile")}>
           <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent animate-shimmer" />
           </div>
@@ -67,9 +81,13 @@ const Home: React.FC = () => {
             )}
 
             <div className="flex items-center gap-4">
-              <div className="w-13 h-13 rounded-2xl bg-gradient-cosmic flex items-center justify-center shrink-0 shadow-glow-sm cursor-pointer touch-bounce" onClick={() => navigate("/profile")}>
+              <motion.div
+                className="w-13 h-13 rounded-2xl bg-gradient-cosmic flex items-center justify-center shrink-0 shadow-glow-sm cursor-pointer"
+                whileTap={{ scale: 0.9 }}
+                transition={springs.bounce}
+              >
                 <ShieldCheck className="w-5.5 h-5.5 text-primary-foreground" />
-              </div>
+              </motion.div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-semibold tracking-wide">
@@ -105,9 +123,13 @@ const Home: React.FC = () => {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-accent/5 pointer-events-none" />
             <div className="p-5 relative">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-ocean flex items-center justify-center shadow-glow-sm">
+                <motion.div
+                  className="w-9 h-9 rounded-xl bg-gradient-ocean flex items-center justify-center shadow-glow-sm"
+                  whileTap={{ scale: 0.9 }}
+                  transition={springs.bounce}
+                >
                   <Plane className="w-4.5 h-4.5 text-primary-foreground" />
-                </div>
+                </motion.div>
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Boarding Pass</p>
                   <p className="text-xs text-foreground font-semibold">{nextFlight.subtitle}</p>
@@ -179,21 +201,27 @@ const Home: React.FC = () => {
       {/* Quick Actions */}
       <AnimatedPage staggerIndex={3}>
         <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">Quick Actions</h3>
-        <div className="grid grid-cols-4 gap-2.5">
+        <motion.div
+          className="grid grid-cols-4 gap-2.5"
+          variants={container}
+          initial="initial"
+          animate="animate"
+        >
           {quickActions.map((action, i) => {
             const ActionIcon = getIcon(action.icon);
             return (
-              <button
+              <motion.button
                 key={action.id}
+                variants={item}
+                transition={springs.snappy}
+                whileTap={{ scale: 0.92 }}
                 onClick={() => action.route && navigate(action.route)}
                 className={cn(
                   "relative flex flex-col items-center gap-2 p-3 rounded-2xl min-h-[84px]",
                   "glass border border-border/30",
-                  "transition-all duration-[var(--motion-small)] ease-[var(--ease-cinematic)]",
-                  "active:scale-90 hover:border-primary/20 hover:shadow-glow-sm",
-                  "btn-ripple animate-fade-in"
+                  "hover:border-primary/20 hover:shadow-glow-sm",
+                  "btn-ripple"
                 )}
-                style={{ animationDelay: staggerDelay(i, 50) }}
                 aria-label={action.label}
               >
                 <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-depth-sm", actionGradients[i % actionGradients.length])}>
@@ -202,15 +230,15 @@ const Home: React.FC = () => {
                 <span className="text-[10px] font-medium text-muted-foreground text-center leading-tight">
                   {action.label}
                 </span>
-              </button>
+              </motion.button>
             );
           })}
-        </div>
+        </motion.div>
       </AnimatedPage>
 
       {/* Travel Status */}
       <AnimatedPage staggerIndex={4}>
-        <GlassCard className="border-gradient" variant="premium" depth="md">
+        <GlassCard className="border-gradient" variant="premium" depth="md" interactive={false}>
           <div className="flex items-center gap-2 mb-3">
             <Globe className="w-4 h-4 text-accent" />
             <h3 className="text-sm font-semibold text-foreground">Travel Status</h3>
@@ -221,16 +249,21 @@ const Home: React.FC = () => {
               { Icon: ShieldCheck, label: "Entry Status", value: "Verified", accent: true, gradient: "from-accent/10 to-accent/5" },
               { Icon: ArrowRightLeft, label: "Local Currency", value: "USD Active", accent: false, gradient: "from-neon-amber/10 to-neon-amber/5" },
               { Icon: MapPin, label: "Nearby Services", value: "12 available", accent: false, gradient: "from-neon-magenta/10 to-neon-magenta/5" },
-            ] as const).map((item, i) => (
-              <div key={i} className={cn("flex items-center gap-2.5 p-2.5 rounded-xl border border-border/20", `bg-gradient-to-br ${item.gradient}`)}>
+            ] as const).map((statusItem, i) => (
+              <motion.div
+                key={i}
+                variants={item}
+                transition={springs.card}
+                className={cn("flex items-center gap-2.5 p-2.5 rounded-xl border border-border/20", `bg-gradient-to-br ${statusItem.gradient}`)}
+              >
                 <div className="w-7 h-7 rounded-lg bg-secondary/50 flex items-center justify-center">
-                  <item.Icon className={cn("w-3.5 h-3.5", item.accent ? "text-accent" : "text-muted-foreground")} strokeWidth={1.8} />
+                  <statusItem.Icon className={cn("w-3.5 h-3.5", statusItem.accent ? "text-accent" : "text-muted-foreground")} strokeWidth={1.8} />
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground">{item.label}</p>
-                  <p className={cn("text-xs font-semibold", item.accent ? "text-accent" : "text-foreground")}>{item.value}</p>
+                  <p className="text-[10px] text-muted-foreground">{statusItem.label}</p>
+                  <p className={cn("text-xs font-semibold", statusItem.accent ? "text-accent" : "text-foreground")}>{statusItem.value}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </GlassCard>
@@ -240,7 +273,7 @@ const Home: React.FC = () => {
       <AnimatedPage staggerIndex={5}>
         <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">Suggestions</h3>
         <div className="space-y-2.5">
-          <GlassCard className="cursor-pointer touch-bounce" onClick={() => navigate("/services")}>
+          <GlassCard className="cursor-pointer" onClick={() => navigate("/services")}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-sunset flex items-center justify-center shrink-0 shadow-depth-sm">
                 <Car className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
@@ -252,7 +285,7 @@ const Home: React.FC = () => {
               <ChevronRight className="w-4 h-4 text-muted-foreground/60" />
             </div>
           </GlassCard>
-          <GlassCard className="cursor-pointer touch-bounce" onClick={() => navigate("/wallet")}>
+          <GlassCard className="cursor-pointer" onClick={() => navigate("/wallet")}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-aurora flex items-center justify-center shrink-0 shadow-depth-sm">
                 <ArrowRightLeft className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
@@ -273,32 +306,30 @@ const Home: React.FC = () => {
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Activity</h3>
           <button className="text-xs text-primary font-medium hover:text-primary/80 transition-colors">View all</button>
         </div>
-        <div className="space-y-2">
-          {demoActivity.slice(0, 5).map((item, i) => {
-            const ItemIcon = getIcon(item.icon);
+        <motion.div className="space-y-2" variants={container} initial="initial" animate="animate">
+          {demoActivity.slice(0, 5).map((actItem) => {
+            const ItemIcon = getIcon(actItem.icon);
             return (
-              <GlassCard
-                key={item.id}
-                className="flex items-center gap-3 py-3 px-4 animate-fade-in cursor-pointer"
-                style={{ animationDelay: staggerDelay(i, 60) }}
-              >
-                <div className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center shrink-0 border border-border/20">
-                  <ItemIcon className="w-4 h-4 text-muted-foreground" strokeWidth={1.8} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
-                  <p className="text-xs text-muted-foreground truncate">{item.description}</p>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-[10px] text-muted-foreground">{item.timestamp}</span>
-                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
-                </div>
-              </GlassCard>
+              <motion.div key={actItem.id} variants={item} transition={springs.card}>
+                <GlassCard className="flex items-center gap-3 py-3 px-4 cursor-pointer">
+                  <div className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center shrink-0 border border-border/20">
+                    <ItemIcon className="w-4 h-4 text-muted-foreground" strokeWidth={1.8} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{actItem.title}</p>
+                    <p className="text-xs text-muted-foreground truncate">{actItem.description}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-[10px] text-muted-foreground">{actItem.timestamp}</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
+                  </div>
+                </GlassCard>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </AnimatedPage>
-    </div>
+    </motion.div>
   );
 };
 
