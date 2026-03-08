@@ -1,22 +1,28 @@
 import React, { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
+import { useUserStore } from "@/store/userStore";
 import { demoBookings } from "@/lib/demoData";
 import { demoFlightResults, demoHotelResults } from "@/lib/demoServices";
 import { getIcon } from "@/lib/iconMap";
-import { staggerDelay } from "@/hooks/useMotion";
-import { Plane, Hotel, Search, Star, Clock, ChevronRight, QrCode } from "lucide-react";
+import { Plane, Hotel, Search, Star, Clock, ChevronRight, QrCode, History } from "lucide-react";
 import { cn } from "@/lib/utils";
+import TripCard from "@/components/travel/TripCard";
 
-type Tab = "bookings" | "flights" | "hotels" | "pass";
+type Tab = "history" | "bookings" | "flights" | "hotels" | "pass";
 
 const Travel: React.FC = () => {
-  const [tab, setTab] = useState<Tab>("bookings");
+  const { travelHistory } = useUserStore();
+  const [tab, setTab] = useState<Tab>("history");
   const flights = demoBookings.filter((b) => b.type === "flight");
   const hotels = demoBookings.filter((b) => b.type === "hotel");
 
+  const upcomingTrips = travelHistory.filter(t => t.type === "upcoming" || t.type === "current");
+  const pastTrips = travelHistory.filter(t => t.type === "past");
+
   const tabs: { key: Tab; label: string; icon: React.ElementType; gradient: string }[] = [
-    { key: "bookings", label: "My Trips", icon: Plane, gradient: "bg-gradient-ocean" },
+    { key: "history", label: "Trips", icon: History, gradient: "bg-gradient-aurora" },
+    { key: "bookings", label: "Bookings", icon: Plane, gradient: "bg-gradient-ocean" },
     { key: "flights", label: "Flights", icon: Search, gradient: "bg-gradient-cosmic" },
     { key: "hotels", label: "Hotels", icon: Hotel, gradient: "bg-gradient-sunset" },
     { key: "pass", label: "Pass", icon: QrCode, gradient: "bg-gradient-forest" },
@@ -25,13 +31,13 @@ const Travel: React.FC = () => {
   return (
     <div className="px-4 py-6 space-y-5">
       <AnimatedPage>
-        <div className="flex gap-1.5 p-1 rounded-2xl glass border border-border/40">
+        <div className="flex gap-1 p-1 rounded-2xl glass border border-border/40 overflow-x-auto hide-scrollbar">
           {tabs.map((t) => {
             const Icon = t.icon;
             const active = tab === t.key;
             return (
               <button key={t.key} onClick={() => setTab(t.key)} className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-[var(--motion-small)] min-h-[44px]",
+                "flex-1 flex items-center justify-center gap-1 py-2.5 rounded-xl text-[11px] font-semibold transition-all duration-[var(--motion-small)] min-h-[44px] whitespace-nowrap px-2",
                 active ? `${t.gradient} text-primary-foreground shadow-depth-sm` : "text-muted-foreground hover:text-foreground"
               )}>
                 <Icon className="w-3.5 h-3.5" strokeWidth={1.8} />{t.label}
@@ -40,6 +46,31 @@ const Travel: React.FC = () => {
           })}
         </div>
       </AnimatedPage>
+
+      {tab === "history" && (
+        <div className="space-y-4">
+          {upcomingTrips.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">Upcoming</h3>
+              {upcomingTrips.map((trip, i) => (
+                <AnimatedPage key={trip.id} staggerIndex={i}>
+                  <TripCard trip={trip} />
+                </AnimatedPage>
+              ))}
+            </div>
+          )}
+          {pastTrips.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">Past Trips</h3>
+              {pastTrips.map((trip, i) => (
+                <AnimatedPage key={trip.id} staggerIndex={i + upcomingTrips.length}>
+                  <TripCard trip={trip} />
+                </AnimatedPage>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {tab === "bookings" && (
         <div className="space-y-3">

@@ -2,24 +2,17 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
-import { demoDocuments } from "@/lib/demoData";
-import { Shield, ShieldCheck, Clock, AlertTriangle, ChevronDown, ScanLine, Link2, Globe } from "lucide-react";
+import { useUserStore } from "@/store/userStore";
+import { Shield, ShieldCheck, Clock, AlertTriangle, ChevronDown, ScanLine, Link2, Globe, User, Fingerprint } from "lucide-react";
 import { cn } from "@/lib/utils";
 import QRDisplay from "@/components/identity/QRDisplay";
 import SessionStatus from "@/components/identity/SessionStatus";
 import WelcomeOverlay from "@/components/identity/WelcomeOverlay";
 import { useVerificationSession } from "@/hooks/useVerificationSession";
 
-const statusConfig = {
-  verified: { icon: ShieldCheck, color: "text-accent", label: "Verified" },
-  pending: { icon: Clock, color: "text-neon-amber", label: "Pending" },
-  expired: { icon: AlertTriangle, color: "text-destructive", label: "Expired" },
-};
-
-const docGradients = ["bg-gradient-ocean", "bg-gradient-cosmic", "bg-gradient-forest", "bg-gradient-sunset", "bg-gradient-aurora"];
-
 const Identity: React.FC = () => {
   const navigate = useNavigate();
+  const { profile, documents } = useUserStore();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showLinkSection, setShowLinkSection] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -56,6 +49,11 @@ const Identity: React.FC = () => {
     reset();
   };
 
+  const docGradients = ["bg-gradient-ocean", "bg-gradient-cosmic", "bg-gradient-forest", "bg-gradient-sunset", "bg-gradient-aurora"];
+
+  // Map travel documents to the identity vault display
+  const vaultDocuments = documents.filter(d => d.type === "passport" || d.type === "visa");
+
   return (
     <div className="px-4 py-6 space-y-5">
       {showWelcome && countryCode && (
@@ -71,7 +69,7 @@ const Identity: React.FC = () => {
               Identity Vault
             </h1>
             <p className="text-xs text-muted-foreground mt-1">
-              {demoDocuments.length} documents secured
+              {vaultDocuments.length} documents secured
             </p>
           </div>
           <div className="flex gap-2">
@@ -94,6 +92,50 @@ const Identity: React.FC = () => {
         </div>
       </AnimatedPage>
 
+      {/* Digital Passport Card */}
+      <AnimatedPage staggerIndex={0}>
+        <GlassCard neonBorder variant="premium" className="relative overflow-hidden" depth="lg">
+          <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-gradient-ocean blur-3xl opacity-10 pointer-events-none" />
+          <div className="flex items-start gap-4">
+            {/* Avatar placeholder */}
+            <div className="w-20 h-24 rounded-xl bg-secondary/60 border border-border/30 flex items-center justify-center shrink-0 overflow-hidden">
+              <User className="w-8 h-8 text-muted-foreground" strokeWidth={1.5} />
+            </div>
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <p className="text-base font-bold text-foreground">{profile.name}</p>
+                {profile.verifiedStatus === "verified" && (
+                  <ShieldCheck className="w-4 h-4 text-accent shrink-0" />
+                )}
+              </div>
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Nationality</span>
+                  <span className="text-foreground font-medium">{profile.nationalityFlag} {profile.nationality}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Passport</span>
+                  <span className="text-foreground font-mono font-medium">{profile.passportNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Score</span>
+                  <span className="text-accent font-bold">{profile.identityScore}/100</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 pt-3 border-t border-border/20 flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+              <Fingerprint className="w-3.5 h-3.5" />
+              Biometric Verified · Member since {profile.memberSince}
+            </div>
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-accent/15 text-accent uppercase tracking-wider">
+              {profile.verifiedStatus}
+            </span>
+          </div>
+        </GlassCard>
+      </AnimatedPage>
+
       {/* Link at Kiosk section */}
       {showLinkSection && (
         <AnimatedPage>
@@ -102,9 +144,7 @@ const Identity: React.FC = () => {
             <p className="text-xs text-muted-foreground text-center px-4">
               Show this QR code at any GlobeID kiosk to verify your identity
             </p>
-
             <SessionStatus status={status} sessionId={sessionId ?? undefined} />
-
             <QRDisplay
               data={qrData || "placeholder"}
               shortCode={shortCode || "------"}
@@ -113,7 +153,6 @@ const Identity: React.FC = () => {
               status={status}
               onRefresh={generateQR}
             />
-
             <button
               onClick={() => { setShowLinkSection(false); reset(); }}
               className="text-xs text-muted-foreground underline mt-2"
@@ -126,13 +165,19 @@ const Identity: React.FC = () => {
 
       {/* Documents */}
       <div className="space-y-3">
-        {demoDocuments.map((doc, i) => {
+        <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">Documents</h3>
+        {vaultDocuments.map((doc, i) => {
+          const isExpanded = expandedId === doc.id;
+          const statusConfig = {
+            active: { icon: ShieldCheck, color: "text-accent", label: "Verified" },
+            pending: { icon: Clock, color: "text-primary", label: "Pending" },
+            expired: { icon: AlertTriangle, color: "text-destructive", label: "Expired" },
+          };
           const Status = statusConfig[doc.status];
           const StatusIcon = Status.icon;
-          const isExpanded = expandedId === doc.id;
 
           return (
-            <AnimatedPage key={doc.id} staggerIndex={i}>
+            <AnimatedPage key={doc.id} staggerIndex={i + 1}>
               <GlassCard
                 className="cursor-pointer touch-bounce"
                 onClick={() => setExpandedId(isExpanded ? null : doc.id)}

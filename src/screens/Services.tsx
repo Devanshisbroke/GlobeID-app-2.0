@@ -4,24 +4,33 @@ import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { staggerDelay } from "@/hooks/useMotion";
 import { getIcon } from "@/lib/iconMap";
 import {
-  demoRideProviders, demoRestaurants, demoLocalServices, demoEmergencyContacts,
+  demoRideProviders, demoRestaurants, demoEmergencyContacts,
   simulateRideRequest, type RideRequest,
 } from "@/lib/demoServices";
-import { Car, UtensilsCrossed, MapPin, Shield, ChevronRight, Star, Clock, Check, Phone } from "lucide-react";
+import { Car, UtensilsCrossed, MapPin, Shield, ChevronRight, Star, Clock, Check, Phone, Globe, Wifi, CreditCard, Umbrella, ArrowLeftRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ServiceCard from "@/components/services/ServiceCard";
 
-type Tab = "rides" | "food" | "local" | "safety";
+type Tab = "rides" | "food" | "services" | "safety";
+
+const travelServices = [
+  { id: "ts-1", title: "Visa Assistance", description: "Apply for e-visas and track applications", icon: <Globe className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-ocean" },
+  { id: "ts-2", title: "Travel Insurance", description: "Compare and purchase travel coverage", icon: <Umbrella className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-forest" },
+  { id: "ts-3", title: "Airport Lounge Access", description: "Book premium lounge passes worldwide", icon: <CreditCard className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-cosmic" },
+  { id: "ts-4", title: "Global SIM", description: "eSIM data plans for 190+ countries", icon: <Wifi className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-aurora" },
+  { id: "ts-5", title: "Currency Exchange", description: "Real-time rates and instant conversion", icon: <ArrowLeftRight className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-sunset" },
+];
 
 const Services: React.FC = () => {
-  const [tab, setTab] = useState<Tab>("rides");
+  const [tab, setTab] = useState<Tab>("services");
   const [activeRide, setActiveRide] = useState<RideRequest | null>(null);
   const [pickup] = useState("Marina Bay Sands");
   const [dropoff] = useState("Changi Airport T3");
 
   const tabs: { key: Tab; label: string; icon: React.ElementType; gradient: string }[] = [
+    { key: "services", label: "Services", icon: Globe, gradient: "bg-gradient-ocean" },
     { key: "rides", label: "Rides", icon: Car, gradient: "bg-gradient-sunset" },
     { key: "food", label: "Food", icon: UtensilsCrossed, gradient: "bg-gradient-aurora" },
-    { key: "local", label: "Local", icon: MapPin, gradient: "bg-gradient-ocean" },
     { key: "safety", label: "Safety", icon: Shield, gradient: "bg-gradient-forest" },
   ];
 
@@ -55,6 +64,22 @@ const Services: React.FC = () => {
           })}
         </div>
       </AnimatedPage>
+
+      {tab === "services" && (
+        <div className="space-y-3">
+          <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">Travel Services</h3>
+          {travelServices.map((svc, i) => (
+            <AnimatedPage key={svc.id} staggerIndex={i}>
+              <ServiceCard
+                title={svc.title}
+                description={svc.description}
+                icon={svc.icon}
+                gradient={svc.gradient}
+              />
+            </AnimatedPage>
+          ))}
+        </div>
+      )}
 
       {tab === "rides" && (
         <div className="space-y-3">
@@ -132,28 +157,6 @@ const Services: React.FC = () => {
                       <span>{r.deliveryFee}</span><span>{r.priceRange}</span>
                     </div>
                   </div>
-                </GlassCard>
-              </AnimatedPage>
-            );
-          })}
-        </div>
-      )}
-
-      {tab === "local" && (
-        <div className="space-y-2">
-          {demoLocalServices.map((s, i) => {
-            const SIcon = getIcon(s.icon);
-            return (
-              <AnimatedPage key={s.id} staggerIndex={i}>
-                <GlassCard className="flex items-center gap-3 cursor-pointer touch-bounce">
-                  <div className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center shrink-0 border border-border/20">
-                    <SIcon className="w-4 h-4 text-muted-foreground" strokeWidth={1.8} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{s.name}</p>
-                    <p className="text-xs text-muted-foreground">{s.description}</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground/60" />
                 </GlassCard>
               </AnimatedPage>
             );
