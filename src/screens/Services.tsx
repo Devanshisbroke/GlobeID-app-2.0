@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { staggerDelay } from "@/hooks/useMotion";
@@ -7,7 +8,7 @@ import {
   demoRideProviders, demoRestaurants, demoEmergencyContacts,
   simulateRideRequest, type RideRequest,
 } from "@/lib/demoServices";
-import { Car, UtensilsCrossed, MapPin, Shield, ChevronRight, Star, Clock, Check, Phone, Globe, Wifi, CreditCard, Umbrella, ArrowLeftRight } from "lucide-react";
+import { Car, UtensilsCrossed, MapPin, Shield, ChevronRight, Star, Clock, Check, Phone, Globe, Wifi, CreditCard, Umbrella, ArrowLeftRight, Hotel, Compass, Train, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ServiceCard from "@/components/services/ServiceCard";
 
