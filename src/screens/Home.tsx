@@ -6,7 +6,7 @@ import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { demoBalances, demoBookings, demoActivity } from "@/lib/demoData";
 import { getIcon } from "@/lib/iconMap";
 import { springs } from "@/hooks/useMotion";
-import { ChevronRight, TrendingUp, Plane, QrCode, Bell, RefreshCw } from "lucide-react";
+import { ChevronRight, TrendingUp, Plane, QrCode, Bell, RefreshCw, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAlertsStore } from "@/store/alertsStore";
 import { spring as motionSpring } from "@/motion/motionConfig";
