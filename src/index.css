@@ -641,6 +641,7 @@
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
     scroll-behavior: smooth;
+    touch-action: pan-y;
   }
 
   /* ── Will-change hints for perf ── */
