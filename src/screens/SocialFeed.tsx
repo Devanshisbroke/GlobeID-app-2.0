@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { motion, useInView } from "framer-motion";
@@ -13,7 +13,6 @@ import { cinematicEase, cinematicDuration } from "@/cinematic/motionEngine";
 import { haptics } from "@/utils/haptics";
 import { cn } from "@/lib/utils";
 import { Plus, Bell, Compass, Trophy } from "lucide-react";
-import React from "react";
 
 type Tab = "feed" | "notifications" | "leaderboard";
 
