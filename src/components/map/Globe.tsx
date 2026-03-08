@@ -3,6 +3,7 @@ import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 
 const Globe: React.FC = () => {
+
   const atmosphereRef = useRef<THREE.Mesh>(null);
   const outerGlowRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
@@ -24,6 +25,7 @@ const Globe: React.FC = () => {
   }, [nightMap, bumpMap, waterMap]);
 
   useFrame(({ clock }) => {
+
     const t = clock.getElapsedTime();
 
     if (materialRef.current) {
@@ -44,27 +46,37 @@ const Globe: React.FC = () => {
   });
 
   const globeMaterial = useMemo(() => {
+
     return new THREE.ShaderMaterial({
+
       uniforms: {
+
         uTime: { value: 0 },
+
         uNightMap: { value: nightMap },
         uBumpMap: { value: bumpMap },
         uWaterMap: { value: waterMap },
-        uSunDir: { value: new THREE.Vector3(1.0, 0.3, 0.8).normalize() },
+
+        uSunDir: {
+          value: new THREE.Vector3(1.0, 0.3, 0.8).normalize()
+        },
+
         uLandColor: { value: new THREE.Color("#1e3a5f") },
         uOceanColor: { value: new THREE.Color("#0a2a4a") },
+
         uAtmoColor: { value: new THREE.Color("#78b4ff") },
         uCityLightColor: { value: new THREE.Color("#ffd27a") },
       },
 
       vertexShader: `
+
         varying vec3 vNormal;
         varying vec3 vPosition;
         varying vec2 vUv;
 
         uniform sampler2D uBumpMap;
 
-        void main() {
+        void main(){
 
           vNormal = normalize(normalMatrix * normal);
           vPosition = (modelMatrix * vec4(position,1.0)).xyz;
@@ -77,18 +89,21 @@ const Globe: React.FC = () => {
           gl_Position =
             projectionMatrix *
             modelViewMatrix *
-            vec4(displaced, 1.0);
+            vec4(displaced,1.0);
         }
       `,
 
       fragmentShader: `
+
         uniform sampler2D uNightMap;
         uniform sampler2D uBumpMap;
         uniform sampler2D uWaterMap;
 
         uniform vec3 uSunDir;
+
         uniform vec3 uLandColor;
         uniform vec3 uOceanColor;
+
         uniform vec3 uAtmoColor;
         uniform vec3 uCityLightColor;
 
@@ -98,64 +113,79 @@ const Globe: React.FC = () => {
         varying vec3 vPosition;
         varying vec2 vUv;
 
-        void main() {
+        void main(){
 
-          float water = texture2D(uWaterMap, vUv).r;
-          float bump = texture2D(uBumpMap, vUv).r;
-          float nightLum = texture2D(uNightMap, vUv).r;
+          float water = texture2D(uWaterMap,vUv).r;
+          float bump = texture2D(uBumpMap,vUv).r;
+          float nightLum = texture2D(uNightMap,vUv).r;
 
-          // correct land detection
-          float isLand = 1.0 - smoothstep(0.45, 0.55, water);
+          float isLand = 1.0 - smoothstep(0.45,0.55,water);
 
-          vec3 land = uLandColor;
-          vec3 ocean = uOceanColor;
+          vec3 land = uLandColor * 1.4;
+          vec3 ocean = uOceanColor * 1.5;
 
           land += vec3(0.02,0.03,0.05) * bump;
 
-          vec3 surface = mix(ocean, land, isLand);
+          vec3 surface = mix(ocean,land,isLand);
 
-          float sunDot = dot(normalize(vNormal), normalize(uSunDir));
+          float sunDot =
+            dot(normalize(vNormal),normalize(uSunDir));
 
-          float dayFactor = smoothstep(-0.15,0.25,sunDot);
+          float dayFactor =
+            smoothstep(-0.15,0.25,sunDot);
 
-          float ambient = 0.65;
-          float diffuse = max(sunDot,0.0) * 0.5;
+          float ambient = 0.9;
+          float diffuse = max(sunDot,0.0) * 0.6;
 
-          surface *= (ambient + diffuse + 0.25);
+          surface *= (ambient + diffuse);
 
           float nightFactor = 1.0 - dayFactor;
 
-          float cityGlow = nightLum * nightFactor * 0.4;
+          float cityGlow =
+            nightLum * nightFactor * 0.4;
 
-          surface += uCityLightColor * cityGlow * isLand;
+          surface +=
+            uCityLightColor *
+            cityGlow *
+            isLand;
 
-          vec3 viewDir = normalize(cameraPosition - vPosition);
+          vec3 viewDir =
+            normalize(cameraPosition - vPosition);
 
-          float fresnel = 1.0 - dot(normalize(vNormal), viewDir);
+          float fresnel =
+            1.0 - dot(normalize(vNormal),viewDir);
 
           fresnel = pow(fresnel,3.0);
 
-          surface += uAtmoColor * fresnel * 0.25;
+          surface +=
+            uAtmoColor *
+            fresnel *
+            0.25;
 
-          surface *= 1.8;
+          surface *= 2.4;
 
-          gl_FragColor = vec4(surface,1.0);
+          gl_FragColor =
+            vec4(surface,1.0);
         }
       `,
     });
+
   }, [nightMap, bumpMap, waterMap]);
 
   const atmosphereMaterial = useMemo(() => {
+
     return new THREE.ShaderMaterial({
+
       uniforms: {
         uColor: { value: new THREE.Color("#1a5a9e") },
         uColor2: { value: new THREE.Color("#78b4ff") },
       },
 
       vertexShader: `
+
         varying vec3 vNormal;
 
-        void main() {
+        void main(){
 
           vNormal = normalize(normalMatrix * normal);
 
@@ -167,6 +197,7 @@ const Globe: React.FC = () => {
       `,
 
       fragmentShader: `
+
         uniform vec3 uColor;
         uniform vec3 uColor2;
 
@@ -189,15 +220,19 @@ const Globe: React.FC = () => {
       transparent: true,
       depthWrite: false,
     });
+
   }, []);
 
   const outerGlowMaterial = useMemo(() => {
+
     return new THREE.ShaderMaterial({
+
       uniforms: {
         uColor: { value: new THREE.Color("#78b4ff") },
       },
 
       vertexShader: `
+
         varying vec3 vNormal;
 
         void main(){
@@ -212,6 +247,7 @@ const Globe: React.FC = () => {
       `,
 
       fragmentShader: `
+
         uniform vec3 uColor;
 
         varying vec3 vNormal;
@@ -230,18 +266,22 @@ const Globe: React.FC = () => {
       transparent: true,
       depthWrite: false,
     });
+
   }, []);
 
   return (
+
     <group>
 
       <mesh>
         <sphereGeometry args={[1,128,128]} />
+
         <primitive
           object={globeMaterial}
           ref={materialRef}
           attach="material"
         />
+
       </mesh>
 
       <mesh
