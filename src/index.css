@@ -536,6 +536,46 @@
   /* ── Section Reveal ── */
   .section-reveal { animation: fade-in var(--motion-medium, 400ms) var(--ease-out-expo) both; }
 
+  /* ── Cinematic Button ── */
+  .btn-cinematic {
+    position: relative;
+    overflow: hidden;
+    transition: transform var(--motion-small) var(--ease-out-expo),
+                box-shadow var(--motion-small) var(--ease-out-expo);
+  }
+  .btn-cinematic:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--shadow-lg), 0 0 20px hsl(var(--primary) / 0.15);
+  }
+  .btn-cinematic:active {
+    transform: scale(0.97);
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-cinematic::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 30%, hsl(0 0% 100% / 0.08) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform var(--motion-medium) var(--ease-out-expo);
+    pointer-events: none;
+  }
+  .btn-cinematic:hover::after {
+    transform: translateX(100%);
+  }
+
+  /* ── Cinematic Card Hover ── */
+  .card-cinematic {
+    transition: transform var(--motion-small) var(--ease-cinematic),
+                box-shadow var(--motion-small) var(--ease-cinematic),
+                border-color var(--motion-small) var(--ease-cinematic);
+  }
+  .card-cinematic:hover {
+    transform: translateY(-3px) scale(1.005);
+    box-shadow: var(--shadow-lg);
+    border-color: hsl(var(--primary) / 0.15);
+  }
+
   /* ── Button Ripple ── */
   .btn-ripple { position: relative; overflow: hidden; }
   .btn-ripple::after {
