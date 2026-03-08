@@ -76,6 +76,12 @@ const App = () => {
                           <Route path="/timeline" element={<TravelTimeline />} />
                           <Route path="/planner" element={<TripPlanner />} />
                           <Route path="/copilot" element={<AICopilot />} />
+                          <Route path="/services/hub" element={<ServicesHub />} />
+                          <Route path="/services/hotels" element={<HotelBooking />} />
+                          <Route path="/services/rides" element={<RideBooking />} />
+                          <Route path="/services/food" element={<FoodDiscovery />} />
+                          <Route path="/services/activities" element={<ActivitiesScreen />} />
+                          <Route path="/services/transport" element={<TransportScreen />} />
                           <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                       </Suspense>
