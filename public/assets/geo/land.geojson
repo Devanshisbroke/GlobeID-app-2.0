@@ -1,0 +1,29 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Americas" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-168,72],[-55,72],[-35,10],[-60,-56],[-120,-55],[-168,10],[-168,72]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Eurasia-Africa" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-20,72],[168,72],[165,-35],[115,-40],[50,-35],[25,35],[-15,35],[-20,72]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Australia" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[112,-10],[154,-10],[156,-45],[113,-45],[112,-10]]]
+      }
+    }
+  ]
+}
