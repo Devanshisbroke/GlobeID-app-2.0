@@ -1,18 +1,42 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { useSocialStore, leaderboard } from "@/store/socialStore";
 import PostCard from "@/components/social/PostCard";
 import StoriesBar from "@/components/social/StoriesBar";
 import CreatePost from "@/components/social/CreatePost";
 import Notifications from "@/components/social/Notifications";
+import { uiSound } from "@/cinematic/uiSound";
+import { cinematicEase, cinematicDuration } from "@/cinematic/motionEngine";
 import { haptics } from "@/utils/haptics";
 import { cn } from "@/lib/utils";
 import { Plus, Bell, Compass, Trophy } from "lucide-react";
+import React from "react";
 
 type Tab = "feed" | "notifications" | "leaderboard";
+
+/** Scroll-reveal wrapper for feed items */
+const ScrollRevealCard: React.FC<{ children: React.ReactNode; index: number }> = ({ children, index }) => {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-40px 0px", amount: 0.15 });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 30, scale: 0.96, filter: "blur(6px)" }}
+      animate={isInView ? { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" } : {}}
+      transition={{
+        duration: cinematicDuration.cinematic,
+        ease: cinematicEase,
+        delay: index * 0.05,
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 const SocialFeed: React.FC = () => {
   const navigate = useNavigate();
@@ -26,6 +50,11 @@ const SocialFeed: React.FC = () => {
     { key: "leaderboard", label: "Ranking", icon: Trophy },
   ];
 
+  const handleTabChange = (key: Tab) => {
+    setTab(key);
+    uiSound.click();
+  };
+
   return (
     <div className="px-4 py-6 pb-28 space-y-4">
       <AnimatedPage>
@@ -33,14 +62,14 @@ const SocialFeed: React.FC = () => {
           <h1 className="text-xl font-bold text-foreground">Travel Feed</h1>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => navigate("/explore")}
-              className="w-9 h-9 rounded-xl glass border border-border/30 flex items-center justify-center"
+              onClick={() => { uiSound.navigate(); navigate("/explore"); }}
+              className="w-9 h-9 rounded-xl glass border border-border/30 flex items-center justify-center btn-cinematic"
             >
               <Compass className="w-4 h-4 text-foreground" />
             </button>
             <button
-              onClick={() => { setShowCreate(true); haptics.selection(); }}
-              className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-glow-sm"
+              onClick={() => { setShowCreate(true); haptics.selection(); uiSound.click(); }}
+              className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-glow-sm btn-cinematic"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -57,7 +86,7 @@ const SocialFeed: React.FC = () => {
             return (
               <button
                 key={t.key}
-                onClick={() => setTab(t.key)}
+                onClick={() => handleTabChange(t.key)}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all relative",
                   active ? "bg-primary text-primary-foreground shadow-depth-sm" : "text-muted-foreground"
@@ -78,17 +107,17 @@ const SocialFeed: React.FC = () => {
 
       {tab === "feed" && (
         <div className="space-y-4">
-          <AnimatedPage staggerIndex={1}>
+          <ScrollRevealCard index={0}>
             <StoriesBar />
-          </AnimatedPage>
+          </ScrollRevealCard>
           {posts.map((post, i) => (
-            <AnimatedPage key={post.id} staggerIndex={i + 2}>
+            <ScrollRevealCard key={post.id} index={i + 1}>
               <PostCard
                 postId={post.id}
-                onProfileTap={(userId) => navigate(`/profile/${userId}`)}
-                onLocationTap={() => navigate("/map")}
+                onProfileTap={(userId) => { uiSound.navigate(); navigate(`/profile/${userId}`); }}
+                onLocationTap={() => { uiSound.navigate(); navigate("/map"); }}
               />
-            </AnimatedPage>
+            </ScrollRevealCard>
           ))}
         </div>
       )}
@@ -106,8 +135,8 @@ const SocialFeed: React.FC = () => {
             const user = users.find((u) => u.id === entry.userId);
             if (!user) return null;
             return (
-              <AnimatedPage key={entry.userId} staggerIndex={i}>
-                <motion.div className="flex items-center gap-3 px-3 py-3 rounded-xl glass border border-border/30">
+              <ScrollRevealCard key={entry.userId} index={i}>
+                <motion.div className="flex items-center gap-3 px-3 py-3 rounded-xl glass border border-border/30 card-cinematic">
                   <span className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
                     i === 0 ? "bg-accent/20 text-accent" :
@@ -126,7 +155,7 @@ const SocialFeed: React.FC = () => {
                     <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-bold">Verified</span>
                   )}
                 </motion.div>
-              </AnimatedPage>
+              </ScrollRevealCard>
             );
           })}
         </div>
