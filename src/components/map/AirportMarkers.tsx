@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useState, useCallback } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { Html } from "@react-three/drei";
 import { airports, latLngToVector3 } from "@/lib/airports";
@@ -14,23 +14,22 @@ const AirportMarker: React.FC<{
   onSelect: (iata: string | null) => void;
   selected: boolean;
 }> = ({ airport, index, onSelect, selected }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const [x, y, z] = useMemo(() => latLngToVector3(airport.lat, airport.lng, 1.005), [airport]);
 
   const isUS = airport.country === "United States";
   const dotColor = useMemo(
-    () => new THREE.Color(isUS ? "hsl(36, 92%, 58%)" : "hsl(200, 90%, 60%)"),
+    () => new THREE.Color(isUS ? "#7aff9a" : "#00e0ff"),
     [isUS]
   );
 
   useFrame(({ clock }) => {
     if (glowRef.current) {
       const t = clock.getElapsedTime();
-      const phase = (t * 1.5 + index * 0.3) % (Math.PI * 2);
-      const scale = 1 + Math.sin(phase) * 0.4;
+      const phase = (t * 1.2 + index * 0.4) % (Math.PI * 2);
+      const scale = 1 + Math.sin(phase) * 0.35;
       glowRef.current.scale.setScalar(scale);
-      (glowRef.current.material as THREE.MeshBasicMaterial).opacity = 0.15 + Math.sin(phase) * 0.1;
+      (glowRef.current.material as THREE.MeshBasicMaterial).opacity = 0.12 + Math.sin(phase) * 0.08;
     }
   });
 
@@ -42,46 +41,43 @@ const AirportMarker: React.FC<{
   return (
     <group position={[x, y, z]}>
       {/* Core dot */}
-      <mesh ref={meshRef} onClick={handleClick}>
-        <sphereGeometry args={[0.007, 10, 10]} />
+      <mesh onClick={handleClick}>
+        <sphereGeometry args={[0.006, 10, 10]} />
         <meshBasicMaterial color={dotColor} toneMapped={false} />
       </mesh>
       {/* Pulse glow */}
       <mesh ref={glowRef}>
-        <sphereGeometry args={[0.014, 8, 8]} />
-        <meshBasicMaterial color={dotColor} transparent opacity={0.2} toneMapped={false} depthWrite={false} />
+        <sphereGeometry args={[0.012, 8, 8]} />
+        <meshBasicMaterial color={dotColor} transparent opacity={0.15} toneMapped={false} depthWrite={false} />
       </mesh>
-      {/* Tooltip */}
+      {/* Glass tooltip */}
       {selected && (
-        <Html
-          center
-          distanceFactor={3}
-          style={{ pointerEvents: "none" }}
-        >
+        <Html center distanceFactor={3} style={{ pointerEvents: "none" }}>
           <div
             style={{
-              background: "rgba(10,12,20,0.92)",
-              backdropFilter: "blur(16px)",
-              border: "1px solid rgba(100,160,255,0.2)",
-              borderRadius: 12,
-              padding: "8px 12px",
-              minWidth: 130,
-              boxShadow: "0 4px 20px rgba(0,0,0,0.5), 0 0 15px rgba(100,160,255,0.15)",
+              background: "rgba(8,10,18,0.88)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              border: "1px solid rgba(120,180,255,0.15)",
+              borderRadius: 14,
+              padding: "10px 14px",
+              minWidth: 140,
+              boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 20px rgba(0,224,255,0.08)",
             }}
           >
-            <p style={{ color: "#fff", fontSize: 12, fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>
+            <p style={{ color: "#fff", fontSize: 12, fontWeight: 700, margin: 0, letterSpacing: "-0.01em" }}>
               {airport.name}
             </p>
-            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, margin: "2px 0 0", letterSpacing: "0.05em" }}>
+            <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, margin: "3px 0 0", letterSpacing: "0.03em" }}>
               {airport.city}, {airport.country}
             </p>
             <p style={{
-              color: "hsl(200,90%,60%)",
+              color: "#00e0ff",
               fontSize: 11,
               fontWeight: 700,
-              margin: "4px 0 0",
+              margin: "5px 0 0",
               fontFamily: "monospace",
-              letterSpacing: "0.1em",
+              letterSpacing: "0.12em",
             }}>
               {airport.iata}
             </p>

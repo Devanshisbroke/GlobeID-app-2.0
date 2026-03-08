@@ -16,6 +16,7 @@ const GlobalMap: React.FC = () => {
   const [showHistory, setShowHistory] = useState(true);
   const [showAirports, setShowAirports] = useState(true);
   const [showPanel, setShowPanel] = useState(true);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const upcomingFlights = flightRoutes.filter(r => r.type === "upcoming");
   const pastFlights = flightRoutes.filter(r => r.type === "past");
@@ -23,24 +24,35 @@ const GlobalMap: React.FC = () => {
   return (
     <div className="relative min-h-screen -mx-4 -mt-6" style={{ marginBottom: "-5rem" }}>
       {/* 3D Globe */}
-      <div className="absolute inset-0" style={{ background: "hsl(228, 20%, 4%)" }}>
+      <div className="absolute inset-0" style={{ background: "#020617" }}>
         <Suspense
           fallback={
-            <div className="flex items-center justify-center h-full">
-              <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            <div className="flex items-center justify-center h-full flex-col gap-3">
+              <div className="w-8 h-8 rounded-full border-2 border-primary/40 border-t-primary animate-spin" />
+              <p className="text-xs text-muted-foreground font-medium tracking-wider animate-pulse">
+                Rendering Earth…
+              </p>
             </div>
           }
         >
-          <GlobeScene
-            showHistory={showHistory}
-            showAirports={showAirports}
-            userLat={USER_LAT}
-            userLng={USER_LNG}
-          />
+          <motion.div
+            className="w-full h-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
+            onAnimationComplete={() => setIsLoaded(true)}
+          >
+            <GlobeScene
+              showHistory={showHistory}
+              showAirports={showAirports}
+              userLat={USER_LAT}
+              userLng={USER_LNG}
+            />
+          </motion.div>
         </Suspense>
       </div>
 
-      {/* Map Controls */}
+      {/* Map Controls — top right glass */}
       <MapControls
         showHistory={showHistory}
         showAirports={showAirports}
@@ -51,7 +63,7 @@ const GlobalMap: React.FC = () => {
       {/* Bottom panel toggle */}
       <motion.button
         onClick={() => setShowPanel(!showPanel)}
-        className="absolute bottom-24 right-4 z-20 w-10 h-10 rounded-full glass border border-border/30 flex items-center justify-center"
+        className="absolute bottom-24 right-4 z-20 w-10 h-10 rounded-full bg-background/60 backdrop-blur-[20px] border border-border/[0.15] flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
         whileTap={{ scale: 0.9 }}
         transition={springs.bounce}
         aria-label="Toggle flight panel"
