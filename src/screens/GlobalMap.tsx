@@ -1,9 +1,10 @@
-import React, { useState, lazy, Suspense } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { flightRoutes, getAirport, visitedCountries, upcomingCountries } from "@/lib/airports";
+import { getGlobalStats } from "@/lib/destinationAnalytics";
 import { springs } from "@/hooks/useMotion";
-import { Globe, Plane, Clock, ChevronRight, Navigation } from "lucide-react";
+import { Globe, Plane, Clock, ChevronRight, Navigation, Activity, Users, Route } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MapControls from "@/components/map/MapControls";
 

@@ -123,4 +123,5 @@ export const quickActions = [
   { id: "qa-6", label: "Order Food", icon: "utensils", route: "/services" },
   { id: "qa-7", label: "AI Assistant", icon: "sparkles", route: "" },
   { id: "qa-8", label: "Global Map", icon: "globe", route: "/map" },
+  { id: "qa-9", label: "Intelligence", icon: "activity", route: "/intelligence" },
 ];
