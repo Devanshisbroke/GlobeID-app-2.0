@@ -21,7 +21,7 @@ const QuickActions: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <motion.div className="grid grid-cols-5 gap-2" variants={container} initial="initial" animate="animate">
+    <motion.div className="grid grid-cols-3 gap-2" variants={container} initial="initial" animate="animate">
       {actions.map((action) => {
         const Icon = action.icon;
         return (
