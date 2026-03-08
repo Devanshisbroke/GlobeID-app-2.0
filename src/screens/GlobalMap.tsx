@@ -1,9 +1,10 @@
-import React, { useState, lazy, Suspense } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { flightRoutes, getAirport, visitedCountries, upcomingCountries } from "@/lib/airports";
+import { getGlobalStats } from "@/lib/destinationAnalytics";
 import { springs } from "@/hooks/useMotion";
-import { Globe, Plane, Clock, ChevronRight, Navigation } from "lucide-react";
+import { Globe, Plane, Clock, ChevronRight, Navigation, Activity, Users, Route } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MapControls from "@/components/map/MapControls";
 
@@ -11,6 +12,47 @@ const GlobeScene = lazy(() => import("@/components/map/GlobeScene"));
 
 const USER_LAT = 37.7749;
 const USER_LNG = -122.4194;
+
+const stats = getGlobalStats();
+
+function useAnimatedNum(target: number, dur = 1500): number {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    const start = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min((now - start) / dur, 1);
+      setVal(Math.round(target * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [target, dur]);
+  return val;
+}
+
+const LiveFlightStats: React.FC = () => {
+  const flights = useAnimatedNum(stats.totalFlightsToday);
+  const routes = useAnimatedNum(stats.totalRoutes);
+  return (
+    <GlassCard className="py-2.5 px-3 flex items-center justify-between" interactive={false}>
+      <div className="flex items-center gap-1.5">
+        <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+        <span className="text-[10px] text-muted-foreground font-medium">Live</span>
+      </div>
+      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Activity className="w-3 h-3" />
+        <span className="font-bold text-foreground">{flights.toLocaleString()}</span> flights
+      </div>
+      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Route className="w-3 h-3" />
+        <span className="font-bold text-foreground">{routes.toLocaleString()}</span> routes
+      </div>
+      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Users className="w-3 h-3" />
+        <span className="font-bold text-foreground">{stats.topRoute}</span>
+      </div>
+    </GlassCard>
+  );
+};
 
 const GlobalMap: React.FC = () => {
   const [showHistory, setShowHistory] = useState(true);
@@ -86,6 +128,9 @@ const GlobalMap: React.FC = () => {
             transition={springs.gentle}
             className="absolute bottom-20 left-0 right-0 z-10 px-4 pb-2 space-y-3 max-h-[45vh] overflow-y-auto momentum-scroll"
           >
+            {/* Live global stats */}
+            <LiveFlightStats />
+
             {/* Stats bar */}
             <div className="flex gap-2">
               <GlassCard className="flex-1 py-2.5 px-3 flex items-center gap-2" interactive={false}>

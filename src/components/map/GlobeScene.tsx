@@ -6,12 +6,15 @@ import Starfield from "./Starfield";
 import FlightArcs from "./FlightArcs";
 import AirportMarkers from "./AirportMarkers";
 import UserLocation from "./UserLocation";
+import GlobalFlightFlows from "./GlobalFlightFlows";
+import TravelParticles from "./TravelParticles";
 
 interface GlobeSceneProps {
   showHistory: boolean;
   showAirports: boolean;
   userLat: number;
   userLng: number;
+  showIntelligence?: boolean;
 }
 
 const GlobeScene: React.FC<GlobeSceneProps> = ({
@@ -19,6 +22,7 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
   showAirports,
   userLat,
   userLng,
+  showIntelligence = true,
 }) => {
   return (
     <Canvas
@@ -43,6 +47,14 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
 
         {/* Flight paths */}
         <FlightArcs showHistory={showHistory} />
+
+        {/* Global intelligence layers */}
+        {showIntelligence && (
+          <>
+            <GlobalFlightFlows count={50} />
+            <TravelParticles />
+          </>
+        )}
 
         {/* Airport markers */}
         <AirportMarkers showAirports={showAirports} />
