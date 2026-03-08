@@ -45,6 +45,7 @@ const BottomTabBar: React.FC = () => {
               aria-label={tab.label}
               onClick={() => {
                 haptics.navigate();
+                uiSound.navigate();
                 navigate(tab.path);
               }}
               whileTap={{ scale: 0.85 }}
