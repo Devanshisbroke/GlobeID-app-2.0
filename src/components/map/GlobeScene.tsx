@@ -13,6 +13,9 @@ import AirTrafficLayer from "./AirTrafficLayer";
 import RegionalDensity from "./RegionalDensity";
 import TravelStreams from "./TravelStreams";
 import PassengerNetwork from "./PassengerNetwork";
+import DestinationMarkers from "./DestinationMarkers";
+import LandmarkMarkers from "./LandmarkMarkers";
+import ExplorerPaths from "./ExplorerPaths";
 
 interface GlobeSceneProps {
   showHistory: boolean;
@@ -22,6 +25,9 @@ interface GlobeSceneProps {
   showIntelligence?: boolean;
   showSimulation?: boolean;
   simSpeed?: number;
+  showExplorer?: boolean;
+  explorerPathId?: string;
+  discoveredIds?: string[];
 }
 
 const GlobeScene: React.FC<GlobeSceneProps> = ({
@@ -32,6 +38,9 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
   showIntelligence = true,
   showSimulation = false,
   simSpeed = 1,
+  showExplorer = false,
+  explorerPathId,
+  discoveredIds = [],
 }) => {
   return (
     <Canvas
@@ -42,22 +51,17 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
       performance={{ min: 0.5 }}
     >
       <Suspense fallback={null}>
-        {/* Cinematic sun-like key light */}
-        <ambientLight intensity={showSimulation ? 0.15 : 0.25} color="#b8c9e0" />
-        <directionalLight position={[5, 2, 4]} intensity={showSimulation ? 0.8 : 1.2} color="#fff5e0" />
+        {/* Lighting — dims for simulation/explorer modes */}
+        <ambientLight intensity={showSimulation ? 0.15 : showExplorer ? 0.2 : 0.25} color="#b8c9e0" />
+        <directionalLight position={[5, 2, 4]} intensity={showSimulation ? 0.8 : showExplorer ? 0.9 : 1.2} color="#fff5e0" />
         <directionalLight position={[-3, -1, 2]} intensity={0.15} color="#6b8cc7" />
         <pointLight position={[0, 1.5, 3]} intensity={0.15} color="#78b4ff" distance={8} />
 
-        {/* Dense starfield */}
         <Starfield count={4000} />
-
-        {/* Globe */}
         <Globe />
-
-        {/* Flight paths */}
         <FlightArcs showHistory={showHistory} />
 
-        {/* Global intelligence layers */}
+        {/* Intelligence layers */}
         {showIntelligence && (
           <>
             <GlobalFlightFlows count={50} />
@@ -76,13 +80,18 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
           </>
         )}
 
-        {/* Airport markers */}
-        <AirportMarkers showAirports={showAirports} />
+        {/* Explorer layers */}
+        {showExplorer && (
+          <>
+            <DestinationMarkers discoveredIds={discoveredIds} />
+            <LandmarkMarkers />
+            <ExplorerPaths activePathId={explorerPathId} />
+          </>
+        )}
 
-        {/* User location */}
+        <AirportMarkers showAirports={showAirports} />
         <UserLocation lat={userLat} lng={userLng} />
 
-        {/* Heavy cinematic camera controls */}
         <OrbitControls
           enablePan={false}
           enableDamping
@@ -92,7 +101,7 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
           minDistance={1.5}
           maxDistance={4.2}
           autoRotate
-          autoRotateSpeed={showSimulation ? 0.08 : 0.15}
+          autoRotateSpeed={showExplorer ? 0.06 : showSimulation ? 0.08 : 0.15}
           enableRotate
           maxPolarAngle={Math.PI * 0.82}
           minPolarAngle={Math.PI * 0.18}
