@@ -115,7 +115,7 @@ const Globe: React.FC = () => {
           // Fresnel atmosphere rim
           float fresnel = 1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0)));
           fresnel = pow(fresnel, 3.0);
-          surface += uAtmoColor * fresnel * 0.15;
+          surface += uAtmoColor * fresnel * 0.25;
 
           gl_FragColor = vec4(surface, 1.0);
         }
