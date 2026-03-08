@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense, useState, useCallback, useEffect } from "react";
 import { AppShell } from "@/components/layout/AppShell";
+import { PageTransition } from "@/components/layout/PageTransition";
 import SplashScreen from "@/components/SplashScreen";
 
 const LockScreen = lazy(() => import("@/screens/LockScreen"));
@@ -51,20 +52,22 @@ const App = () => {
                 path="/*"
                 element={
                   <AppShell>
-                    <Suspense fallback={<PageLoader />}>
-                      <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/identity" element={<Identity />} />
-                        <Route path="/wallet" element={<Wallet />} />
-                        <Route path="/travel" element={<Travel />} />
-                        <Route path="/services" element={<Services />} />
-                        <Route path="/profile" element={<Profile />} />
-                        <Route path="/map" element={<GlobalMap />} />
-                        <Route path="/kiosk-sim" element={<KioskSimulator />} />
-                        <Route path="/receipt" element={<EntryReceipt />} />
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                      </Routes>
-                    </Suspense>
+                    <PageTransition>
+                      <Suspense fallback={<PageLoader />}>
+                        <Routes>
+                          <Route path="/" element={<Home />} />
+                          <Route path="/identity" element={<Identity />} />
+                          <Route path="/wallet" element={<Wallet />} />
+                          <Route path="/travel" element={<Travel />} />
+                          <Route path="/services" element={<Services />} />
+                          <Route path="/profile" element={<Profile />} />
+                          <Route path="/map" element={<GlobalMap />} />
+                          <Route path="/kiosk-sim" element={<KioskSimulator />} />
+                          <Route path="/receipt" element={<EntryReceipt />} />
+                          <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
+                      </Suspense>
+                    </PageTransition>
                   </AppShell>
                 }
               />
