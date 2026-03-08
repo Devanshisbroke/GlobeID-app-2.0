@@ -15,8 +15,7 @@ type Tab = "feed" | "notifications" | "leaderboard";
 
 const SocialFeed: React.FC = () => {
   const navigate = useNavigate();
-  const { posts, unreadCount } = useSocialStore();
-  const [tab, setTab] = useState<Tab>("feed");
+  const { posts, unreadCount, users } = useSocialStore();
   const [showCreate, setShowCreate] = useState(false);
   const { users } = useSocialStore();
   const { leaderboard: lb } = require("@/store/socialStore");
