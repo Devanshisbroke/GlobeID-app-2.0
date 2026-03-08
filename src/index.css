@@ -586,7 +586,35 @@
     transition: transform var(--motion-micro) var(--ease-spring);
   }
   .touch-bounce:active {
-    transform: scale(0.95);
+    transform: scale(0.97);
+  }
+
+  /* ── Edge Fade Scroll ── */
+  .scroll-edge-fade {
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 24px, black calc(100% - 24px), transparent);
+    mask-image: linear-gradient(to bottom, transparent, black 24px, black calc(100% - 24px), transparent);
+  }
+
+  /* ── Momentum Scroll Container ── */
+  .momentum-scroll {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    scroll-behavior: smooth;
+  }
+
+  /* ── Will-change hints for perf ── */
+  .will-change-transform {
+    will-change: transform;
+  }
+  .will-change-opacity {
+    will-change: opacity;
+  }
+
+  /* ── GPU Layer ── */
+  .gpu-layer {
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 }
 

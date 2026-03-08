@@ -1,6 +1,7 @@
 import React from "react";
+import { motion } from "framer-motion";
+import { pageVariants, pageTransition } from "@/hooks/useMotion";
 import { cn } from "@/lib/utils";
-import { staggerDelay } from "@/hooks/useMotion";
 
 interface AnimatedPageProps {
   children: React.ReactNode;
@@ -13,16 +14,19 @@ const AnimatedPage: React.FC<AnimatedPageProps> = ({
   className,
   staggerIndex,
 }) => (
-  <div
-    className={cn("animate-fade-in", className)}
-    style={
-      staggerIndex !== undefined
-        ? { animationDelay: staggerDelay(staggerIndex) }
-        : undefined
-    }
+  <motion.div
+    className={cn(className)}
+    variants={pageVariants}
+    initial="initial"
+    animate="animate"
+    exit="exit"
+    transition={{
+      ...pageTransition,
+      delay: staggerIndex !== undefined ? staggerIndex * 0.06 : 0,
+    }}
   >
     {children}
-  </div>
+  </motion.div>
 );
 
 export { AnimatedPage };
