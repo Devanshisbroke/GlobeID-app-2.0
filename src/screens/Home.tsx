@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -7,8 +7,12 @@ import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { demoUser, quickActions, demoActivity, demoBalances, demoBookings } from "@/lib/demoData";
 import { getIcon } from "@/lib/iconMap";
 import { springs } from "@/hooks/useMotion";
-import { ChevronRight, MapPin, ShieldCheck, Globe, TrendingUp, Plane, QrCode, Car, ArrowRightLeft, Sparkles } from "lucide-react";
+import { ChevronRight, MapPin, ShieldCheck, Globe, TrendingUp, Plane, QrCode, Car, ArrowRightLeft, Sparkles, AlertTriangle, Bell, Trophy, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAlertsStore } from "@/store/alertsStore";
+import { getTravelSuggestions, calculateTravelScore } from "@/lib/travelSuggestions";
+import { visitedCountries } from "@/lib/airports";
+import TravelAssistant from "@/components/ai/TravelAssistant";
 
 const actionGradients = [
   "bg-gradient-ocean",
@@ -29,8 +33,22 @@ const item = {
   animate: { opacity: 1, y: 0, scale: 1 },
 };
 
+const alertSeverityStyles = {
+  high: "border-destructive/30 bg-destructive/5",
+  medium: "border-neon-amber/30 bg-neon-amber/5",
+  low: "border-border/30",
+};
+const alertIcons = {
+  visa_change: ShieldCheck,
+  flight_disruption: Plane,
+  advisory: AlertTriangle,
+  info: Bell,
+};
+
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const [showAssistant, setShowAssistant] = useState(false);
+  const { alerts, markRead, dismissAlert } = useAlertsStore();
 
   const totalUSD = useMemo(() => demoBalances.reduce((acc, b) => {
     if (b.currency === "USD") return acc + b.amount;
@@ -45,6 +63,10 @@ const Home: React.FC = () => {
   const nextFlight = demoBookings.find((b) => b.type === "flight" && b.status === "upcoming");
   const greeting = new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 18 ? "Good afternoon" : "Good evening";
 
+  const travelScore = useMemo(() => calculateTravelScore(visitedCountries.length, 45000, 3), []);
+  const suggestions = useMemo(() => getTravelSuggestions("India", visitedCountries), []);
+  const unreadAlerts = alerts.filter(a => !a.read);
+
   return (
     <motion.div
       className="px-4 py-6 space-y-5 bg-gradient-radial min-h-screen"
@@ -58,6 +80,9 @@ const Home: React.FC = () => {
         <div className="orb w-[280px] h-[280px] bottom-[20%] right-[-15%]" style={{ background: "hsl(var(--forest-jade) / 0.12)", animationDelay: "-7s" }} />
         <div className="orb w-[220px] h-[220px] top-[40%] left-[50%]" style={{ background: "hsl(var(--aurora-purple) / 0.1)", animationDelay: "-13s" }} />
       </div>
+
+      {/* Travel Assistant */}
+      <TravelAssistant open={showAssistant} onClose={() => setShowAssistant(false)} />
 
       {/* Greeting + Identity Hero */}
       <AnimatedPage>
@@ -116,9 +141,70 @@ const Home: React.FC = () => {
         </GlassCard>
       </AnimatedPage>
 
+      {/* Travel Score */}
+      <AnimatedPage staggerIndex={1}>
+        <GlassCard className="flex items-center gap-4" depth="md">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-cosmic flex items-center justify-center shrink-0 shadow-glow-sm relative">
+            <Trophy className="w-6 h-6 text-primary-foreground" />
+            <span className="absolute -top-1 -right-1 text-[10px] w-5 h-5 rounded-full bg-neon-amber text-background font-bold flex items-center justify-center shadow-depth-sm">
+              {travelScore.score}
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-foreground">Travel Score: {travelScore.score}</p>
+            <p className="text-[10px] text-muted-foreground">{travelScore.level} · {travelScore.nextMilestone}</p>
+            <div className="mt-1.5 w-full h-1.5 rounded-full bg-secondary/50 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-700"
+                style={{ width: `${travelScore.score}%` }}
+              />
+            </div>
+          </div>
+        </GlassCard>
+      </AnimatedPage>
+
+      {/* Alerts */}
+      {unreadAlerts.length > 0 && (
+        <AnimatedPage staggerIndex={2}>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+              <Bell className="w-3.5 h-3.5 text-neon-amber" /> Alerts
+              <span className="w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] flex items-center justify-center font-bold">{unreadAlerts.length}</span>
+            </h3>
+          </div>
+          <div className="space-y-2">
+            {unreadAlerts.slice(0, 3).map((alert) => {
+              const AlertIcon = alertIcons[alert.type];
+              return (
+                <GlassCard
+                  key={alert.id}
+                  className={cn("relative", alertSeverityStyles[alert.severity])}
+                  onClick={() => markRead(alert.id)}
+                >
+                  <button
+                    onClick={(e) => { e.stopPropagation(); dismissAlert(alert.id); }}
+                    className="absolute top-2 right-2 w-5 h-5 rounded-full bg-secondary/60 flex items-center justify-center"
+                  >
+                    <X className="w-3 h-3 text-muted-foreground" />
+                  </button>
+                  <div className="flex items-start gap-3 pr-6">
+                    <AlertIcon className={cn("w-4 h-4 mt-0.5 shrink-0", alert.severity === "high" ? "text-destructive" : alert.severity === "medium" ? "text-neon-amber" : "text-muted-foreground")} />
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">{alert.title}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{alert.description}</p>
+                      <p className="text-[9px] text-muted-foreground/60 mt-1">{alert.timestamp}</p>
+                    </div>
+                  </div>
+                </GlassCard>
+              );
+            })}
+          </div>
+        </AnimatedPage>
+      )}
+
       {/* Boarding Pass */}
       {nextFlight && (
-        <AnimatedPage staggerIndex={1}>
+        <AnimatedPage staggerIndex={3}>
           <GlassCard className="relative overflow-hidden cursor-pointer p-0" variant="premium" depth="lg" onClick={() => navigate("/travel")}>
             <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-accent/5 pointer-events-none" />
             <div className="p-5 relative">
@@ -177,7 +263,7 @@ const Home: React.FC = () => {
       )}
 
       {/* Portfolio Value */}
-      <AnimatedPage staggerIndex={2}>
+      <AnimatedPage staggerIndex={4}>
         <GlassCard className="flex items-center gap-4 py-4" depth="md" onClick={() => navigate("/wallet")}>
           <div className="w-11 h-11 rounded-xl bg-gradient-forest flex items-center justify-center shrink-0 shadow-glow-sm">
             <TrendingUp className="w-5 h-5 text-primary-foreground" />
@@ -199,7 +285,7 @@ const Home: React.FC = () => {
       </AnimatedPage>
 
       {/* Quick Actions */}
-      <AnimatedPage staggerIndex={3}>
+      <AnimatedPage staggerIndex={5}>
         <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">Quick Actions</h3>
         <motion.div
           className="grid grid-cols-4 gap-2.5"
@@ -215,7 +301,13 @@ const Home: React.FC = () => {
                 variants={item}
                 transition={springs.snappy}
                 whileTap={{ scale: 0.92 }}
-                onClick={() => action.route && navigate(action.route)}
+                onClick={() => {
+                  if (action.label === "AI Assistant") {
+                    setShowAssistant(true);
+                  } else if (action.route) {
+                    navigate(action.route);
+                  }
+                }}
                 className={cn(
                   "relative flex flex-col items-center gap-2 p-3 rounded-2xl min-h-[84px]",
                   "glass border border-border/30",
@@ -236,8 +328,42 @@ const Home: React.FC = () => {
         </motion.div>
       </AnimatedPage>
 
+      {/* Smart Travel Suggestions */}
+      <AnimatedPage staggerIndex={6}>
+        <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">Travel Suggestions</h3>
+        <div className="space-y-2.5">
+          {suggestions.slice(0, 3).map((sug) => {
+            const SugIcon = getIcon(sug.icon);
+            return (
+              <GlassCard key={sug.id} className="cursor-pointer touch-bounce" onClick={() => navigate("/map")}>
+                <div className="flex items-center gap-3">
+                  <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-depth-sm", sug.gradient)}>
+                    <SugIcon className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground">{sug.title}</p>
+                    <p className="text-xs text-muted-foreground">{sug.description}</p>
+                    {sug.countries.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {sug.countries.slice(0, 3).map((c) => (
+                          <span key={c} className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary/50 text-muted-foreground border border-border/20">{c}</span>
+                        ))}
+                        {sug.countries.length > 3 && (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary/50 text-muted-foreground">+{sug.countries.length - 3}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/60 shrink-0" />
+                </div>
+              </GlassCard>
+            );
+          })}
+        </div>
+      </AnimatedPage>
+
       {/* Travel Status */}
-      <AnimatedPage staggerIndex={4}>
+      <AnimatedPage staggerIndex={7}>
         <GlassCard className="border-gradient" variant="premium" depth="md" interactive={false}>
           <div className="flex items-center gap-2 mb-3">
             <Globe className="w-4 h-4 text-accent" />
@@ -269,39 +395,8 @@ const Home: React.FC = () => {
         </GlassCard>
       </AnimatedPage>
 
-      {/* Suggestions */}
-      <AnimatedPage staggerIndex={5}>
-        <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">Suggestions</h3>
-        <div className="space-y-2.5">
-          <GlassCard className="cursor-pointer" onClick={() => navigate("/services")}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-sunset flex items-center justify-center shrink-0 shadow-depth-sm">
-                <Car className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-foreground">Need a ride from the airport?</p>
-                <p className="text-xs text-muted-foreground">Book a ride in seconds</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground/60" />
-            </div>
-          </GlassCard>
-          <GlassCard className="cursor-pointer" onClick={() => navigate("/wallet")}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-aurora flex items-center justify-center shrink-0 shadow-depth-sm">
-                <ArrowRightLeft className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-foreground">Convert your currency</p>
-                <p className="text-xs text-muted-foreground">Tap to convert instantly</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground/60" />
-            </div>
-          </GlassCard>
-        </div>
-      </AnimatedPage>
-
       {/* Activity Feed */}
-      <AnimatedPage staggerIndex={6}>
+      <AnimatedPage staggerIndex={8}>
         <div className="flex items-center justify-between mb-3 px-1">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Activity</h3>
           <button className="text-xs text-primary font-medium hover:text-primary/80 transition-colors">View all</button>
