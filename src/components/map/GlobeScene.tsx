@@ -29,11 +29,11 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
       performance={{ min: 0.5 }}
     >
       <Suspense fallback={null}>
-        {/* Cinematic lighting */}
-        <ambientLight intensity={0.08} />
-        <directionalLight position={[5, 3, 5]} intensity={0.25} color="hsl(210, 80%, 85%)" />
-        <directionalLight position={[-3, -1, 2]} intensity={0.08} color="hsl(258, 60%, 70%)" />
-        <pointLight position={[0, 2, 3]} intensity={0.15} color="hsl(200, 90%, 70%)" distance={8} />
+        {/* Cinematic lighting — sun simulation */}
+        <ambientLight intensity={0.06} />
+        <directionalLight position={[5, 2, 4]} intensity={0.35} color="hsl(40, 90%, 95%)" />
+        <directionalLight position={[-4, -1, 2]} intensity={0.06} color="hsl(220, 60%, 70%)" />
+        <pointLight position={[0, 2, 3]} intensity={0.12} color="hsl(195, 90%, 70%)" distance={8} />
 
         {/* Stars + nebula */}
         <Starfield count={2500} />
