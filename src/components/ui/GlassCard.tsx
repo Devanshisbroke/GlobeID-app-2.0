@@ -1,7 +1,7 @@
 import React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { cardInteraction, spring } from "@/motion/motionConfig";
+import { cinematicCard, cinematicEase, cinematicDuration } from "@/cinematic/motionEngine";
 
 interface GlassCardProps extends Omit<HTMLMotionProps<"div">, "children"> {
   glow?: boolean;
@@ -17,7 +17,7 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
     <motion.div
       ref={ref}
       className={cn(
-        "rounded-2xl p-4 will-change-transform",
+        "rounded-2xl p-4 will-change-transform card-cinematic",
         variant === "default" && "glass glass-shine",
         variant === "premium" && "glass-premium glass-shine",
         variant === "ultra" && "glass-ultra glass-shine",
@@ -30,8 +30,11 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
         interactive && "cursor-pointer",
         className
       )}
-      {...(interactive ? cardInteraction : {})}
-      transition={spring.card}
+      {...(interactive ? cinematicCard : {})}
+      transition={{
+        duration: cinematicDuration.medium,
+        ease: cinematicEase,
+      }}
       {...props}
     >
       {children}

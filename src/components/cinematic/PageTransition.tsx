@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import { cinematicEase, cinematicDuration } from "@/cinematic/motionEngine";
 
-interface PageTransitionProps {
+interface CinematicPageTransitionProps {
   children: React.ReactNode;
 }
 
@@ -28,7 +28,7 @@ const variants = {
   },
 };
 
-const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
+const CinematicPageTransition: React.FC<CinematicPageTransitionProps> = ({ children }) => {
   const location = useLocation();
 
   return (
@@ -40,7 +40,7 @@ const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
         animate="animate"
         exit="exit"
         transition={{
-          duration: cinematicDuration.cinematic * 0.7,
+          duration: cinematicDuration.cinematic * 0.75,
           ease: cinematicEase,
           filter: { duration: cinematicDuration.medium, ease: cinematicEase },
         }}
@@ -52,4 +52,4 @@ const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
   );
 };
 
-export { PageTransition };
+export { CinematicPageTransition };
