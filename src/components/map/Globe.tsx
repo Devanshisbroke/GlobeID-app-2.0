@@ -8,21 +8,21 @@ const Globe: React.FC = () => {
   const cloudRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
-  const [dayMap, nightMap, bumpMap] = useLoader(THREE.TextureLoader, [
-    "/textures/earth-day.jpg",
+  const [nightMap, bumpMap, waterMap] = useLoader(THREE.TextureLoader, [
     "/textures/earth-night.jpg",
     "/textures/earth-bump.png",
+    "/textures/earth-water.png",
   ]);
 
   useMemo(() => {
-    [dayMap, nightMap, bumpMap].forEach((tex) => {
+    [nightMap, bumpMap, waterMap].forEach((tex) => {
       if (tex) {
         tex.minFilter = THREE.LinearMipMapLinearFilter;
         tex.magFilter = THREE.LinearFilter;
         tex.anisotropy = 4;
       }
     });
-  }, [dayMap, nightMap, bumpMap]);
+  }, [nightMap, bumpMap, waterMap]);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
@@ -40,16 +40,19 @@ const Globe: React.FC = () => {
     }
   });
 
-  // Clean globe shader — texture-only, no derivative edge detection
+  // Stylized travel-map globe — flat colors, no satellite imagery
   const globeMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
-        uDayMap: { value: dayMap },
         uNightMap: { value: nightMap },
         uBumpMap: { value: bumpMap },
+        uWaterMap: { value: waterMap },
         uSunDir: { value: new THREE.Vector3(1.0, 0.3, 0.8).normalize() },
-        uAtmoColor: { value: new THREE.Color("#4da6e6") },
+        uLandColor: { value: new THREE.Color("#0f1e33") },
+        uOceanColor: { value: new THREE.Color("#071425") },
+        uAtmoColor: { value: new THREE.Color("#78b4ff") },
+        uCityLightColor: { value: new THREE.Color("#ffd27a") },
       },
       vertexShader: `
         varying vec3 vNormal;
@@ -60,57 +63,67 @@ const Globe: React.FC = () => {
           vNormal = normalize(normalMatrix * normal);
           vPosition = position;
           vUv = uv;
-          // Subtle bump displacement
           float bump = texture2D(uBumpMap, uv).r;
-          vec3 displaced = position + normal * bump * 0.008;
+          vec3 displaced = position + normal * bump * 0.006;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
         }
       `,
       fragmentShader: `
-        uniform sampler2D uDayMap;
         uniform sampler2D uNightMap;
+        uniform sampler2D uBumpMap;
+        uniform sampler2D uWaterMap;
         uniform vec3 uSunDir;
+        uniform vec3 uLandColor;
+        uniform vec3 uOceanColor;
         uniform vec3 uAtmoColor;
+        uniform vec3 uCityLightColor;
         uniform float uTime;
         varying vec3 vNormal;
         varying vec3 vPosition;
         varying vec2 vUv;
 
         void main() {
-          // Sample textures directly — no processing artifacts
-          vec3 dayColor = texture2D(uDayMap, vUv).rgb;
-          vec3 nightColor = texture2D(uNightMap, vUv).rgb;
+          float water = texture2D(uWaterMap, vUv).r;
+          float bump = texture2D(uBumpMap, vUv).r;
+          float nightLum = texture2D(uNightMap, vUv).r;
 
-          // Day/night blend based on sun direction
+          // Land vs ocean — smooth blend
+          float isLand = smoothstep(0.45, 0.55, water);
+
+          // Flat stylized colors
+          vec3 land = uLandColor;
+          vec3 ocean = uOceanColor;
+
+          // Add subtle elevation shading to land
+          land += vec3(0.02, 0.03, 0.05) * bump;
+
+          // Combine
+          vec3 surface = mix(ocean, land, isLand);
+
+          // Directional lighting for depth
           float sunDot = dot(vNormal, uSunDir);
           float dayFactor = smoothstep(-0.15, 0.25, sunDot);
+          float ambient = 0.55;
+          float diffuse = max(sunDot, 0.0) * 0.35;
+          surface *= (ambient + diffuse + 0.2);
 
-          // Slightly darken day side for cinematic feel
-          vec3 day = dayColor * 0.88;
+          // City night lights on dark side — faint warm glow
+          float nightFactor = 1.0 - dayFactor;
+          float cityGlow = nightLum * nightFactor * 0.4;
+          surface += uCityLightColor * cityGlow * isLand;
 
-          // Warm night city lights
-          vec3 night = nightColor * vec3(1.3, 1.0, 0.7) * 1.1;
-
-          // Smooth day/night blend
-          vec3 surface = mix(night, day, dayFactor);
-
-          // Simple diffuse lighting
-          float ambient = 0.15;
-          float diffuse = max(sunDot, 0.0) * 0.4;
-          surface *= (ambient + diffuse + 0.5);
-
-          // Fresnel atmosphere rim — soft edge glow
+          // Fresnel atmosphere rim
           float fresnel = 1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0)));
-          fresnel = pow(fresnel, 3.5);
-          surface += uAtmoColor * fresnel * 0.18;
+          fresnel = pow(fresnel, 3.0);
+          surface += uAtmoColor * fresnel * 0.15;
 
           gl_FragColor = vec4(surface, 1.0);
         }
       `,
     });
-  }, [dayMap, nightMap, bumpMap]);
+  }, [nightMap, bumpMap, waterMap]);
 
-  // Inner atmosphere
+  // Inner atmosphere — rgba(120,180,255,0.25)
   const atmosphereMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
@@ -140,7 +153,6 @@ const Globe: React.FC = () => {
     });
   }, []);
 
-  // Outer glow
   const outerGlowMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: { uColor: { value: new THREE.Color("#78b4ff") } },
@@ -165,61 +177,13 @@ const Globe: React.FC = () => {
     });
   }, []);
 
-  // Procedural clouds
-  const proceduralCloudMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
-      vertexShader: `
-        varying vec3 vPosition;
-        varying vec3 vNormal;
-        void main() {
-          vPosition = position;
-          vNormal = normalize(normalMatrix * normal);
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        varying vec3 vPosition;
-        varying vec3 vNormal;
-        float hash(vec2 p) {
-          p = fract(p * vec2(123.34, 456.21));
-          p += dot(p, p + 45.32);
-          return fract(p.x * p.y);
-        }
-        float noise(vec2 p) {
-          vec2 i = floor(p); vec2 f = fract(p);
-          f = f * f * (3.0 - 2.0 * f);
-          return mix(mix(hash(i), hash(i+vec2(1,0)), f.x),
-                     mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x), f.y);
-        }
-        float fbm(vec2 p) {
-          float v = 0.0, a = 0.5;
-          for (int i = 0; i < 5; i++) { v += a*noise(p); p *= 2.1; a *= 0.45; }
-          return v;
-        }
-        void main() {
-          float lat = asin(vPosition.y) * 57.2957795;
-          float lng = atan(vPosition.z, -vPosition.x) * 57.2957795;
-          float clouds = fbm(vec2(lng * 0.035, lat * 0.045) + vec2(2.0, 5.0));
-          clouds = smoothstep(0.48, 0.72, clouds) * 0.18;
-          float fresnel = 1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0)));
-          clouds *= (1.0 - pow(fresnel, 2.0));
-          gl_FragColor = vec4(vec3(0.85, 0.9, 1.0), clouds);
-        }
-      `,
-      transparent: true,
-      depthWrite: false,
-      side: THREE.FrontSide,
-    });
-  }, []);
+  // Remove cloud layer for clean travel-map style
 
   return (
     <group>
       <mesh>
         <sphereGeometry args={[1, 128, 128]} />
         <shaderMaterial ref={materialRef} attach="material" {...globeMaterial} />
-      </mesh>
-      <mesh ref={cloudRef} material={proceduralCloudMaterial}>
-        <sphereGeometry args={[1.005, 64, 64]} />
       </mesh>
       <mesh ref={atmosphereRef} material={atmosphereMaterial}>
         <sphereGeometry args={[1.055, 64, 64]} />
