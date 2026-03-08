@@ -27,6 +27,9 @@ const RideBooking = lazy(() => import("@/screens/services/RideBooking"));
 const FoodDiscovery = lazy(() => import("@/screens/services/FoodDiscovery"));
 const ActivitiesScreen = lazy(() => import("@/screens/services/Activities"));
 const TransportScreen = lazy(() => import("@/screens/services/Transport"));
+const SocialFeed = lazy(() => import("@/screens/SocialFeed"));
+const Explore = lazy(() => import("@/screens/Explore"));
+const UserProfile = lazy(() => import("@/screens/UserProfile"));
 
 const queryClient = new QueryClient();
 
@@ -82,6 +85,9 @@ const App = () => {
                           <Route path="/services/food" element={<FoodDiscovery />} />
                           <Route path="/services/activities" element={<ActivitiesScreen />} />
                           <Route path="/services/transport" element={<TransportScreen />} />
+                          <Route path="/social" element={<SocialFeed />} />
+                          <Route path="/explore" element={<Explore />} />
+                          <Route path="/profile/:userId" element={<UserProfile />} />
                           <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                       </Suspense>
