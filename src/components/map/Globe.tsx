@@ -6,7 +6,7 @@ const Globe: React.FC = () => {
   const atmosphereRef = useRef<THREE.Mesh>(null);
   const outerGlowRef = useRef<THREE.Mesh>(null);
   const cloudRef = useRef<THREE.Mesh>(null);
-  const globeMatRef = useRef<THREE.ShaderMaterial>(null);
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
 
   const [dayMap, nightMap, bumpMap, waterMap] = useLoader(THREE.TextureLoader, [
     "/textures/earth-day.jpg",
@@ -27,8 +27,8 @@ const Globe: React.FC = () => {
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
-    if (globeMatRef.current) {
-      globeMatRef.current.uniforms.uTime.value = t;
+    if (materialRef.current) {
+      materialRef.current.uniforms.uTime.value = t;
     }
     if (atmosphereRef.current) {
       atmosphereRef.current.scale.setScalar(1.0 + Math.sin(t * 0.4) * 0.002);
@@ -50,7 +50,6 @@ const Globe: React.FC = () => {
         uBumpMap: { value: bumpMap },
         uWaterMap: { value: waterMap },
         uSunDir: { value: new THREE.Vector3(1.0, 0.3, 0.8).normalize() },
-        // Cinematic colors
         uOceanDeep: { value: new THREE.Color("#08121f") },
         uContinentDark: { value: new THREE.Color("#0f1e33") },
         uAtmoColor: { value: new THREE.Color("#4da6e6") },
@@ -63,7 +62,6 @@ const Globe: React.FC = () => {
         varying vec2 vUv;
         varying vec3 vWorldPos;
         uniform sampler2D uBumpMap;
-
         void main() {
           vNormal = normalize(normalMatrix * normal);
           vPosition = position;
@@ -97,14 +95,11 @@ const Globe: React.FC = () => {
           float bump = texture2D(uBumpMap, vUv).r;
           float water = texture2D(uWaterMap, vUv).r;
 
-          // Sun illumination with soft terminator
           float sunDot = dot(vNormal, uSunDir);
           float dayFactor = smoothstep(-0.2, 0.3, sunDot);
 
-          // Tint continents — blend texture with tint for cinematic look
           vec3 tintedDay = mix(dayColor, dayColor * 1.1, bump) * 0.82;
 
-          // Ocean treatment — deep blue with subtle shimmer
           if (water < 0.5) {
             vec3 oceanBase = mix(uOceanDeep, dayColor * 0.6, 0.3);
             vec3 viewDir = normalize(-vWorldPos);
@@ -116,22 +111,16 @@ const Globe: React.FC = () => {
             tintedDay = oceanBase;
           }
 
-          // Night city lights — orange/warm glow, boosted
           vec3 nightBoosted = nightColor * vec3(1.4, 1.1, 0.7) * 1.5;
-
-          // Blend day/night
           vec3 surface = mix(nightBoosted, tintedDay, dayFactor);
 
-          // Coastline & continent edge glow
           float bumpEdge = length(vec2(dFdx(bump), dFdy(bump))) * 18.0;
           float waterEdge = length(vec2(dFdx(water), dFdy(water))) * 22.0;
           float coastGlow = smoothstep(0.06, 0.5, max(bumpEdge, waterEdge)) * 0.3;
           surface += uCoastGlow * coastGlow * (0.6 + dayFactor * 0.4);
 
-          // Elevation lighting — make land slightly brighter based on bump
           surface += vec3(0.03, 0.04, 0.06) * bump * dayFactor;
 
-          // Subtle lat/lng grid
           float lat = asin(vPosition.y) * 57.2957795;
           float lng = atan(vPosition.z, -vPosition.x) * 57.2957795;
           float latGrid = smoothstep(0.0, 0.9, abs(fract(lat / 30.0) - 0.5) * 2.0);
@@ -139,12 +128,10 @@ const Globe: React.FC = () => {
           float grid = (1.0 - min(latGrid, lngGrid)) * 0.02;
           surface += uGridColor * grid;
 
-          // Fresnel atmosphere rim
           float fresnel = 1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0)));
           fresnel = pow(fresnel, 3.5);
           surface += uAtmoColor * fresnel * 0.2;
 
-          // Final lighting pass
           float ambient = 0.14;
           float diffuse = max(sunDot, 0.0) * 0.45;
           surface *= (ambient + diffuse + 0.5);
@@ -155,7 +142,6 @@ const Globe: React.FC = () => {
     });
   }, [dayMap, nightMap, bumpMap, waterMap]);
 
-  // Inner atmosphere — soft blue→cyan
   const atmosphereMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
@@ -185,7 +171,6 @@ const Globe: React.FC = () => {
     });
   }, []);
 
-  // Outer soft glow
   const outerGlowMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
@@ -212,10 +197,8 @@ const Globe: React.FC = () => {
     });
   }, []);
 
-  // Procedural cloud layer
   const proceduralCloudMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 } },
       vertexShader: `
         varying vec3 vPosition;
         varying vec3 vNormal;
@@ -262,15 +245,20 @@ const Globe: React.FC = () => {
 
   return (
     <group>
-      <mesh ref={globeMatRef as any} material={globeMaterial}>
+      {/* Main globe */}
+      <mesh>
         <sphereGeometry args={[1, 128, 128]} />
+        <shaderMaterial ref={materialRef} attach="material" {...globeMaterial} />
       </mesh>
+      {/* Cloud layer */}
       <mesh ref={cloudRef} material={proceduralCloudMaterial}>
         <sphereGeometry args={[1.005, 64, 64]} />
       </mesh>
+      {/* Inner atmosphere */}
       <mesh ref={atmosphereRef} material={atmosphereMaterial}>
         <sphereGeometry args={[1.055, 64, 64]} />
       </mesh>
+      {/* Outer glow */}
       <mesh ref={outerGlowRef} material={outerGlowMaterial}>
         <sphereGeometry args={[1.12, 48, 48]} />
       </mesh>
