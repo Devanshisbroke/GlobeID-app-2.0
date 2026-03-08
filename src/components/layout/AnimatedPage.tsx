@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { pageVariants, pageTransition } from "@/hooks/useMotion";
+import { spring, staggerItem, easing, duration } from "@/motion/motionConfig";
 import { cn } from "@/lib/utils";
 
 interface AnimatedPageProps {
@@ -15,13 +15,13 @@ const AnimatedPage: React.FC<AnimatedPageProps> = ({
   staggerIndex,
 }) => (
   <motion.div
-    className={cn(className)}
-    variants={pageVariants}
+    className={cn("will-change-transform", className)}
+    variants={staggerItem}
     initial="initial"
     animate="animate"
     exit="exit"
     transition={{
-      ...pageTransition,
+      ...spring.card,
       delay: staggerIndex !== undefined ? staggerIndex * 0.06 : 0,
     }}
   >

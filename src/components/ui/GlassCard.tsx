@@ -1,7 +1,7 @@
 import React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { cardPress, springs } from "@/hooks/useMotion";
+import { cardInteraction, spring } from "@/motion/motionConfig";
 
 interface GlassCardProps extends Omit<HTMLMotionProps<"div">, "children"> {
   glow?: boolean;
@@ -17,7 +17,7 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
     <motion.div
       ref={ref}
       className={cn(
-        "rounded-2xl p-4",
+        "rounded-2xl p-4 will-change-transform",
         variant === "default" && "glass glass-shine",
         variant === "premium" && "glass-premium glass-shine",
         variant === "ultra" && "glass-ultra glass-shine",
@@ -27,10 +27,11 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
         depth === "xl" && "shadow-depth-xl",
         glow && "shadow-glow-md border-gradient",
         neonBorder && "border-gradient",
+        interactive && "cursor-pointer",
         className
       )}
-      {...(interactive ? cardPress : {})}
-      transition={springs.card}
+      {...(interactive ? cardInteraction : {})}
+      transition={spring.card}
       {...props}
     >
       {children}
