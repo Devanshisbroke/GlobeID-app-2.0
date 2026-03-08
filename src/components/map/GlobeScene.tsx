@@ -8,6 +8,11 @@ import AirportMarkers from "./AirportMarkers";
 import UserLocation from "./UserLocation";
 import GlobalFlightFlows from "./GlobalFlightFlows";
 import TravelParticles from "./TravelParticles";
+import PassengerParticles from "./PassengerParticles";
+import AirTrafficLayer from "./AirTrafficLayer";
+import RegionalDensity from "./RegionalDensity";
+import TravelStreams from "./TravelStreams";
+import PassengerNetwork from "./PassengerNetwork";
 
 interface GlobeSceneProps {
   showHistory: boolean;
@@ -15,6 +20,8 @@ interface GlobeSceneProps {
   userLat: number;
   userLng: number;
   showIntelligence?: boolean;
+  showSimulation?: boolean;
+  simSpeed?: number;
 }
 
 const GlobeScene: React.FC<GlobeSceneProps> = ({
@@ -23,6 +30,8 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
   userLat,
   userLng,
   showIntelligence = true,
+  showSimulation = false,
+  simSpeed = 1,
 }) => {
   return (
     <Canvas
@@ -34,8 +43,8 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
     >
       <Suspense fallback={null}>
         {/* Cinematic sun-like key light */}
-        <ambientLight intensity={0.25} color="#b8c9e0" />
-        <directionalLight position={[5, 2, 4]} intensity={1.2} color="#fff5e0" />
+        <ambientLight intensity={showSimulation ? 0.15 : 0.25} color="#b8c9e0" />
+        <directionalLight position={[5, 2, 4]} intensity={showSimulation ? 0.8 : 1.2} color="#fff5e0" />
         <directionalLight position={[-3, -1, 2]} intensity={0.15} color="#6b8cc7" />
         <pointLight position={[0, 1.5, 3]} intensity={0.15} color="#78b4ff" distance={8} />
 
@@ -56,6 +65,17 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
           </>
         )}
 
+        {/* Simulation layers */}
+        {showSimulation && (
+          <>
+            <PassengerParticles count={100} speed={simSpeed} />
+            <AirTrafficLayer count={60} speed={simSpeed} />
+            <RegionalDensity />
+            <TravelStreams />
+            <PassengerNetwork />
+          </>
+        )}
+
         {/* Airport markers */}
         <AirportMarkers showAirports={showAirports} />
 
@@ -72,7 +92,7 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
           minDistance={1.5}
           maxDistance={4.2}
           autoRotate
-          autoRotateSpeed={0.15}
+          autoRotateSpeed={showSimulation ? 0.08 : 0.15}
           enableRotate
           maxPolarAngle={Math.PI * 0.82}
           minPolarAngle={Math.PI * 0.18}
