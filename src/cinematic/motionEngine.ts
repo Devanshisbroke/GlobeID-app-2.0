@@ -53,17 +53,15 @@ export const cinematicReveal: Variants = {
 
 /* ── Cinematic Slide ── */
 export const cinematicSlide: Variants = {
-  initial: { opacity: 0, x: 40, filter: "blur(4px)" },
+  initial: { opacity: 0, x: 24 },
   animate: {
     opacity: 1,
     x: 0,
-    filter: "blur(0px)",
     transition: { duration: cinematicDuration.cinematic, ease: cinematicEase },
   },
   exit: {
     opacity: 0,
-    x: -20,
-    filter: "blur(3px)",
+    x: -12,
     transition: { duration: cinematicDuration.medium, ease: cinematicEaseIn },
   },
 };
