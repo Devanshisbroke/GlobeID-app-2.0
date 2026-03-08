@@ -103,9 +103,9 @@ const Globe: React.FC = () => {
           // Directional lighting for depth
           float sunDot = dot(vNormal, uSunDir);
           float dayFactor = smoothstep(-0.15, 0.25, sunDot);
-          float ambient = 0.55;
-          float diffuse = max(sunDot, 0.0) * 0.35;
-          surface *= (ambient + diffuse + 0.2);
+          float ambient = 0.65;
+          float diffuse = max(sunDot, 0.0) * 0.5;
+          surface *= (ambient + diffuse + 0.25);
 
           // City night lights on dark side — faint warm glow
           float nightFactor = 1.0 - dayFactor;
