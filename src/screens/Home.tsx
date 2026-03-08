@@ -94,7 +94,7 @@ const Home: React.FC = () => {
       animate="animate"
       onPan={handlePan}
       onPanEnd={handlePanEnd}
-      style={{ touchAction: "pan-x" }}
+      style={{ touchAction: "pan-y" }}
     >
       {/* Pull-to-refresh indicator */}
       <motion.div
