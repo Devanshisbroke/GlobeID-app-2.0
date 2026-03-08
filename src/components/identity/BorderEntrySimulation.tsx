@@ -79,7 +79,7 @@ const BorderEntrySimulation: React.FC<BorderEntrySimulationProps> = ({
         )}
 
         {phase === "welcome" && (
-          <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: cinematicEase }} className="rounded-xl p-8 flex flex-col items-center gap-3 text-center" style={{ background: `linear-gradient(135deg, ${theme.accent}22, ${theme.accent}08)` }}>
+          <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: cinematicEase }} className="rounded-xl p-8 flex flex-col items-center gap-3 text-center" style={{ background: `linear-gradient(135deg, hsl(${theme.accentHsl} / 0.13), hsl(${theme.accentHsl} / 0.04))` }}>
             <motion.span className="text-5xl" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200, damping: 12 }}>
               {theme.flag}
             </motion.span>
