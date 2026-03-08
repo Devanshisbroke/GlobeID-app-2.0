@@ -21,6 +21,12 @@ const EntryReceipt = lazy(() => import("@/screens/EntryReceipt"));
 const TravelTimeline = lazy(() => import("@/screens/TravelTimeline"));
 const TripPlanner = lazy(() => import("@/screens/TripPlanner"));
 const AICopilot = lazy(() => import("@/components/ai/TravelCopilot"));
+const ServicesHub = lazy(() => import("@/screens/ServicesHub"));
+const HotelBooking = lazy(() => import("@/screens/services/HotelBooking"));
+const RideBooking = lazy(() => import("@/screens/services/RideBooking"));
+const FoodDiscovery = lazy(() => import("@/screens/services/FoodDiscovery"));
+const ActivitiesScreen = lazy(() => import("@/screens/services/Activities"));
+const TransportScreen = lazy(() => import("@/screens/services/Transport"));
 
 const queryClient = new QueryClient();
 
@@ -70,6 +76,12 @@ const App = () => {
                           <Route path="/timeline" element={<TravelTimeline />} />
                           <Route path="/planner" element={<TripPlanner />} />
                           <Route path="/copilot" element={<AICopilot />} />
+                          <Route path="/services/hub" element={<ServicesHub />} />
+                          <Route path="/services/hotels" element={<HotelBooking />} />
+                          <Route path="/services/rides" element={<RideBooking />} />
+                          <Route path="/services/food" element={<FoodDiscovery />} />
+                          <Route path="/services/activities" element={<ActivitiesScreen />} />
+                          <Route path="/services/transport" element={<TransportScreen />} />
                           <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                       </Suspense>

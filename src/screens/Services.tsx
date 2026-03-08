@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { staggerDelay } from "@/hooks/useMotion";
@@ -7,7 +8,7 @@ import {
   demoRideProviders, demoRestaurants, demoEmergencyContacts,
   simulateRideRequest, type RideRequest,
 } from "@/lib/demoServices";
-import { Car, UtensilsCrossed, MapPin, Shield, ChevronRight, Star, Clock, Check, Phone, Globe, Wifi, CreditCard, Umbrella, ArrowLeftRight } from "lucide-react";
+import { Car, UtensilsCrossed, MapPin, Shield, ChevronRight, Star, Clock, Check, Phone, Globe, Wifi, CreditCard, Umbrella, ArrowLeftRight, Hotel, Compass, Train, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ServiceCard from "@/components/services/ServiceCard";
 
@@ -22,6 +23,7 @@ const travelServices = [
 ];
 
 const Services: React.FC = () => {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("services");
   const [activeRide, setActiveRide] = useState<RideRequest | null>(null);
   const [pickup] = useState("Marina Bay Sands");
@@ -67,9 +69,26 @@ const Services: React.FC = () => {
 
       {tab === "services" && (
         <div className="space-y-3">
+          <AnimatedPage>
+            <GlassCard
+              neonBorder
+              className="flex items-center gap-3 cursor-pointer"
+              depth="md"
+              onClick={() => navigate("/services/hub")}
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 shadow-glow-sm">
+                <Sparkles className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-foreground">Services Hub</p>
+                <p className="text-xs text-muted-foreground">Hotels, rides, food, activities & more</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </GlassCard>
+          </AnimatedPage>
           <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">Travel Services</h3>
           {travelServices.map((svc, i) => (
-            <AnimatedPage key={svc.id} staggerIndex={i}>
+            <AnimatedPage key={svc.id} staggerIndex={i + 1}>
               <ServiceCard
                 title={svc.title}
                 description={svc.description}
