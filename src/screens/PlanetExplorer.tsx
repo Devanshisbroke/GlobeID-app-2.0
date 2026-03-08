@@ -6,12 +6,10 @@ import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { destinations, explorationPaths, type Destination } from "@/lib/explorerData";
 import DestinationCard from "@/components/explorer/DestinationCard";
-import DestinationStory from "@/components/explorer/DestinationStory";
 import DiscoveryFeed from "@/components/explorer/DiscoveryFeed";
 import CultureHighlights from "@/components/explorer/CultureHighlights";
 import ExplorerHUD from "@/components/explorer/ExplorerHUD";
 import DiscoveryAchievements from "@/components/explorer/DiscoveryAchievements";
-import PopularityIndicator from "@/components/explorer/PopularityIndicator";
 import { springs } from "@/hooks/useMotion";
 
 const GlobeScene = lazy(() => import("@/components/map/GlobeScene"));
@@ -42,7 +40,10 @@ const PlanetExplorer: React.FC = () => {
   return (
     <div className="relative min-h-screen -mx-4 -mt-6" style={{ marginBottom: "-5rem" }}>
       {/* 3D Globe */}
-      <div className="absolute inset-0" style={{ background: "#020617" }}>
+      <div
+        className="absolute inset-0"
+        style={{ background: "#020617", touchAction: "none" }}
+      >
         <Suspense
           fallback={
             <div className="flex items-center justify-center h-full flex-col gap-3">
@@ -112,7 +113,7 @@ const PlanetExplorer: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Bottom Panel */}
+      {/* Bottom Panel — scrollable with proper touch-action */}
       <AnimatePresence>
         {showPanel && (
           <motion.div
@@ -120,7 +121,8 @@ const PlanetExplorer: React.FC = () => {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 300, opacity: 0 }}
             transition={springs.gentle}
-            className="absolute bottom-20 left-0 right-0 z-10 px-4 pb-2 max-h-[55vh] overflow-y-auto momentum-scroll space-y-3"
+            className="absolute bottom-20 left-0 right-0 z-10 px-4 pb-2 max-h-[55vh] overflow-y-auto overscroll-contain space-y-3"
+            style={{ touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
           >
             {/* Tab bar */}
             <div className="flex gap-1 p-1 glass border border-border/30 rounded-xl">

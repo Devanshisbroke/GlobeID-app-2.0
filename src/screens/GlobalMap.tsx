@@ -71,8 +71,14 @@ const GlobalMap: React.FC = () => {
 
   return (
     <div className="relative min-h-screen -mx-4 -mt-6" style={{ marginBottom: "-5rem" }}>
-      {/* 3D Globe */}
-      <div className="absolute inset-0" style={{ background: "#020617" }}>
+      {/* 3D Globe — pointer-events contained to this layer */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "#020617",
+          touchAction: "none", // Globe area: let Three.js handle gestures
+        }}
+      >
         <Suspense
           fallback={
             <div className="flex items-center justify-center h-full flex-col gap-3">
@@ -157,7 +163,7 @@ const GlobalMap: React.FC = () => {
         />
       </motion.button>
 
-      {/* Flight Info Panel */}
+      {/* Flight Info Panel — scrollable, touch-action allows vertical scroll */}
       <AnimatePresence>
         {showPanel && (
           <motion.div
@@ -165,7 +171,8 @@ const GlobalMap: React.FC = () => {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 200, opacity: 0 }}
             transition={springs.gentle}
-            className="absolute bottom-20 left-0 right-0 z-10 px-4 pb-2 space-y-3 max-h-[45vh] overflow-y-auto momentum-scroll"
+            className="absolute bottom-20 left-0 right-0 z-10 px-4 pb-2 space-y-3 max-h-[45vh] overflow-y-auto overscroll-contain"
+            style={{ touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
           >
             {/* Simulation controls when in sim mode */}
             {simMode && (

@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import Globe from "./Globe";
@@ -16,6 +16,7 @@ import PassengerNetwork from "./PassengerNetwork";
 import DestinationMarkers from "./DestinationMarkers";
 import LandmarkMarkers from "./LandmarkMarkers";
 import ExplorerPaths from "./ExplorerPaths";
+import { isMobileOrCapacitor } from "@/hooks/useMobileDetect";
 
 interface GlobeSceneProps {
   showHistory: boolean;
@@ -42,41 +43,61 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
   explorerPathId,
   discoveredIds = [],
 }) => {
+  const mobile = useMemo(() => isMobileOrCapacitor(), []);
+
+  // Adaptive counts for mobile GPU
+  const starCount = mobile ? 1500 : 4000;
+  const flowCount = mobile ? 20 : 50;
+  const passengerCount = mobile ? 40 : 100;
+  const airTrafficCount = mobile ? 25 : 60;
+
   return (
     <Canvas
       camera={{ position: [0, 0.5, 2.8], fov: 40, near: 0.1, far: 50 }}
-      dpr={[1, 2]}
-      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-      style={{ background: "#020617" }}
-      performance={{ min: 0.5 }}
+      dpr={mobile ? [1, 1.5] : [1, 2]}
+      gl={{
+        antialias: !mobile,
+        alpha: true,
+        powerPreference: "high-performance",
+        stencil: false,
+        depth: true,
+      }}
+      style={{
+        background: "#020617",
+        touchAction: "none", // Canvas itself handles its own touch
+      }}
+      performance={{ min: mobile ? 0.3 : 0.5 }}
+      // CRITICAL: Let the canvas capture events only on its own element
+      // Prevents blocking UI scrolling outside the canvas
+      onPointerMissed={() => {}}
     >
       <Suspense fallback={null}>
         {/* Lighting — dims for simulation/explorer modes */}
         <ambientLight intensity={showSimulation ? 0.15 : showExplorer ? 0.2 : 0.25} color="#b8c9e0" />
         <directionalLight position={[5, 2, 4]} intensity={showSimulation ? 0.8 : showExplorer ? 0.9 : 1.2} color="#fff5e0" />
-        <directionalLight position={[-3, -1, 2]} intensity={0.15} color="#6b8cc7" />
-        <pointLight position={[0, 1.5, 3]} intensity={0.15} color="#78b4ff" distance={8} />
+        {!mobile && <directionalLight position={[-3, -1, 2]} intensity={0.15} color="#6b8cc7" />}
+        {!mobile && <pointLight position={[0, 1.5, 3]} intensity={0.15} color="#78b4ff" distance={8} />}
 
-        <Starfield count={4000} />
+        <Starfield count={starCount} />
         <Globe />
         <FlightArcs showHistory={showHistory} />
 
         {/* Intelligence layers */}
         {showIntelligence && (
           <>
-            <GlobalFlightFlows count={50} />
-            <TravelParticles />
+            <GlobalFlightFlows count={flowCount} />
+            {!mobile && <TravelParticles />}
           </>
         )}
 
         {/* Simulation layers */}
         {showSimulation && (
           <>
-            <PassengerParticles count={100} speed={simSpeed} />
-            <AirTrafficLayer count={60} speed={simSpeed} />
-            <RegionalDensity />
-            <TravelStreams />
-            <PassengerNetwork />
+            <PassengerParticles count={passengerCount} speed={simSpeed} />
+            <AirTrafficLayer count={airTrafficCount} speed={simSpeed} />
+            {!mobile && <RegionalDensity />}
+            {!mobile && <TravelStreams />}
+            {!mobile && <PassengerNetwork />}
           </>
         )}
 
@@ -105,6 +126,11 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
           enableRotate
           maxPolarAngle={Math.PI * 0.82}
           minPolarAngle={Math.PI * 0.18}
+          // Touch settings for proper mobile gesture handling
+          touches={{
+            ONE: 1, // ROTATE
+            TWO: 4, // DOLLY_PAN → zoom on pinch
+          }}
         />
       </Suspense>
     </Canvas>
