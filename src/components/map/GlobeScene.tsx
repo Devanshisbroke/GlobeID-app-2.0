@@ -126,11 +126,6 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
           enableRotate
           maxPolarAngle={Math.PI * 0.82}
           minPolarAngle={Math.PI * 0.18}
-          // Touch settings for proper mobile gesture handling
-          touches={{
-            ONE: 1, // ROTATE
-            TWO: 4, // DOLLY_PAN → zoom on pinch
-          }}
         />
       </Suspense>
     </Canvas>
