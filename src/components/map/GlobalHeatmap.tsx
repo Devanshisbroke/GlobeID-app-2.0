@@ -1,38 +1,17 @@
-import React, { useRef, useMemo } from "react";
-import { useFrame } from "@react-three/fiber";
+import React, { useMemo } from "react";
 import * as THREE from "three";
-import { latLngToVector3 } from "@/lib/airports";
-import { getHubs, destinations } from "@/lib/destinationAnalytics";
+import { airports, latLngToVector3 } from "@/lib/airports";
+import { getHubs } from "@/lib/destinationAnalytics";
 
-const GLOBE_RADIUS = 1.005;
-
-interface HeatPoint {
-  position: THREE.Vector3;
-  intensity: number;
-  isHub: boolean;
-}
+const GLOBE_RADIUS = 1;
 
 const GlobalHeatmap: React.FC = () => {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
-
-  const points: HeatPoint[] = useMemo(() => {
-    return destinations.slice(0, 30).map((d) => {
-      const airport = { lat: 0, lng: 0 };
-      // Look up lat/lng from airports
-      const { latLngToVector3: _ , ...rest } = require("@/lib/airports");
-      return null;
-    }).filter(Boolean) as HeatPoint[];
-  }, []);
-
-  // Simplified: render hub glows as point lights
   const hubs = useMemo(() => getHubs(), []);
 
   return (
     <group>
       {hubs.map((hub) => {
-        const airports = require("@/lib/airports").airports;
-        const airport = airports.find((a: any) => a.iata === hub.iata);
+        const airport = airports.find((a) => a.iata === hub.iata);
         if (!airport) return null;
         const pos = latLngToVector3(airport.lat, airport.lng, GLOBE_RADIUS + 0.01);
         const intensity = hub.popularity / 100;
