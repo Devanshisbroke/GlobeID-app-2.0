@@ -32,6 +32,7 @@ const Explore = lazy(() => import("@/screens/Explore"));
 const UserProfile = lazy(() => import("@/screens/UserProfile"));
 const IdentityVault = lazy(() => import("@/screens/IdentityVault"));
 const TravelIntelligence = lazy(() => import("@/screens/TravelIntelligence"));
+const PlanetExplorer = lazy(() => import("@/screens/PlanetExplorer"));
 
 const queryClient = new QueryClient();
 
