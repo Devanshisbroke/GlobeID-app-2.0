@@ -13,6 +13,47 @@ const GlobeScene = lazy(() => import("@/components/map/GlobeScene"));
 const USER_LAT = 37.7749;
 const USER_LNG = -122.4194;
 
+const stats = getGlobalStats();
+
+function useAnimatedNum(target: number, dur = 1500): number {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    const start = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min((now - start) / dur, 1);
+      setVal(Math.round(target * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [target, dur]);
+  return val;
+}
+
+const LiveFlightStats: React.FC = () => {
+  const flights = useAnimatedNum(stats.totalFlightsToday);
+  const routes = useAnimatedNum(stats.totalRoutes);
+  return (
+    <GlassCard className="py-2.5 px-3 flex items-center justify-between" interactive={false}>
+      <div className="flex items-center gap-1.5">
+        <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+        <span className="text-[10px] text-muted-foreground font-medium">Live</span>
+      </div>
+      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Activity className="w-3 h-3" />
+        <span className="font-bold text-foreground">{flights.toLocaleString()}</span> flights
+      </div>
+      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Route className="w-3 h-3" />
+        <span className="font-bold text-foreground">{routes.toLocaleString()}</span> routes
+      </div>
+      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Users className="w-3 h-3" />
+        <span className="font-bold text-foreground">{stats.topRoute}</span>
+      </div>
+    </GlassCard>
+  );
+};
+
 const GlobalMap: React.FC = () => {
   const [showHistory, setShowHistory] = useState(true);
   const [showAirports, setShowAirports] = useState(true);
