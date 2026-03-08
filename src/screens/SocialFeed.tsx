@@ -17,8 +17,8 @@ const SocialFeed: React.FC = () => {
   const navigate = useNavigate();
   const { posts, unreadCount, users } = useSocialStore();
   const [showCreate, setShowCreate] = useState(false);
-  const { users } = useSocialStore();
-  const { leaderboard: lb } = require("@/store/socialStore");
+  const [tab, setTab] = useState<Tab>("feed");
+  const [showCreate, setShowCreate] = useState(false);
 
   const tabs: { key: Tab; label: string; icon: React.ElementType }[] = [
     { key: "feed", label: "Feed", icon: Compass },
