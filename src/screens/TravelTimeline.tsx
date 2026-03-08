@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
@@ -10,7 +10,9 @@ import {
   type TimelineEntry,
 } from "@/lib/travelTimeline";
 import { getIcon } from "@/lib/iconMap";
-import { spring, staggerItem, easing } from "@/motion/motionConfig";
+import { spring, easing } from "@/motion/motionConfig";
+import { cinematicEase, cinematicDuration } from "@/cinematic/motionEngine";
+import { uiSound } from "@/cinematic/uiSound";
 import { haptics } from "@/utils/haptics";
 import { cn } from "@/lib/utils";
 import {
@@ -18,7 +20,6 @@ import {
   Globe,
   Route,
   Calendar,
-  ChevronDown,
   Filter,
   Play,
   Trophy,
@@ -29,6 +30,27 @@ import {
 
 type FilterTab = "all" | "2026" | "2025";
 type ViewTab = "timeline" | "achievements" | "continents";
+
+/** Scroll-reveal wrapper for timeline entries */
+const TimelineReveal: React.FC<{ children: React.ReactNode; index: number }> = ({ children, index }) => {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-30px 0px", amount: 0.1 });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, x: -24, filter: "blur(4px)" }}
+      animate={isInView ? { opacity: 1, x: 0, filter: "blur(0px)" } : {}}
+      transition={{
+        duration: cinematicDuration.cinematic,
+        ease: cinematicEase,
+        delay: index * 0.06,
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 const TravelTimeline: React.FC = () => {
   const navigate = useNavigate();
@@ -55,6 +77,7 @@ const TravelTimeline: React.FC = () => {
     setReplaying(true);
     setReplayIndex(0);
     haptics.medium();
+    uiSound.confirm();
     const pastEntries = allEntries.filter((e) => e.type === "past");
     for (let i = 0; i < pastEntries.length; i++) {
       setReplayIndex(i);
@@ -66,6 +89,7 @@ const TravelTimeline: React.FC = () => {
 
   const handleEntryClick = (entry: TimelineEntry) => {
     haptics.tap();
+    uiSound.open();
     setSelectedEntry(selectedEntry === entry.id ? null : entry.id);
   };
 
@@ -88,8 +112,8 @@ const TravelTimeline: React.FC = () => {
       <AnimatedPage>
         <div className="flex items-center gap-3 mb-2">
           <button
-            onClick={() => navigate("/travel")}
-            className="w-9 h-9 rounded-xl glass flex items-center justify-center border border-border/30"
+            onClick={() => { uiSound.navigate(); navigate("/travel"); }}
+            className="w-9 h-9 rounded-xl glass flex items-center justify-center border border-border/30 btn-cinematic"
           >
             <ArrowLeft className="w-4 h-4 text-muted-foreground" />
           </button>
@@ -101,7 +125,7 @@ const TravelTimeline: React.FC = () => {
             onClick={handleReplay}
             disabled={replaying}
             className={cn(
-              "ml-auto w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+              "ml-auto w-10 h-10 rounded-xl flex items-center justify-center transition-all btn-cinematic",
               replaying
                 ? "bg-primary/20 text-primary animate-pulse"
                 : "glass border border-border/30 text-muted-foreground hover:text-primary"
@@ -115,7 +139,7 @@ const TravelTimeline: React.FC = () => {
       {/* Stats Header */}
       <AnimatedPage staggerIndex={1}>
         <div className="grid grid-cols-4 gap-2">
-          {statCards.map((s, i) => {
+          {statCards.map((s) => {
             const Icon = s.icon;
             return (
               <GlassCard key={s.label} depth="md" interactive={false} className="text-center py-3 px-2">
@@ -136,7 +160,7 @@ const TravelTimeline: React.FC = () => {
             return (
               <button
                 key={tab.key}
-                onClick={() => setViewTab(tab.key)}
+                onClick={() => { setViewTab(tab.key); uiSound.click(); }}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all min-h-[40px]",
                   viewTab === tab.key
@@ -157,10 +181,10 @@ const TravelTimeline: React.FC = () => {
         {viewTab === "timeline" && (
           <motion.div
             key="timeline"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={spring.card}
+            initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -10, filter: "blur(3px)" }}
+            transition={{ duration: cinematicDuration.cinematic * 0.7, ease: cinematicEase }}
             className="space-y-4"
           >
             {/* Filters */}
@@ -169,9 +193,9 @@ const TravelTimeline: React.FC = () => {
               {(["all", "2026", "2025"] as FilterTab[]).map((f) => (
                 <button
                   key={f}
-                  onClick={() => setYearFilter(f)}
+                  onClick={() => { setYearFilter(f); uiSound.click(); }}
                   className={cn(
-                    "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all min-h-[32px]",
+                    "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all min-h-[32px] btn-cinematic",
                     yearFilter === f
                       ? "bg-primary text-primary-foreground shadow-glow-sm"
                       : "glass text-muted-foreground"
@@ -207,121 +231,115 @@ const TravelTimeline: React.FC = () => {
                   const isReplayActive = replaying && replayIndex >= i;
 
                   return (
-                    <motion.div
-                      key={entry.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{
-                        opacity: replaying ? (isReplayActive ? 1 : 0.3) : 1,
-                        x: 0,
-                      }}
-                      transition={{ ...spring.card, delay: i * 0.08 }}
-                      className="relative pl-10"
-                    >
-                      {/* Timeline dot */}
-                      <motion.div
-                        className={cn(
-                          "absolute left-[11px] top-5 w-[16px] h-[16px] rounded-full border-2 z-10 transition-colors",
-                          entry.type === "upcoming"
-                            ? "border-accent bg-accent/20"
-                            : isSelected
-                              ? "border-primary bg-primary shadow-glow-sm"
-                              : "border-primary/50 bg-card"
-                        )}
-                        animate={isSelected ? { scale: 1.3 } : { scale: 1 }}
-                        transition={spring.bounce}
-                      />
-
-                      <GlassCard
-                        className={cn(
-                          "relative overflow-hidden",
-                          isSelected && "ring-1 ring-primary/30 shadow-glow-sm"
-                        )}
-                        depth={isSelected ? "lg" : "sm"}
-                        onClick={() => handleEntryClick(entry)}
-                      >
-                        {/* Accent strip */}
-                        <div
+                    <TimelineReveal key={entry.id} index={i}>
+                      <div className="relative pl-10">
+                        {/* Timeline dot */}
+                        <motion.div
                           className={cn(
-                            "absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl",
-                            entry.type === "upcoming" ? "bg-accent" : "bg-primary"
+                            "absolute left-[11px] top-5 w-[16px] h-[16px] rounded-full border-2 z-10 transition-colors",
+                            entry.type === "upcoming"
+                              ? "border-accent bg-accent/20"
+                              : isSelected
+                                ? "border-primary bg-primary shadow-glow-sm"
+                                : "border-primary/50 bg-card"
                           )}
+                          animate={isSelected ? { scale: 1.3 } : replaying && !isReplayActive ? { opacity: 0.3 } : { scale: 1 }}
+                          transition={spring.bounce}
                         />
 
-                        <div className="flex items-center gap-3">
+                        <GlassCard
+                          className={cn(
+                            "relative overflow-hidden",
+                            isSelected && "ring-1 ring-primary/30 shadow-glow-sm"
+                          )}
+                          depth={isSelected ? "lg" : "sm"}
+                          onClick={() => handleEntryClick(entry)}
+                        >
+                          {/* Accent strip */}
                           <div
                             className={cn(
-                              "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-depth-sm",
-                              entry.type === "upcoming" ? "bg-gradient-forest" : "bg-gradient-ocean"
+                              "absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl",
+                              entry.type === "upcoming" ? "bg-accent" : "bg-primary"
                             )}
-                          >
-                            <Plane className="w-4 h-4 text-primary-foreground" strokeWidth={1.8} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-foreground tracking-tight">
-                              {entry.originIata} → {entry.destinationIata}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {entry.originCity} to {entry.destinationCity}
-                            </p>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-xs font-semibold text-foreground tabular-nums">
-                              {entry.distance.toLocaleString()} km
-                            </p>
-                            <p className="text-[10px] text-muted-foreground">{entry.month} {entry.year}</p>
-                          </div>
-                        </div>
+                          />
 
-                        {/* Expanded detail */}
-                        <AnimatePresence>
-                          {isSelected && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.25, ease: easing.cinematic }}
-                              className="overflow-hidden"
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={cn(
+                                "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-depth-sm",
+                                entry.type === "upcoming" ? "bg-gradient-forest" : "bg-gradient-ocean"
+                              )}
                             >
-                              <div className="mt-3 pt-3 border-t border-border/30 grid grid-cols-3 gap-3 text-xs">
-                                <div>
-                                  <p className="text-muted-foreground">Airline</p>
-                                  <p className="text-foreground font-medium">{entry.airline}</p>
+                              <Plane className="w-4 h-4 text-primary-foreground" strokeWidth={1.8} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-foreground tracking-tight">
+                                {entry.originIata} → {entry.destinationIata}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {entry.originCity} to {entry.destinationCity}
+                              </p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-xs font-semibold text-foreground tabular-nums">
+                                {entry.distance.toLocaleString()} km
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">{entry.month} {entry.year}</p>
+                            </div>
+                          </div>
+
+                          {/* Expanded detail */}
+                          <AnimatePresence>
+                            {isSelected && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.25, ease: easing.cinematic }}
+                                className="overflow-hidden"
+                              >
+                                <div className="mt-3 pt-3 border-t border-border/30 grid grid-cols-3 gap-3 text-xs">
+                                  <div>
+                                    <p className="text-muted-foreground">Airline</p>
+                                    <p className="text-foreground font-medium">{entry.airline}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-muted-foreground">Flight</p>
+                                    <p className="text-foreground font-medium">{entry.flightNumber}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-muted-foreground">Duration</p>
+                                    <p className="text-foreground font-medium">{entry.duration}</p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="text-muted-foreground">Flight</p>
-                                  <p className="text-foreground font-medium">{entry.flightNumber}</p>
+                                <div className="mt-2 flex gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      uiSound.navigate();
+                                      navigate("/map");
+                                    }}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold transition-all hover:bg-primary/20 min-h-[32px] btn-cinematic"
+                                  >
+                                    <MapPin className="w-3 h-3" /> View on Map
+                                  </button>
+                                  <span
+                                    className={cn(
+                                      "flex items-center px-2.5 py-1.5 rounded-lg text-[10px] font-semibold",
+                                      entry.type === "upcoming"
+                                        ? "bg-accent/15 text-accent"
+                                        : "bg-secondary text-muted-foreground"
+                                    )}
+                                  >
+                                    {entry.type === "upcoming" ? "Upcoming" : "Completed"}
+                                  </span>
                                 </div>
-                                <div>
-                                  <p className="text-muted-foreground">Duration</p>
-                                  <p className="text-foreground font-medium">{entry.duration}</p>
-                                </div>
-                              </div>
-                              <div className="mt-2 flex gap-2">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate("/map");
-                                  }}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold transition-all hover:bg-primary/20 min-h-[32px]"
-                                >
-                                  <MapPin className="w-3 h-3" /> View on Map
-                                </button>
-                                <span
-                                  className={cn(
-                                    "flex items-center px-2.5 py-1.5 rounded-lg text-[10px] font-semibold",
-                                    entry.type === "upcoming"
-                                      ? "bg-accent/15 text-accent"
-                                      : "bg-secondary text-muted-foreground"
-                                  )}
-                                >
-                                  {entry.type === "upcoming" ? "Upcoming" : "Completed"}
-                                </span>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </GlassCard>
-                    </motion.div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </GlassCard>
+                      </div>
+                    </TimelineReveal>
                   );
                 })}
 
@@ -338,10 +356,10 @@ const TravelTimeline: React.FC = () => {
         {viewTab === "achievements" && (
           <motion.div
             key="achievements"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={spring.card}
+            initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -10, filter: "blur(3px)" }}
+            transition={{ duration: cinematicDuration.cinematic * 0.7, ease: cinematicEase }}
             className="space-y-3"
           >
             <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">
@@ -353,9 +371,9 @@ const TravelTimeline: React.FC = () => {
                 return (
                   <motion.div
                     key={ach.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ ...spring.card, delay: i * 0.06 }}
+                    initial={{ opacity: 0, scale: 0.9, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                    transition={{ duration: cinematicDuration.cinematic, ease: cinematicEase, delay: i * 0.06 }}
                   >
                     <GlassCard
                       className={cn(
@@ -406,10 +424,10 @@ const TravelTimeline: React.FC = () => {
         {viewTab === "continents" && (
           <motion.div
             key="continents"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={spring.card}
+            initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -10, filter: "blur(3px)" }}
+            transition={{ duration: cinematicDuration.cinematic * 0.7, ease: cinematicEase }}
             className="space-y-3"
           >
             <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">
@@ -420,9 +438,9 @@ const TravelTimeline: React.FC = () => {
               return (
                 <motion.div
                   key={cont.name}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ ...spring.card, delay: i * 0.06 }}
+                  initial={{ opacity: 0, x: -10, filter: "blur(3px)" }}
+                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  transition={{ duration: cinematicDuration.cinematic, ease: cinematicEase, delay: i * 0.06 }}
                 >
                   <GlassCard depth="md" className={cn(!visited && "opacity-50")}>
                     <div className="flex items-center gap-3">

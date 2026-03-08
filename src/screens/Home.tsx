@@ -2,7 +2,10 @@ import React, { useMemo, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useTransform, useAnimation, PanInfo } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { UltraGlass } from "@/components/ui/UltraGlass";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
+import IconMotion from "@/cinematic/IconMotion";
+import { uiSound } from "@/cinematic/uiSound";
 import { demoBalances, demoBookings, demoActivity } from "@/lib/demoData";
 import { getIcon } from "@/lib/iconMap";
 import { springs } from "@/hooks/useMotion";
@@ -10,6 +13,7 @@ import { ChevronRight, TrendingUp, Plane, QrCode, Bell, RefreshCw, Users } from 
 import { cn } from "@/lib/utils";
 import { useAlertsStore } from "@/store/alertsStore";
 import { spring as motionSpring } from "@/motion/motionConfig";
+import { cinematicEase, cinematicDuration, cinematicStagger, cinematicStaggerItem } from "@/cinematic/motionEngine";
 import { haptics } from "@/utils/haptics";
 
 import ProfileCard from "@/components/dashboard/ProfileCard";
@@ -21,11 +25,11 @@ import TravelAlerts from "@/components/dashboard/TravelAlerts";
 import TravelAssistant from "@/components/ai/TravelAssistant";
 
 const container = {
-  animate: { transition: { staggerChildren: 0.05 } },
+  animate: { transition: { staggerChildren: 0.06 } },
 };
 const item = {
-  initial: { opacity: 0, y: 12, scale: 0.97 },
-  animate: { opacity: 1, y: 0, scale: 1 },
+  initial: { opacity: 0, y: 16, scale: 0.97, filter: "blur(4px)" },
+  animate: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" },
 };
 
 const PULL_THRESHOLD = 80;
@@ -54,7 +58,7 @@ const Home: React.FC = () => {
     if (pullDistance >= PULL_THRESHOLD && !refreshing) {
       setRefreshing(true);
       haptics.medium();
-      // Simulate refresh
+      uiSound.confirm();
       await new Promise((r) => setTimeout(r, 1200));
       haptics.success();
       setRefreshing(false);
@@ -64,7 +68,6 @@ const Home: React.FC = () => {
 
   const handlePan = useCallback((_: any, info: PanInfo) => {
     if (refreshing) return;
-    // Only allow pull down when at top of scroll
     const el = containerRef.current;
     if (el && el.scrollTop > 5) return;
     const d = Math.max(0, info.offset.y);
@@ -76,6 +79,11 @@ const Home: React.FC = () => {
 
   const pullProgress = Math.min(pullDistance / PULL_THRESHOLD, 1);
   const showPullIndicator = pullDistance > 10 || refreshing;
+
+  const handleNavigate = (path: string) => {
+    uiSound.navigate();
+    navigate(path);
+  };
 
   return (
     <motion.div
@@ -145,7 +153,10 @@ const Home: React.FC = () => {
         <AnimatedPage staggerIndex={2}>
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-              <Bell className="w-3.5 h-3.5 text-neon-amber" /> Alerts
+              <IconMotion variant="pulse">
+                <Bell className="w-3.5 h-3.5 text-neon-amber" />
+              </IconMotion>
+              Alerts
               <span className="w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] flex items-center justify-center font-bold">{unreadCount}</span>
             </h3>
           </div>
@@ -156,17 +167,18 @@ const Home: React.FC = () => {
       {/* 4. Boarding Pass / Next Flight */}
       {nextFlight && (
         <AnimatedPage staggerIndex={3}>
-          <GlassCard className="relative overflow-hidden cursor-pointer p-0" variant="premium" depth="lg" onClick={() => navigate("/travel")}>
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-accent/5 pointer-events-none" />
-            <div className="p-5 relative">
+          <UltraGlass depth={2} edgeHighlight className="cursor-pointer" onClick={() => handleNavigate("/travel")}>
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-accent/5 pointer-events-none rounded-2xl" />
+            <div className="relative">
               <div className="flex items-center gap-2 mb-3">
-                <motion.div
-                  className="w-9 h-9 rounded-xl bg-gradient-ocean flex items-center justify-center shadow-glow-sm"
-                  whileTap={{ scale: 0.9 }}
-                  transition={springs.bounce}
-                >
-                  <Plane className="w-4.5 h-4.5 text-primary-foreground" />
-                </motion.div>
+                <IconMotion variant="float">
+                  <motion.div
+                    className="w-9 h-9 rounded-xl bg-gradient-ocean flex items-center justify-center shadow-glow-sm"
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Plane className="w-4.5 h-4.5 text-primary-foreground" />
+                  </motion.div>
+                </IconMotion>
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Boarding Pass</p>
                   <p className="text-xs text-foreground font-semibold">{nextFlight.subtitle}</p>
@@ -182,7 +194,9 @@ const Home: React.FC = () => {
                 <div className="flex-1 mx-4 flex flex-col items-center">
                   <div className="w-full h-px bg-gradient-to-r from-primary/40 via-primary to-accent/40 relative">
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-primary shadow-glow-sm" />
-                    <Plane className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                    <IconMotion variant="float">
+                      <Plane className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                    </IconMotion>
                     <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-accent shadow-glow-sm" />
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-2">18h 15m · Direct</p>
@@ -202,14 +216,14 @@ const Home: React.FC = () => {
                 ))}
               </div>
             </div>
-            <div className="border-t border-dashed border-border/40" />
-            <div className="px-5 py-3 flex items-center justify-between">
+            <div className="border-t border-dashed border-border/40 -mx-4 mt-3" />
+            <div className="flex items-center justify-between pt-3 -mx-0">
               <span className="text-[10px] text-muted-foreground font-mono tracking-wider">{nextFlight.code}</span>
               <div className="flex items-center gap-1.5 text-primary text-xs font-semibold">
                 <QrCode className="w-3.5 h-3.5" /> View Pass
               </div>
             </div>
-          </GlassCard>
+          </UltraGlass>
         </AnimatedPage>
       )}
 
@@ -221,24 +235,28 @@ const Home: React.FC = () => {
 
       {/* 6. Portfolio Value */}
       <AnimatedPage staggerIndex={5}>
-        <GlassCard className="flex items-center gap-4 py-4" depth="md" onClick={() => navigate("/wallet")}>
-          <div className="w-11 h-11 rounded-xl bg-gradient-forest flex items-center justify-center shrink-0 shadow-glow-sm">
-            <TrendingUp className="w-5 h-5 text-primary-foreground" />
+        <UltraGlass depth={1} edgeHighlight onClick={() => handleNavigate("/wallet")}>
+          <div className="flex items-center gap-4">
+            <IconMotion variant="breathe">
+              <div className="w-11 h-11 rounded-xl bg-gradient-forest flex items-center justify-center shrink-0 shadow-glow-sm">
+                <TrendingUp className="w-5 h-5 text-primary-foreground" />
+              </div>
+            </IconMotion>
+            <div className="flex-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Total Balance</p>
+              <p className="text-2xl font-bold text-foreground tabular-nums tracking-tight">
+                ${totalUSD.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div className="flex -space-x-1.5">
+              {demoBalances.slice(0, 4).map((b) => (
+                <span key={b.currency} className="text-sm w-8 h-8 rounded-full glass flex items-center justify-center text-[11px] shadow-depth-sm border border-border/20">
+                  {b.flag}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="flex-1">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Total Balance</p>
-            <p className="text-2xl font-bold text-foreground tabular-nums tracking-tight">
-              ${totalUSD.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </p>
-          </div>
-          <div className="flex -space-x-1.5">
-            {demoBalances.slice(0, 4).map((b) => (
-              <span key={b.currency} className="text-sm w-8 h-8 rounded-full glass flex items-center justify-center text-[11px] shadow-depth-sm border border-border/20">
-                {b.flag}
-              </span>
-            ))}
-          </div>
-        </GlassCard>
+        </UltraGlass>
       </AnimatedPage>
 
       {/* 7. Quick Actions */}
@@ -249,20 +267,20 @@ const Home: React.FC = () => {
 
       {/* Social Feed Link */}
       <AnimatedPage staggerIndex={7}>
-        <GlassCard
-          className="flex items-center gap-3 cursor-pointer"
-          depth="md"
-          onClick={() => navigate("/social")}
-        >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 shadow-glow-sm">
-            <Users className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+        <UltraGlass depth={1} onClick={() => handleNavigate("/social")}>
+          <div className="flex items-center gap-3">
+            <IconMotion variant="glow">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 shadow-glow-sm">
+                <Users className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+              </div>
+            </IconMotion>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-foreground">Travel Feed</p>
+              <p className="text-xs text-muted-foreground">See what travelers are sharing</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-bold text-foreground">Travel Feed</p>
-            <p className="text-xs text-muted-foreground">See what travelers are sharing</p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-muted-foreground" />
-        </GlassCard>
+        </UltraGlass>
       </AnimatedPage>
 
       {/* 8. Travel Suggestions */}
@@ -272,7 +290,7 @@ const Home: React.FC = () => {
       </AnimatedPage>
 
       {/* 9. Activity Feed */}
-      <AnimatedPage staggerIndex={8}>
+      <AnimatedPage staggerIndex={9}>
         <div className="flex items-center justify-between mb-3 px-1">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Activity</h3>
           <button className="text-xs text-primary font-medium hover:text-primary/80 transition-colors">View all</button>
@@ -281,7 +299,11 @@ const Home: React.FC = () => {
           {demoActivity.slice(0, 5).map((actItem) => {
             const ItemIcon = getIcon(actItem.icon);
             return (
-              <motion.div key={actItem.id} variants={item} transition={springs.card}>
+              <motion.div
+                key={actItem.id}
+                variants={item}
+                transition={{ duration: cinematicDuration.cinematic, ease: cinematicEase }}
+              >
                 <GlassCard className="flex items-center gap-3 py-3 px-4 cursor-pointer">
                   <div className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center shrink-0 border border-border/20">
                     <ItemIcon className="w-4 h-4 text-muted-foreground" strokeWidth={1.8} />

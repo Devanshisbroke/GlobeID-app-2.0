@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Home, Shield, Wallet, Plane, LayoutGrid, Navigation } from "lucide-react";
 import { haptics } from "@/utils/haptics";
 import { spring } from "@/motion/motionConfig";
+import { uiSound } from "@/cinematic/uiSound";
 
 const tabs = [
   { path: "/", icon: Home, label: "Home", gradient: "from-primary to-neon-cyan" },
@@ -44,6 +45,7 @@ const BottomTabBar: React.FC = () => {
               aria-label={tab.label}
               onClick={() => {
                 haptics.navigate();
+                uiSound.navigate();
                 navigate(tab.path);
               }}
               whileTap={{ scale: 0.85 }}
