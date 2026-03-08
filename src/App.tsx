@@ -69,6 +69,7 @@ const App = () => {
                           <Route path="/receipt" element={<EntryReceipt />} />
                           <Route path="/timeline" element={<TravelTimeline />} />
                           <Route path="/planner" element={<TripPlanner />} />
+                          <Route path="/copilot" element={<AICopilot />} />
                           <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                       </Suspense>
