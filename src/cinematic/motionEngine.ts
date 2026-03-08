@@ -38,17 +38,15 @@ export const cinematicFade: Variants = {
 
 /* ── Cinematic Reveal (blur + fade + slide) ── */
 export const cinematicReveal: Variants = {
-  initial: { opacity: 0, y: 24, filter: "blur(8px)" },
+  initial: { opacity: 0, y: 16 },
   animate: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: { duration: cinematicDuration.cinematic, ease: cinematicEase },
   },
   exit: {
     opacity: 0,
-    y: -12,
-    filter: "blur(4px)",
+    y: -8,
     transition: { duration: cinematicDuration.medium, ease: cinematicEaseIn },
   },
 };
