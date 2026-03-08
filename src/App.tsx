@@ -32,6 +32,7 @@ const Explore = lazy(() => import("@/screens/Explore"));
 const UserProfile = lazy(() => import("@/screens/UserProfile"));
 const IdentityVault = lazy(() => import("@/screens/IdentityVault"));
 const TravelIntelligence = lazy(() => import("@/screens/TravelIntelligence"));
+const PlanetExplorer = lazy(() => import("@/screens/PlanetExplorer"));
 
 const queryClient = new QueryClient();
 
@@ -104,6 +105,7 @@ const App = () => {
                           <Route path="/profile/:userId" element={<UserProfile />} />
                           <Route path="/passport-book" element={<IdentityVault />} />
                           <Route path="/intelligence" element={<TravelIntelligence />} />
+                          <Route path="/explorer" element={<PlanetExplorer />} />
                           <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                       </Suspense>
