@@ -37,8 +37,7 @@ function generateResponse(input: string, nationality: string): { content: string
 
     // Visa-free list
     if (lower.includes("visa-free") || lower.includes("visa free") || lower.includes("without")) {
-      const { getVisaFreeDestinations } = require("@/lib/visaEngine");
-      const destinations = getVisaFreeDestinations(nationality);
+      const destinations = getVisaFreeDestinationsList(nationality);
       return {
         content: `🌍 **Visa-Free Destinations for ${nationality} Citizens**\n\n${destinations.length > 0 ? destinations.map((d: string) => `• ${d}`).join("\n") : "Check specific countries for details."}`,
         suggestions: ["Do I need a visa for Japan?", "Best time to visit Thailand"],
