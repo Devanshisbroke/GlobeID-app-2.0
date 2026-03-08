@@ -103,6 +103,7 @@ const App = () => {
                           <Route path="/explore" element={<Explore />} />
                           <Route path="/profile/:userId" element={<UserProfile />} />
                           <Route path="/passport-book" element={<IdentityVault />} />
+                          <Route path="/intelligence" element={<TravelIntelligence />} />
                           <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                       </Suspense>
