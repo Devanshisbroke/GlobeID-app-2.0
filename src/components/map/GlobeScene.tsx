@@ -30,10 +30,10 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
     >
       <Suspense fallback={null}>
         {/* Cinematic sun-like key light */}
-        <ambientLight intensity={0.08} color="#b8c9e0" />
-        <directionalLight position={[5, 2, 4]} intensity={0.4} color="#fff5e0" />
-        <directionalLight position={[-3, -1, 2]} intensity={0.05} color="#6b8cc7" />
-        <pointLight position={[0, 1.5, 3]} intensity={0.08} color="#78b4ff" distance={8} />
+        <ambientLight intensity={0.25} color="#b8c9e0" />
+        <directionalLight position={[5, 2, 4]} intensity={1.2} color="#fff5e0" />
+        <directionalLight position={[-3, -1, 2]} intensity={0.15} color="#6b8cc7" />
+        <pointLight position={[0, 1.5, 3]} intensity={0.15} color="#78b4ff" distance={8} />
 
         {/* Dense starfield */}
         <Starfield count={4000} />
