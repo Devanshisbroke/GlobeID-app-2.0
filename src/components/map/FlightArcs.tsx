@@ -8,15 +8,15 @@ interface FlightArcsProps {
 }
 
 const arcColors: Record<FlightRoute["type"], THREE.Color> = {
-  upcoming: new THREE.Color("hsl(258, 70%, 65%)"),
-  current: new THREE.Color("hsl(168, 80%, 55%)"),
-  past: new THREE.Color("hsl(200, 85%, 55%)"),
+  upcoming: new THREE.Color("#3fa9ff"),
+  current: new THREE.Color("#ff7a00"),
+  past: new THREE.Color("#3fa9ff"),
 };
 
 const arcGlowColors: Record<FlightRoute["type"], THREE.Color> = {
-  upcoming: new THREE.Color("hsl(258, 80%, 75%)"),
-  current: new THREE.Color("hsl(168, 90%, 65%)"),
-  past: new THREE.Color("hsl(200, 90%, 65%)"),
+  upcoming: new THREE.Color("#6bc5ff"),
+  current: new THREE.Color("#ffaa44"),
+  past: new THREE.Color("#5bb8ff"),
 };
 
 const FlightArc: React.FC<{ route: FlightRoute; radius: number }> = ({ route, radius }) => {
@@ -24,81 +24,65 @@ const FlightArc: React.FC<{ route: FlightRoute; radius: number }> = ({ route, ra
   const coreLineRef = useRef<THREE.Line>(null);
   const planeRef = useRef<THREE.Group>(null);
   const trailRef = useRef<THREE.Mesh>(null);
-  const progressRef = useRef(Math.random()); // randomize start
+  const progressRef = useRef(Math.random());
 
   const fromAirport = getAirport(route.from);
   const toAirport = getAirport(route.to);
 
   const { curve, color, glowColor } = useMemo(() => {
     if (!fromAirport || !toAirport) return { curve: null, color: arcColors.past, glowColor: arcGlowColors.past };
-
     const from3D = latLngToVector3(fromAirport.lat, fromAirport.lng, radius);
     const to3D = latLngToVector3(toAirport.lat, toAirport.lng, radius);
-    const arcPts = createArcPoints(from3D, to3D, 100, 0.28);
+    const arcPts = createArcPoints(from3D, to3D, 120, 0.25);
     const vectors = arcPts.map(p => new THREE.Vector3(...p));
-    const c = new THREE.CatmullRomCurve3(vectors);
-    return { curve: c, color: arcColors[route.type], glowColor: arcGlowColors[route.type] };
+    return { curve: new THREE.CatmullRomCurve3(vectors), color: arcColors[route.type], glowColor: arcGlowColors[route.type] };
   }, [fromAirport, toAirport, radius, route.type]);
 
   useFrame((_, delta) => {
     if (!curve) return;
-
-    // Animate dash for core line
     if (coreLineRef.current) {
       const mat = coreLineRef.current.material as any;
-      if (mat.dashOffset !== undefined) mat.dashOffset -= delta * 0.4;
+      if (mat.dashOffset !== undefined) mat.dashOffset -= delta * 0.35;
     }
-
-    // Animate plane + trail
     if (planeRef.current && (route.type === "upcoming" || route.type === "current")) {
-      progressRef.current = (progressRef.current + delta * 0.06) % 1;
+      progressRef.current = (progressRef.current + delta * 0.05) % 1;
       const pos = curve.getPoint(progressRef.current);
-      const ahead = curve.getPoint(Math.min(progressRef.current + 0.015, 1));
+      const ahead = curve.getPoint(Math.min(progressRef.current + 0.012, 1));
       planeRef.current.position.copy(pos);
       planeRef.current.lookAt(ahead);
-
-      // Trail glow follows slightly behind
       if (trailRef.current) {
-        const trailPos = curve.getPoint(Math.max(progressRef.current - 0.02, 0));
-        trailRef.current.position.copy(trailPos);
+        trailRef.current.position.copy(curve.getPoint(Math.max(progressRef.current - 0.025, 0)));
       }
     }
   });
 
   if (!curve) return null;
 
-  const points = curve.getPoints(100);
+  const points = curve.getPoints(120);
   const posArray = new Float32Array(points.flatMap(p => [p.x, p.y, p.z]));
-
   const isActive = route.type === "upcoming" || route.type === "current";
 
   return (
     <group>
-      {/* Outer glow line */}
+      {/* Outer glow */}
       <line ref={glowLineRef as any}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" count={points.length} array={posArray.slice()} itemSize={3} />
         </bufferGeometry>
-        <lineBasicMaterial
-          color={glowColor}
-          transparent
-          opacity={isActive ? 0.25 : 0.08}
-          linewidth={1}
-          depthWrite={false}
-        />
+        <lineBasicMaterial color={glowColor} transparent opacity={isActive ? 0.3 : 0.08} linewidth={1} depthWrite={false} />
       </line>
 
-      {/* Core dashed line */}
+      {/* Core dashed */}
       <line ref={coreLineRef as any}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" count={points.length} array={posArray.slice()} itemSize={3} />
         </bufferGeometry>
         <lineDashedMaterial
           color={color}
-          dashSize={isActive ? 0.03 : 0.025}
-          gapSize={isActive ? 0.015 : 0.02}
+          dashSize={isActive ? 0.025 : 0.02}
+          gapSize={isActive ? 0.012 : 0.018}
           transparent
-          opacity={isActive ? 0.95 : 0.4}
+          opacity={isActive ? 0.9 : 0.35}
           linewidth={1}
         />
       </line>
@@ -110,7 +94,7 @@ const FlightArc: React.FC<{ route: FlightRoute; radius: number }> = ({ route, ra
             const [ex, ey, ez] = latLngToVector3(apt.lat, apt.lng, radius + 0.003);
             return (
               <mesh key={idx} position={[ex, ey, ez]}>
-                <sphereGeometry args={[0.008, 10, 10]} />
+                <sphereGeometry args={[0.007, 10, 10]} />
                 <meshBasicMaterial color={idx === 0 ? color : glowColor} toneMapped={false} />
               </mesh>
             );
@@ -118,25 +102,22 @@ const FlightArc: React.FC<{ route: FlightRoute; radius: number }> = ({ route, ra
         </>
       )}
 
-      {/* Aircraft + trailing glow for active routes */}
+      {/* Aircraft + fading trail */}
       {isActive && (
         <>
           <group ref={planeRef}>
-            {/* Plane body */}
             <mesh rotation={[Math.PI / 2, 0, 0]}>
-              <coneGeometry args={[0.008, 0.025, 3]} />
-              <meshBasicMaterial color={new THREE.Color("hsl(0, 0%, 95%)")} toneMapped={false} />
+              <coneGeometry args={[0.007, 0.022, 3]} />
+              <meshBasicMaterial color="#ffffff" toneMapped={false} />
             </mesh>
-            {/* Glow around plane */}
             <mesh>
-              <sphereGeometry args={[0.018, 8, 8]} />
-              <meshBasicMaterial color={glowColor} transparent opacity={0.35} depthWrite={false} toneMapped={false} />
+              <sphereGeometry args={[0.015, 8, 8]} />
+              <meshBasicMaterial color={glowColor} transparent opacity={0.3} depthWrite={false} toneMapped={false} />
             </mesh>
           </group>
-          {/* Trail dot */}
           <mesh ref={trailRef}>
-            <sphereGeometry args={[0.01, 6, 6]} />
-            <meshBasicMaterial color={color} transparent opacity={0.2} depthWrite={false} toneMapped={false} />
+            <sphereGeometry args={[0.009, 6, 6]} />
+            <meshBasicMaterial color={color} transparent opacity={0.15} depthWrite={false} toneMapped={false} />
           </mesh>
         </>
       )}
