@@ -1,17 +1,19 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { useUserStore } from "@/store/userStore";
 import { demoBookings } from "@/lib/demoData";
 import { demoFlightResults, demoHotelResults } from "@/lib/demoServices";
 import { getIcon } from "@/lib/iconMap";
-import { Plane, Hotel, Search, Star, Clock, ChevronRight, QrCode, History } from "lucide-react";
+import { Plane, Hotel, Search, Star, Clock, ChevronRight, QrCode, History, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TripCard from "@/components/travel/TripCard";
 
 type Tab = "history" | "bookings" | "flights" | "hotels" | "pass";
 
 const Travel: React.FC = () => {
+  const navigate = useNavigate();
   const { travelHistory } = useUserStore();
   const [tab, setTab] = useState<Tab>("history");
   const flights = demoBookings.filter((b) => b.type === "flight");
@@ -49,6 +51,23 @@ const Travel: React.FC = () => {
 
       {tab === "history" && (
         <div className="space-y-4">
+          {/* Timeline CTA */}
+          <AnimatedPage>
+            <GlassCard
+              className="flex items-center gap-3 cursor-pointer"
+              depth="md"
+              onClick={() => navigate("/timeline")}
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-cosmic flex items-center justify-center shrink-0 shadow-depth-sm">
+                <CalendarDays className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-foreground">Travel Timeline</p>
+                <p className="text-xs text-muted-foreground">View your journey & achievements</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </GlassCard>
+          </AnimatedPage>
           {upcomingTrips.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">Upcoming</h3>

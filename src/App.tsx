@@ -18,6 +18,7 @@ const Profile = lazy(() => import("@/screens/Profile"));
 const GlobalMap = lazy(() => import("@/screens/GlobalMap"));
 const KioskSimulator = lazy(() => import("@/screens/KioskSimulator"));
 const EntryReceipt = lazy(() => import("@/screens/EntryReceipt"));
+const TravelTimeline = lazy(() => import("@/screens/TravelTimeline"));
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ const App = () => {
                           <Route path="/map" element={<GlobalMap />} />
                           <Route path="/kiosk-sim" element={<KioskSimulator />} />
                           <Route path="/receipt" element={<EntryReceipt />} />
+                          <Route path="/timeline" element={<TravelTimeline />} />
                           <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                       </Suspense>
