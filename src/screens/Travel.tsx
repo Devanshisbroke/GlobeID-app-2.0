@@ -13,6 +13,7 @@ import TripCard from "@/components/travel/TripCard";
 type Tab = "history" | "bookings" | "flights" | "hotels" | "pass";
 
 const Travel: React.FC = () => {
+  const navigate = useNavigate();
   const { travelHistory } = useUserStore();
   const [tab, setTab] = useState<Tab>("history");
   const flights = demoBookings.filter((b) => b.type === "flight");
