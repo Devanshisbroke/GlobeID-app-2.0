@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { useSocialStore, leaderboard } from "@/store/socialStore";
 import PostCard from "@/components/social/PostCard";
@@ -16,7 +17,6 @@ type Tab = "feed" | "notifications" | "leaderboard";
 const SocialFeed: React.FC = () => {
   const navigate = useNavigate();
   const { posts, unreadCount, users } = useSocialStore();
-  const [showCreate, setShowCreate] = useState(false);
   const [tab, setTab] = useState<Tab>("feed");
   const [showCreate, setShowCreate] = useState(false);
 
@@ -78,12 +78,9 @@ const SocialFeed: React.FC = () => {
 
       {tab === "feed" && (
         <div className="space-y-4">
-          {/* Stories */}
           <AnimatedPage staggerIndex={1}>
             <StoriesBar />
           </AnimatedPage>
-
-          {/* Posts */}
           {posts.map((post, i) => (
             <AnimatedPage key={post.id} staggerIndex={i + 2}>
               <PostCard
@@ -105,7 +102,7 @@ const SocialFeed: React.FC = () => {
       {tab === "leaderboard" && (
         <div className="space-y-2">
           <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">Top Travelers</h3>
-          {(lb as any[]).map((entry: any, i: number) => {
+          {leaderboard.map((entry, i) => {
             const user = users.find((u) => u.id === entry.userId);
             if (!user) return null;
             return (
@@ -113,9 +110,9 @@ const SocialFeed: React.FC = () => {
                 <motion.div className="flex items-center gap-3 px-3 py-3 rounded-xl glass border border-border/30">
                   <span className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
-                    i === 0 ? "bg-neon-amber/20 text-neon-amber" :
+                    i === 0 ? "bg-accent/20 text-accent" :
                     i === 1 ? "bg-secondary text-foreground" :
-                    i === 2 ? "bg-orange-500/20 text-orange-400" :
+                    i === 2 ? "bg-primary/20 text-primary" :
                     "bg-secondary/50 text-muted-foreground"
                   )}>
                     {entry.rank}
