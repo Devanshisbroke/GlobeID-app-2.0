@@ -36,8 +36,8 @@ const FlightArc: React.FC<{ route: FlightRoute; radius: number }> = ({ route, ra
     if (!curve || !lineRef.current) return;
 
     // Animate dash offset for all routes
-    const mat = lineRef.current.material as THREE.LineDashedMaterial;
-    mat.dashOffset -= delta * 0.3;
+    const mat = lineRef.current.material as any;
+    if (mat.dashOffset !== undefined) mat.dashOffset -= delta * 0.3;
 
     // Animate plane along upcoming routes
     if (planeRef.current && (route.type === "upcoming" || route.type === "current")) {
