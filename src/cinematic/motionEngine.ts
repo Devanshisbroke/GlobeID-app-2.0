@@ -13,11 +13,11 @@ export const cinematicBounce = [0.34, 1.3, 0.64, 1] as [number, number, number, 
 
 /* ── Duration Tokens ── */
 export const cinematicDuration = {
-  short: 0.18,
-  medium: 0.32,
-  cinematic: 0.6,
-  hero: 0.9,
-  epic: 1.2,
+  short: 0.12,
+  medium: 0.22,
+  cinematic: 0.35,
+  hero: 0.55,
+  epic: 0.8,
 } as const;
 
 /* ── Cinematic Transition Presets ── */
