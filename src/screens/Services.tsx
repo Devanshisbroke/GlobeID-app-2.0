@@ -23,6 +23,7 @@ const travelServices = [
 ];
 
 const Services: React.FC = () => {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("services");
   const [activeRide, setActiveRide] = useState<RideRequest | null>(null);
   const [pickup] = useState("Marina Bay Sands");
