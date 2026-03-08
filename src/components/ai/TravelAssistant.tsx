@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { getVisaRequirement } from "@/lib/visaEngine";
+import { getVisaRequirement, getVisaFreeDestinations } from "@/lib/visaEngine";
 import { useUserStore } from "@/store/userStore";
 import { Send, X, Plane, Sparkles, MapPin, ShieldCheck } from "lucide-react";
 
