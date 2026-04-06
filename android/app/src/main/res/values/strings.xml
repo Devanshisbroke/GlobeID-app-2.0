@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">GlobeID</string>
+    <string name="title_activity_main">GlobeID</string>
+    <string name="package_name">com.terracore.globeid</string>
+    <string name="custom_url_scheme">com.terracore.globeid</string>
+</resources>
