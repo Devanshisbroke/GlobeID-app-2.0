@@ -3,14 +3,21 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "server"
+  ],
   "scripts": {
     "dev": "vite",
+    "dev:server": "npm --workspace globeid-server run dev",
+    "dev:all": "npm-run-all -p dev:server dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "build:server": "npm --workspace globeid-server run build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit && npm --workspace globeid-server run typecheck"
   },
   "dependencies": {
     "@capacitor/android": "^8.2.0",
@@ -90,6 +97,7 @@
     "globals": "^15.15.0",
     "jsdom": "^20.0.3",
     "lovable-tagger": "^1.1.13",
+    "npm-run-all": "^4.1.5",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",

@@ -12,6 +12,18 @@ dist
 dist-ssr
 *.local
 
+# Env
+.env
+.env.local
+.env.*.local
+
+# Server runtime artifacts
+server/globe.db
+server/globe.db-journal
+server/globe.db-wal
+server/globe.db-shm
+server/dist
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
