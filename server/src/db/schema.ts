@@ -69,6 +69,9 @@ export const alerts = sqliteTable("alerts", {
   category: text("category").notNull(),
   title: text("title").notNull(),
   message: text("message").notNull(),
+  severity: text("severity", { enum: ["low", "medium", "high"] }).notNull().default("low"),
+  source: text("source", { enum: ["seed", "system"] }).notNull().default("seed"),
+  signature: text("signature"),
   createdAt: integer("created_at").notNull(),
   readAt: integer("read_at"),
   dismissed: integer("dismissed").notNull().default(0),
@@ -147,10 +150,15 @@ CREATE TABLE IF NOT EXISTS alerts (
   category TEXT NOT NULL,
   title TEXT NOT NULL,
   message TEXT NOT NULL,
+  severity TEXT NOT NULL DEFAULT 'low' CHECK (severity IN ('low','medium','high')),
+  source TEXT NOT NULL DEFAULT 'seed' CHECK (source IN ('seed','system')),
+  signature TEXT,
   created_at INTEGER NOT NULL,
   read_at INTEGER,
   dismissed INTEGER NOT NULL DEFAULT 0
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_alerts_user_signature
+  ON alerts(user_id, signature) WHERE signature IS NOT NULL;
 CREATE TABLE IF NOT EXISTS copilot_messages (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,

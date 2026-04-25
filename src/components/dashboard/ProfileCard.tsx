@@ -2,9 +2,10 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { useUserStore, selectVisitedCountries, selectCurrentLocation } from "@/store/userStore";
+import { useInsightsStore } from "@/store/insightsStore";
 import { calculateTravelScore } from "@/lib/travelSuggestions";
 import { IdentityScore } from "@/components/ui/IdentityScore";
-import { ShieldCheck, User, Trophy, Sparkles, MapPin } from "lucide-react";
+import { ShieldCheck, User, Trophy, Sparkles, MapPin, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { springs } from "@/hooks/useMotion";
@@ -24,6 +25,9 @@ const ProfileCard: React.FC = () => {
     [travelHistory, profile.nationality]
   );
   const travelScore = calculateTravelScore(visitedCount, 45000, 3);
+  const travelInsight = useInsightsStore((s) => s.travel);
+  const daysUntil = travelInsight?.daysUntilNextTrip ?? null;
+  const nextDest = travelInsight?.nextTrip?.destinationCountry ?? null;
 
   return (
     <GlassCard className="relative overflow-hidden p-5" variant="premium" glow depth="lg" onClick={() => navigate("/profile")}>
@@ -39,6 +43,24 @@ const ProfileCard: React.FC = () => {
           </p>
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-1 tracking-tight">{profile.name}</h2>
+        {daysUntil !== null && nextDest && daysUntil >= 0 && (
+          <motion.button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate("/map");
+            }}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={springs.gentle}
+            className="mt-1 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent/15 text-accent text-[11px] font-semibold border border-accent/25"
+          >
+            <Plane className="w-3 h-3" strokeWidth={2.2} />
+            {daysUntil === 0
+              ? `Departing today — ${nextDest}`
+              : `Trip to ${nextDest} in ${daysUntil} day${daysUntil === 1 ? "" : "s"}`}
+          </motion.button>
+        )}
 
         {/* Identity row */}
         <div className="flex items-center gap-4 mt-3">
