@@ -9,14 +9,16 @@ function useAnimatedNumber(target: number, duration = 2000): number {
   const [value, setValue] = useState(0);
   useEffect(() => {
     const start = performance.now();
+    let rafId = 0;
     const animate = (now: number) => {
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
       setValue(Math.round(target * eased));
-      if (progress < 1) requestAnimationFrame(animate);
+      if (progress < 1) rafId = requestAnimationFrame(animate);
     };
-    requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafId);
   }, [target, duration]);
   return value;
 }

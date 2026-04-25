@@ -8,12 +8,14 @@ function useAnimatedCounter(target: number, duration = 1200): number {
   const [val, setVal] = useState(0);
   useEffect(() => {
     const start = performance.now();
+    let rafId = 0;
     const tick = (now: number) => {
       const p = Math.min((now - start) / duration, 1);
       setVal(Math.round(target * (1 - Math.pow(1 - p, 3))));
-      if (p < 1) requestAnimationFrame(tick);
+      if (p < 1) rafId = requestAnimationFrame(tick);
     };
-    requestAnimationFrame(tick);
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
   }, [target, duration]);
   return val;
 }
