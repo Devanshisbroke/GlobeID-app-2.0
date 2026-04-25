@@ -29,19 +29,41 @@ const FlightArc: React.FC<{ route: FlightRoute; radius: number }> = ({ route, ra
   const fromAirport = getAirport(route.from);
   const toAirport = getAirport(route.to);
 
-  const { curve, color, glowColor } = useMemo(() => {
-    if (!fromAirport || !toAirport) return { curve: null, color: arcColors.past, glowColor: arcGlowColors.past };
+  const { curve, color, glowColor, posArrayA, posArrayB, pointCount } = useMemo(() => {
+    if (!fromAirport || !toAirport) {
+      return {
+        curve: null,
+        color: arcColors.past,
+        glowColor: arcGlowColors.past,
+        posArrayA: null,
+        posArrayB: null,
+        pointCount: 0,
+      };
+    }
     const from3D = latLngToVector3(fromAirport.lat, fromAirport.lng, radius);
     const to3D = latLngToVector3(toAirport.lat, toAirport.lng, radius);
     const arcPts = createArcPoints(from3D, to3D, 120, 0.25);
     const vectors = arcPts.map(p => new THREE.Vector3(...p));
-    return { curve: new THREE.CatmullRomCurve3(vectors), color: arcColors[route.type], glowColor: arcGlowColors[route.type] };
+    const c = new THREE.CatmullRomCurve3(vectors);
+    // Sample once and reuse for both <line> children; two distinct
+    // Float32Array buffers because each <bufferAttribute> binds the
+    // backing array directly.
+    const pts = c.getPoints(120);
+    const flat = pts.flatMap(p => [p.x, p.y, p.z]);
+    return {
+      curve: c,
+      color: arcColors[route.type],
+      glowColor: arcGlowColors[route.type],
+      posArrayA: new Float32Array(flat),
+      posArrayB: new Float32Array(flat),
+      pointCount: pts.length,
+    };
   }, [fromAirport, toAirport, radius, route.type]);
 
   useFrame((_, delta) => {
     if (!curve) return;
     if (coreLineRef.current) {
-      const mat = coreLineRef.current.material as any;
+      const mat = coreLineRef.current.material as THREE.LineDashedMaterial;
       if (mat.dashOffset !== undefined) mat.dashOffset -= delta * 0.35;
     }
     if (planeRef.current && (route.type === "upcoming" || route.type === "current")) {
@@ -56,26 +78,24 @@ const FlightArc: React.FC<{ route: FlightRoute; radius: number }> = ({ route, ra
     }
   });
 
-  if (!curve) return null;
+  if (!curve || !posArrayA || !posArrayB) return null;
 
-  const points = curve.getPoints(120);
-  const posArray = new Float32Array(points.flatMap(p => [p.x, p.y, p.z]));
   const isActive = route.type === "upcoming" || route.type === "current";
 
   return (
     <group>
       {/* Outer glow */}
-      <line ref={glowLineRef as any}>
+      <line ref={glowLineRef as React.Ref<THREE.Line>}>
         <bufferGeometry>
-          <bufferAttribute attach="attributes-position" count={points.length} array={posArray.slice()} itemSize={3} />
+          <bufferAttribute attach="attributes-position" count={pointCount} array={posArrayA} itemSize={3} />
         </bufferGeometry>
         <lineBasicMaterial color={glowColor} transparent opacity={isActive ? 0.3 : 0.08} linewidth={1} depthWrite={false} />
       </line>
 
       {/* Core dashed */}
-      <line ref={coreLineRef as any}>
+      <line ref={coreLineRef as React.Ref<THREE.Line>}>
         <bufferGeometry>
-          <bufferAttribute attach="attributes-position" count={points.length} array={posArray.slice()} itemSize={3} />
+          <bufferAttribute attach="attributes-position" count={pointCount} array={posArrayB} itemSize={3} />
         </bufferGeometry>
         <lineDashedMaterial
           color={color}

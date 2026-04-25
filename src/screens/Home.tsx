@@ -66,7 +66,7 @@ const Home: React.FC = () => {
     setPullDistance(0);
   }, [pullDistance, refreshing]);
 
-  const handlePan = useCallback((_: any, info: PanInfo) => {
+  const handlePan = useCallback((_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (refreshing) return;
     const el = containerRef.current;
     if (el && el.scrollTop > 5) return;

@@ -8,7 +8,8 @@ export function isMobileDevice(): boolean {
 }
 
 export function isCapacitor(): boolean {
-  return typeof (window as any)?.Capacitor !== "undefined";
+  if (typeof window === "undefined") return false;
+  return typeof (window as Window & { Capacitor?: unknown }).Capacitor !== "undefined";
 }
 
 export function isMobileOrCapacitor(): boolean {
