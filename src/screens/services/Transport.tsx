@@ -8,11 +8,11 @@ import { cn } from "@/lib/utils";
 import { ArrowLeft, Clock } from "lucide-react";
 
 const typeGradients: Record<string, string> = {
-  metro: "bg-gradient-cosmic",
-  bus: "bg-gradient-forest",
-  shuttle: "bg-gradient-ocean",
-  bike: "bg-gradient-aurora",
-  ferry: "bg-gradient-sunset",
+  metro: "bg-gradient-brand",
+  bus: "bg-gradient-brand",
+  shuttle: "bg-gradient-brand",
+  bike: "bg-gradient-brand",
+  ferry: "bg-gradient-brand",
 };
 
 const Transport: React.FC = () => {
@@ -39,7 +39,7 @@ const Transport: React.FC = () => {
         return (
           <AnimatedPage key={opt.id} staggerIndex={i}>
             <GlassCard className="flex items-center gap-3" depth="md">
-              <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-depth-sm", typeGradients[opt.type] || "bg-gradient-ocean")}>
+              <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-depth-sm", typeGradients[opt.type] || "bg-gradient-brand")}>
                 <Icon className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
               </div>
               <div className="flex-1 min-w-0">

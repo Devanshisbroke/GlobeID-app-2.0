@@ -31,11 +31,11 @@ const ServicesHub: React.FC = () => {
   const [search, setSearch] = useState("");
 
   const quickLinks = [
-    { label: "Hotels", icon: Hotel, route: "/services/hotels", gradient: "bg-gradient-ocean" },
-    { label: "Rides", icon: Car, route: "/services/rides", gradient: "bg-gradient-sunset" },
-    { label: "Food", icon: UtensilsCrossed, route: "/services/food", gradient: "bg-gradient-aurora" },
-    { label: "Activities", icon: Compass, route: "/services/activities", gradient: "bg-gradient-forest" },
-    { label: "Transport", icon: Train, route: "/services/transport", gradient: "bg-gradient-cosmic" },
+    { label: "Hotels", icon: Hotel, route: "/services/hotels", gradient: "bg-gradient-brand" },
+    { label: "Rides", icon: Car, route: "/services/rides", gradient: "bg-gradient-brand" },
+    { label: "Food", icon: UtensilsCrossed, route: "/services/food", gradient: "bg-gradient-brand" },
+    { label: "Activities", icon: Compass, route: "/services/activities", gradient: "bg-gradient-brand" },
+    { label: "Transport", icon: Train, route: "/services/transport", gradient: "bg-gradient-brand" },
   ];
 
   const filteredLocal = search

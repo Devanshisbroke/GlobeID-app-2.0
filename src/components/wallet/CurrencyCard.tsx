@@ -5,12 +5,12 @@ import type { WalletBalance } from "@/store/walletStore";
 import { useInsightsStore } from "@/store/insightsStore";
 
 const gradients = [
-  "bg-gradient-ocean",
-  "bg-gradient-sunset",
-  "bg-gradient-aurora",
-  "bg-gradient-forest",
-  "bg-gradient-cosmic",
-  "bg-gradient-blue",
+  "bg-gradient-brand",
+  "bg-gradient-brand",
+  "bg-gradient-brand",
+  "bg-gradient-brand",
+  "bg-gradient-brand",
+  "bg-gradient-brand",
 ];
 
 interface CurrencyCardProps {

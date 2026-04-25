@@ -49,7 +49,7 @@ const FoodDiscovery: React.FC = () => {
                 <h3 className="text-sm font-bold text-foreground">{r.name}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">{r.cuisine}</p>
                 <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Star className="w-3 h-3 text-neon-amber" />{r.rating}</span>
+                  <span className="flex items-center gap-1"><Star className="w-3 h-3 text-warning" />{r.rating}</span>
                   <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{r.deliveryTime}</span>
                   <span>{r.deliveryFee}</span>
                   <span>{r.priceRange}</span>

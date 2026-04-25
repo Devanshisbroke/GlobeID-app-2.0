@@ -93,7 +93,7 @@ const EntryReceipt: React.FC = () => {
       <AnimatedPage staggerIndex={3}>
         <button
           onClick={handleDownload}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-neon-indigo to-neon-cyan text-primary-foreground text-sm font-medium active:scale-95 transition-transform flex items-center justify-center gap-2 min-h-[44px]"
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-primary text-primary-foreground text-sm font-medium active:scale-95 transition-transform flex items-center justify-center gap-2 min-h-[44px]"
         >
           <Download className="w-4 h-4" />
           Download Receipt

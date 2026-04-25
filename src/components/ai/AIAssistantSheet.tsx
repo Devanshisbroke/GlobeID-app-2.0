@@ -52,7 +52,7 @@ const AIAssistantSheet: React.FC<AIAssistantSheetProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border/30">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-neon-indigo to-neon-cyan flex items-center justify-center shadow-glow-sm">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary flex items-center justify-center shadow-glow-sm">
               <Sparkles className="w-4 h-4 text-primary-foreground" />
             </div>
             <div>
@@ -76,7 +76,7 @@ const AIAssistantSheet: React.FC<AIAssistantSheetProps> = ({
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 hide-scrollbar">
           {messages.length === 0 && (
             <div className="text-center py-8 space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-neon-indigo/20 to-neon-cyan/20 flex items-center justify-center mx-auto border border-accent/20">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/20 flex items-center justify-center mx-auto border border-accent/20">
                 <Sparkles className="w-7 h-7 text-accent" />
               </div>
               <p className="text-muted-foreground text-sm">
@@ -102,7 +102,7 @@ const AIAssistantSheet: React.FC<AIAssistantSheetProps> = ({
               className={cn(
                 "max-w-[85%] rounded-2xl px-4 py-3 text-sm animate-scale-in",
                 msg.role === "user"
-                  ? "ml-auto bg-gradient-to-r from-primary to-neon-indigo text-primary-foreground shadow-glow-indigo"
+                  ? "ml-auto bg-gradient-to-r from-primary to-primary text-primary-foreground shadow-glow-indigo"
                   : "mr-auto glass-premium border border-border/30 text-foreground"
               )}
             >
@@ -148,7 +148,7 @@ const AIAssistantSheet: React.FC<AIAssistantSheetProps> = ({
               onClick={handleSend}
               disabled={!input.trim()}
               aria-label="Send message"
-              className="w-11 h-11 rounded-xl bg-gradient-to-r from-neon-indigo to-neon-cyan flex items-center justify-center disabled:opacity-30 transition-all active:scale-90 shadow-glow-sm"
+              className="w-11 h-11 rounded-xl bg-gradient-to-r from-primary to-primary flex items-center justify-center disabled:opacity-30 transition-all active:scale-90 shadow-glow-sm"
             >
               <Send className="w-4 h-4 text-primary-foreground" />
             </button>

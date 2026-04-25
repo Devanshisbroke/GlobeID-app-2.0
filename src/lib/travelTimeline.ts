@@ -182,7 +182,7 @@ export function computeAchievements(stats: TimelineStats): Achievement[] {
       description: "Completed your first international trip",
       icon: "Plane",
       unlocked: stats.totalFlights >= 1,
-      gradient: "bg-gradient-ocean",
+      gradient: "bg-gradient-brand",
     },
     {
       id: "5-countries",
@@ -190,7 +190,7 @@ export function computeAchievements(stats: TimelineStats): Achievement[] {
       description: "Explored 5 different countries",
       icon: "Globe",
       unlocked: stats.totalCountries >= 5,
-      gradient: "bg-gradient-forest",
+      gradient: "bg-gradient-brand",
     },
     {
       id: "10-countries",
@@ -198,7 +198,7 @@ export function computeAchievements(stats: TimelineStats): Achievement[] {
       description: "Reached 10 unique countries",
       icon: "Map",
       unlocked: stats.totalCountries >= 10,
-      gradient: "bg-gradient-cosmic",
+      gradient: "bg-gradient-brand",
     },
     {
       id: "50k-km",
@@ -206,7 +206,7 @@ export function computeAchievements(stats: TimelineStats): Achievement[] {
       description: "Flew over 50,000 kilometres total",
       icon: "Route",
       unlocked: stats.totalDistance >= 50000,
-      gradient: "bg-gradient-sunset",
+      gradient: "bg-gradient-brand",
     },
     {
       id: "100k-km",
@@ -214,7 +214,7 @@ export function computeAchievements(stats: TimelineStats): Achievement[] {
       description: "Flew over 100,000 kilometres total",
       icon: "Zap",
       unlocked: stats.totalDistance >= 100000,
-      gradient: "bg-gradient-aurora",
+      gradient: "bg-gradient-brand",
     },
     {
       id: "3-continents",
@@ -222,7 +222,7 @@ export function computeAchievements(stats: TimelineStats): Achievement[] {
       description: "Set foot on 3 different continents",
       icon: "Earth",
       unlocked: stats.continents.filter((c) => c.count > 0).length >= 3,
-      gradient: "bg-gradient-tropical",
+      gradient: "bg-gradient-brand",
     },
     {
       id: "5-continents",
@@ -230,7 +230,7 @@ export function computeAchievements(stats: TimelineStats): Achievement[] {
       description: "A true global traveler",
       icon: "Award",
       unlocked: stats.continents.filter((c) => c.count > 0).length >= 5,
-      gradient: "bg-gradient-magenta",
+      gradient: "bg-gradient-brand",
     },
   ];
 }

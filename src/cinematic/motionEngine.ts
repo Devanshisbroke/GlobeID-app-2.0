@@ -12,16 +12,20 @@
 import type { Variants, Transition } from "framer-motion";
 import { easing } from "@/motion/motionConfig";
 
-/* ── Cinematic Easing (aliases over canonical easing) ── */
-export const cinematicEase = easing.spring;
+/* ── Cinematic Easing — Phase 5 PR-α: unified to single curve ──
+   Previously `cinematicEase = easing.spring`, which produced a wobble that
+   visibly disagreed with the CSS `--ease-cinematic` token used in the rest
+   of the system. They now share the same curve so framer-motion and CSS
+   stay in lockstep. */
+export const cinematicEase = easing.cinematic;
 export const cinematicEaseOut = easing.cinematic;
 export const cinematicEaseIn = [0.55, 0, 1, 0.45] as [number, number, number, number];
 export const cinematicBounce = [0.34, 1.3, 0.64, 1] as [number, number, number, number];
 
-/* ── Duration Tokens ── */
-/* Preserved verbatim from the original motionEngine to avoid changing
-   the timing of any existing screen. Easing curves above are now the
-   *only* shared identity with motionConfig.ts. */
+/* ── Duration Tokens ──
+   Preserved verbatim so existing screen timing doesn't shift visually.
+   Future PRs may collapse `cinematicDuration` and `motionConfig.duration`
+   into a single object, but the PR-α scope is identity-clean refactor only. */
 export const cinematicDuration = {
   short: 0.12,
   medium: 0.22,

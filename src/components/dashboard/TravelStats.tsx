@@ -31,15 +31,15 @@ const statDefs: StatDef[] = [
     icon: Route,
     label: "Distance",
     getValue: () => "84,200 km",
-    gradient: "from-neon-amber/12 to-neon-amber/5",
-    color: "text-neon-amber",
+    gradient: "from-warning/12 to-warning/5",
+    color: "text-warning",
   },
   {
     icon: Map,
     label: "Continents",
     getValue: () => "4",
-    gradient: "from-aurora-purple/12 to-aurora-purple/5",
-    color: "text-aurora-purple",
+    gradient: "from-accent/12 to-accent/5",
+    color: "text-accent",
   },
 ];
 

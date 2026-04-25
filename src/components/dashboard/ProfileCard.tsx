@@ -37,7 +37,7 @@ const ProfileCard: React.FC = () => {
       <div className="relative">
         {/* Greeting */}
         <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="w-3.5 h-3.5 text-neon-amber" strokeWidth={1.8} />
+          <Sparkles className="w-3.5 h-3.5 text-warning" strokeWidth={1.8} />
           <p className="text-xs text-muted-foreground font-medium">
             {new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 18 ? "Good afternoon" : "Good evening"},
           </p>
@@ -65,7 +65,7 @@ const ProfileCard: React.FC = () => {
         {/* Identity row */}
         <div className="flex items-center gap-4 mt-3">
           <motion.div
-            className="w-14 h-14 rounded-2xl bg-gradient-cosmic flex items-center justify-center shrink-0 shadow-glow-sm cursor-pointer"
+            className="w-14 h-14 rounded-2xl bg-gradient-brand flex items-center justify-center shrink-0 shadow-glow-sm cursor-pointer"
             whileTap={{ scale: 0.9 }}
             transition={springs.bounce}
           >
@@ -94,7 +94,7 @@ const ProfileCard: React.FC = () => {
         {/* Travel Score + Location */}
         <div className="mt-4 grid grid-cols-2 gap-2">
           <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-secondary/40 border border-border/30">
-            <Trophy className="w-4 h-4 text-neon-amber" />
+            <Trophy className="w-4 h-4 text-warning" />
             <div>
               <p className="text-[10px] text-muted-foreground">Travel Score</p>
               <p className="text-sm font-bold text-foreground">{travelScore.score}<span className="text-[10px] text-muted-foreground font-normal"> / 100</span></p>

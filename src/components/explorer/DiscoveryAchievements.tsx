@@ -23,7 +23,7 @@ const DiscoveryAchievements: React.FC<Props> = ({ discoveredIds, landmarkCount }
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-1.5 px-1">
-        <Award className="w-3.5 h-3.5 text-sunset-gold" strokeWidth={1.8} />
+        <Award className="w-3.5 h-3.5 text-warning" strokeWidth={1.8} />
         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Achievements</p>
       </div>
       {achievements.map((a, i) => {

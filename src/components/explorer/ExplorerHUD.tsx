@@ -16,7 +16,7 @@ const ExplorerHUD: React.FC<Props> = ({ discoveredIds, currentDestination }) => 
   const stats = [
     { icon: Globe, label: "Discovered", value: `${discoveredIds.length}/${destinations.length}`, color: "text-accent" },
     { icon: Map, label: "Continents", value: `${continents}/6`, color: "text-primary" },
-    { icon: Trophy, label: "Progress", value: `${progress}%`, color: "text-sunset-gold" },
+    { icon: Trophy, label: "Progress", value: `${progress}%`, color: "text-warning" },
   ];
 
   return (

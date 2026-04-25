@@ -134,7 +134,7 @@ const KioskSimulator: React.FC = () => {
 
                 <button
                   onClick={handlePassportScan}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-neon-indigo to-neon-cyan text-primary-foreground text-sm font-medium active:scale-95 transition-transform min-h-[44px]"
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-primary to-primary text-primary-foreground text-sm font-medium active:scale-95 transition-transform min-h-[44px]"
                 >
                   Scan Passport
                 </button>

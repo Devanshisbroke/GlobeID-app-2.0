@@ -68,7 +68,7 @@ const Wallet: React.FC = () => {
             return (
               <button key={tab.key} onClick={() => { setWalletTab(tab.key); setActivePanel(null); }} className={cn(
                 "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all min-h-[44px]",
-                walletTab === tab.key ? "bg-gradient-ocean text-primary-foreground shadow-depth-sm" : "text-muted-foreground"
+                walletTab === tab.key ? "bg-gradient-brand text-primary-foreground shadow-depth-sm" : "text-muted-foreground"
               )}>
                 <Icon className="w-3.5 h-3.5" strokeWidth={1.8} />{tab.label}
               </button>
@@ -106,7 +106,7 @@ const Wallet: React.FC = () => {
             <GlassCard className="text-center py-8 relative overflow-hidden light-sweep" variant="premium" glow depth="lg">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/6 via-transparent to-accent/4 pointer-events-none" />
               <div className="relative">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-cosmic flex items-center justify-center mx-auto mb-4 shadow-glow-md">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-brand flex items-center justify-center mx-auto mb-4 shadow-glow-md">
                   <TrendingUp className="w-7 h-7 text-primary-foreground" />
                 </div>
                 <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1 font-medium">Total Balance</p>
@@ -129,7 +129,7 @@ const Wallet: React.FC = () => {
                         className={cn(
                           "flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold active:scale-95 transition-all min-h-[44px] btn-ripple touch-bounce",
                           btn.accent
-                            ? "bg-gradient-ocean text-primary-foreground shadow-glow-md"
+                            ? "bg-gradient-brand text-primary-foreground shadow-glow-md"
                             : activePanel === btn.panel
                               ? "bg-primary/15 text-primary border border-primary/30"
                               : "glass border border-border/40 text-foreground hover:border-primary/30 hover:shadow-glow-sm"

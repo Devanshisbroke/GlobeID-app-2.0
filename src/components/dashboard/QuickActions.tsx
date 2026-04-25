@@ -6,12 +6,12 @@ import { cn } from "@/lib/utils";
 import { springs } from "@/hooks/useMotion";
 
 const actions = [
-  { icon: PlusCircle, label: "Add Trip", route: "/travel", gradient: "bg-gradient-ocean" },
-  { icon: ScanLine, label: "Scan ID", route: "/identity", gradient: "bg-gradient-cosmic" },
-  { icon: BrainCircuit, label: "Intel", route: "/intelligence", gradient: "bg-gradient-to-br from-accent to-primary" },
-  { icon: Compass, label: "Explorer", route: "/explorer", gradient: "bg-gradient-aurora" },
-  { icon: FileText, label: "Docs", route: "/wallet", gradient: "bg-gradient-sunset" },
-  { icon: Globe, label: "Map", route: "/map", gradient: "bg-gradient-forest" },
+  { icon: PlusCircle, label: "Add Trip", route: "/travel" },
+  { icon: ScanLine, label: "Scan ID", route: "/identity" },
+  { icon: BrainCircuit, label: "Intel", route: "/intelligence" },
+  { icon: Compass, label: "Explorer", route: "/explorer" },
+  { icon: FileText, label: "Docs", route: "/wallet" },
+  { icon: Globe, label: "Map", route: "/map" },
 ];
 
 const container = { animate: { transition: { staggerChildren: 0.04 } } };
@@ -34,12 +34,12 @@ const QuickActions: React.FC = () => {
             className={cn(
               "flex flex-col items-center gap-2 p-3 rounded-2xl min-h-[84px]",
               "glass border border-border/30",
-              "hover:border-primary/20 hover:shadow-glow-sm",
+              "hover:border-primary/20",
               "active:scale-95 transition-transform btn-ripple"
             )}
           >
-            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-depth-sm", action.gradient)}>
-              <Icon className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary/60">
+              <Icon className="w-5 h-5 text-accent" strokeWidth={1.8} />
             </div>
             <span className="text-[10px] font-medium text-muted-foreground text-center leading-tight">{action.label}</span>
           </motion.button>

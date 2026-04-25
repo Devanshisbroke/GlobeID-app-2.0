@@ -159,7 +159,7 @@ const Home: React.FC = () => {
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
               <IconMotion variant="pulse">
-                <Bell className="w-3.5 h-3.5 text-neon-amber" />
+                <Bell className="w-3.5 h-3.5 text-warning" />
               </IconMotion>
               Alerts
               <span className="w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] flex items-center justify-center font-bold">{unreadCount}</span>
@@ -178,7 +178,7 @@ const Home: React.FC = () => {
               <div className="flex items-center gap-2 mb-3">
                 <IconMotion variant="float">
                   <motion.div
-                    className="w-9 h-9 rounded-xl bg-gradient-ocean flex items-center justify-center shadow-glow-sm"
+                    className="w-9 h-9 rounded-xl bg-gradient-brand flex items-center justify-center shadow-glow-sm"
                     whileTap={{ scale: 0.9 }}
                   >
                     <Plane className="w-4.5 h-4.5 text-primary-foreground" />
@@ -255,7 +255,7 @@ const Home: React.FC = () => {
         <UltraGlass depth={1} edgeHighlight onClick={() => handleNavigate("/wallet")}>
           <div className="flex items-center gap-4">
             <IconMotion variant="breathe">
-              <div className="w-11 h-11 rounded-xl bg-gradient-forest flex items-center justify-center shrink-0 shadow-glow-sm">
+              <div className="w-11 h-11 rounded-xl bg-gradient-brand flex items-center justify-center shrink-0 shadow-glow-sm">
                 <TrendingUp className="w-5 h-5 text-primary-foreground" />
               </div>
             </IconMotion>

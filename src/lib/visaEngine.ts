@@ -11,7 +11,7 @@ export interface VisaRequirement {
 const visaStatusLabels: Record<VisaStatus, { label: string; color: string }> = {
   visaFree: { label: "Visa Free", color: "text-accent" },
   visaOnArrival: { label: "Visa on Arrival", color: "text-primary" },
-  eVisa: { label: "e-Visa Available", color: "text-neon-amber" },
+  eVisa: { label: "e-Visa Available", color: "text-warning" },
   visaRequired: { label: "Visa Required", color: "text-destructive" },
 };
 

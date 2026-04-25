@@ -14,14 +14,14 @@ const settingSections: { title: string; items: SettingItem[] }[] = [
     title: "Security",
     items: [
       { icon: ShieldCheck, label: "Security Center", description: "Biometrics, 2FA, recovery keys", color: "text-accent" },
-      { icon: Landmark, label: "Bank & KYC", description: "Connected accounts & verification", color: "text-neon-teal" },
+      { icon: Landmark, label: "Bank & KYC", description: "Connected accounts & verification", color: "text-accent" },
     ],
   },
   {
     title: "Preferences",
     items: [
       { icon: Globe, label: "Currency & Region", description: "USD — United States", color: "text-primary" },
-      { icon: Languages, label: "Language", description: "English", color: "text-neon-cyan" },
+      { icon: Languages, label: "Language", description: "English", color: "text-primary" },
       { icon: Bell, label: "Notifications", description: "Push, email, in-app", color: "text-accent" },
     ],
   },
@@ -44,7 +44,7 @@ const Profile: React.FC = () => {
     <div className="px-4 py-6 space-y-5">
       <AnimatedPage>
         <GlassCard className="flex items-center gap-4 relative overflow-hidden light-sweep" variant="premium" glow depth="lg">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-cosmic flex items-center justify-center shrink-0 shadow-glow-sm">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-brand flex items-center justify-center shrink-0 shadow-glow-sm">
             <ShieldCheck className="w-6 h-6 text-primary-foreground" />
           </div>
           <div className="flex-1 min-w-0 relative">

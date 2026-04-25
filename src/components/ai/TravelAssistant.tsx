@@ -158,7 +158,7 @@ const TravelAssistant: React.FC<TravelAssistantProps> = ({ open, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border/30">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-ocean flex items-center justify-center shadow-glow-sm">
+            <div className="w-8 h-8 rounded-xl bg-gradient-brand flex items-center justify-center shadow-glow-sm">
               <Plane className="w-4 h-4 text-primary-foreground" />
             </div>
             <div>
@@ -175,7 +175,7 @@ const TravelAssistant: React.FC<TravelAssistantProps> = ({ open, onClose }) => {
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 hide-scrollbar">
           {messages.length === 0 && (
             <div className="text-center py-8 space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-ocean/20 flex items-center justify-center mx-auto border border-primary/20">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-brand/20 flex items-center justify-center mx-auto border border-primary/20">
                 <Plane className="w-7 h-7 text-primary" />
               </div>
               <p className="text-muted-foreground text-sm">Ask me about visas, flights, or destinations</p>
@@ -198,7 +198,7 @@ const TravelAssistant: React.FC<TravelAssistantProps> = ({ open, onClose }) => {
               <div className={cn(
                 "max-w-[85%] rounded-2xl px-4 py-3 text-sm animate-scale-in",
                 msg.role === "user"
-                  ? "ml-auto bg-gradient-ocean text-primary-foreground shadow-glow-sm"
+                  ? "ml-auto bg-gradient-brand text-primary-foreground shadow-glow-sm"
                   : "mr-auto glass-premium border border-border/30 text-foreground"
               )}>
                 <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
@@ -244,7 +244,7 @@ const TravelAssistant: React.FC<TravelAssistantProps> = ({ open, onClose }) => {
             <button
               onClick={() => handleSend()}
               disabled={!input.trim()}
-              className="w-11 h-11 rounded-xl bg-gradient-ocean flex items-center justify-center disabled:opacity-30 transition-all active:scale-90 shadow-glow-sm"
+              className="w-11 h-11 rounded-xl bg-gradient-brand flex items-center justify-center disabled:opacity-30 transition-all active:scale-90 shadow-glow-sm"
             >
               <Send className="w-4 h-4 text-primary-foreground" />
             </button>

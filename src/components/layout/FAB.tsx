@@ -7,10 +7,10 @@ import { haptics } from "@/utils/haptics";
 import { spring } from "@/motion/motionConfig";
 
 const actions = [
-  { icon: CreditCard, label: "Quick Pay", path: "/wallet", color: "bg-gradient-ocean" },
-  { icon: Scan, label: "Scan ID", path: "/identity", color: "bg-gradient-cosmic" },
-  { icon: Plane, label: "Add Trip", path: "/travel", color: "bg-gradient-sunset" },
-  { icon: FileText, label: "Add Doc", path: "/wallet", color: "bg-gradient-forest" },
+  { icon: CreditCard, label: "Quick Pay", path: "/wallet", color: "bg-gradient-brand" },
+  { icon: Scan, label: "Scan ID", path: "/identity", color: "bg-gradient-brand" },
+  { icon: Plane, label: "Add Trip", path: "/travel", color: "bg-gradient-brand" },
+  { icon: FileText, label: "Add Doc", path: "/wallet", color: "bg-gradient-brand" },
 ];
 
 const FAB: React.FC = () => {
@@ -82,7 +82,7 @@ const FAB: React.FC = () => {
         className={cn(
           "fixed z-50 right-4 bottom-[88px] w-14 h-14 rounded-full",
           "flex items-center justify-center",
-          "bg-gradient-cosmic shadow-glow-lg",
+          "bg-gradient-brand shadow-glow-lg",
           "will-change-transform"
         )}
       >

@@ -235,7 +235,7 @@ const GlobalMap: React.FC = () => {
                 </div>
               </GlassCard>
               <GlassCard className="flex-1 py-2.5 px-3 flex items-center gap-2" interactive={false}>
-                <Navigation className="w-4 h-4 text-neon-amber" strokeWidth={1.8} />
+                <Navigation className="w-4 h-4 text-warning" strokeWidth={1.8} />
                 <div>
                   <p className="text-[10px] text-muted-foreground">Location</p>
                   <p className="text-sm font-bold text-foreground">SFO</p>
@@ -254,7 +254,7 @@ const GlobalMap: React.FC = () => {
                   return (
                     <GlassCard key={flight.id} className="mb-2" variant="premium" depth="md">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-aurora flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-brand flex items-center justify-center shrink-0">
                           <Plane className="w-4 h-4 text-primary-foreground" strokeWidth={1.8} />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -305,7 +305,7 @@ const GlobalMap: React.FC = () => {
                   </span>
                 ))}
                 {upcomingCountries.filter(c => !visitedCountries.includes(c)).map((country) => (
-                  <span key={country} className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-aurora-purple/15 text-aurora-purple border border-aurora-purple/20">
+                  <span key={country} className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-accent/15 text-accent border border-accent/20">
                     {country}
                   </span>
                 ))}

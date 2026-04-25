@@ -49,7 +49,7 @@ const HotelBooking: React.FC = () => {
                 </button>
                 <div className="absolute bottom-3 left-3 flex items-center gap-1">
                   {Array.from({ length: hotel.stars }).map((_, j) => (
-                    <Star key={j} className="w-3 h-3 fill-neon-amber text-neon-amber" />
+                    <Star key={j} className="w-3 h-3 fill-warning text-warning" />
                   ))}
                 </div>
               </div>

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Heart, UserPlus, MessageCircle, TrendingUp, Check } from "lucide-react";
 
 const iconMap = { like: Heart, follow: UserPlus, comment: MessageCircle, trending: TrendingUp };
-const colorMap = { like: "text-destructive", follow: "text-primary", comment: "text-accent", trending: "text-neon-amber" };
+const colorMap = { like: "text-destructive", follow: "text-primary", comment: "text-accent", trending: "text-warning" };
 
 const Notifications: React.FC = () => {
   const { notifications, users, markNotificationRead } = useSocialStore();

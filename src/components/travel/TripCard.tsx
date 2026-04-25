@@ -21,7 +21,7 @@ const TripCard: React.FC<TripCardProps> = ({ trip, className }) => {
       <div className="flex items-center gap-3">
         <div className={cn(
           "w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-depth-sm",
-          isUpcoming ? "bg-gradient-ocean" : "bg-secondary/60"
+          isUpcoming ? "bg-gradient-brand" : "bg-secondary/60"
         )}>
           <Plane className={cn("w-5 h-5", isUpcoming ? "text-primary-foreground" : "text-muted-foreground")} strokeWidth={1.8} />
         </div>

@@ -35,7 +35,7 @@ export function getTravelSuggestions(nationality: string, visitedCountries: stri
       description: `${visaFree.length} countries you can visit without a visa`,
       countries: visaFree.slice(0, 5),
       icon: "shield-check",
-      gradient: "bg-gradient-forest",
+      gradient: "bg-gradient-brand",
     });
   }
 
@@ -49,7 +49,7 @@ export function getTravelSuggestions(nationality: string, visitedCountries: stri
       description: trendingUnvisited[0].reason,
       countries: trendingUnvisited.map(t => t.country),
       icon: "trending-up",
-      gradient: "bg-gradient-sunset",
+      gradient: "bg-gradient-brand",
     });
   }
 
@@ -63,7 +63,7 @@ export function getTravelSuggestions(nationality: string, visitedCountries: stri
       description: `Top destinations travelers from ${nationality} love`,
       countries: regional.slice(0, 4),
       icon: "map-pin",
-      gradient: "bg-gradient-ocean",
+      gradient: "bg-gradient-brand",
     });
   }
 
@@ -75,7 +75,7 @@ export function getTravelSuggestions(nationality: string, visitedCountries: stri
     description: "Visit a new continent to unlock achievements",
     countries: ["Brazil", "Kenya", "Australia", "Japan"].filter(c => !visitedCountries.includes(c)).slice(0, 3),
     icon: "trophy",
-    gradient: "bg-gradient-cosmic",
+    gradient: "bg-gradient-brand",
   });
 
   return suggestions;
