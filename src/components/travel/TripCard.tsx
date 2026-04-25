@@ -3,7 +3,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Plane, Clock, Calendar } from "lucide-react";
 import { getAirport } from "@/lib/airports";
 import { cn } from "@/lib/utils";
-import type { TravelRecord } from "@/store/userStore";
+import { formatTripDate, type TravelRecord } from "@/store/userStore";
 
 interface TripCardProps {
   trip: TravelRecord;
@@ -39,7 +39,7 @@ const TripCard: React.FC<TripCardProps> = ({ trip, className }) => {
         </span>
       </div>
       <div className="mt-3 pt-3 border-t border-border/30 flex items-center gap-4 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{trip.date}</span>
+        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{formatTripDate(trip.date)}</span>
         <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{trip.duration}</span>
         <span className="flex items-center gap-1"><Plane className="w-3 h-3" />{trip.airline}</span>
       </div>

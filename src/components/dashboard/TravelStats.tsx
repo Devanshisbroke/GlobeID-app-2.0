@@ -2,21 +2,28 @@ import React from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Globe, Plane, Route, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { visitedCountries } from "@/lib/airports";
-import { useUserStore } from "@/store/userStore";
+import { useUserStore, selectVisitedCountries } from "@/store/userStore";
 
-const stats = [
+interface StatDef {
+  icon: typeof Globe;
+  label: string;
+  getValue: (ctx: { tripCount: number; visitedCount: number }) => string;
+  gradient: string;
+  color: string;
+}
+
+const statDefs: StatDef[] = [
   {
     icon: Globe,
     label: "Countries",
-    getValue: () => visitedCountries.length.toString(),
+    getValue: ({ visitedCount }) => visitedCount.toString(),
     gradient: "from-primary/12 to-primary/5",
     color: "text-primary",
   },
   {
     icon: Plane,
     label: "Flights",
-    getValue: (tripCount: number) => tripCount.toString(),
+    getValue: ({ tripCount }) => tripCount.toString(),
     gradient: "from-accent/12 to-accent/5",
     color: "text-accent",
   },
@@ -38,12 +45,16 @@ const stats = [
 
 const TravelStats: React.FC = () => {
   const { travelHistory } = useUserStore();
+  const visitedCount = React.useMemo(
+    () => selectVisitedCountries(travelHistory).length,
+    [travelHistory]
+  );
 
   return (
     <div className="grid grid-cols-4 gap-2">
-      {stats.map((stat) => {
+      {statDefs.map((stat) => {
         const Icon = stat.icon;
-        const value = stat.getValue(travelHistory.length);
+        const value = stat.getValue({ tripCount: travelHistory.length, visitedCount });
         return (
           <GlassCard key={stat.label} className="flex flex-col items-center py-3 px-1 text-center" depth="sm">
             <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center mb-2 bg-gradient-to-br", stat.gradient)}>

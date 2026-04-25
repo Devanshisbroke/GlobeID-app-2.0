@@ -17,13 +17,40 @@ import QRScanner from "@/components/payments/QRScanner";
 type WalletTab = "balance" | "documents" | "analytics";
 type ActivePanel = null | "converter" | "qr-pay" | "qr-scan";
 
+/* Country → currency mapping so the active travel destination's
+   wallet card sorts to the top. Mirrors locationProfiles in
+   locationEngine.ts but kept local to avoid a circular import. */
+const countryCurrency: Record<string, string> = {
+  Singapore: "SGD",
+  Japan: "JPY",
+  India: "INR",
+  "United States": "USD",
+  "United Kingdom": "GBP",
+  France: "EUR",
+  Germany: "EUR",
+  Spain: "EUR",
+  Italy: "EUR",
+  Netherlands: "EUR",
+  UAE: "AED",
+  "United Arab Emirates": "AED",
+};
+
 const Wallet: React.FC = () => {
   const { documents } = useUserStore();
-  const { balances, transactions, defaultCurrency } = useWalletStore();
+  const { balances, transactions, defaultCurrency, activeCountry } = useWalletStore();
   const [walletTab, setWalletTab] = useState<WalletTab>("balance");
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
 
   const totalUSD = balances.reduce((acc, b) => acc + b.amount * b.rate, 0);
+  const sortedBalances = React.useMemo(() => {
+    const targetCurrency = activeCountry ? countryCurrency[activeCountry] : null;
+    if (!targetCurrency) return balances;
+    return balances.slice().sort((a, b) => {
+      if (a.currency === targetCurrency) return -1;
+      if (b.currency === targetCurrency) return 1;
+      return 0;
+    });
+  }, [balances, activeCountry]);
 
   const tabs: { key: WalletTab; label: string; icon: React.ElementType }[] = [
     { key: "balance", label: "Balance", icon: TrendingUp },
@@ -121,7 +148,7 @@ const Wallet: React.FC = () => {
           <AnimatedPage staggerIndex={1}>
             <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">Currencies</h3>
             <div className="grid grid-cols-2 gap-2.5">
-              {balances.map((b, i) => (
+              {sortedBalances.map((b, i) => (
                 <CurrencyCard key={b.currency} balance={b} index={i} defaultCurrency={defaultCurrency} />
               ))}
             </div>

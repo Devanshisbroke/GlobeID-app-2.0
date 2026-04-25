@@ -1,9 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { useUserStore } from "@/store/userStore";
+import { useUserStore, selectVisitedCountries, selectCurrentLocation } from "@/store/userStore";
 import { calculateTravelScore } from "@/lib/travelSuggestions";
-import { visitedCountries } from "@/lib/airports";
 import { IdentityScore } from "@/components/ui/IdentityScore";
 import { ShieldCheck, User, Trophy, Sparkles, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,8 +11,19 @@ import { springs } from "@/hooks/useMotion";
 
 const ProfileCard: React.FC = () => {
   const navigate = useNavigate();
-  const { profile } = useUserStore();
-  const travelScore = calculateTravelScore(visitedCountries.length, 45000, 3);
+  const { profile, travelHistory } = useUserStore();
+  const visitedCount = React.useMemo(
+    () => selectVisitedCountries(travelHistory).length,
+    [travelHistory]
+  );
+  const location = React.useMemo(
+    () =>
+      selectCurrentLocation(travelHistory, {
+        country: profile.nationality,
+      }),
+    [travelHistory, profile.nationality]
+  );
+  const travelScore = calculateTravelScore(visitedCount, 45000, 3);
 
   return (
     <GlassCard className="relative overflow-hidden p-5" variant="premium" glow depth="lg" onClick={() => navigate("/profile")}>
@@ -72,7 +82,7 @@ const ProfileCard: React.FC = () => {
             <MapPin className="w-4 h-4 text-accent" />
             <div>
               <p className="text-[10px] text-muted-foreground">Currently in</p>
-              <p className="text-sm font-bold text-foreground">🇺🇸 USA</p>
+              <p className="text-sm font-bold text-foreground">{location.countryFlag} {location.country}</p>
             </div>
           </div>
         </div>

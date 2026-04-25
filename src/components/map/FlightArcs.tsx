@@ -1,25 +1,26 @@
 import React, { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { flightRoutes, getAirport, latLngToVector3, createArcPoints, type FlightRoute } from "@/lib/airports";
+import { getAirport, latLngToVector3, createArcPoints } from "@/lib/airports";
+import { useUserStore, type TravelRecord } from "@/store/userStore";
 
 interface FlightArcsProps {
   showHistory: boolean;
 }
 
-const arcColors: Record<FlightRoute["type"], THREE.Color> = {
+const arcColors: Record<TravelRecord["type"], THREE.Color> = {
   upcoming: new THREE.Color("#3fa9ff"),
   current: new THREE.Color("#ff7a00"),
   past: new THREE.Color("#3fa9ff"),
 };
 
-const arcGlowColors: Record<FlightRoute["type"], THREE.Color> = {
+const arcGlowColors: Record<TravelRecord["type"], THREE.Color> = {
   upcoming: new THREE.Color("#6bc5ff"),
   current: new THREE.Color("#ffaa44"),
   past: new THREE.Color("#5bb8ff"),
 };
 
-const FlightArc: React.FC<{ route: FlightRoute; radius: number }> = ({ route, radius }) => {
+const FlightArc: React.FC<{ route: TravelRecord; radius: number }> = ({ route, radius }) => {
   const glowLineRef = useRef<THREE.Line>(null);
   const coreLineRef = useRef<THREE.Line>(null);
   const planeRef = useRef<THREE.Group>(null);
@@ -132,13 +133,9 @@ const FlightArc: React.FC<{ route: FlightRoute; radius: number }> = ({ route, ra
             </mesh>
             <mesh>
               <sphereGeometry args={[0.015, 8, 8]} />
-              <meshBasicMaterial color={glowColor} transparent opacity={0.3} depthWrite={false} toneMapped={false} />
+              <meshBasicMaterial color={color} transparent opacity={0.15} depthWrite={false} toneMapped={false} />
             </mesh>
           </group>
-          <mesh ref={trailRef}>
-            <sphereGeometry args={[0.009, 6, 6]} />
-            <meshBasicMaterial color={color} transparent opacity={0.15} depthWrite={false} toneMapped={false} />
-          </mesh>
         </>
       )}
     </group>
@@ -146,9 +143,10 @@ const FlightArc: React.FC<{ route: FlightRoute; radius: number }> = ({ route, ra
 };
 
 const FlightArcs: React.FC<FlightArcsProps> = ({ showHistory }) => {
+  const travelHistory = useUserStore((s) => s.travelHistory);
   const routes = showHistory
-    ? flightRoutes
-    : flightRoutes.filter(r => r.type === "upcoming" || r.type === "current");
+    ? travelHistory
+    : travelHistory.filter(r => r.type === "upcoming" || r.type === "current");
 
   return (
     <group>

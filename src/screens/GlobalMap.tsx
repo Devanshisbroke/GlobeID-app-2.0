@@ -1,7 +1,13 @@
 import React, { useState, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { flightRoutes, getAirport, visitedCountries, upcomingCountries } from "@/lib/airports";
+import { getAirport } from "@/lib/airports";
+import {
+  useUserStore,
+  selectVisitedCountries,
+  selectUpcomingCountries,
+  formatTripDate,
+} from "@/store/userStore";
 import { getGlobalStats } from "@/lib/destinationAnalytics";
 import { springs } from "@/hooks/useMotion";
 import { easing } from "@/motion/motionConfig";
@@ -69,8 +75,31 @@ const GlobalMap: React.FC = () => {
   const [simSpeed, setSimSpeed] = useState(1);
   const [simHour, setSimHour] = useState(12);
 
-  const upcomingFlights = flightRoutes.filter(r => r.type === "upcoming");
-  const pastFlights = flightRoutes.filter(r => r.type === "past");
+  const travelHistory = useUserStore((s) => s.travelHistory);
+  const upcomingFlights = React.useMemo(
+    () =>
+      travelHistory
+        .filter((r) => r.type === "upcoming" || r.type === "current")
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date)),
+    [travelHistory]
+  );
+  const pastFlights = React.useMemo(
+    () =>
+      travelHistory
+        .filter((r) => r.type === "past")
+        .slice()
+        .sort((a, b) => b.date.localeCompare(a.date)),
+    [travelHistory]
+  );
+  const visitedCountries = React.useMemo(
+    () => selectVisitedCountries(travelHistory),
+    [travelHistory]
+  );
+  const upcomingCountries = React.useMemo(
+    () => selectUpcomingCountries(travelHistory),
+    [travelHistory]
+  );
 
   return (
     <div className="relative min-h-[100dvh] -mx-4 -mt-6" style={{ marginBottom: "-5rem" }}>
@@ -202,7 +231,7 @@ const GlobalMap: React.FC = () => {
                 <Plane className="w-4 h-4 text-primary" strokeWidth={1.8} />
                 <div>
                   <p className="text-[10px] text-muted-foreground">Flights</p>
-                  <p className="text-sm font-bold text-foreground">{flightRoutes.length}</p>
+                  <p className="text-sm font-bold text-foreground">{travelHistory.length}</p>
                 </div>
               </GlassCard>
               <GlassCard className="flex-1 py-2.5 px-3 flex items-center gap-2" interactive={false}>
@@ -235,7 +264,7 @@ const GlobalMap: React.FC = () => {
                             <span className="text-sm font-bold text-foreground">{flight.to}</span>
                           </div>
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            {flight.airline} · {flight.duration} · {flight.date}
+                            {flight.airline} · {flight.duration} · {formatTripDate(flight.date)}
                           </p>
                         </div>
                       </div>
@@ -257,7 +286,7 @@ const GlobalMap: React.FC = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-foreground">{flight.from} → {flight.to}</p>
-                        <p className="text-[10px] text-muted-foreground">{flight.airline} · {flight.date}</p>
+                        <p className="text-[10px] text-muted-foreground">{flight.airline} · {formatTripDate(flight.date)}</p>
                       </div>
                       <span className="text-[10px] text-muted-foreground">{flight.duration}</span>
                     </div>

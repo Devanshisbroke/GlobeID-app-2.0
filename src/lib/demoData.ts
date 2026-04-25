@@ -1,5 +1,3 @@
-export const DEMO_MODE = true;
-
 export const demoUser = {
   id: "usr-001",
   name: "Devansh",

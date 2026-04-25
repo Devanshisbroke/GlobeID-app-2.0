@@ -6,6 +6,7 @@ import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { detectCurrentLocation, getLocalizedServices, getHotels, getActivities, getTransportOptions } from "@/lib/locationEngine";
 import { demoRideProviders, demoRestaurants } from "@/lib/demoServices";
 import { useServiceFavoritesStore } from "@/store/serviceFavorites";
+import { useWalletStore } from "@/store/walletStore";
 import { getIcon } from "@/lib/iconMap";
 import { haptics } from "@/utils/haptics";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,10 @@ const ServicesHub: React.FC = () => {
   const location = useMemo(() => detectCurrentLocation(), []);
   const localServices = useMemo(() => getLocalizedServices(location.country), [location.country]);
   const { history, favorites, toggleFavorite } = useServiceFavoritesStore();
+  const setActiveCountry = useWalletStore((s) => s.setActiveCountry);
+  React.useEffect(() => {
+    setActiveCountry(location.country);
+  }, [location.country, setActiveCountry]);
   const [search, setSearch] = useState("");
 
   const quickLinks = [

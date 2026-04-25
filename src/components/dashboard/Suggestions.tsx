@@ -2,14 +2,19 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { getTravelSuggestions } from "@/lib/travelSuggestions";
-import { visitedCountries } from "@/lib/airports";
+import { useUserStore, selectVisitedCountries } from "@/store/userStore";
 import { getIcon } from "@/lib/iconMap";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Suggestions: React.FC = () => {
   const navigate = useNavigate();
-  const suggestions = getTravelSuggestions("India", visitedCountries);
+  const travelHistory = useUserStore((s) => s.travelHistory);
+  const nationality = useUserStore((s) => s.profile.nationality);
+  const suggestions = React.useMemo(
+    () => getTravelSuggestions(nationality, selectVisitedCountries(travelHistory)),
+    [nationality, travelHistory]
+  );
 
   return (
     <div className="space-y-2.5">

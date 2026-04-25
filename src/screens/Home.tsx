@@ -6,7 +6,10 @@ import { UltraGlass } from "@/components/ui/UltraGlass";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import IconMotion from "@/cinematic/IconMotion";
 import { uiSound } from "@/cinematic/uiSound";
-import { demoBalances, demoBookings, demoActivity } from "@/lib/demoData";
+import { demoActivity } from "@/lib/demoData";
+import { useUserStore, selectNextUpcoming, formatTripDate } from "@/store/userStore";
+import { useWalletStore } from "@/store/walletStore";
+import { getAirport } from "@/lib/airports";
 import { getIcon } from "@/lib/iconMap";
 import { springs } from "@/hooks/useMotion";
 import { ChevronRight, TrendingUp, Plane, QrCode, Bell, RefreshCw, Users } from "lucide-react";
@@ -42,17 +45,16 @@ const Home: React.FC = () => {
   const [pullDistance, setPullDistance] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const totalUSD = useMemo(() => demoBalances.reduce((acc, b) => {
-    if (b.currency === "USD") return acc + b.amount;
-    if (b.currency === "INR") return acc + b.amount * 0.012;
-    if (b.currency === "CNY") return acc + b.amount * 0.14;
-    if (b.currency === "AED") return acc + b.amount * 0.27;
-    if (b.currency === "SGD") return acc + b.amount * 0.74;
-    if (b.currency === "EUR") return acc + b.amount * 1.08;
-    return acc;
-  }, 0), []);
+  const balances = useWalletStore((s) => s.balances);
+  const totalUSD = useMemo(
+    () => balances.reduce((acc, b) => acc + b.amount * b.rate, 0),
+    [balances]
+  );
 
-  const nextFlight = demoBookings.find((b) => b.type === "flight" && b.status === "upcoming");
+  const travelHistory = useUserStore((s) => s.travelHistory);
+  const nextTrip = useMemo(() => selectNextUpcoming(travelHistory), [travelHistory]);
+  const fromAirport = nextTrip ? getAirport(nextTrip.from) : null;
+  const toAirport = nextTrip ? getAirport(nextTrip.to) : null;
 
   const handlePanEnd = useCallback(async () => {
     if (pullDistance >= PULL_THRESHOLD && !refreshing) {
@@ -168,7 +170,7 @@ const Home: React.FC = () => {
       )}
 
       {/* 4. Boarding Pass / Next Flight */}
-      {nextFlight && (
+      {nextTrip && (
         <AnimatedPage staggerIndex={3}>
           <UltraGlass depth={2} edgeHighlight className="cursor-pointer" onClick={() => handleNavigate("/travel")}>
             <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-accent/5 pointer-events-none rounded-2xl" />
@@ -184,15 +186,17 @@ const Home: React.FC = () => {
                 </IconMotion>
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Boarding Pass</p>
-                  <p className="text-xs text-foreground font-semibold">{nextFlight.subtitle}</p>
+                  <p className="text-xs text-foreground font-semibold">
+                    {nextTrip.airline}{nextTrip.flightNumber ? ` · ${nextTrip.flightNumber}` : ""}
+                  </p>
                 </div>
-                <span className="ml-auto text-[10px] px-2.5 py-1 rounded-full bg-accent/15 text-accent font-semibold">{nextFlight.status}</span>
+                <span className="ml-auto text-[10px] px-2.5 py-1 rounded-full bg-accent/15 text-accent font-semibold">{nextTrip.type}</span>
               </div>
 
               <div className="flex items-center justify-between mb-3">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-foreground tracking-tight">SFO</p>
-                  <p className="text-[10px] text-muted-foreground">San Francisco</p>
+                  <p className="text-2xl font-bold text-foreground tracking-tight">{nextTrip.from}</p>
+                  <p className="text-[10px] text-muted-foreground">{fromAirport?.city ?? nextTrip.from}</p>
                 </div>
                 <div className="flex-1 mx-4 flex flex-col items-center">
                   <div className="w-full h-px bg-gradient-to-r from-primary/40 via-primary to-accent/40 relative">
@@ -202,26 +206,36 @@ const Home: React.FC = () => {
                     </IconMotion>
                     <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-accent shadow-glow-sm" />
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-2">18h 15m · Direct</p>
+                  <p className="text-[10px] text-muted-foreground mt-2">{nextTrip.duration} · {formatTripDate(nextTrip.date)}</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-foreground tracking-tight">SIN</p>
-                  <p className="text-[10px] text-muted-foreground">Singapore</p>
+                  <p className="text-2xl font-bold text-foreground tracking-tight">{nextTrip.to}</p>
+                  <p className="text-[10px] text-muted-foreground">{toAirport?.city ?? nextTrip.to}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-4 gap-2 pt-3 border-t border-border/30">
-                {Object.entries(nextFlight.details).map(([k, v]) => (
-                  <div key={k}>
-                    <p className="text-[10px] text-muted-foreground capitalize">{k}</p>
-                    <p className="text-xs font-semibold text-foreground">{v}</p>
-                  </div>
-                ))}
+                <div>
+                  <p className="text-[10px] text-muted-foreground capitalize">date</p>
+                  <p className="text-xs font-semibold text-foreground">{formatTripDate(nextTrip.date)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground capitalize">flight</p>
+                  <p className="text-xs font-semibold text-foreground">{nextTrip.flightNumber ?? "—"}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground capitalize">duration</p>
+                  <p className="text-xs font-semibold text-foreground">{nextTrip.duration}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground capitalize">source</p>
+                  <p className="text-xs font-semibold text-foreground capitalize">{nextTrip.source}</p>
+                </div>
               </div>
             </div>
             <div className="border-t border-dashed border-border/40 -mx-4 mt-3" />
             <div className="flex items-center justify-between pt-3 -mx-0">
-              <span className="text-[10px] text-muted-foreground font-mono tracking-wider">{nextFlight.code}</span>
+              <span className="text-[10px] text-muted-foreground font-mono tracking-wider">{nextTrip.flightNumber ?? nextTrip.id}</span>
               <div className="flex items-center gap-1.5 text-primary text-xs font-semibold">
                 <QrCode className="w-3.5 h-3.5" /> View Pass
               </div>
@@ -252,7 +266,7 @@ const Home: React.FC = () => {
               </p>
             </div>
             <div className="flex -space-x-1.5">
-              {demoBalances.slice(0, 4).map((b) => (
+              {balances.slice(0, 4).map((b) => (
                 <span key={b.currency} className="text-sm w-8 h-8 rounded-full glass flex items-center justify-center text-[11px] shadow-depth-sm border border-border/20">
                   {b.flag}
                 </span>
