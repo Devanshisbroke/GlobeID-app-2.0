@@ -48,7 +48,7 @@ const BottomTabBar: React.FC = () => {
                 uiSound.navigate();
                 navigate(tab.path);
               }}
-              whileTap={{ scale: 0.85 }}
+              whileTap={{ scale: 0.92 }}
               transition={spring.snappy}
               className={cn(
                 "relative flex flex-col items-center justify-center gap-0.5 min-w-[48px] min-h-[48px] rounded-xl outline-none",

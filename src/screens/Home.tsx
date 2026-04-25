@@ -59,7 +59,10 @@ const Home: React.FC = () => {
       setRefreshing(true);
       haptics.medium();
       uiSound.confirm();
-      await new Promise((r) => setTimeout(r, 1200));
+      /* The refresh action itself is instant (no real fetch yet). The
+         400ms beat gives the spinner enough time to register as
+         feedback without sitting on a stale screen. */
+      await new Promise((r) => setTimeout(r, 400));
       haptics.success();
       setRefreshing(false);
     }

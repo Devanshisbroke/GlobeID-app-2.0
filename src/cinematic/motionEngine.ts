@@ -1,17 +1,27 @@
 /**
  * GlobeID Cinematic Motion Engine
- * Premium animation presets for immersive UI experiences
+ *
+ * Thin alias layer over the canonical motion config in
+ * `src/motion/motionConfig.ts`. Kept for backwards-compatibility
+ * with the many existing imports of `cinematicEase`,
+ * `cinematicDuration`, etc. Do not introduce new tokens here —
+ * add them to `motion/motionConfig.ts` and re-export from here
+ * if a shorter name is genuinely useful.
  */
 
 import type { Variants, Transition } from "framer-motion";
+import { easing } from "@/motion/motionConfig";
 
-/* ── Cinematic Easing ── */
-export const cinematicEase = [0.22, 1, 0.36, 1] as [number, number, number, number];
-export const cinematicEaseOut = [0.16, 1, 0.3, 1] as [number, number, number, number];
+/* ── Cinematic Easing (aliases over canonical easing) ── */
+export const cinematicEase = easing.spring;
+export const cinematicEaseOut = easing.cinematic;
 export const cinematicEaseIn = [0.55, 0, 1, 0.45] as [number, number, number, number];
 export const cinematicBounce = [0.34, 1.3, 0.64, 1] as [number, number, number, number];
 
 /* ── Duration Tokens ── */
+/* Preserved verbatim from the original motionEngine to avoid changing
+   the timing of any existing screen. Easing curves above are now the
+   *only* shared identity with motionConfig.ts. */
 export const cinematicDuration = {
   short: 0.12,
   medium: 0.22,

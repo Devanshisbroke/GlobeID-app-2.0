@@ -77,7 +77,7 @@ const FAB: React.FC = () => {
           setOpen((v) => !v);
         }}
         animate={{ rotate: open ? 135 : 0 }}
-        whileTap={{ scale: 0.88 }}
+        whileTap={{ scale: 0.94 }}
         transition={spring.fab}
         className={cn(
           "fixed z-50 right-4 bottom-[88px] w-14 h-14 rounded-full",

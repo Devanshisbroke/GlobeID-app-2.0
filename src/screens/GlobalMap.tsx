@@ -4,6 +4,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { flightRoutes, getAirport, visitedCountries, upcomingCountries } from "@/lib/airports";
 import { getGlobalStats } from "@/lib/destinationAnalytics";
 import { springs } from "@/hooks/useMotion";
+import { easing } from "@/motion/motionConfig";
 import { Globe, Plane, Clock, ChevronRight, Navigation, Activity, Users, Route, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MapControls from "@/components/map/MapControls";
@@ -95,7 +96,7 @@ const GlobalMap: React.FC = () => {
             className="w-full h-full"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1.2, ease: "easeOut" }}
+            transition={{ duration: 0.5, ease: easing.cinematic }}
             onAnimationComplete={() => setIsLoaded(true)}
           >
             <GlobeScene
