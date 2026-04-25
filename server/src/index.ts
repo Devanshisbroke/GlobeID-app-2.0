@@ -6,6 +6,9 @@ import { issueToken, DEMO_USER_ID } from "./auth/token.js";
 import { seedIfEmpty } from "./db/seed.js";
 import { userRouter } from "./routes/user.js";
 import { tripsRouter } from "./routes/trips.js";
+import { insightsRouter } from "./routes/insights.js";
+import { recommendationsRouter } from "./routes/recommendations.js";
+import { alertsRouter } from "./routes/alerts.js";
 import { ok } from "./lib/validate.js";
 
 const app = new Hono();
@@ -29,6 +32,9 @@ api.post("/auth/demo", (c) => ok(c, { token: issueToken(DEMO_USER_ID), userId: D
 
 api.route("/user", userRouter);
 api.route("/trips", tripsRouter);
+api.route("/insights", insightsRouter);
+api.route("/recommendations", recommendationsRouter);
+api.route("/alerts", alertsRouter);
 
 app.route("/api/v1", api);
 

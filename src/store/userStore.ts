@@ -211,10 +211,12 @@ export const useUserStore = create<UserState>()(
         const queue = get().pendingMutations;
         if (queue.length === 0) return;
         const remaining: PendingMutation[] = [];
+        let drained = 0;
         for (const m of queue) {
           try {
             if (m.kind === "add") await api.trips.create(m.records);
             else await api.trips.remove(m.id);
+            drained += 1;
           } catch {
             remaining.push(m);
           }
@@ -224,6 +226,18 @@ export const useUserStore = create<UserState>()(
           syncStatus: remaining.length === 0 ? "synced" : "offline-pending",
           lastSyncedAt: remaining.length === 0 ? Date.now() : get().lastSyncedAt,
         });
+        // F5: After a successful drain, re-list so travelHistory reflects
+        // the rows we just pushed. Without this, hydrate() overwrites with
+        // the pre-drain server state and the UI flickers backward for a
+        // few seconds. Safe — list() does not enter the drain path.
+        if (drained > 0 && remaining.length === 0) {
+          try {
+            const records = await api.trips.list();
+            set({ travelHistory: records });
+          } catch {
+            /* swallow — we'll catch up on the next hydrate */
+          }
+        }
       },
     }),
     {

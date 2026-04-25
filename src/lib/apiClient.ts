@@ -10,6 +10,13 @@
  *   typed values or a thrown ApiError.
  */
 import type { TravelRecord, UserProfile } from "@shared/types/travel";
+import type {
+  TravelInsight,
+  WalletInsight,
+  ActivityInsight,
+  RecommendationsResponse,
+} from "@shared/types/insights";
+import type { Alert, AlertPatch } from "@shared/types/alerts";
 
 export class ApiError extends Error {
   constructor(public code: string, message: string, public status: number) {
@@ -93,6 +100,25 @@ export const api = {
       authedFetch(`/trips/${encodeURIComponent(id)}`, { method: "DELETE" }).then(
         unwrap<{ id: string; deleted: true }>
       ),
+  },
+
+  insights: {
+    travel: () => authedFetch("/insights/travel").then(unwrap<TravelInsight>),
+    wallet: () => authedFetch("/insights/wallet").then(unwrap<WalletInsight>),
+    activity: () => authedFetch("/insights/activity").then(unwrap<ActivityInsight>),
+  },
+
+  recommendations: {
+    list: () => authedFetch("/recommendations").then(unwrap<RecommendationsResponse>),
+  },
+
+  alerts: {
+    list: () => authedFetch("/alerts").then(unwrap<Alert[]>),
+    patch: (id: string, patch: AlertPatch) =>
+      authedFetch(`/alerts/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(patch),
+      }).then(unwrap<Alert>),
   },
 };
 

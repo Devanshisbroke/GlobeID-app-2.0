@@ -48,7 +48,15 @@ const TravelAlerts: React.FC = () => {
             <div className="flex items-start gap-3 pr-6">
               <Icon className={cn("w-4 h-4 mt-0.5 shrink-0", severityColors[alert.severity])} />
               <div>
-                <p className="text-xs font-semibold text-foreground">{alert.title}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-semibold text-foreground">{alert.title}</p>
+                  {alert.source === "system" && (
+                    <span
+                      className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_6px_currentColor]"
+                      title="System-derived from your travel + wallet state"
+                    />
+                  )}
+                </div>
                 <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{alert.description}</p>
                 <p className="text-[9px] text-muted-foreground/60 mt-1">{alert.timestamp}</p>
               </div>

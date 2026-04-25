@@ -2,6 +2,7 @@ import React from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { cn } from "@/lib/utils";
 import type { WalletBalance } from "@/store/walletStore";
+import { useInsightsStore } from "@/store/insightsStore";
 
 const gradients = [
   "bg-gradient-ocean",
@@ -22,10 +23,18 @@ interface CurrencyCardProps {
 const CurrencyCard: React.FC<CurrencyCardProps> = ({ balance, index, defaultCurrency, onClick }) => {
   const usdValue = balance.amount * balance.rate;
   const isDefault = balance.currency === defaultCurrency;
+  const walletInsight = useInsightsStore((s) => s.wallet);
+  const insight = walletInsight?.byCurrency.find((c) => c.currency === balance.currency);
+  const isActive = insight?.isActive === true;
+  const isInactive = insight?.isInactive === true;
 
   return (
     <GlassCard
-      className={cn("cursor-pointer touch-bounce relative overflow-hidden", isDefault && "ring-1 ring-primary/30")}
+      className={cn(
+        "cursor-pointer touch-bounce relative overflow-hidden",
+        isDefault && "ring-1 ring-primary/30",
+        isActive && !isDefault && "ring-1 ring-accent/40"
+      )}
       depth="md"
       onClick={onClick}
     >
@@ -39,6 +48,19 @@ const CurrencyCard: React.FC<CurrencyCardProps> = ({ balance, index, defaultCurr
           {isDefault && (
             <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-semibold ml-auto">
               Default
+            </span>
+          )}
+          {!isDefault && isActive && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-accent/15 text-accent font-semibold ml-auto">
+              Active trip
+            </span>
+          )}
+          {!isDefault && !isActive && isInactive && (
+            <span
+              className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted/40 text-muted-foreground font-semibold ml-auto"
+              title={insight?.reason ?? "No upcoming trip uses this currency"}
+            >
+              Idle
             </span>
           )}
         </div>
