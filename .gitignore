@@ -34,3 +34,16 @@ server/dist
 *.njsproj
 *.sln
 *.sw?
+
+# Phase audit + test-plan artifacts (do not ship)
+phase*-audit.md
+phase*-design.md
+test-plan-pr*.md
+test-report-pr*.md
+
+# Capacitor build outputs
+android/app/build
+android/build
+android/.gradle
+android/local.properties
+android/app/release

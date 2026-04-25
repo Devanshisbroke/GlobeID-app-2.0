@@ -19,8 +19,10 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       <div className="fixed inset-0 pointer-events-none bg-mesh -z-10" />
       <AtmosphereLayer />
       <SyncBadge />
-      {/* Theme toggle */}
-      <div className="fixed top-4 right-4 z-40">
+      {/* Theme toggle — Phase 6 PR-α: positioned with safe-area-aware
+          offsets so on Android it sits below the status bar instead of
+          underneath the punch-hole / notch. */}
+      <div className="fixed top-safe-4 right-safe-4 z-40">
         <ThemeToggle />
       </div>
       <main

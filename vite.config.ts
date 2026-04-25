@@ -1,10 +1,19 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
-export default defineConfig(({ mode }) => ({
+/**
+ * Vite config.
+ *
+ * Phase 6 PR-α:
+ *  - Dropped `lovable-tagger` (Lovable scaffold leftover; not used in app code).
+ *  - PWA service worker is registered only in browser builds; the Capacitor
+ *    Android shell sets `VITE_NATIVE_BUILD=true` at build time which strips
+ *    the SW (see `src/main.tsx` for the runtime guard). The plugin still
+ *    runs at build time so browser-served PWAs continue to install.
+ */
+export default defineConfig(() => ({
   server: {
     host: "::",
     port: 8080,
@@ -14,7 +23,6 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico"],

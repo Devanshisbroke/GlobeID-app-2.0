@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network security policy.
+
+  Phase 6 PR-α — Android 9+ blocks cleartext HTTP by default. Production
+  builds of the GlobeID APK MUST point at an HTTPS API (e.g. a Cloudflare
+  Tunnel URL). Cleartext HTTP is allowed only for `localhost` / loopback
+  so `npx cap run android` against `http://localhost:4000/api/v1` keeps
+  working during local development.
+
+  Do NOT add public hostnames here.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

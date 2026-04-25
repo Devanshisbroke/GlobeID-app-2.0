@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { lazy, Suspense, useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { useUserStore } from "@/store/userStore";
@@ -10,9 +10,19 @@ import DocumentCard from "@/components/wallet/DocumentCard";
 import CurrencyCard from "@/components/wallet/CurrencyCard";
 import CurrencyConverter from "@/components/wallet/CurrencyConverter";
 import TransactionList from "@/components/wallet/TransactionList";
-import SpendingAnalytics from "@/components/wallet/SpendingAnalytics";
 import QRPayment from "@/components/payments/QRPayment";
 import QRScanner from "@/components/payments/QRScanner";
+
+/* Phase 6 PR-α — lazy-load SpendingAnalytics so the recharts vendor chunk
+   (~524 KB / 152 KB gzipped) only fetches when the user actually opens
+   the Analytics tab, not on cold launch. */
+const SpendingAnalytics = lazy(() => import("@/components/wallet/SpendingAnalytics"));
+
+const AnalyticsFallback: React.FC = () => (
+  <div className="flex items-center justify-center min-h-[20dvh]">
+    <div className="w-2 h-2 rounded-full bg-primary/40 animate-pulse" />
+  </div>
+);
 
 type WalletTab = "balance" | "documents" | "analytics";
 type ActivePanel = null | "converter" | "qr-pay" | "qr-scan";
@@ -97,7 +107,9 @@ const Wallet: React.FC = () => {
         </div>
       ) : walletTab === "analytics" ? (
         <AnimatedPage>
-          <SpendingAnalytics transactions={transactions} />
+          <Suspense fallback={<AnalyticsFallback />}>
+            <SpendingAnalytics transactions={transactions} />
+          </Suspense>
         </AnimatedPage>
       ) : (
         <>

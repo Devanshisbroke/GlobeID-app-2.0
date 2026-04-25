@@ -7,6 +7,8 @@ import { lazy, Suspense, useState, useCallback, useEffect } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageTransition } from "@/components/layout/PageTransition";
 import SplashScreen from "@/components/SplashScreen";
+import NativeBackButton from "@/components/system/NativeBackButton";
+import { applyNativeChrome, wireNetworkListener } from "@/lib/nativeBridge";
 import { useUserStore } from "@/store/userStore";
 import { useAlertsStore } from "@/store/alertsStore";
 import { useInsightsStore } from "@/store/insightsStore";
@@ -82,18 +84,21 @@ const App = () => {
   }, []);
 
   // Hydrate canonical state from the backend once on app boot, then
-  // again any time the browser comes back online so any queued offline
-  // mutations get drained.
+  // again any time we transition online so any queued offline mutations
+  // get drained.
   //
   // Order matters: userStore.hydrate() must complete BEFORE insights /
   // recommendations / alerts hydrate so the derived endpoints see the
   // freshly-synced travel_records, not stale cache. Phase 4.5 derived
   // endpoints are read-only — no pendingMutations interaction.
+  //
+  // Phase 6 PR-α: the network listener now routes through `nativeBridge`
+  // so on Capacitor we use `@capacitor/network` (Doze + battery-saver
+  // aware) and on the browser we keep using `window.online`. Both code
+  // paths share the same callback shape.
   useEffect(() => {
-    const hydrateAll = async () => {
+    const hydrateAll = async (): Promise<void> => {
       await useUserStore.getState().hydrate();
-      // Fire derived hydrations in parallel; they share no state so this
-      // collapses three round-trips to one wall-clock RTT.
       await Promise.allSettled([
         useAlertsStore.getState().hydrate(),
         useInsightsStore.getState().hydrate(),
@@ -101,9 +106,23 @@ const App = () => {
       ]);
     };
     void hydrateAll();
-    const onOnline = () => void hydrateAll();
-    window.addEventListener("online", onOnline);
-    return () => window.removeEventListener("online", onOnline);
+    void applyNativeChrome();
+
+    let cancelled = false;
+    let unsubscribe: (() => void) | null = null;
+    void wireNetworkListener((online) => {
+      if (online) void hydrateAll();
+    }).then((un) => {
+      if (cancelled) {
+        un();
+        return;
+      }
+      unsubscribe = un;
+    });
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
   }, []);
 
   return (
@@ -113,6 +132,7 @@ const App = () => {
         <Sonner />
         {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
         <BrowserRouter>
+          <NativeBackButton />
           <Routes>
             <Route path="/lock" element={
               <Suspense fallback={<PageLoader />}>
