@@ -8,6 +8,7 @@ import {
   demoRideProviders, demoRestaurants, demoEmergencyContacts,
   simulateRideRequest, type RideRequest,
 } from "@/lib/demoServices";
+import { detectCurrentLocation } from "@/lib/locationEngine";
 import { Car, UtensilsCrossed, MapPin, Shield, ChevronRight, Star, Clock, Check, Phone, Globe, Wifi, CreditCard, Umbrella, ArrowLeftRight, Hotel, Compass, Train, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ServiceCard from "@/components/services/ServiceCard";
@@ -26,8 +27,9 @@ const Services: React.FC = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("services");
   const [activeRide, setActiveRide] = useState<RideRequest | null>(null);
-  const [pickup] = useState("Marina Bay Sands");
-  const [dropoff] = useState("Changi Airport T3");
+  const location = React.useMemo(() => detectCurrentLocation(), []);
+  const [pickup] = useState(`${location.city} City Center`);
+  const [dropoff] = useState(`${location.iata} Airport`);
 
   const tabs: { key: Tab; label: string; icon: React.ElementType; gradient: string }[] = [
     { key: "services", label: "Services", icon: Globe, gradient: "bg-gradient-ocean" },
@@ -46,7 +48,7 @@ const Services: React.FC = () => {
       <AnimatedPage>
         <h1 className="text-xl font-bold text-foreground mb-1">Services</h1>
         <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-          <MapPin className="w-3 h-3 text-accent" /> Singapore — Local services available
+          <MapPin className="w-3 h-3 text-accent" /> {location.city} — Local services available
         </p>
       </AnimatedPage>
 

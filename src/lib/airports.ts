@@ -62,35 +62,6 @@ export const airports: Airport[] = [
   { name: "Jomo Kenyatta International", iata: "NBO", lat: -1.3192, lng: 36.9278, country: "Kenya", city: "Nairobi" },
 ];
 
-/** User's travel history — flights taken */
-export interface FlightRoute {
-  id: string;
-  from: string; // IATA
-  to: string;   // IATA
-  type: "past" | "upcoming" | "current";
-  airline?: string;
-  date?: string;
-  duration?: string;
-}
-
-export const flightRoutes: FlightRoute[] = [
-  { id: "f1", from: "SFO", to: "SIN", type: "upcoming", airline: "Singapore Airlines", date: "Today", duration: "18h 15m" },
-  { id: "f2", from: "JFK", to: "LHR", type: "past", airline: "British Airways", date: "Feb 12", duration: "7h 10m" },
-  { id: "f3", from: "LHR", to: "CDG", type: "past", airline: "Air France", date: "Feb 15", duration: "1h 20m" },
-  { id: "f4", from: "CDG", to: "DXB", type: "past", airline: "Emirates", date: "Feb 18", duration: "6h 40m" },
-  { id: "f5", from: "DXB", to: "DEL", type: "past", airline: "Emirates", date: "Feb 22", duration: "3h 30m" },
-  { id: "f6", from: "DEL", to: "BOM", type: "past", airline: "Air India", date: "Feb 25", duration: "2h 10m" },
-  { id: "f7", from: "BOM", to: "SFO", type: "past", airline: "United Airlines", date: "Mar 1", duration: "17h 45m" },
-  { id: "f8", from: "SIN", to: "NRT", type: "upcoming", airline: "ANA", date: "Mar 20", duration: "6h 50m" },
-];
-
-/** Countries visited */
-export const visitedCountries = [
-  "United States", "United Kingdom", "France", "UAE", "India", "Singapore",
-];
-
-export const upcomingCountries = ["Singapore", "Japan"];
-
 /** Get airport by IATA code */
 export function getAirport(iata: string): Airport | undefined {
   return airports.find(a => a.iata === iata);

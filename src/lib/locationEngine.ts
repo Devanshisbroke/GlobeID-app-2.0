@@ -1,4 +1,5 @@
-import { flightRoutes, getAirport } from "./airports";
+import { getAirport } from "./airports";
+import { useUserStore } from "@/store/userStore";
 
 export interface LocationContext {
   country: string;
@@ -22,7 +23,12 @@ const locationProfiles: Record<string, Omit<LocationContext, "country" | "city" 
 
 /** Detect location from most recent upcoming flight destination */
 export function detectCurrentLocation(): LocationContext {
-  const upcoming = flightRoutes.find((f) => f.type === "upcoming");
+  const records = useUserStore.getState().travelHistory;
+  // Sort upcoming/current trips by date and take the soonest.
+  const upcoming = records
+    .filter((r) => r.type === "upcoming" || r.type === "current")
+    .slice()
+    .sort((a, b) => a.date.localeCompare(b.date))[0];
   if (upcoming) {
     const apt = getAirport(upcoming.to);
     if (apt) {

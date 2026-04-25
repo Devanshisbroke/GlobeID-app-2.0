@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface WalletBalance {
   currency: string;
@@ -60,50 +61,55 @@ const defaultTransactions: WalletTransaction[] = [
   { id: "tx12", type: "payment", description: "Street Food Market", merchant: "Chandni Chowk", amount: -850, currency: "INR", date: "2025-02-18", category: "food", location: "Old Delhi", country: "India", countryFlag: "🇮🇳", icon: "UtensilsCrossed" },
 ];
 
-export const useWalletStore = create<WalletState>((set) => ({
-  balances: defaultBalances,
-  transactions: defaultTransactions,
-  defaultCurrency: "USD",
-  activeCountry: null,
-  setDefaultCurrency: (c) => set({ defaultCurrency: c }),
-  setActiveCountry: (c) => set({ activeCountry: c }),
-  convertCurrency: (from, to, amount) =>
-    set((state) => {
-      const fromBal = state.balances.find((b) => b.currency === from);
-      const toBal = state.balances.find((b) => b.currency === to);
-      if (!fromBal || !toBal || fromBal.amount < amount) return state;
-      const usdAmount = amount * fromBal.rate;
-      const converted = usdAmount / toBal.rate;
-      const tx: WalletTransaction = {
-        id: `tx-${Date.now()}`,
-        type: "convert",
-        description: `${from} → ${to}`,
-        amount: -amount,
-        currency: from,
-        date: new Date().toISOString().split("T")[0],
-        category: "transfer",
-        icon: "RefreshCw",
-      };
-      return {
-        balances: state.balances.map((b) => {
-          if (b.currency === from) return { ...b, amount: b.amount - amount };
-          if (b.currency === to) return { ...b, amount: b.amount + converted };
-          return b;
+export const useWalletStore = create<WalletState>()(
+  persist(
+    (set) => ({
+      balances: defaultBalances,
+      transactions: defaultTransactions,
+      defaultCurrency: "USD",
+      activeCountry: null,
+      setDefaultCurrency: (c) => set({ defaultCurrency: c }),
+      setActiveCountry: (c) => set({ activeCountry: c }),
+      convertCurrency: (from, to, amount) =>
+        set((state) => {
+          const fromBal = state.balances.find((b) => b.currency === from);
+          const toBal = state.balances.find((b) => b.currency === to);
+          if (!fromBal || !toBal || fromBal.amount < amount) return state;
+          const usdAmount = amount * fromBal.rate;
+          const converted = usdAmount / toBal.rate;
+          const tx: WalletTransaction = {
+            id: `tx-${Date.now()}`,
+            type: "convert",
+            description: `${from} → ${to}`,
+            amount: -amount,
+            currency: from,
+            date: new Date().toISOString().split("T")[0],
+            category: "transfer",
+            icon: "RefreshCw",
+          };
+          return {
+            balances: state.balances.map((b) => {
+              if (b.currency === from) return { ...b, amount: b.amount - amount };
+              if (b.currency === to) return { ...b, amount: b.amount + converted };
+              return b;
+            }),
+            transactions: [tx, ...state.transactions],
+          };
         }),
-        transactions: [tx, ...state.transactions],
-      };
+      addTransaction: (tx) => set((state) => ({ transactions: [tx, ...state.transactions] })),
+      deductBalance: (currency, amount) =>
+        set((state) => ({
+          balances: state.balances.map((b) =>
+            b.currency === currency ? { ...b, amount: Math.max(0, b.amount - amount) } : b
+          ),
+        })),
+      addBalance: (currency, amount) =>
+        set((state) => ({
+          balances: state.balances.map((b) =>
+            b.currency === currency ? { ...b, amount: b.amount + amount } : b
+          ),
+        })),
     }),
-  addTransaction: (tx) => set((state) => ({ transactions: [tx, ...state.transactions] })),
-  deductBalance: (currency, amount) =>
-    set((state) => ({
-      balances: state.balances.map((b) =>
-        b.currency === currency ? { ...b, amount: Math.max(0, b.amount - amount) } : b
-      ),
-    })),
-  addBalance: (currency, amount) =>
-    set((state) => ({
-      balances: state.balances.map((b) =>
-        b.currency === currency ? { ...b, amount: b.amount + amount } : b
-      ),
-    })),
-}));
+    { name: "globe-wallet" }
+  )
+);

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface TravelAlert {
   id: string;
@@ -59,15 +60,20 @@ const defaultAlerts: TravelAlert[] = [
   },
 ];
 
-export const useAlertsStore = create<AlertsState>((set, get) => ({
-  alerts: defaultAlerts,
-  markRead: (id) =>
-    set((state) => ({
-      alerts: state.alerts.map((a) => (a.id === id ? { ...a, read: true } : a)),
-    })),
-  dismissAlert: (id) =>
-    set((state) => ({
-      alerts: state.alerts.filter((a) => a.id !== id),
-    })),
-  unreadCount: () => get().alerts.filter((a) => !a.read).length,
-}));
+export const useAlertsStore = create<AlertsState>()(
+  persist(
+    (set, get) => ({
+      alerts: defaultAlerts,
+      markRead: (id) =>
+        set((state) => ({
+          alerts: state.alerts.map((a) => (a.id === id ? { ...a, read: true } : a)),
+        })),
+      dismissAlert: (id) =>
+        set((state) => ({
+          alerts: state.alerts.filter((a) => a.id !== id),
+        })),
+      unreadCount: () => get().alerts.filter((a) => !a.read).length,
+    }),
+    { name: "globe-alerts" }
+  )
+);

@@ -1,4 +1,5 @@
-import { getAirport, flightRoutes, type FlightRoute, type Airport } from "@/lib/airports";
+import { getAirport, type Airport } from "@/lib/airports";
+import { useUserStore, type TravelRecord } from "@/store/userStore";
 
 /* ── Timeline Entry ── */
 export interface TimelineEntry {
@@ -17,7 +18,8 @@ export interface TimelineEntry {
   flightNumber: string;
   duration: string;
   continent: string;
-  type: FlightRoute["type"];
+  type: TravelRecord["type"];
+  source: TravelRecord["source"];
 }
 
 /* ── Continent mapping ── */
@@ -68,53 +70,55 @@ function haversine(a: Airport, b: Airport): number {
   return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
 }
 
-const flightNumbers: Record<string, string> = {
-  f1: "SQ 31",
-  f2: "BA 178",
-  f3: "AF 1681",
-  f4: "EK 73",
-  f5: "EK 510",
-  f6: "AI 865",
-  f7: "UA 23",
-  f8: "NH 802",
-};
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const fullDates: Record<string, { full: string; year: number; month: string }> = {
-  f1: { full: "2026-03-10", year: 2026, month: "Mar" },
-  f2: { full: "2026-02-12", year: 2026, month: "Feb" },
-  f3: { full: "2026-02-15", year: 2026, month: "Feb" },
-  f4: { full: "2026-02-18", year: 2026, month: "Feb" },
-  f5: { full: "2026-02-22", year: 2026, month: "Feb" },
-  f6: { full: "2026-02-25", year: 2026, month: "Feb" },
-  f7: { full: "2026-03-01", year: 2026, month: "Mar" },
-  f8: { full: "2026-03-20", year: 2026, month: "Mar" },
-};
+function parseDate(date: string): { year: number; month: string } {
+  // Canonical YYYY-MM-DD
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (m) {
+    const year = Number(m[1]);
+    const month = MONTH_NAMES[Number(m[2]) - 1] ?? "Jan";
+    return { year, month };
+  }
+  // Fallback for any non-canonical date string
+  const d = new Date(date);
+  if (!Number.isNaN(d.getTime())) {
+    return { year: d.getFullYear(), month: MONTH_NAMES[d.getMonth()] };
+  }
+  return { year: 2026, month: "Mar" };
+}
 
 /* ── Build timeline ── */
-export function buildTimeline(): TimelineEntry[] {
-  return flightRoutes
-    .map((fr) => {
-      const orig = getAirport(fr.from);
-      const dest = getAirport(fr.to);
+/**
+ * Builds timeline entries from the user's travel history. If `records`
+ * is omitted, reads the current snapshot from `useUserStore`.
+ */
+export function buildTimeline(records?: TravelRecord[]): TimelineEntry[] {
+  const source = records ?? useUserStore.getState().travelHistory;
+  return source
+    .map((r) => {
+      const orig = getAirport(r.from);
+      const dest = getAirport(r.to);
       if (!orig || !dest) return null;
-      const d = fullDates[fr.id] ?? { full: fr.date ?? "", year: 2026, month: "Mar" };
+      const { year, month } = parseDate(r.date);
       return {
-        id: fr.id,
-        originIata: fr.from,
-        destinationIata: fr.to,
+        id: r.id,
+        originIata: r.from,
+        destinationIata: r.to,
         originCity: orig.city,
         destinationCity: dest.city,
         originCountry: orig.country,
         destinationCountry: dest.country,
-        date: d.full,
-        year: d.year,
-        month: d.month,
+        date: r.date,
+        year,
+        month,
         distance: Math.round(haversine(orig, dest)),
-        airline: fr.airline ?? "",
-        flightNumber: flightNumbers[fr.id] ?? "",
-        duration: fr.duration ?? "",
+        airline: r.airline,
+        flightNumber: r.flightNumber ?? "",
+        duration: r.duration,
         continent: getContinent(dest.country),
-        type: fr.type,
+        type: r.type,
+        source: r.source,
       } as TimelineEntry;
     })
     .filter(Boolean) as TimelineEntry[];

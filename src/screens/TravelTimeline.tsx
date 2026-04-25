@@ -9,6 +9,7 @@ import {
   computeAchievements,
   type TimelineEntry,
 } from "@/lib/travelTimeline";
+import { useUserStore } from "@/store/userStore";
 import { getIcon } from "@/lib/iconMap";
 import { spring, easing } from "@/motion/motionConfig";
 import { cinematicEase, cinematicDuration } from "@/cinematic/motionEngine";
@@ -61,7 +62,8 @@ const TravelTimeline: React.FC = () => {
   const [replaying, setReplaying] = useState(false);
   const [replayIndex, setReplayIndex] = useState(0);
 
-  const allEntries = useMemo(() => buildTimeline(), []);
+  const travelHistory = useUserStore((s) => s.travelHistory);
+  const allEntries = useMemo(() => buildTimeline(travelHistory), [travelHistory]);
   const stats = useMemo(() => computeStats(allEntries), [allEntries]);
   const achievements = useMemo(() => computeAchievements(stats), [stats]);
 
