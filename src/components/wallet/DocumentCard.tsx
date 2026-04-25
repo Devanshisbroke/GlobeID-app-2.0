@@ -10,10 +10,10 @@ interface DocumentCardProps {
 }
 
 const typeConfig = {
-  passport: { icon: FileText, gradient: "bg-gradient-ocean", label: "Passport" },
-  visa: { icon: ShieldCheck, gradient: "bg-gradient-cosmic", label: "Visa" },
-  boarding_pass: { icon: Plane, gradient: "bg-gradient-sunset", label: "Boarding Pass" },
-  travel_insurance: { icon: CreditCard, gradient: "bg-gradient-forest", label: "Insurance" },
+  passport: { icon: FileText, gradient: "bg-gradient-brand", label: "Passport" },
+  visa: { icon: ShieldCheck, gradient: "bg-gradient-brand", label: "Visa" },
+  boarding_pass: { icon: Plane, gradient: "bg-gradient-brand", label: "Boarding Pass" },
+  travel_insurance: { icon: CreditCard, gradient: "bg-gradient-brand", label: "Insurance" },
 };
 
 const statusColors = {

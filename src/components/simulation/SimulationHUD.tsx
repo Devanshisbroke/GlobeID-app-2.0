@@ -33,7 +33,7 @@ const SimulationHUD: React.FC<Props> = ({ speed }) => {
   const items = [
     { icon: Plane, label: "Flights", value: flights.toLocaleString(), color: "text-primary" },
     { icon: Users, label: "Passengers", value: passengers.toLocaleString(), color: "text-accent" },
-    { icon: Route, label: "Routes", value: routes.toLocaleString(), color: "text-neon-amber" },
+    { icon: Route, label: "Routes", value: routes.toLocaleString(), color: "text-warning" },
   ];
 
   return (

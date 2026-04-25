@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { duration, easing } from "@/motion/motionConfig";
 
 interface AnimatedPageProps {
   children: React.ReactNode;
@@ -10,8 +11,7 @@ interface AnimatedPageProps {
 
 /**
  * Optimized animated page section.
- * Removed blur filter animation for GPU performance.
- * Uses only opacity + translateY (composited properties).
+ * Phase 5 PR-α: ad-hoc duration/ease literals replaced with canonical motion tokens.
  */
 const AnimatedPage: React.FC<AnimatedPageProps> = ({
   children,
@@ -23,8 +23,8 @@ const AnimatedPage: React.FC<AnimatedPageProps> = ({
     initial={{ opacity: 0, y: 14 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{
-      duration: 0.28,
-      ease: [0.22, 1, 0.36, 1],
+      duration: duration.smooth,
+      ease: easing.cinematic,
       delay: staggerIndex !== undefined ? staggerIndex * 0.04 : 0,
     }}
   >

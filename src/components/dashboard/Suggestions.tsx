@@ -18,8 +18,8 @@ const KIND_ICON: Record<Recommendation["kind"], React.ComponentType<{ className?
 
 const KIND_GRADIENT: Record<Recommendation["kind"], string> = {
   trip_continuation: "bg-gradient-to-br from-accent to-primary",
-  next_destination: "bg-gradient-to-br from-primary to-neon-amber",
-  currency_action: "bg-gradient-to-br from-neon-amber to-primary",
+  next_destination: "bg-gradient-to-br from-primary to-warning",
+  currency_action: "bg-gradient-to-br from-warning to-primary",
   readiness: "bg-gradient-to-br from-primary to-accent",
 };
 

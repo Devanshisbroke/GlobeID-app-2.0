@@ -27,7 +27,7 @@ const UpcomingTrips: React.FC = () => {
             onClick={() => navigate("/map")}
           >
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-gradient-ocean flex items-center justify-center shrink-0 shadow-glow-sm">
+              <div className="w-11 h-11 rounded-xl bg-gradient-brand flex items-center justify-center shrink-0 shadow-glow-sm">
                 <Plane className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
               </div>
               <div className="flex-1 min-w-0">

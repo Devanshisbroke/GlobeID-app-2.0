@@ -1,32 +1,36 @@
 import React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { cinematicCard, cinematicEase, cinematicDuration } from "@/cinematic/motionEngine";
+import { cinematicCard } from "@/cinematic/motionEngine";
 import { useReducedEffects } from "@/hooks/useReducedEffects";
 
 interface UltraGlassProps extends Omit<HTMLMotionProps<"div">, "children"> {
   children: React.ReactNode;
-  /** Depth layer level */
-  depth?: 1 | 2 | 3;
-  /** Enable animated light sweep */
+  /** Depth layer level (1 = surface, 2 = elevated). depth=3 removed in Phase 5 PR-α. */
+  depth?: 1 | 2;
+  /** @deprecated removed in Phase 5 PR-α (perceived-noise win). Prop preserved for API compat. */
   lightSweep?: boolean;
-  /** Enable gradient edge highlights */
+  /** @deprecated removed in Phase 5 PR-α. Prop preserved for API compat. */
   edgeHighlight?: boolean;
   /** Interactive hover/tap */
   interactive?: boolean;
   className?: string;
 }
 
+/**
+ * UltraGlass — layered glass surface.
+ *
+ * Phase 5 PR-α: stripped of `lightSweep`, `edgeHighlight`, and `depth=3`.
+ * The component now renders a single calm glass with one inner shine.
+ * Old props are accepted (no-op) so callers don't need to change.
+ */
 const UltraGlass = React.forwardRef<HTMLDivElement, UltraGlassProps>(
-  ({ children, depth = 1, lightSweep = true, edgeHighlight = false, interactive = true, className, ...props }, ref) => {
+  ({ children, depth = 1, interactive = true, className, lightSweep: _lightSweep, edgeHighlight: _edgeHighlight, ...props }, ref) => {
     const reduced = useReducedEffects();
-    // Lightsweep + extra blur passes are paint-bound and the dominant
-    // cost on Android WebView. Trim them out on mobile/reduced-motion.
     const blurValue = reduced
-      ? (depth === 1 ? 16 : depth === 2 ? 22 : 28)
-      : (depth === 1 ? 24 : depth === 2 ? 32 : 40);
-    const bgOpacity = depth === 1 ? 0.7 : depth === 2 ? 0.6 : 0.5;
-    const showLightSweep = lightSweep && !reduced;
+      ? (depth === 1 ? 16 : 22)
+      : (depth === 1 ? 20 : 28);
+    const bgOpacity = depth === 1 ? 0.7 : 0.6;
 
     return (
       <motion.div
@@ -37,16 +41,16 @@ const UltraGlass = React.forwardRef<HTMLDivElement, UltraGlassProps>(
           className
         )}
         style={{
-          background: `linear-gradient(145deg, hsl(var(--card) / ${bgOpacity + 0.15}) 0%, hsl(var(--card) / ${bgOpacity}) 50%, hsl(var(--card) / ${bgOpacity + 0.08}) 100%)`,
+          background: `linear-gradient(145deg, hsl(var(--card) / ${bgOpacity + 0.12}) 0%, hsl(var(--card) / ${bgOpacity}) 100%)`,
           border: "1px solid hsl(var(--glass-border))",
-          backdropFilter: `blur(${blurValue}px) saturate(${1.2 + depth * 0.2})`,
-          WebkitBackdropFilter: `blur(${blurValue}px) saturate(${1.2 + depth * 0.2})`,
-          boxShadow: `var(--shadow-${depth === 1 ? "md" : depth === 2 ? "lg" : "xl"})`,
+          backdropFilter: `blur(${blurValue}px) saturate(1.3)`,
+          WebkitBackdropFilter: `blur(${blurValue}px) saturate(1.3)`,
+          boxShadow: `var(--shadow-${depth === 1 ? "md" : "lg"})`,
         }}
         {...(interactive ? cinematicCard : {})}
         {...props}
       >
-        {/* Internal glass reflection */}
+        {/* Single inner shine — no light-sweep, no edge gradient, no radial overlay */}
         <div
           className="absolute inset-0 pointer-events-none rounded-[inherit]"
           style={{
@@ -54,40 +58,6 @@ const UltraGlass = React.forwardRef<HTMLDivElement, UltraGlassProps>(
           }}
         />
 
-        {/* Depth blur layer */}
-        {depth >= 2 && (
-          <div
-            className="absolute inset-0 pointer-events-none rounded-[inherit]"
-            style={{
-              background: `radial-gradient(ellipse at 50% 0%, hsl(var(--primary) / ${0.02 * depth}) 0%, transparent 60%)`,
-            }}
-          />
-        )}
-
-        {/* Gradient edge highlights */}
-        {edgeHighlight && (
-          <div
-            className="absolute inset-0 pointer-events-none rounded-[inherit]"
-            style={{
-              background: "linear-gradient(135deg, hsl(var(--blue-start) / 0.06) 0%, transparent 30%, transparent 70%, hsl(var(--tropical-start) / 0.04) 100%)",
-            }}
-          />
-        )}
-
-        {/* Animated light sweep */}
-        {showLightSweep && (
-          <motion.div
-            className="absolute inset-0 pointer-events-none rounded-[inherit]"
-            style={{
-              background: "linear-gradient(115deg, transparent 30%, hsl(0 0% 100% / 0.03) 45%, hsl(0 0% 100% / 0.06) 50%, hsl(0 0% 100% / 0.03) 55%, transparent 70%)",
-              backgroundSize: "250% 100%",
-            }}
-            animate={{ backgroundPosition: ["-100% 0%", "250% 0%"] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "linear", repeatDelay: 3 }}
-          />
-        )}
-
-        {/* Content */}
         <div className="relative z-10 p-4">{children}</div>
       </motion.div>
     );

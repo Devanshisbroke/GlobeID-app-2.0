@@ -86,7 +86,7 @@ const QRScanner: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         disabled={scanning}
         className={cn(
           "w-full py-3 rounded-xl text-sm font-semibold min-h-[48px] flex items-center justify-center gap-2 transition-all",
-          "bg-gradient-cosmic text-primary-foreground shadow-glow-md disabled:opacity-40"
+          "bg-gradient-brand text-primary-foreground shadow-glow-md disabled:opacity-40"
         )}
       >
         <ScanLine className="w-4 h-4" />

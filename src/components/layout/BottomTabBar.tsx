@@ -8,12 +8,12 @@ import { spring } from "@/motion/motionConfig";
 import { uiSound } from "@/cinematic/uiSound";
 
 const tabs = [
-  { path: "/", icon: Home, label: "Home", gradient: "from-primary to-neon-cyan" },
-  { path: "/identity", icon: Shield, label: "Identity", gradient: "from-accent to-forest-mint" },
-  { path: "/wallet", icon: Wallet, label: "Wallet", gradient: "from-neon-teal to-forest-emerald" },
-  { path: "/travel", icon: Plane, label: "Travel", gradient: "from-neon-indigo to-cosmic-electric" },
-  { path: "/map", icon: Navigation, label: "Map", gradient: "from-neon-amber to-sunset-gold" },
-  { path: "/services", icon: LayoutGrid, label: "Services", gradient: "from-neon-magenta to-aurora-pink" },
+  { path: "/", icon: Home, label: "Home", gradient: "from-primary to-primary" },
+  { path: "/identity", icon: Shield, label: "Identity", gradient: "from-accent to-accent" },
+  { path: "/wallet", icon: Wallet, label: "Wallet", gradient: "from-accent to-accent" },
+  { path: "/travel", icon: Plane, label: "Travel", gradient: "from-primary to-primary" },
+  { path: "/map", icon: Navigation, label: "Map", gradient: "from-warning to-warning" },
+  { path: "/services", icon: LayoutGrid, label: "Services", gradient: "from-accent to-accent" },
 ];
 
 const BottomTabBar: React.FC = () => {

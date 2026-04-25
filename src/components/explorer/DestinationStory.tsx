@@ -9,7 +9,7 @@ interface Props {
 
 const sections = [
   { key: "highlights", label: "Culture & Experiences", icon: Sparkles, colorClass: "text-accent" },
-  { key: "cuisine", label: "Local Cuisine", icon: Utensils, colorClass: "text-sunset-gold" },
+  { key: "cuisine", label: "Local Cuisine", icon: Utensils, colorClass: "text-warning" },
   { key: "landmarks", label: "Must-See Landmarks", icon: Landmark, colorClass: "text-primary" },
 ] as const;
 

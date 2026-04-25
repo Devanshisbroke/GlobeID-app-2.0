@@ -87,7 +87,7 @@ const LockScreen: React.FC = () => {
           onClick={() => navigate("/identity")}
           className={cn(
             "relative mt-4 px-8 py-4 rounded-2xl font-semibold text-primary-foreground",
-            "bg-gradient-to-r from-neon-indigo via-neon-cyan to-neon-teal",
+            "bg-gradient-to-r from-primary via-primary to-accent",
             "shadow-[0_0_30px_hsl(var(--neon-cyan)/0.4)]",
             "transition-all duration-[var(--motion-small)] ease-[var(--ease-out-expo)]",
             "active:scale-95 hover:shadow-[0_0_40px_hsl(var(--neon-cyan)/0.6)]",

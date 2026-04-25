@@ -42,91 +42,40 @@
     --glass-shine: 0 0% 100% / 0.6;
     --glass-inner: 0 0% 100% / 0.5;
 
-    /* ── Ocean Palette ── */
-    --ocean-deep: 220 80% 42%;
-    --ocean-blue: 220 80% 56%;
-    --ocean-aqua: 200 85% 52%;
-    --ocean-turquoise: 185 72% 48%;
-    --ocean-sky: 200 85% 68%;
+    /* ── Warning (semantic — replaces neon-amber for stars/ratings) ── */
+    --warning: 36 92% 50%;
+    --warning-foreground: 30 30% 12%;
 
-    /* ── Sunset Palette ── */
-    --sunset-coral: 12 80% 58%;
-    --sunset-orange: 25 95% 55%;
-    --sunset-gold: 42 92% 56%;
-    --sunset-red: 0 72% 55%;
+    /* ── Brand Gradient (single — primary → accent) ── */
+    --gradient-brand: linear-gradient(135deg, hsl(220 80% 56%) 0%, hsl(168 65% 42%) 100%);
+    --gradient-brand-soft: linear-gradient(135deg, hsl(220 80% 56% / 0.12) 0%, hsl(168 65% 42% / 0.08) 100%);
+    --gradient-mesh: radial-gradient(at 20% 20%, hsl(220 80% 56% / 0.05) 0%, transparent 50%),
+                     radial-gradient(at 80% 80%, hsl(168 65% 42% / 0.04) 0%, transparent 50%);
 
-    /* ── Aurora Palette ── */
-    --aurora-purple: 258 60% 62%;
-    --aurora-violet: 270 55% 60%;
-    --aurora-magenta: 310 65% 55%;
-    --aurora-pink: 330 68% 62%;
-
-    /* ── Forest Palette ── */
-    --forest-emerald: 155 72% 40%;
-    --forest-mint: 160 50% 55%;
-    --forest-jade: 168 65% 42%;
-    --forest-teal: 175 60% 45%;
-
-    /* ── Cosmic Palette ── */
-    --cosmic-indigo: 235 70% 55%;
-    --cosmic-ultra: 250 75% 58%;
-    --cosmic-electric: 220 90% 60%;
-    --cosmic-neon: 280 70% 58%;
-
-    /* ── Multi-Color Accent System ── */
-    --blue-start: 220 80% 56%;
-    --blue-end: 200 85% 58%;
-    --purple-start: 258 60% 62%;
-    --purple-end: 270 55% 70%;
-    --warm-start: 25 95% 55%;
-    --warm-end: 36 90% 62%;
-    --tropical-start: 168 65% 42%;
-    --tropical-end: 145 70% 60%;
-    --magenta-start: 310 65% 55%;
-    --magenta-end: 330 60% 60%;
-
-    /* Legacy compat */
-    --neon-indigo: 220 80% 56%;
-    --neon-cyan: 200 85% 58%;
-    --neon-teal: 168 65% 42%;
-    --neon-magenta: 310 65% 55%;
-    --neon-amber: 36 90% 55%;
-    --neon-glow: 220 80% 56% / 0.15;
-
-    /* ── Gradient Tokens ── */
-    --gradient-blue: linear-gradient(135deg, hsl(220, 80%, 56%), hsl(200, 85%, 58%));
-    --gradient-purple: linear-gradient(135deg, hsl(258, 60%, 62%), hsl(270, 55%, 70%));
-    --gradient-warm: linear-gradient(135deg, hsl(25, 95%, 55%), hsl(36, 90%, 62%));
-    --gradient-tropical: linear-gradient(135deg, hsl(168, 65%, 42%), hsl(145, 70%, 60%));
-    --gradient-magenta: linear-gradient(135deg, hsl(310, 65%, 55%), hsl(270, 55%, 65%));
-    --gradient-primary: linear-gradient(135deg, hsl(220, 80%, 56%), hsl(258, 60%, 62%));
-    --gradient-ocean: linear-gradient(135deg, hsl(220, 80%, 42%), hsl(200, 85%, 52%), hsl(185, 72%, 48%));
-    --gradient-sunset: linear-gradient(135deg, hsl(12, 80%, 58%), hsl(25, 95%, 55%), hsl(42, 92%, 56%));
-    --gradient-aurora: linear-gradient(135deg, hsl(258, 60%, 62%), hsl(310, 65%, 55%), hsl(330, 68%, 62%));
-    --gradient-forest: linear-gradient(135deg, hsl(155, 72%, 40%), hsl(168, 65%, 42%), hsl(175, 60%, 45%));
-    --gradient-cosmic: linear-gradient(135deg, hsl(235, 70%, 55%), hsl(250, 75%, 58%), hsl(280, 70%, 58%));
-    --gradient-mesh: radial-gradient(at 20% 20%, hsl(220 80% 56% / 0.06) 0%, transparent 50%),
-                     radial-gradient(at 80% 80%, hsl(168 65% 42% / 0.04) 0%, transparent 50%),
-                     radial-gradient(at 50% 50%, hsl(310 65% 55% / 0.03) 0%, transparent 60%);
-
-    /* ── Motion Tokens ── */
-    --motion-micro: 120ms;
-    --motion-small: 180ms;
-    --motion-medium: 260ms;
-    --motion-long: 380ms;
-    --motion-cinematic: 500ms;
-    --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
-    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* ── Motion Tokens (4-step) ── */
+    --motion-fast: 120ms;
+    --motion-base: 200ms;
+    --motion-slow: 320ms;
+    --motion-hero: 520ms;
+    /* Legacy aliases — kept for one PR cycle so existing utilities don't break. */
+    --motion-micro: var(--motion-fast);
+    --motion-small: var(--motion-base);
+    --motion-medium: var(--motion-slow);
+    --motion-long: var(--motion-slow);
+    --motion-cinematic: var(--motion-hero);
     --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
-    --ease-snap: cubic-bezier(0.2, 0, 0, 1);
+    --ease-out-expo: var(--ease-cinematic);
+    --ease-spring: var(--ease-cinematic);
+    --ease-snap: var(--ease-cinematic);
 
     /* ── Depth Shadows (Light) ── */
     --shadow-sm: 0 1px 3px hsl(220 20% 70% / 0.12), 0 1px 2px hsl(220 20% 70% / 0.08);
     --shadow-md: 0 4px 12px hsl(220 20% 60% / 0.1), 0 2px 4px hsl(220 20% 60% / 0.06);
     --shadow-lg: 0 8px 30px hsl(220 20% 50% / 0.12), 0 4px 8px hsl(220 20% 50% / 0.08);
     --shadow-xl: 0 16px 50px hsl(220 20% 50% / 0.15), 0 8px 16px hsl(220 20% 50% / 0.1);
-    --shadow-glow-cyan: 0 0 20px hsl(200 85% 58% / 0.15);
-    --shadow-glow-indigo: 0 0 20px hsl(220 80% 56% / 0.15);
+    --shadow-glow: 0 0 20px hsl(220 80% 56% / 0.15);
+    --shadow-glow-cyan: var(--shadow-glow);
+    --shadow-glow-indigo: var(--shadow-glow);
 
     /* ── Sidebar ── */
     --sidebar-background: 220 20% 97%;
@@ -176,79 +125,24 @@
     --glass-shine: 0 0% 100% / 0.04;
     --glass-inner: 0 0% 100% / 0.03;
 
-    /* ── Ocean Palette (Dark) ── */
-    --ocean-deep: 220 85% 50%;
-    --ocean-blue: 220 85% 62%;
-    --ocean-aqua: 200 90% 56%;
-    --ocean-turquoise: 185 76% 52%;
-    --ocean-sky: 200 90% 70%;
+    /* ── Warning (Dark) ── */
+    --warning: 36 92% 58%;
+    --warning-foreground: 30 30% 8%;
 
-    /* ── Sunset Palette (Dark) ── */
-    --sunset-coral: 12 82% 62%;
-    --sunset-orange: 25 95% 58%;
-    --sunset-gold: 42 94% 58%;
-    --sunset-red: 0 74% 58%;
-
-    /* ── Aurora Palette (Dark) ── */
-    --aurora-purple: 258 65% 65%;
-    --aurora-violet: 270 60% 65%;
-    --aurora-magenta: 310 70% 58%;
-    --aurora-pink: 330 72% 65%;
-
-    /* ── Forest Palette (Dark) ── */
-    --forest-emerald: 155 75% 45%;
-    --forest-mint: 160 55% 58%;
-    --forest-jade: 168 70% 48%;
-    --forest-teal: 175 65% 50%;
-
-    /* ── Cosmic Palette (Dark) ── */
-    --cosmic-indigo: 235 75% 62%;
-    --cosmic-ultra: 250 78% 65%;
-    --cosmic-electric: 220 92% 65%;
-    --cosmic-neon: 280 75% 62%;
-
-    /* ── Multi-Color Accent System (Dark - brighter) ── */
-    --blue-start: 220 85% 62%;
-    --blue-end: 200 90% 60%;
-    --purple-start: 258 65% 65%;
-    --purple-end: 270 60% 72%;
-    --warm-start: 25 95% 58%;
-    --warm-end: 36 92% 65%;
-    --tropical-start: 168 70% 48%;
-    --tropical-end: 145 75% 58%;
-    --magenta-start: 310 70% 58%;
-    --magenta-end: 330 65% 62%;
-
-    --neon-indigo: 220 85% 62%;
-    --neon-cyan: 200 90% 60%;
-    --neon-teal: 168 70% 48%;
-    --neon-magenta: 310 70% 58%;
-    --neon-amber: 36 92% 58%;
-    --neon-glow: 220 85% 62% / 0.25;
-
-    --gradient-blue: linear-gradient(135deg, hsl(220, 85%, 62%), hsl(200, 90%, 60%));
-    --gradient-purple: linear-gradient(135deg, hsl(258, 65%, 65%), hsl(270, 60%, 72%));
-    --gradient-warm: linear-gradient(135deg, hsl(25, 95%, 58%), hsl(36, 92%, 65%));
-    --gradient-tropical: linear-gradient(135deg, hsl(168, 70%, 48%), hsl(145, 75%, 58%));
-    --gradient-magenta: linear-gradient(135deg, hsl(310, 70%, 58%), hsl(270, 60%, 65%));
-    --gradient-primary: linear-gradient(135deg, hsl(220, 85%, 62%), hsl(258, 65%, 65%));
-    --gradient-ocean: linear-gradient(135deg, hsl(220, 85%, 50%), hsl(200, 90%, 56%), hsl(185, 76%, 52%));
-    --gradient-sunset: linear-gradient(135deg, hsl(12, 82%, 62%), hsl(25, 95%, 58%), hsl(42, 94%, 58%));
-    --gradient-aurora: linear-gradient(135deg, hsl(258, 65%, 65%), hsl(310, 70%, 58%), hsl(330, 72%, 65%));
-    --gradient-forest: linear-gradient(135deg, hsl(155, 75%, 45%), hsl(168, 70%, 48%), hsl(175, 65%, 50%));
-    --gradient-cosmic: linear-gradient(135deg, hsl(235, 75%, 62%), hsl(250, 78%, 65%), hsl(280, 75%, 62%));
-    --gradient-mesh: radial-gradient(at 20% 20%, hsl(220 85% 62% / 0.1) 0%, transparent 50%),
-                     radial-gradient(at 80% 80%, hsl(168 70% 48% / 0.07) 0%, transparent 50%),
-                     radial-gradient(at 40% 70%, hsl(310 70% 58% / 0.05) 0%, transparent 60%),
-                     radial-gradient(at 70% 20%, hsl(258 65% 65% / 0.04) 0%, transparent 50%);
+    /* ── Brand Gradient (Dark) ── */
+    --gradient-brand: linear-gradient(135deg, hsl(220 85% 62%) 0%, hsl(168 70% 48%) 100%);
+    --gradient-brand-soft: linear-gradient(135deg, hsl(220 85% 62% / 0.18) 0%, hsl(168 70% 48% / 0.12) 100%);
+    --gradient-mesh: radial-gradient(at 20% 20%, hsl(220 85% 62% / 0.08) 0%, transparent 50%),
+                     radial-gradient(at 80% 80%, hsl(168 70% 48% / 0.06) 0%, transparent 50%);
 
     /* ── Depth Shadows (Dark) ── */
     --shadow-sm: 0 1px 3px hsl(0 0% 0% / 0.3), 0 1px 2px hsl(0 0% 0% / 0.2);
     --shadow-md: 0 4px 12px hsl(0 0% 0% / 0.35), 0 2px 4px hsl(0 0% 0% / 0.25);
     --shadow-lg: 0 8px 30px hsl(0 0% 0% / 0.4), 0 4px 8px hsl(0 0% 0% / 0.3);
     --shadow-xl: 0 16px 50px hsl(0 0% 0% / 0.5), 0 8px 16px hsl(0 0% 0% / 0.35);
-    --shadow-glow-cyan: 0 0 20px hsl(200 90% 60% / 0.2), 0 0 40px hsl(200 90% 60% / 0.1);
-    --shadow-glow-indigo: 0 0 20px hsl(220 85% 62% / 0.2), 0 0 40px hsl(220 85% 62% / 0.1);
+    --shadow-glow: 0 0 20px hsl(220 85% 62% / 0.2), 0 0 40px hsl(220 85% 62% / 0.1);
+    --shadow-glow-cyan: var(--shadow-glow);
+    --shadow-glow-indigo: var(--shadow-glow);
 
     /* ── Sidebar (Dark) ── */
     --sidebar-background: 228 18% 4%;
@@ -361,16 +255,16 @@
     pointer-events: none;
   }
 
-  /* ── Neon Glow ── */
-  .neon-glow { box-shadow: var(--shadow-glow-cyan); }
-  .neon-glow-subtle { box-shadow: 0 0 12px hsl(var(--neon-glow)), 0 0 24px hsl(220 80% 56% / 0.1); }
-  .neon-glow-indigo { box-shadow: var(--shadow-glow-indigo); }
+  /* ── Brand Glow (single brand, replaces neon glow) ── */
+  .neon-glow { box-shadow: var(--shadow-glow); }
+  .neon-glow-subtle { box-shadow: 0 0 12px hsl(var(--primary) / 0.15), 0 0 24px hsl(var(--primary) / 0.08); }
+  .neon-glow-indigo { box-shadow: var(--shadow-glow); }
 
   .neon-border {
-    border-image: linear-gradient(135deg, hsl(var(--neon-indigo)), hsl(var(--neon-cyan)), hsl(var(--neon-teal))) 1;
+    border-image: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent))) 1;
   }
 
-  /* ── Animated Border Glow ── */
+  /* ── Animated Border Glow (brand-only conic) ── */
   .animated-border-glow {
     position: relative;
     overflow: hidden;
@@ -380,7 +274,7 @@
     position: absolute;
     inset: -1px;
     border-radius: inherit;
-    background: conic-gradient(from 0deg, hsl(var(--blue-start)), hsl(var(--purple-start)), hsl(var(--tropical-start)), hsl(var(--magenta-start)), hsl(var(--blue-start)));
+    background: conic-gradient(from 0deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)));
     z-index: -1;
     animation: border-rotate 6s linear infinite;
     opacity: 0.4;
@@ -403,57 +297,17 @@
     pointer-events: none;
   }
 
-  /* ── Gradient Text ── */
-  .text-gradient {
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .text-gradient-blue {
-    background: var(--gradient-blue);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .text-gradient-purple {
-    background: var(--gradient-purple);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .text-gradient-warm {
-    background: var(--gradient-warm);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .text-gradient-tropical {
-    background: var(--gradient-tropical);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .text-gradient-ocean {
-    background: var(--gradient-ocean);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .text-gradient-sunset {
-    background: var(--gradient-sunset);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .text-gradient-aurora {
-    background: var(--gradient-aurora);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+  /* ── Gradient Text (single brand) ── */
+  .text-gradient,
+  .text-gradient-blue,
+  .text-gradient-ocean,
+  .text-gradient-purple,
+  .text-gradient-warm,
+  .text-gradient-tropical,
+  .text-gradient-sunset,
+  .text-gradient-aurora,
   .text-gradient-cosmic {
-    background: var(--gradient-cosmic);
+    background: var(--gradient-brand);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -465,8 +319,8 @@
     background-size: 40px 40px;
   }
   .bg-gradient-radial {
-    background: radial-gradient(ellipse at 50% 0%, hsl(var(--blue-start) / 0.06) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 100%, hsl(var(--tropical-start) / 0.04) 0%, transparent 40%);
+    background: radial-gradient(ellipse at 50% 0%, hsl(var(--primary) / 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, hsl(var(--accent) / 0.04) 0%, transparent 40%);
   }
   .bg-mesh {
     background-image: var(--gradient-mesh);
@@ -492,7 +346,7 @@
     transform: scale(0.985);
   }
 
-  /* ── Gradient Border ── */
+  /* ── Gradient Border (single brand) ── */
   .border-gradient {
     position: relative;
     border: none !important;
@@ -503,24 +357,16 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, hsl(var(--blue-start) / 0.5), hsl(var(--tropical-start) / 0.3), hsl(var(--purple-start) / 0.2));
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.5), hsl(var(--accent) / 0.3));
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
   }
 
-  /* ── Color Gradient Backgrounds ── */
-  .bg-gradient-blue { background: var(--gradient-blue); }
-  .bg-gradient-purple { background: var(--gradient-purple); }
-  .bg-gradient-warm { background: var(--gradient-warm); }
-  .bg-gradient-tropical { background: var(--gradient-tropical); }
-  .bg-gradient-magenta { background: var(--gradient-magenta); }
-  .bg-gradient-ocean { background: var(--gradient-ocean); }
-  .bg-gradient-sunset { background: var(--gradient-sunset); }
-  .bg-gradient-aurora { background: var(--gradient-aurora); }
-  .bg-gradient-forest { background: var(--gradient-forest); }
-  .bg-gradient-cosmic { background: var(--gradient-cosmic); }
+  /* ── Brand Gradient Background (single canonical class) ── */
+  .bg-gradient-brand { background: var(--gradient-brand); }
+  .bg-gradient-brand-soft { background: var(--gradient-brand-soft); }
 
   /* ── Safe Area ── */
   .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -540,7 +386,7 @@
   .hide-scrollbar::-webkit-scrollbar { display: none; }
 
   /* ── Tab Bar Glow ── */
-  .tab-glow { filter: drop-shadow(0 0 8px hsl(var(--neon-cyan) / 0.6)); }
+  .tab-glow { filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.6)); }
 
   /* ── Section Reveal ── */
   .section-reveal { animation: fade-in var(--motion-medium, 400ms) var(--ease-out-expo) both; }

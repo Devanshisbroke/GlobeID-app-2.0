@@ -12,7 +12,7 @@ interface ServiceCardProps {
   className?: string;
 }
 
-const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon, gradient = "bg-gradient-ocean", onAction, className }) => {
+const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon, gradient = "bg-gradient-brand", onAction, className }) => {
   return (
     <GlassCard className={cn("flex items-center gap-3 cursor-pointer touch-bounce", className)} onClick={onAction}>
       <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-depth-sm", gradient)}>

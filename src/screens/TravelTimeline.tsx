@@ -96,10 +96,10 @@ const TravelTimeline: React.FC = () => {
   };
 
   const statCards = [
-    { icon: Globe, label: "Countries", value: stats.totalCountries.toString(), color: "text-ocean-aqua" },
-    { icon: Plane, label: "Flights", value: stats.totalFlights.toString(), color: "text-aurora-purple" },
-    { icon: Route, label: "Distance", value: `${(stats.totalDistance / 1000).toFixed(0)}k km`, color: "text-sunset-orange" },
-    { icon: Clock, label: "Longest", value: stats.longestFlight ? `${(stats.longestFlight.distance / 1000).toFixed(1)}k` : "—", color: "text-forest-emerald" },
+    { icon: Globe, label: "Countries", value: stats.totalCountries.toString(), color: "text-primary" },
+    { icon: Plane, label: "Flights", value: stats.totalFlights.toString(), color: "text-accent" },
+    { icon: Route, label: "Distance", value: `${(stats.totalDistance / 1000).toFixed(0)}k km`, color: "text-warning" },
+    { icon: Clock, label: "Longest", value: stats.longestFlight ? `${(stats.longestFlight.distance / 1000).toFixed(1)}k` : "—", color: "text-accent" },
   ];
 
   const viewTabs: { key: ViewTab; label: string; icon: React.ElementType }[] = [
@@ -166,7 +166,7 @@ const TravelTimeline: React.FC = () => {
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all min-h-[40px]",
                   viewTab === tab.key
-                    ? "bg-gradient-ocean text-primary-foreground shadow-depth-sm"
+                    ? "bg-gradient-brand text-primary-foreground shadow-depth-sm"
                     : "text-muted-foreground"
                 )}
               >
@@ -269,7 +269,7 @@ const TravelTimeline: React.FC = () => {
                             <div
                               className={cn(
                                 "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-depth-sm",
-                                entry.type === "upcoming" ? "bg-gradient-forest" : "bg-gradient-ocean"
+                                entry.type === "upcoming" ? "bg-gradient-brand" : "bg-gradient-brand"
                               )}
                             >
                               <Plane className="w-4 h-4 text-primary-foreground" strokeWidth={1.8} />
@@ -449,7 +449,7 @@ const TravelTimeline: React.FC = () => {
                       <div
                         className={cn(
                           "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-depth-sm",
-                          visited ? "bg-gradient-ocean" : "bg-secondary"
+                          visited ? "bg-gradient-brand" : "bg-secondary"
                         )}
                       >
                         <Globe
@@ -480,7 +480,7 @@ const TravelTimeline: React.FC = () => {
                     {/* Progress bar */}
                     <div className="mt-3 h-1.5 rounded-full bg-secondary/60 overflow-hidden">
                       <motion.div
-                        className="h-full rounded-full bg-gradient-ocean"
+                        className="h-full rounded-full bg-gradient-brand"
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.min((cont.count / 8) * 100, 100)}%` }}
                         transition={{ duration: 0.6, ease: easing.cinematic, delay: i * 0.1 }}

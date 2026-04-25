@@ -56,7 +56,7 @@ const CountryInsights: React.FC<CountryInsightsProps> = ({ country, onClose }) =
   return (
     <AnimatedPage>
       <GlassCard variant="premium" depth="lg" className="relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-28 h-28 rounded-full bg-gradient-ocean blur-3xl opacity-10 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-28 h-28 rounded-full bg-gradient-brand blur-3xl opacity-10 pointer-events-none" />
         <button onClick={onClose} className="absolute top-3 right-3 w-7 h-7 rounded-full bg-secondary/60 flex items-center justify-center z-10">
           <X className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
@@ -82,7 +82,7 @@ const CountryInsights: React.FC<CountryInsightsProps> = ({ country, onClose }) =
 
           {/* Currency */}
           <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 border border-border/20">
-            <DollarSign className="w-5 h-5 text-neon-amber shrink-0" />
+            <DollarSign className="w-5 h-5 text-warning shrink-0" />
             <div>
               <p className="text-xs text-muted-foreground">Currency</p>
               <p className="text-sm font-bold text-foreground">{data.currency}</p>

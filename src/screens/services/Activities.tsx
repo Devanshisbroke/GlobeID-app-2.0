@@ -47,7 +47,7 @@ const Activities: React.FC = () => {
               <div className="p-4 space-y-2">
                 <h3 className="text-sm font-bold text-foreground">{act.name}</h3>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Star className="w-3 h-3 text-neon-amber" />{act.rating}</span>
+                  <span className="flex items-center gap-1"><Star className="w-3 h-3 text-warning" />{act.rating}</span>
                   <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{act.duration}</span>
                   <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{act.location}</span>
                 </div>

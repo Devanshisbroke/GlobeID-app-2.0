@@ -13,13 +13,13 @@ const alertIcons = {
 
 const severityStyles = {
   high: "border-destructive/30 bg-destructive/5",
-  medium: "border-neon-amber/30 bg-neon-amber/5",
+  medium: "border-warning/30 bg-warning/5",
   low: "border-border/30",
 };
 
 const severityColors = {
   high: "text-destructive",
-  medium: "text-neon-amber",
+  medium: "text-warning",
   low: "text-muted-foreground",
 };
 

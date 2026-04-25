@@ -51,30 +51,30 @@ export interface LocalizedService {
 
 const localizedServices: Record<string, LocalizedService[]> = {
   Singapore: [
-    { id: "sg-1", name: "Grab", description: "Southeast Asia's super app", category: "ride", icon: "car", gradient: "bg-gradient-forest" },
-    { id: "sg-2", name: "Hawker Centres", description: "Iconic street food culture", category: "food", icon: "utensils", gradient: "bg-gradient-sunset" },
-    { id: "sg-3", name: "Marina Bay Tour", description: "Iconic waterfront experience", category: "activity", icon: "landmark", gradient: "bg-gradient-ocean" },
-    { id: "sg-4", name: "MRT Pass", description: "Unlimited metro travel", category: "transport", icon: "train", gradient: "bg-gradient-cosmic" },
-    { id: "sg-5", name: "Orchard Road", description: "Premium shopping district", category: "shopping", icon: "shopping-bag", gradient: "bg-gradient-aurora" },
+    { id: "sg-1", name: "Grab", description: "Southeast Asia's super app", category: "ride", icon: "car", gradient: "bg-gradient-brand" },
+    { id: "sg-2", name: "Hawker Centres", description: "Iconic street food culture", category: "food", icon: "utensils", gradient: "bg-gradient-brand" },
+    { id: "sg-3", name: "Marina Bay Tour", description: "Iconic waterfront experience", category: "activity", icon: "landmark", gradient: "bg-gradient-brand" },
+    { id: "sg-4", name: "MRT Pass", description: "Unlimited metro travel", category: "transport", icon: "train", gradient: "bg-gradient-brand" },
+    { id: "sg-5", name: "Orchard Road", description: "Premium shopping district", category: "shopping", icon: "shopping-bag", gradient: "bg-gradient-brand" },
   ],
   Japan: [
-    { id: "jp-1", name: "JR Pass", description: "Unlimited bullet train travel", category: "transport", icon: "train", gradient: "bg-gradient-cosmic" },
-    { id: "jp-2", name: "Sushi Omakase", description: "Chef's choice dining", category: "food", icon: "utensils", gradient: "bg-gradient-sunset" },
-    { id: "jp-3", name: "Temple Tours", description: "Historic Kyoto temples", category: "activity", icon: "landmark", gradient: "bg-gradient-forest" },
-    { id: "jp-4", name: "Suica Card", description: "Contactless transit & shopping", category: "transport", icon: "credit-card", gradient: "bg-gradient-ocean" },
-    { id: "jp-5", name: "Akihabara", description: "Electronics & anime culture", category: "shopping", icon: "shopping-bag", gradient: "bg-gradient-aurora" },
+    { id: "jp-1", name: "JR Pass", description: "Unlimited bullet train travel", category: "transport", icon: "train", gradient: "bg-gradient-brand" },
+    { id: "jp-2", name: "Sushi Omakase", description: "Chef's choice dining", category: "food", icon: "utensils", gradient: "bg-gradient-brand" },
+    { id: "jp-3", name: "Temple Tours", description: "Historic Kyoto temples", category: "activity", icon: "landmark", gradient: "bg-gradient-brand" },
+    { id: "jp-4", name: "Suica Card", description: "Contactless transit & shopping", category: "transport", icon: "credit-card", gradient: "bg-gradient-brand" },
+    { id: "jp-5", name: "Akihabara", description: "Electronics & anime culture", category: "shopping", icon: "shopping-bag", gradient: "bg-gradient-brand" },
   ],
   India: [
-    { id: "in-1", name: "Ola", description: "India's ride-hailing platform", category: "ride", icon: "car", gradient: "bg-gradient-forest" },
-    { id: "in-2", name: "Street Food Walk", description: "Guided culinary tours", category: "food", icon: "utensils", gradient: "bg-gradient-sunset" },
-    { id: "in-3", name: "Taj Mahal Visit", description: "Wonder of the World", category: "activity", icon: "landmark", gradient: "bg-gradient-ocean" },
-    { id: "in-4", name: "Metro Card", description: "Delhi Metro smart card", category: "transport", icon: "train", gradient: "bg-gradient-cosmic" },
+    { id: "in-1", name: "Ola", description: "India's ride-hailing platform", category: "ride", icon: "car", gradient: "bg-gradient-brand" },
+    { id: "in-2", name: "Street Food Walk", description: "Guided culinary tours", category: "food", icon: "utensils", gradient: "bg-gradient-brand" },
+    { id: "in-3", name: "Taj Mahal Visit", description: "Wonder of the World", category: "activity", icon: "landmark", gradient: "bg-gradient-brand" },
+    { id: "in-4", name: "Metro Card", description: "Delhi Metro smart card", category: "transport", icon: "train", gradient: "bg-gradient-brand" },
   ],
   UAE: [
-    { id: "ae-1", name: "Careem", description: "Middle East ride-hailing", category: "ride", icon: "car", gradient: "bg-gradient-forest" },
-    { id: "ae-2", name: "Brunch Experience", description: "Luxury Friday brunch", category: "food", icon: "utensils", gradient: "bg-gradient-sunset" },
-    { id: "ae-3", name: "Desert Safari", description: "Dune bashing adventure", category: "activity", icon: "compass", gradient: "bg-gradient-ocean" },
-    { id: "ae-4", name: "Dubai Mall", description: "World's largest shopping center", category: "shopping", icon: "shopping-bag", gradient: "bg-gradient-aurora" },
+    { id: "ae-1", name: "Careem", description: "Middle East ride-hailing", category: "ride", icon: "car", gradient: "bg-gradient-brand" },
+    { id: "ae-2", name: "Brunch Experience", description: "Luxury Friday brunch", category: "food", icon: "utensils", gradient: "bg-gradient-brand" },
+    { id: "ae-3", name: "Desert Safari", description: "Dune bashing adventure", category: "activity", icon: "compass", gradient: "bg-gradient-brand" },
+    { id: "ae-4", name: "Dubai Mall", description: "World's largest shopping center", category: "shopping", icon: "shopping-bag", gradient: "bg-gradient-brand" },
   ],
 };
 

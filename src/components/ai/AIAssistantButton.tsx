@@ -20,7 +20,7 @@ const AIAssistantButton: React.FC = () => {
           "shadow-[0_0_16px_hsl(var(--neon-indigo)/0.2)]"
         )}
       >
-        <MessageCircle className="w-5 h-5 text-neon-cyan" />
+        <MessageCircle className="w-5 h-5 text-primary" />
       </button>
       <AIAssistantSheet open={open} onOpenChange={setOpen} />
     </>

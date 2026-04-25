@@ -104,7 +104,7 @@ const CurrencyConverter: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           disabled={!converted || converting || parseFloat(amount) > (fromBal?.amount ?? 0)}
           className={cn(
             "w-full py-3 rounded-xl text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2",
-            "bg-gradient-ocean text-primary-foreground shadow-glow-md disabled:opacity-40 disabled:shadow-none"
+            "bg-gradient-brand text-primary-foreground shadow-glow-md disabled:opacity-40 disabled:shadow-none"
           )}
         >
           <RefreshCw className={cn("w-4 h-4", converting && "animate-spin")} />

@@ -75,7 +75,7 @@ const DestinationCard: React.FC<Props> = ({ destination, onClose }) => {
           </div>
           <div className="flex flex-wrap gap-1">
             {destination.cuisine.map((c) => (
-              <span key={c} className="text-[10px] px-2 py-0.5 rounded-full bg-sunset-gold/10 text-sunset-gold border border-sunset-gold/20">
+              <span key={c} className="text-[10px] px-2 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/20">
                 {c}
               </span>
             ))}
@@ -90,7 +90,7 @@ const DestinationCard: React.FC<Props> = ({ destination, onClose }) => {
           </div>
           <div className="flex flex-wrap gap-1">
             {destination.landmarks.map((l) => (
-              <span key={l} className="text-[10px] px-2 py-0.5 rounded-full bg-aurora-purple/10 text-aurora-purple border border-aurora-purple/20">
+              <span key={l} className="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
                 {l}
               </span>
             ))}

@@ -16,11 +16,11 @@ import ServiceCard from "@/components/services/ServiceCard";
 type Tab = "rides" | "food" | "services" | "safety";
 
 const travelServices = [
-  { id: "ts-1", title: "Visa Assistance", description: "Apply for e-visas and track applications", icon: <Globe className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-ocean" },
-  { id: "ts-2", title: "Travel Insurance", description: "Compare and purchase travel coverage", icon: <Umbrella className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-forest" },
-  { id: "ts-3", title: "Airport Lounge Access", description: "Book premium lounge passes worldwide", icon: <CreditCard className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-cosmic" },
-  { id: "ts-4", title: "Global SIM", description: "eSIM data plans for 190+ countries", icon: <Wifi className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-aurora" },
-  { id: "ts-5", title: "Currency Exchange", description: "Real-time rates and instant conversion", icon: <ArrowLeftRight className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-sunset" },
+  { id: "ts-1", title: "Visa Assistance", description: "Apply for e-visas and track applications", icon: <Globe className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-brand" },
+  { id: "ts-2", title: "Travel Insurance", description: "Compare and purchase travel coverage", icon: <Umbrella className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-brand" },
+  { id: "ts-3", title: "Airport Lounge Access", description: "Book premium lounge passes worldwide", icon: <CreditCard className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-brand" },
+  { id: "ts-4", title: "Global SIM", description: "eSIM data plans for 190+ countries", icon: <Wifi className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-brand" },
+  { id: "ts-5", title: "Currency Exchange", description: "Real-time rates and instant conversion", icon: <ArrowLeftRight className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-brand" },
 ];
 
 const Services: React.FC = () => {
@@ -32,10 +32,10 @@ const Services: React.FC = () => {
   const [dropoff] = useState(`${location.iata} Airport`);
 
   const tabs: { key: Tab; label: string; icon: React.ElementType; gradient: string }[] = [
-    { key: "services", label: "Services", icon: Globe, gradient: "bg-gradient-ocean" },
-    { key: "rides", label: "Rides", icon: Car, gradient: "bg-gradient-sunset" },
-    { key: "food", label: "Food", icon: UtensilsCrossed, gradient: "bg-gradient-aurora" },
-    { key: "safety", label: "Safety", icon: Shield, gradient: "bg-gradient-forest" },
+    { key: "services", label: "Services", icon: Globe, gradient: "bg-gradient-brand" },
+    { key: "rides", label: "Rides", icon: Car, gradient: "bg-gradient-brand" },
+    { key: "food", label: "Food", icon: UtensilsCrossed, gradient: "bg-gradient-brand" },
+    { key: "safety", label: "Safety", icon: Shield, gradient: "bg-gradient-brand" },
   ];
 
   const handleRequestRide = (providerId: string) => {
@@ -134,13 +134,13 @@ const Services: React.FC = () => {
             return (
               <AnimatedPage key={provider.id} staggerIndex={i}>
                 <GlassCard className={cn("flex items-center gap-3 cursor-pointer touch-bounce", !provider.available && "opacity-40")} onClick={() => provider.available && handleRequestRide(provider.id)}>
-                  <div className="w-10 h-10 rounded-xl bg-gradient-sunset flex items-center justify-center shrink-0 shadow-depth-sm">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-brand flex items-center justify-center shrink-0 shadow-depth-sm">
                     <PIcon className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2"><p className="text-sm font-bold text-foreground">{provider.name}</p><span className="text-[10px] text-muted-foreground">{provider.vehicleType}</span></div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                      <Clock className="w-3 h-3" /><span>{provider.eta}</span><Star className="w-3 h-3 text-neon-amber" /><span>{provider.rating}</span>
+                      <Clock className="w-3 h-3" /><span>{provider.eta}</span><Star className="w-3 h-3 text-warning" /><span>{provider.rating}</span>
                     </div>
                   </div>
                   <div className="text-right">
@@ -173,7 +173,7 @@ const Services: React.FC = () => {
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">{r.cuisine}</p>
                     <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1"><Star className="w-3 h-3 text-neon-amber" />{r.rating}</span>
+                      <span className="flex items-center gap-1"><Star className="w-3 h-3 text-warning" />{r.rating}</span>
                       <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{r.deliveryTime}</span>
                       <span>{r.deliveryFee}</span><span>{r.priceRange}</span>
                     </div>

@@ -50,7 +50,7 @@ const QRPayment: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               className="w-full py-2.5 px-3 rounded-xl glass border border-border/40 text-sm text-foreground bg-transparent outline-none min-h-[44px]" />
           </div>
           <button onClick={handleGenerate}
-            className="w-full py-3 rounded-xl text-sm font-semibold bg-gradient-ocean text-primary-foreground shadow-glow-md min-h-[48px] disabled:opacity-40"
+            className="w-full py-3 rounded-xl text-sm font-semibold bg-gradient-brand text-primary-foreground shadow-glow-md min-h-[48px] disabled:opacity-40"
             disabled={!amount || parseFloat(amount) <= 0}>
             Generate QR Code
           </button>

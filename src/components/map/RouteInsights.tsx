@@ -56,7 +56,7 @@ const RouteInsights: React.FC<RouteInsightsProps> = ({ fromIata, toIata, onClose
   return (
     <AnimatedPage>
       <GlassCard variant="premium" depth="lg" className="relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-gradient-cosmic blur-3xl opacity-10 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-gradient-brand blur-3xl opacity-10 pointer-events-none" />
         <button onClick={onClose} className="absolute top-3 right-3 w-7 h-7 rounded-full bg-secondary/60 flex items-center justify-center z-10">
           <X className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
@@ -99,7 +99,7 @@ const RouteInsights: React.FC<RouteInsightsProps> = ({ fromIata, toIata, onClose
           </div>
 
           <div className="flex items-center gap-2.5 p-3 rounded-xl bg-secondary/30 border border-border/20">
-            <Globe className="w-4 h-4 text-neon-amber shrink-0" />
+            <Globe className="w-4 h-4 text-warning shrink-0" />
             <div>
               <p className="text-[10px] text-muted-foreground">Time Zone</p>
               <p className="text-sm font-bold text-foreground">{tzSign}{tzDiff}h</p>
