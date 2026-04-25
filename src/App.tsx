@@ -7,6 +7,7 @@ import { lazy, Suspense, useState, useCallback, useEffect } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageTransition } from "@/components/layout/PageTransition";
 import SplashScreen from "@/components/SplashScreen";
+import { useUserStore } from "@/store/userStore";
 
 // ── Core tab screens: eagerly imported for instant switching ──
 import Home from "@/screens/Home";
@@ -75,6 +76,17 @@ const App = () => {
     if (saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
       document.documentElement.classList.add("dark");
     }
+  }, []);
+
+  // Hydrate canonical state from the backend once on app boot, then
+  // again any time the browser comes back online so any queued offline
+  // mutations get drained.
+  useEffect(() => {
+    const hydrate = useUserStore.getState().hydrate;
+    void hydrate();
+    const onOnline = () => void hydrate();
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
   }, []);
 
   return (

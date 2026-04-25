@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getAirport } from "@/lib/airports";
+import { api, ApiError } from "@/lib/apiClient";
 
 /**
  * TravelRecord is the canonical shape for any flight in the user's
@@ -47,17 +48,30 @@ export interface UserProfile {
   identityScore: number;
 }
 
+export type SyncStatus = "idle" | "loading" | "synced" | "offline-pending" | "error";
+
+type PendingMutation =
+  | { kind: "add"; records: TravelRecord[] }
+  | { kind: "remove"; id: string };
+
 interface UserState {
   profile: UserProfile;
   travelHistory: TravelRecord[];
   documents: TravelDocument[];
+  syncStatus: SyncStatus;
+  lastSyncedAt: number | null;
+  pendingMutations: PendingMutation[];
   setUser: (profile: Partial<UserProfile>) => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
-  addTravelRecord: (record: TravelRecord) => void;
-  addTravelRecords: (records: TravelRecord[]) => void;
-  removeTravelRecord: (id: string) => void;
+  addTravelRecord: (record: TravelRecord) => Promise<void>;
+  addTravelRecords: (records: TravelRecord[]) => Promise<void>;
+  removeTravelRecord: (id: string) => Promise<void>;
   addDocument: (doc: TravelDocument) => void;
   removeDocument: (id: string) => void;
+  /** Fetch canonical state from server. Call once on app boot. */
+  hydrate: () => Promise<void>;
+  /** Replay queued mutations after reconnect. */
+  drainPendingMutations: () => Promise<void>;
 }
 
 const defaultProfile: UserProfile = {
@@ -100,29 +114,128 @@ const defaultDocuments: TravelDocument[] = [
   { id: "td-5", type: "travel_insurance", label: "World Nomads Policy", country: "Global", countryFlag: "🌐", number: "WN-8827341", issueDate: "2026-03-01", expiryDate: "2026-06-01", status: "active" },
 ];
 
+function dedupAppend(existing: TravelRecord[], incoming: TravelRecord[]): TravelRecord[] {
+  const ids = new Set(existing.map((r) => r.id));
+  const fresh = incoming.filter((r) => !ids.has(r.id));
+  return [...fresh, ...existing];
+}
+
 export const useUserStore = create<UserState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       profile: defaultProfile,
       travelHistory: defaultTravelHistory,
       documents: defaultDocuments,
+      syncStatus: "idle",
+      lastSyncedAt: null,
+      pendingMutations: [],
+
       setUser: (profile) => set((state) => ({ profile: { ...state.profile, ...profile } })),
       updateProfile: (updates) => set((state) => ({ profile: { ...state.profile, ...updates } })),
-      addTravelRecord: (record) => set((state) => ({ travelHistory: [record, ...state.travelHistory] })),
-      addTravelRecords: (records) =>
-        set((state) => {
-          const existing = new Set(state.travelHistory.map((r) => r.id));
-          const fresh = records.filter((r) => !existing.has(r.id));
-          return { travelHistory: [...fresh, ...state.travelHistory] };
-        }),
-      removeTravelRecord: (id) =>
-        set((state) => ({ travelHistory: state.travelHistory.filter((r) => r.id !== id) })),
+
+      addTravelRecord: async (record) => {
+        await get().addTravelRecords([record]);
+      },
+
+      addTravelRecords: async (records) => {
+        set((state) => ({ travelHistory: dedupAppend(state.travelHistory, records) }));
+        try {
+          await api.trips.create(records);
+          set((state) => ({
+            syncStatus: state.pendingMutations.length > 0 ? "offline-pending" : "synced",
+            lastSyncedAt: Date.now(),
+          }));
+        } catch (e) {
+          if (!(e instanceof ApiError) || e.status >= 500 || e.status === 0) {
+            set((state) => ({
+              syncStatus: "offline-pending",
+              pendingMutations: [...state.pendingMutations, { kind: "add", records }],
+            }));
+            return;
+          }
+          const ids = new Set(records.map((r) => r.id));
+          set((state) => ({
+            travelHistory: state.travelHistory.filter((r) => !ids.has(r.id)),
+            syncStatus: "error",
+          }));
+          throw e;
+        }
+      },
+
+      removeTravelRecord: async (id) => {
+        const previous = get().travelHistory.find((r) => r.id === id);
+        set((state) => ({ travelHistory: state.travelHistory.filter((r) => r.id !== id) }));
+        try {
+          await api.trips.remove(id);
+          set((state) => ({
+            syncStatus: state.pendingMutations.length > 0 ? "offline-pending" : "synced",
+            lastSyncedAt: Date.now(),
+          }));
+        } catch (e) {
+          if (!(e instanceof ApiError) || e.status >= 500 || e.status === 0) {
+            set((state) => ({
+              syncStatus: "offline-pending",
+              pendingMutations: [...state.pendingMutations, { kind: "remove", id }],
+            }));
+            return;
+          }
+          if (previous) {
+            set((state) => ({
+              travelHistory: [previous, ...state.travelHistory],
+              syncStatus: "error",
+            }));
+          } else {
+            set({ syncStatus: "error" });
+          }
+          throw e;
+        }
+      },
+
       addDocument: (doc) => set((state) => ({ documents: [...state.documents, doc] })),
       removeDocument: (id) => set((state) => ({ documents: state.documents.filter((d) => d.id !== id) })),
+
+      hydrate: async () => {
+        set({ syncStatus: "loading" });
+        try {
+          const records = await api.trips.list();
+          set({ travelHistory: records, syncStatus: "synced", lastSyncedAt: Date.now() });
+          await get().drainPendingMutations();
+        } catch {
+          set((state) => ({
+            syncStatus: state.pendingMutations.length > 0 ? "offline-pending" : "error",
+          }));
+        }
+      },
+
+      drainPendingMutations: async () => {
+        const queue = get().pendingMutations;
+        if (queue.length === 0) return;
+        const remaining: PendingMutation[] = [];
+        for (const m of queue) {
+          try {
+            if (m.kind === "add") await api.trips.create(m.records);
+            else await api.trips.remove(m.id);
+          } catch {
+            remaining.push(m);
+          }
+        }
+        set({
+          pendingMutations: remaining,
+          syncStatus: remaining.length === 0 ? "synced" : "offline-pending",
+          lastSyncedAt: remaining.length === 0 ? Date.now() : get().lastSyncedAt,
+        });
+      },
     }),
     {
       name: "globe-user",
-      version: 1,
+      version: 2,
+      partialize: (state) => ({
+        profile: state.profile,
+        travelHistory: state.travelHistory,
+        documents: state.documents,
+        pendingMutations: state.pendingMutations,
+        lastSyncedAt: state.lastSyncedAt,
+      }),
     }
   )
 );

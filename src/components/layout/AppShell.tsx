@@ -4,6 +4,7 @@ import { FAB } from "./FAB";
 import { AIAssistantButton } from "@/components/ai/AIAssistantButton";
 import ThemeToggle from "@/components/ThemeToggle";
 import AtmosphereLayer from "@/cinematic/AtmosphereLayer";
+import SyncBadge from "./SyncBadge";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           on mobile WebView. */}
       <div className="fixed inset-0 pointer-events-none bg-mesh -z-10" />
       <AtmosphereLayer />
+      <SyncBadge />
       {/* Theme toggle */}
       <div className="fixed top-4 right-4 z-40">
         <ThemeToggle />
