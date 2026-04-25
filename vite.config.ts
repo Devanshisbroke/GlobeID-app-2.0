@@ -41,4 +41,24 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "three", "@react-three/fiber", "@react-three/drei"],
   },
+  build: {
+    // The 3D / charts / motion libraries are large and only used on
+    // specific routes. Splitting them into vendor chunks lets the
+    // initial app shell ship without them and keeps the lazy GlobeScene
+    // chunk down to GlobeID's own scene code.
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (id.includes("three") || id.includes("@react-three")) return "vendor-three";
+          if (id.includes("framer-motion")) return "vendor-motion";
+          if (id.includes("recharts") || id.includes("d3-")) return "vendor-charts";
+          if (id.includes("@radix-ui")) return "vendor-radix";
+          if (id.includes("lucide-react")) return "vendor-icons";
+          return undefined;
+        },
+      },
+    },
+    chunkSizeWarningLimit: 900,
+  },
 }));

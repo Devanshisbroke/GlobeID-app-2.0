@@ -1,12 +1,20 @@
 import React, { useRef, useMemo } from "react";
 import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
+import { isMobileOrCapacitor } from "@/hooks/useMobileDetect";
 
 const Globe: React.FC = () => {
 
   const atmosphereRef = useRef<THREE.Mesh>(null);
   const outerGlowRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+
+  const mobile = useMemo(() => isMobileOrCapacitor(), []);
+  // Lower the sphere tessellation on mobile — visually identical at the
+  // typical render scale, materially cheaper.
+  const sphereSegments = mobile ? 96 : 128;
+  const atmoSegments = mobile ? 48 : 64;
+  const glowSegments = mobile ? 32 : 48;
 
   const [nightMap, bumpMap, waterMap] = useLoader(THREE.TextureLoader, [
     "/textures/earth-night.jpg",
@@ -32,16 +40,20 @@ const Globe: React.FC = () => {
       materialRef.current.uniforms.uTime.value = t;
     }
 
-    if (atmosphereRef.current) {
-      atmosphereRef.current.scale.setScalar(
-        1 + Math.sin(t * 0.4) * 0.002
-      );
-    }
+    // Sub-perceptible "breathing" — skip the trig + matrix update on
+    // mobile where every dropped useFrame side-effect helps frame budget.
+    if (!mobile) {
+      if (atmosphereRef.current) {
+        atmosphereRef.current.scale.setScalar(
+          1 + Math.sin(t * 0.4) * 0.002
+        );
+      }
 
-    if (outerGlowRef.current) {
-      outerGlowRef.current.scale.setScalar(
-        1 + Math.sin(t * 0.25) * 0.001
-      );
+      if (outerGlowRef.current) {
+        outerGlowRef.current.scale.setScalar(
+          1 + Math.sin(t * 0.25) * 0.001
+        );
+      }
     }
 
   });
@@ -269,7 +281,7 @@ const Globe: React.FC = () => {
     <group>
 
       <mesh>
-        <sphereGeometry args={[1,128,128]} />
+        <sphereGeometry args={[1, sphereSegments, sphereSegments]} />
 
         <primitive
           object={globeMaterial}
@@ -283,14 +295,14 @@ const Globe: React.FC = () => {
         ref={atmosphereRef}
         material={atmosphereMaterial}
       >
-        <sphereGeometry args={[1.055,64,64]} />
+        <sphereGeometry args={[1.055, atmoSegments, atmoSegments]} />
       </mesh>
 
       <mesh
         ref={outerGlowRef}
         material={outerGlowMaterial}
       >
-        <sphereGeometry args={[1.12,48,48]} />
+        <sphereGeometry args={[1.12, glowSegments, glowSegments]} />
       </mesh>
 
     </group>

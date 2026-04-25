@@ -12,7 +12,10 @@ interface AppShellProps {
 const AppShell: React.FC<AppShellProps> = ({ children }) => {
   return (
     <div className="relative min-h-[100dvh] max-w-lg mx-auto overflow-x-hidden">
-      <div className="fixed inset-0 pointer-events-none bg-mesh opacity-50 -z-10" />
+      {/* Single fixed mesh layer — replaces the body background-image so
+          we avoid `background-attachment: fixed` repaints during scroll
+          on mobile WebView. */}
+      <div className="fixed inset-0 pointer-events-none bg-mesh -z-10" />
       <AtmosphereLayer />
       {/* Theme toggle */}
       <div className="fixed top-4 right-4 z-40">

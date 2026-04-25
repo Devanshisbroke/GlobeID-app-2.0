@@ -107,7 +107,7 @@ const TravelTimeline: React.FC = () => {
   ];
 
   return (
-    <div className="px-4 py-6 space-y-5 min-h-screen">
+    <div className="px-4 py-6 space-y-5 min-h-[100dvh]">
       {/* Header */}
       <AnimatedPage>
         <div className="flex items-center gap-3 mb-2">
