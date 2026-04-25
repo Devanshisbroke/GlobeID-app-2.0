@@ -1,32 +1,79 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
+import { useReducedEffects } from "@/hooks/useReducedEffects";
 
 /**
  * AtmosphereLayer — subtle ambient particles + glow orbs behind UI
  * Renders as a fixed full-screen layer. Use inside AppShell.
+ *
+ * On mobile / Capacitor / reduced-motion devices the layer falls back to
+ * a small set of static-looking blurred orbs and skips the per-particle
+ * framer-motion timeline, which is the dominant paint cost in Android
+ * WebView (large filter: blur fills + many composited layers).
  */
 const AtmosphereLayer: React.FC = () => {
-  const particles = useMemo(() => 
-    Array.from({ length: 18 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: 2 + Math.random() * 3,
-      delay: Math.random() * 8,
-      duration: 6 + Math.random() * 8,
-      opacity: 0.15 + Math.random() * 0.2,
-    })), []
+  const reduced = useReducedEffects();
+
+  const particles = useMemo(
+    () =>
+      reduced
+        ? []
+        : Array.from({ length: 18 }, (_, i) => ({
+            id: i,
+            x: Math.random() * 100,
+            y: Math.random() * 100,
+            size: 2 + Math.random() * 3,
+            delay: Math.random() * 8,
+            duration: 6 + Math.random() * 8,
+            opacity: 0.15 + Math.random() * 0.2,
+          })),
+    [reduced]
   );
 
+  // Mobile fallback: two static blurred orbs, no transforms.
+  if (reduced) {
+    return (
+      <div
+        className="fixed inset-0 pointer-events-none overflow-hidden -z-5"
+        aria-hidden="true"
+      >
+        <div
+          className="absolute w-[260px] h-[260px] rounded-full"
+          style={{
+            top: "-6%",
+            left: "-8%",
+            background:
+              "radial-gradient(circle, hsl(var(--ocean-aqua) / 0.06) 0%, transparent 70%)",
+            filter: "blur(40px)",
+          }}
+        />
+        <div
+          className="absolute w-[240px] h-[240px] rounded-full"
+          style={{
+            bottom: "8%",
+            right: "-10%",
+            background:
+              "radial-gradient(circle, hsl(var(--aurora-purple) / 0.05) 0%, transparent 70%)",
+            filter: "blur(40px)",
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden -z-5" aria-hidden="true">
+    <div
+      className="fixed inset-0 pointer-events-none overflow-hidden -z-5"
+      aria-hidden="true"
+    >
       {/* Gradient glow orbs */}
       <motion.div
         className="absolute w-[400px] h-[400px] rounded-full"
         style={{
           top: "-8%",
           left: "-5%",
-          background: "radial-gradient(circle, hsl(var(--ocean-aqua) / 0.08) 0%, transparent 70%)",
+          background:
+            "radial-gradient(circle, hsl(var(--ocean-aqua) / 0.08) 0%, transparent 70%)",
           filter: "blur(60px)",
         }}
         animate={{
@@ -42,7 +89,8 @@ const AtmosphereLayer: React.FC = () => {
         style={{
           bottom: "10%",
           right: "-10%",
-          background: "radial-gradient(circle, hsl(var(--aurora-purple) / 0.06) 0%, transparent 70%)",
+          background:
+            "radial-gradient(circle, hsl(var(--aurora-purple) / 0.06) 0%, transparent 70%)",
           filter: "blur(60px)",
         }}
         animate={{
@@ -58,7 +106,8 @@ const AtmosphereLayer: React.FC = () => {
         style={{
           top: "40%",
           left: "30%",
-          background: "radial-gradient(circle, hsl(var(--forest-jade) / 0.04) 0%, transparent 70%)",
+          background:
+            "radial-gradient(circle, hsl(var(--forest-jade) / 0.04) 0%, transparent 70%)",
           filter: "blur(50px)",
         }}
         animate={{
@@ -73,7 +122,8 @@ const AtmosphereLayer: React.FC = () => {
         className="absolute w-[200%] h-[1px] left-[-50%]"
         style={{
           top: "25%",
-          background: "linear-gradient(90deg, transparent 0%, hsl(var(--ocean-aqua) / 0.04) 30%, hsl(var(--primary) / 0.06) 50%, hsl(var(--aurora-purple) / 0.04) 70%, transparent 100%)",
+          background:
+            "linear-gradient(90deg, transparent 0%, hsl(var(--ocean-aqua) / 0.04) 30%, hsl(var(--primary) / 0.06) 50%, hsl(var(--aurora-purple) / 0.04) 70%, transparent 100%)",
           transform: "rotate(-5deg)",
           filter: "blur(1px)",
         }}

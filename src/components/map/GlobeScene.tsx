@@ -29,6 +29,21 @@ interface GlobeSceneProps {
   showExplorer?: boolean;
   explorerPathId?: string;
   discoveredIds?: string[];
+  /**
+   * When `false`, the canvas becomes a passive visual: OrbitControls
+   * input is disabled and `touch-action` allows the parent's vertical
+   * scroll to pass through. Use this when the globe is embedded as a
+   * decorative header (e.g. /intelligence) so it does not hijack page
+   * scroll. Defaults to `true` to preserve existing /map and /explorer
+   * behaviour.
+   */
+  interactive?: boolean;
+  /**
+   * Override the default auto-rotate behaviour. When omitted, the globe
+   * auto-rotates on desktop and stays still on mobile/Capacitor (saves
+   * a continuous render loop on lower-end GPUs).
+   */
+  autoRotate?: boolean;
 }
 
 const GlobeScene: React.FC<GlobeSceneProps> = ({
@@ -42,14 +57,21 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
   showExplorer = false,
   explorerPathId,
   discoveredIds = [],
+  interactive = true,
+  autoRotate,
 }) => {
   const mobile = useMemo(() => isMobileOrCapacitor(), []);
 
   // Adaptive counts for mobile GPU
-  const starCount = mobile ? 1500 : 4000;
-  const flowCount = mobile ? 20 : 50;
-  const passengerCount = mobile ? 40 : 100;
-  const airTrafficCount = mobile ? 25 : 60;
+  const starCount = mobile ? 1200 : 4000;
+  const flowCount = mobile ? 18 : 50;
+  const passengerCount = mobile ? 35 : 100;
+  const airTrafficCount = mobile ? 22 : 60;
+
+  // Auto-rotate defaults: keep the existing desktop feel, but pause
+  // the continuous render loop on mobile when the user isn't actively
+  // dragging. Callers can still force either behaviour explicitly.
+  const shouldAutoRotate = autoRotate ?? !mobile;
 
   return (
     <Canvas
@@ -64,11 +86,17 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
       }}
       style={{
         background: "#020617",
-        touchAction: "none", // Canvas itself handles its own touch
+        // Interactive globe captures all gestures itself; non-interactive
+        // (decorative) globe lets vertical page-scroll pass through.
+        touchAction: interactive ? "none" : "pan-y",
       }}
       performance={{ min: mobile ? 0.3 : 0.5 }}
-      // CRITICAL: Let the canvas capture events only on its own element
-      // Prevents blocking UI scrolling outside the canvas
+      // Frame-on-demand when idle: the Canvas only renders when state
+      // changes, which it does while OrbitControls damps a drag or while
+      // autoRotate ticks. With autoRotate off on mobile and no user
+      // input, the GL context can fully idle.
+      frameloop={shouldAutoRotate || interactive ? "always" : "demand"}
+      // Prevents the canvas from blocking UI scrolling outside its bounds.
       onPointerMissed={() => {}}
     >
       <Suspense fallback={null}>
@@ -121,9 +149,10 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
           zoomSpeed={0.5}
           minDistance={1.5}
           maxDistance={4.2}
-          autoRotate
+          autoRotate={shouldAutoRotate}
           autoRotateSpeed={showExplorer ? 0.06 : showSimulation ? 0.08 : 0.15}
-          enableRotate
+          enableRotate={interactive}
+          enableZoom={interactive}
           maxPolarAngle={Math.PI * 0.82}
           minPolarAngle={Math.PI * 0.18}
         />

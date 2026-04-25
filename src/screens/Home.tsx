@@ -88,7 +88,7 @@ const Home: React.FC = () => {
   return (
     <motion.div
       ref={containerRef}
-      className="px-4 py-6 space-y-5 bg-gradient-radial min-h-screen relative"
+      className="px-4 py-6 space-y-5 bg-gradient-radial min-h-[100dvh] relative"
       variants={container}
       initial="initial"
       animate="animate"

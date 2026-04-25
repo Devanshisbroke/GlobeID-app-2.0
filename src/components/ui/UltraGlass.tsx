@@ -2,6 +2,7 @@ import React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { cinematicCard, cinematicEase, cinematicDuration } from "@/cinematic/motionEngine";
+import { useReducedEffects } from "@/hooks/useReducedEffects";
 
 interface UltraGlassProps extends Omit<HTMLMotionProps<"div">, "children"> {
   children: React.ReactNode;
@@ -18,8 +19,14 @@ interface UltraGlassProps extends Omit<HTMLMotionProps<"div">, "children"> {
 
 const UltraGlass = React.forwardRef<HTMLDivElement, UltraGlassProps>(
   ({ children, depth = 1, lightSweep = true, edgeHighlight = false, interactive = true, className, ...props }, ref) => {
-    const blurValue = depth === 1 ? 24 : depth === 2 ? 32 : 40;
+    const reduced = useReducedEffects();
+    // Lightsweep + extra blur passes are paint-bound and the dominant
+    // cost on Android WebView. Trim them out on mobile/reduced-motion.
+    const blurValue = reduced
+      ? (depth === 1 ? 16 : depth === 2 ? 22 : 28)
+      : (depth === 1 ? 24 : depth === 2 ? 32 : 40);
     const bgOpacity = depth === 1 ? 0.7 : depth === 2 ? 0.6 : 0.5;
+    const showLightSweep = lightSweep && !reduced;
 
     return (
       <motion.div
@@ -68,7 +75,7 @@ const UltraGlass = React.forwardRef<HTMLDivElement, UltraGlassProps>(
         )}
 
         {/* Animated light sweep */}
-        {lightSweep && (
+        {showLightSweep && (
           <motion.div
             className="absolute inset-0 pointer-events-none rounded-[inherit]"
             style={{

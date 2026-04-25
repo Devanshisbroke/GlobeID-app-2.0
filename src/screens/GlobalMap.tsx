@@ -72,7 +72,7 @@ const GlobalMap: React.FC = () => {
   const pastFlights = flightRoutes.filter(r => r.type === "past");
 
   return (
-    <div className="relative min-h-screen -mx-4 -mt-6" style={{ marginBottom: "-5rem" }}>
+    <div className="relative min-h-[100dvh] -mx-4 -mt-6" style={{ marginBottom: "-5rem" }}>
       {/* 3D Globe — pointer-events contained to this layer */}
       <div
         className="absolute inset-0"

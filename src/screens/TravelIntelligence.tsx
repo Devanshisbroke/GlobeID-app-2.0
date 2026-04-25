@@ -28,10 +28,20 @@ const TravelIntelligence: React.FC = () => {
   return (
     <div className="space-y-0 pb-24">
       {/* Cinematic globe header */}
-      <div className="relative h-56 overflow-hidden">
+      <div className="relative h-56 overflow-hidden" style={{ touchAction: "pan-y" }}>
         {showGlobe ? (
           <Suspense fallback={<div className="w-full h-full bg-[#020617]" />}>
-            <GlobeScene showHistory={false} showAirports={false} userLat={37.77} userLng={-122.42} />
+            {/* Decorative globe: not interactive, so vertical page scroll
+                passes through the header instead of being captured by
+                OrbitControls. */}
+            <GlobeScene
+              showHistory={false}
+              showAirports={false}
+              userLat={37.77}
+              userLng={-122.42}
+              interactive={false}
+              autoRotate
+            />
           </Suspense>
         ) : (
           <div className="w-full h-full bg-gradient-to-b from-[hsl(var(--ocean-deep))] to-background flex items-center justify-center">

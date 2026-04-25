@@ -274,10 +274,19 @@
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: contain;
-    background-image: var(--gradient-mesh);
-    background-attachment: fixed;
+    /* The mesh background is rendered as a fixed pointer-events:none
+       layer inside <AppShell> instead of being painted on every scroll
+       frame here. background-attachment: fixed on a body with a 3-stop
+       radial gradient is one of the bigger sources of scroll jank in
+       Android WebView. */
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Hide scroll chaining bounce on iOS Capacitor while still allowing
+     the inner <main> element's vertical scroll. */
+  html {
+    overscroll-behavior-y: none;
   }
 
   h1 {
