@@ -22,12 +22,14 @@ function useAnimatedNum(target: number, dur = 1500): number {
   const [val, setVal] = React.useState(0);
   React.useEffect(() => {
     const start = performance.now();
+    let rafId = 0;
     const tick = (now: number) => {
       const p = Math.min((now - start) / dur, 1);
       setVal(Math.round(target * (1 - Math.pow(1 - p, 3))));
-      if (p < 1) requestAnimationFrame(tick);
+      if (p < 1) rafId = requestAnimationFrame(tick);
     };
-    requestAnimationFrame(tick);
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
   }, [target, dur]);
   return val;
 }

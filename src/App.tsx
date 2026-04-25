@@ -60,8 +60,14 @@ const App = () => {
   const [showSplash, setShowSplash] = useState(true);
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
-    // Preload secondary screens after splash dismisses
-    requestIdleCallback ? requestIdleCallback(preloadScreens) : setTimeout(preloadScreens, 500);
+    // Preload secondary screens after splash dismisses. `requestIdleCallback`
+    // is undefined in older Android WebViews, so feature-detect rather than
+    // relying on a truthy global reference.
+    if (typeof requestIdleCallback === "function") {
+      requestIdleCallback(preloadScreens);
+    } else {
+      setTimeout(preloadScreens, 500);
+    }
   }, []);
 
   useEffect(() => {

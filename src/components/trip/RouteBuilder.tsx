@@ -10,38 +10,44 @@ const PlannerArc: React.FC<{ from: string; to: string; index: number }> = ({ fro
   const lineRef = React.useRef<THREE.Line>(null);
   const glowRef = React.useRef<THREE.Line>(null);
 
-  const curve = useMemo(() => {
+  const { curve, posArrA, posArrB, pointCount } = useMemo(() => {
     const a = getAirport(from);
     const b = getAirport(to);
-    if (!a || !b) return null;
+    if (!a || !b) return { curve: null, posArrA: null, posArrB: null, pointCount: 0 };
     const f = latLngToVector3(a.lat, a.lng, RADIUS);
     const t = latLngToVector3(b.lat, b.lng, RADIUS);
     const pts = createArcPoints(f, t, 100, 0.22);
-    return new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...p)));
+    const c = new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...p)));
+    const sampled = c.getPoints(100);
+    const flat = sampled.flatMap((p) => [p.x, p.y, p.z]);
+    return {
+      curve: c,
+      posArrA: new Float32Array(flat),
+      posArrB: new Float32Array(flat),
+      pointCount: sampled.length,
+    };
   }, [from, to]);
 
   useFrame((_, delta) => {
     if (lineRef.current) {
-      const mat = lineRef.current.material as any;
+      const mat = lineRef.current.material as THREE.LineDashedMaterial;
       if (mat.dashOffset !== undefined) mat.dashOffset -= delta * 0.4;
     }
   });
 
-  if (!curve) return null;
-  const points = curve.getPoints(100);
-  const posArr = new Float32Array(points.flatMap((p) => [p.x, p.y, p.z]));
+  if (!curve || !posArrA || !posArrB) return null;
 
   return (
     <group>
-      <line ref={glowRef as any}>
+      <line ref={glowRef as React.Ref<THREE.Line>}>
         <bufferGeometry>
-          <bufferAttribute attach="attributes-position" count={points.length} array={posArr.slice()} itemSize={3} />
+          <bufferAttribute attach="attributes-position" count={pointCount} array={posArrA} itemSize={3} />
         </bufferGeometry>
         <lineBasicMaterial color="#22d3ee" transparent opacity={0.2} linewidth={1} depthWrite={false} />
       </line>
-      <line ref={lineRef as any}>
+      <line ref={lineRef as React.Ref<THREE.Line>}>
         <bufferGeometry>
-          <bufferAttribute attach="attributes-position" count={points.length} array={posArr.slice()} itemSize={3} />
+          <bufferAttribute attach="attributes-position" count={pointCount} array={posArrB} itemSize={3} />
         </bufferGeometry>
         <lineDashedMaterial color="#06b6d4" dashSize={0.02} gapSize={0.01} transparent opacity={0.85} linewidth={1} />
       </line>

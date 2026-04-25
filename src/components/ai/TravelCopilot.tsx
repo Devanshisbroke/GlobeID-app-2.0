@@ -7,7 +7,7 @@ import TripPlanCard from "@/components/ai/TripPlanCard";
 import VoicePrompt from "@/components/ai/VoicePrompt";
 import { generateTrip, adjustTripDays, tripPresets, type GeneratedTrip } from "@/lib/tripGenerator";
 import { totalJourneyDistance, uniqueCountries, uniqueContinents } from "@/lib/distanceEngine";
-import { useTripPlannerStore } from "@/store/tripPlannerStore";
+import { useTripPlannerStore, type TripTheme } from "@/store/tripPlannerStore";
 import { haptics } from "@/utils/haptics";
 import { cn } from "@/lib/utils";
 import {
@@ -29,6 +29,18 @@ const styleModes = [
   { key: "business", label: "Business", icon: Briefcase },
   { key: "adventure", label: "Adventure", icon: Compass },
 ] as const;
+
+// `GeneratedTrip.style` is free-form (the parser also returns
+// "luxury"/"adventure"); the trip-planner store only accepts the canonical
+// `TripTheme` union, so collapse non-canonical values to the safe default.
+const VALID_THEMES: ReadonlySet<TripTheme> = new Set([
+  "vacation",
+  "business",
+  "backpacking",
+  "world_tour",
+]);
+const toTripTheme = (s: string): TripTheme =>
+  VALID_THEMES.has(s as TripTheme) ? (s as TripTheme) : "vacation";
 
 const TravelCopilot: React.FC = () => {
   const navigate = useNavigate();
@@ -95,7 +107,7 @@ const TravelCopilot: React.FC = () => {
     if (!currentTrip) return;
     clearCurrent();
     setCurrentName(currentTrip.name);
-    setCurrentTheme(currentTrip.style as any);
+    setCurrentTheme(toTripTheme(currentTrip.style));
     currentTrip.stops.forEach((s) => addDestination(s.iata));
     saveCurrentTrip();
     haptics.success();
