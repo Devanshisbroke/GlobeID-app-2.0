@@ -28,6 +28,13 @@ type TabsVariant = "segmented" | "underline";
 type TabsCtx = {
   value: string | undefined;
   variant: TabsVariant;
+  /**
+   * Unique-per-`<Tabs>`-instance ID used to scope the shared-layout
+   * `layoutId` on the active indicator. Without this, two Tabs components
+   * of the same variant on the same page would have motion spring the
+   * indicator between unrelated tab groups.
+   */
+  instanceId: string;
 };
 
 const TabsContext = React.createContext<TabsCtx | null>(null);
@@ -63,9 +70,13 @@ const Root = React.forwardRef<
   // first render of <Tabs.List>. Default to segmented; List overrides.
   const [variant, setVariant] = React.useState<TabsVariant>("segmented");
 
+  // Stable per-instance ID — scopes the shared-layout `layoutId` on the
+  // active indicator so multiple <Tabs> on the same page don't cross-animate.
+  const instanceId = React.useId();
+
   const ctx = React.useMemo<TabsCtx>(
-    () => ({ value: current, variant }),
-    [current, variant],
+    () => ({ value: current, variant, instanceId }),
+    [current, variant, instanceId],
   );
 
   return (
@@ -124,7 +135,7 @@ const TriggerPrimitive = React.forwardRef<
   React.ComponentRef<typeof TabsPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
 >(({ className, children, value, ...rest }, ref) => {
-  const { value: active, variant } = useTabsCtx();
+  const { value: active, variant, instanceId } = useTabsCtx();
   const isActive = active === value;
 
   return (
@@ -148,14 +159,14 @@ const TriggerPrimitive = React.forwardRef<
       {isActive ? (
         variant === "segmented" ? (
           <motion.span
-            layoutId="p7-tabs-indicator-seg"
+            layoutId={`${instanceId}-seg`}
             transition={spring.default}
             className="absolute inset-0 -z-0 rounded-[calc(var(--p7-radius-input)-2px)] bg-surface-elevated shadow-p7-sm"
             aria-hidden
           />
         ) : (
           <motion.span
-            layoutId="p7-tabs-indicator-underline"
+            layoutId={`${instanceId}-underline`}
             transition={spring.default}
             className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-brand"
             aria-hidden

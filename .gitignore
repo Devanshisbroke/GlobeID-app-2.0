@@ -37,6 +37,8 @@ server/dist
 
 # Phase audit + test-plan artifacts (do not ship)
 phase*-audit.md
+docs/phase7-audit/
+docs/phase8-audit/
 phase*-design.md
 test-plan-pr*.md
 test-report-pr*.md

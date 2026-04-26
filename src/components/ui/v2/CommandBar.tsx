@@ -33,6 +33,15 @@ type RootProps = React.ComponentPropsWithoutRef<typeof CmdK> & {
   emptyState?: React.ReactNode;
 };
 
+/**
+ * Implementation note (PR-β review fix): `AnimatePresence` lives **outside**
+ * `DialogPrimitive.Portal` and the Portal/Overlay/Content all use
+ * `forceMount`. The previous nesting (Portal → AnimatePresence) caused Radix
+ * to unmount the entire Portal tree when the dialog closed, killing exit
+ * animations. By inverting the nesting and gating the Portal on `open`,
+ * AnimatePresence sees the children leave and plays the exit spring before
+ * the DOM nodes are removed.
+ */
 const Root = ({
   open,
   onOpenChange,
@@ -44,60 +53,62 @@ const Root = ({
 }: RootProps) => {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <AnimatePresence>
-          <DialogPrimitive.Overlay asChild>
-            <motion.div
-              key="p7-cmdbar-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: duration.pop, ease: ease.standard }}
-              className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-[2px]"
-            />
-          </DialogPrimitive.Overlay>
-          <DialogPrimitive.Content asChild>
-            <motion.div
-              key="p7-cmdbar-content"
-              initial={{ opacity: 0, scale: 0.97, y: -8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: -4 }}
-              transition={spring.default}
-              className={cn(
-                "fixed z-[60] left-1/2 top-[12vh] -translate-x-1/2",
-                "w-[min(92vw,38rem)] overflow-hidden",
-                "rounded-p7-surface border border-surface-hairline",
-                "bg-surface-elevated text-ink-primary shadow-p7-overlay",
-              )}
-            >
-              <DialogPrimitive.Title className="sr-only">
-                Command palette
-              </DialogPrimitive.Title>
-              <CmdK
-                className={cn("flex flex-col", className)}
-                {...rest}
+      <AnimatePresence>
+        {open ? (
+          <DialogPrimitive.Portal forceMount>
+            <DialogPrimitive.Overlay asChild forceMount>
+              <motion.div
+                key="p7-cmdbar-overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: duration.pop, ease: ease.standard }}
+                className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-[2px]"
+              />
+            </DialogPrimitive.Overlay>
+            <DialogPrimitive.Content asChild forceMount>
+              <motion.div
+                key="p7-cmdbar-content"
+                initial={{ opacity: 0, scale: 0.97, y: -8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.98, y: -4 }}
+                transition={spring.default}
+                className={cn(
+                  "fixed z-[60] left-1/2 top-[12vh] -translate-x-1/2",
+                  "w-[min(92vw,38rem)] overflow-hidden",
+                  "rounded-p7-surface border border-surface-hairline",
+                  "bg-surface-elevated text-ink-primary shadow-p7-overlay",
+                )}
               >
-                <div className="flex items-center gap-2 border-b border-surface-hairline px-4">
-                  <Search className="h-4 w-4 shrink-0 text-ink-tertiary" />
-                  <CmdK.Input
-                    placeholder={placeholder}
-                    className={cn(
-                      "flex-1 h-12 bg-transparent outline-none",
-                      "text-p7-body text-ink-primary placeholder:text-ink-tertiary",
-                    )}
-                  />
-                </div>
-                <CmdK.List className="max-h-[60vh] overflow-y-auto p-2">
-                  <CmdK.Empty className="py-8 text-center text-p7-callout text-ink-tertiary">
-                    {emptyState ?? "No matches found."}
-                  </CmdK.Empty>
-                  {children}
-                </CmdK.List>
-              </CmdK>
-            </motion.div>
-          </DialogPrimitive.Content>
-        </AnimatePresence>
-      </DialogPrimitive.Portal>
+                <DialogPrimitive.Title className="sr-only">
+                  Command palette
+                </DialogPrimitive.Title>
+                <CmdK
+                  className={cn("flex flex-col", className)}
+                  {...rest}
+                >
+                  <div className="flex items-center gap-2 border-b border-surface-hairline px-4">
+                    <Search className="h-4 w-4 shrink-0 text-ink-tertiary" />
+                    <CmdK.Input
+                      placeholder={placeholder}
+                      className={cn(
+                        "flex-1 h-12 bg-transparent outline-none",
+                        "text-p7-body text-ink-primary placeholder:text-ink-tertiary",
+                      )}
+                    />
+                  </div>
+                  <CmdK.List className="max-h-[60vh] overflow-y-auto p-2">
+                    <CmdK.Empty className="py-8 text-center text-p7-callout text-ink-tertiary">
+                      {emptyState ?? "No matches found."}
+                    </CmdK.Empty>
+                    {children}
+                  </CmdK.List>
+                </CmdK>
+              </motion.div>
+            </DialogPrimitive.Content>
+          </DialogPrimitive.Portal>
+        ) : null}
+      </AnimatePresence>
     </DialogPrimitive.Root>
   );
 };
@@ -105,8 +116,9 @@ const Root = ({
 const Group = React.forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<typeof CmdK.Group>
->(({ className, ...rest }, _ref) => (
+>(({ className, ...rest }, ref) => (
   <CmdK.Group
+    ref={ref}
     className={cn(
       "px-1 py-1",
       "[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5",
@@ -126,8 +138,9 @@ type ItemProps = React.ComponentPropsWithoutRef<typeof CmdK.Item> & {
 };
 
 const Item = React.forwardRef<HTMLDivElement, ItemProps>(
-  ({ className, icon, shortcut, children, ...rest }, _ref) => (
+  ({ className, icon, shortcut, children, ...rest }, ref) => (
     <CmdK.Item
+      ref={ref}
       className={cn(
         "flex items-center gap-3 px-3 py-2 rounded-p7-input cursor-pointer",
         "text-p7-body text-ink-primary",
@@ -154,8 +167,9 @@ Item.displayName = "CommandBar.Item";
 const Separator = React.forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<typeof CmdK.Separator>
->(({ className, ...rest }, _ref) => (
+>(({ className, ...rest }, ref) => (
   <CmdK.Separator
+    ref={ref}
     className={cn("my-1 h-px bg-surface-hairline", className)}
     {...rest}
   />
