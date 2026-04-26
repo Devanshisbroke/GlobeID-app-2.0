@@ -1,102 +1,289 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { AnimatedPage } from "@/components/layout/AnimatedPage";
+import { motion } from "motion/react";
+import {
+  ShieldCheck,
+  Landmark,
+  Settings,
+  Code2,
+  ChevronRight,
+  Globe,
+  Bell,
+  Languages,
+  Monitor,
+  ScrollText,
+  RotateCcw,
+} from "lucide-react";
+import {
+  Surface,
+  Text,
+  Toggle,
+  spring,
+  stagger as v2Stagger,
+} from "@/components/ui/v2";
 import { demoUser } from "@/lib/demoData";
-import { staggerDelay } from "@/hooks/useMotion";
-import { ShieldCheck, Landmark, Settings, Code2, ChevronRight, Globe, Bell, Languages, Monitor, ScrollText, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface SettingItem { icon: React.ElementType; label: string; description: string; color?: string; route?: string; }
+interface SettingItem {
+  icon: React.ElementType;
+  label: string;
+  description: string;
+  tone?: "neutral" | "brand" | "accent" | "critical";
+  route?: string;
+}
 
 const settingSections: { title: string; items: SettingItem[] }[] = [
   {
     title: "Security",
     items: [
-      { icon: ShieldCheck, label: "Security Center", description: "Biometrics, 2FA, recovery keys", color: "text-accent" },
-      { icon: Landmark, label: "Bank & KYC", description: "Connected accounts & verification", color: "text-accent" },
+      {
+        icon: ShieldCheck,
+        label: "Security Center",
+        description: "Biometrics, 2FA, recovery keys",
+        tone: "accent",
+      },
+      {
+        icon: Landmark,
+        label: "Bank & KYC",
+        description: "Connected accounts & verification",
+        tone: "accent",
+      },
     ],
   },
   {
     title: "Preferences",
     items: [
-      { icon: Globe, label: "Currency & Region", description: "USD — United States", color: "text-primary" },
-      { icon: Languages, label: "Language", description: "English", color: "text-primary" },
-      { icon: Bell, label: "Notifications", description: "Push, email, in-app", color: "text-accent" },
+      {
+        icon: Globe,
+        label: "Currency & Region",
+        description: "USD — United States",
+        tone: "brand",
+      },
+      {
+        icon: Languages,
+        label: "Language",
+        description: "English",
+        tone: "brand",
+      },
+      {
+        icon: Bell,
+        label: "Notifications",
+        description: "Push, email, in-app",
+        tone: "accent",
+      },
     ],
   },
   {
     title: "Developer",
     items: [
-      { icon: Monitor, label: "Kiosk Simulator", description: "Test identity verification flow", color: "text-primary", route: "/kiosk-sim" },
-      { icon: ScrollText, label: "Audit Logs", description: "View session & verification events", color: "text-muted-foreground", route: "/kiosk-sim" },
-      { icon: Code2, label: "Developer Tools", description: "Demo mode, debug overlays", color: "text-muted-foreground" },
-      { icon: RotateCcw, label: "Reset Demo Data", description: "Clear all sessions & receipts", color: "text-destructive" },
+      {
+        icon: Monitor,
+        label: "Kiosk Simulator",
+        description: "Test identity verification flow",
+        tone: "brand",
+        route: "/kiosk-sim",
+      },
+      {
+        icon: ScrollText,
+        label: "Audit Logs",
+        description: "View session & verification events",
+        tone: "neutral",
+        route: "/kiosk-sim",
+      },
+      {
+        icon: Code2,
+        label: "Developer Tools",
+        description: "Demo mode, debug overlays",
+        tone: "neutral",
+      },
+      {
+        icon: RotateCcw,
+        label: "Reset Demo Data",
+        description: "Clear all sessions & receipts",
+        tone: "critical",
+      },
     ],
   },
 ];
 
+const containerVariants = {
+  initial: {},
+  animate: { transition: { staggerChildren: v2Stagger.default } },
+};
+
+const itemVariants = {
+  initial: { opacity: 0, y: 6 },
+  animate: { opacity: 1, y: 0, transition: spring.default },
+};
+
+const TONE_HALO_CLASS: Record<
+  NonNullable<SettingItem["tone"]>,
+  string
+> = {
+  neutral: "bg-surface-overlay text-ink-tertiary",
+  brand: "bg-brand-soft text-brand",
+  accent: "bg-state-accent-soft text-state-accent",
+  critical: "bg-state-critical-soft text-state-critical",
+};
+
+/**
+ * Profile — Phase 7 PR-ε.
+ *
+ * Visual reset against the v2 design system. Functional surface
+ * preserved verbatim:
+ *  - Same `settingSections` data with the same routes.
+ *  - Same demo-mode toggle state (still local).
+ *
+ * Visual changes:
+ *  - GlassCard hero → `Surface variant="elevated" radius="sheet"` with a
+ *    soft brand-soft icon halo (replaces the gradient-brand square).
+ *  - Section headings → `Text variant="caption-1"` uppercase eyebrow.
+ *  - Setting rows → `Surface variant="plain"` row with tone-aware halo.
+ *  - Demo-mode switch → v2 `Toggle` primitive (Radix Switch under the
+ *    hood).
+ *  - `AnimatedPage` per-row stagger → motion@12 stagger via v2 tokens.
+ */
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const [demoMode, setDemoMode] = useState(true);
 
   return (
-    <div className="px-4 py-6 space-y-5">
-      <AnimatedPage>
-        <GlassCard className="flex items-center gap-4 relative overflow-hidden light-sweep" variant="premium" glow depth="lg">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-brand flex items-center justify-center shrink-0 shadow-glow-sm">
-            <ShieldCheck className="w-6 h-6 text-primary-foreground" />
+    <motion.div
+      variants={containerVariants}
+      initial="initial"
+      animate="animate"
+      className="px-4 py-6 space-y-6"
+    >
+      {/* Identity hero */}
+      <motion.div variants={itemVariants}>
+        <Surface
+          variant="elevated"
+          radius="sheet"
+          className="flex items-center gap-4 px-5 py-5"
+        >
+          <span
+            aria-hidden
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-p7-input bg-brand-soft"
+          >
+            <ShieldCheck className="w-5 h-5 text-brand" strokeWidth={2} />
+          </span>
+          <div className="flex-1 min-w-0">
+            <Text as="h2" variant="title-3" tone="primary" truncate>
+              {demoUser.name}
+            </Text>
+            <Text variant="caption-1" tone="tertiary" truncate>
+              {demoUser.email}
+            </Text>
+            <Text variant="caption-1" tone="brand" className="mt-0.5 font-semibold">
+              {demoUser.identityLevel} · Member since {demoUser.memberSince}
+            </Text>
           </div>
-          <div className="flex-1 min-w-0 relative">
-            <h2 className="text-lg font-bold text-foreground">{demoUser.name}</h2>
-            <p className="text-xs text-muted-foreground">{demoUser.email}</p>
-            <p className="text-xs text-primary mt-0.5 font-semibold">{demoUser.identityLevel} · Member since {demoUser.memberSince}</p>
-          </div>
-          <Settings className="w-5 h-5 text-muted-foreground/60 relative" />
-        </GlassCard>
-      </AnimatedPage>
+          <Settings
+            className="w-5 h-5 text-ink-tertiary shrink-0"
+            strokeWidth={1.8}
+          />
+        </Surface>
+      </motion.div>
 
-      {settingSections.map((section, si) => (
-        <AnimatedPage key={section.title} staggerIndex={si + 1}>
-          <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">{section.title}</h3>
-          <div className="space-y-2">
-            {section.items.map((item, ii) => {
+      {/* Settings sections */}
+      {settingSections.map((section) => (
+        <motion.section
+          key={section.title}
+          variants={itemVariants}
+          className="space-y-2"
+        >
+          <Text
+            as="h3"
+            variant="caption-1"
+            tone="tertiary"
+            className="px-1 uppercase tracking-[0.18em]"
+          >
+            {section.title}
+          </Text>
+          <motion.div
+            variants={containerVariants}
+            initial="initial"
+            animate="animate"
+            className="space-y-2"
+          >
+            {section.items.map((item) => {
               const Icon = item.icon;
+              const tone = item.tone ?? "neutral";
               return (
-                <GlassCard key={item.label} className="flex items-center gap-3 py-3 cursor-pointer animate-fade-in touch-bounce" style={{ animationDelay: staggerDelay(ii, 50) }} onClick={() => item.route && navigate(item.route)}>
-                  <div className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center shrink-0 border border-border/20">
-                    <Icon className={cn("w-4 h-4", item.color)} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{item.label}</p>
-                    <p className="text-xs text-muted-foreground">{item.description}</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
-                </GlassCard>
+                <motion.div key={item.label} variants={itemVariants}>
+                  <Surface
+                    variant="plain"
+                    radius="surface"
+                    onClick={() =>
+                      item.route ? navigate(item.route) : undefined
+                    }
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3.5",
+                      item.route && "cursor-pointer",
+                    )}
+                  >
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-p7-input",
+                        TONE_HALO_CLASS[tone],
+                      )}
+                    >
+                      <Icon className="w-4 h-4" strokeWidth={1.8} />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <Text variant="body-em" tone="primary">
+                        {item.label}
+                      </Text>
+                      <Text variant="caption-1" tone="tertiary">
+                        {item.description}
+                      </Text>
+                    </div>
+                    {item.route ? (
+                      <ChevronRight
+                        className="w-4 h-4 text-ink-tertiary shrink-0"
+                        strokeWidth={1.8}
+                      />
+                    ) : null}
+                  </Surface>
+                </motion.div>
               );
             })}
-          </div>
-        </AnimatedPage>
+          </motion.div>
+        </motion.section>
       ))}
 
-      <AnimatedPage staggerIndex={4}>
-        <GlassCard className="flex items-center justify-between">
+      {/* Demo-mode toggle */}
+      <motion.div variants={itemVariants}>
+        <Surface
+          variant="plain"
+          radius="surface"
+          className="flex items-center justify-between px-4 py-3.5"
+        >
           <div>
-            <p className="text-sm font-medium text-foreground">Demo Mode</p>
-            <p className="text-xs text-muted-foreground">Uses sample data for all flows</p>
+            <Text variant="body-em" tone="primary">
+              Demo Mode
+            </Text>
+            <Text variant="caption-1" tone="tertiary">
+              Uses sample data for all flows
+            </Text>
           </div>
-          <button
-            onClick={() => setDemoMode(!demoMode)}
-            className={cn("w-12 h-7 rounded-full transition-all duration-[var(--motion-small)] relative", demoMode ? "bg-primary shadow-glow-sm" : "bg-secondary")}
-            role="switch" aria-checked={demoMode} aria-label="Toggle demo mode"
-          >
-            <span className={cn("absolute top-0.5 w-6 h-6 rounded-full bg-primary-foreground shadow-depth-sm transition-transform duration-[var(--motion-small)]", demoMode ? "translate-x-5" : "translate-x-0.5")} />
-          </button>
-        </GlassCard>
-      </AnimatedPage>
+          <Toggle
+            checked={demoMode}
+            onCheckedChange={setDemoMode}
+            aria-label="Toggle demo mode"
+          />
+        </Surface>
+      </motion.div>
 
-      <p className="text-center text-[10px] text-muted-foreground/60 pb-4 tracking-wide">GlobeID v4.0.0 · Premium · Phase 4</p>
-    </div>
+      <Text
+        variant="caption-2"
+        tone="tertiary"
+        className="text-center pb-4 tracking-[0.12em] opacity-70"
+      >
+        GlobeID v4.0.0 · Premium · Phase 4
+      </Text>
+    </motion.div>
   );
 };
 
