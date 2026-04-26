@@ -70,7 +70,9 @@ jobs:
 
       - name: Gradle assembleDebug
         working-directory: android
-        run: ./gradlew --no-daemon assembleDebug
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon assembleDebug
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
