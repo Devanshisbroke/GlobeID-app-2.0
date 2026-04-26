@@ -132,7 +132,7 @@ const Identity: React.FC = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: duration.medium / 1000, ease: ease.standard }}
+            transition={{ duration: duration.page, ease: ease.standard }}
           >
             <Surface
               variant="elevated"

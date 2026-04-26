@@ -1,28 +1,115 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { AnimatedPage } from "@/components/layout/AnimatedPage";
-import { staggerDelay } from "@/hooks/useMotion";
-import { getIcon } from "@/lib/iconMap";
+import { motion } from "motion/react";
 import {
-  demoRideProviders, demoRestaurants, demoEmergencyContacts,
-  simulateRideRequest, type RideRequest,
+  Car,
+  UtensilsCrossed,
+  MapPin,
+  Shield,
+  ChevronRight,
+  Star,
+  Clock,
+  Check,
+  Phone,
+  Globe,
+  Wifi,
+  CreditCard,
+  Umbrella,
+  ArrowLeftRight,
+  Sparkles,
+} from "lucide-react";
+import {
+  Surface,
+  Button,
+  Pill,
+  Tabs,
+  Text,
+  spring,
+  stagger as v2Stagger,
+} from "@/components/ui/v2";
+import {
+  demoRideProviders,
+  demoRestaurants,
+  demoEmergencyContacts,
+  simulateRideRequest,
+  type RideRequest,
 } from "@/lib/demoServices";
 import { detectCurrentLocation } from "@/lib/locationEngine";
-import { Car, UtensilsCrossed, MapPin, Shield, ChevronRight, Star, Clock, Check, Phone, Globe, Wifi, CreditCard, Umbrella, ArrowLeftRight, Hotel, Compass, Train, Sparkles } from "lucide-react";
+import { getIcon } from "@/lib/iconMap";
 import { cn } from "@/lib/utils";
 import ServiceCard from "@/components/services/ServiceCard";
 
 type Tab = "rides" | "food" | "services" | "safety";
 
-const travelServices = [
-  { id: "ts-1", title: "Visa Assistance", description: "Apply for e-visas and track applications", icon: <Globe className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-brand" },
-  { id: "ts-2", title: "Travel Insurance", description: "Compare and purchase travel coverage", icon: <Umbrella className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-brand" },
-  { id: "ts-3", title: "Airport Lounge Access", description: "Book premium lounge passes worldwide", icon: <CreditCard className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-brand" },
-  { id: "ts-4", title: "Global SIM", description: "eSIM data plans for 190+ countries", icon: <Wifi className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-brand" },
-  { id: "ts-5", title: "Currency Exchange", description: "Real-time rates and instant conversion", icon: <ArrowLeftRight className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />, gradient: "bg-gradient-brand" },
+const travelServices: {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}[] = [
+  {
+    id: "ts-1",
+    title: "Visa Assistance",
+    description: "Apply for e-visas and track applications",
+    icon: <Globe className="w-5 h-5" strokeWidth={1.8} />,
+  },
+  {
+    id: "ts-2",
+    title: "Travel Insurance",
+    description: "Compare and purchase travel coverage",
+    icon: <Umbrella className="w-5 h-5" strokeWidth={1.8} />,
+  },
+  {
+    id: "ts-3",
+    title: "Airport Lounge Access",
+    description: "Book premium lounge passes worldwide",
+    icon: <CreditCard className="w-5 h-5" strokeWidth={1.8} />,
+  },
+  {
+    id: "ts-4",
+    title: "Global SIM",
+    description: "eSIM data plans for 190+ countries",
+    icon: <Wifi className="w-5 h-5" strokeWidth={1.8} />,
+  },
+  {
+    id: "ts-5",
+    title: "Currency Exchange",
+    description: "Real-time rates and instant conversion",
+    icon: <ArrowLeftRight className="w-5 h-5" strokeWidth={1.8} />,
+  },
 ];
 
+const containerVariants = {
+  initial: {},
+  animate: { transition: { staggerChildren: v2Stagger.default } },
+};
+
+const itemVariants = {
+  initial: { opacity: 0, y: 6 },
+  animate: { opacity: 1, y: 0, transition: spring.default },
+};
+
+/**
+ * Services — Phase 7 PR-ε.
+ *
+ * Visual reset against the v2 design system. Functional surface
+ * preserved verbatim:
+ *  - 4-tab segmented (Services / Rides / Food / Safety) — same state.
+ *  - `simulateRideRequest` flow + `activeRide` state preserved.
+ *  - `detectCurrentLocation` + pickup/dropoff defaults preserved.
+ *  - `ServiceCard` sub-component preserved unchanged.
+ *  - All store / data reads (`demoRideProviders`, `demoRestaurants`,
+ *    `demoEmergencyContacts`) preserved.
+ *
+ * Visual changes:
+ *  - Glass-pill tab toggle → `Tabs.Root` segmented.
+ *  - Hub CTA → `Surface elevated` row.
+ *  - GlassCard ride/food cards → `Surface` (variant per density).
+ *  - Status / rating chips → `Pill tone="..." weight="tinted"`.
+ *  - Emergency contacts list → `Surface elevated` table.
+ *  - Section headings → `Text variant="caption-1"` uppercase eyebrow.
+ *  - Drops the gradient-brand icon-square pattern in service cards.
+ */
 const Services: React.FC = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("services");
@@ -31,13 +118,6 @@ const Services: React.FC = () => {
   const [pickup] = useState(`${location.city} City Center`);
   const [dropoff] = useState(`${location.iata} Airport`);
 
-  const tabs: { key: Tab; label: string; icon: React.ElementType; gradient: string }[] = [
-    { key: "services", label: "Services", icon: Globe, gradient: "bg-gradient-brand" },
-    { key: "rides", label: "Rides", icon: Car, gradient: "bg-gradient-brand" },
-    { key: "food", label: "Food", icon: UtensilsCrossed, gradient: "bg-gradient-brand" },
-    { key: "safety", label: "Safety", icon: Shield, gradient: "bg-gradient-brand" },
-  ];
-
   const handleRequestRide = (providerId: string) => {
     const ride = simulateRideRequest(providerId, pickup, dropoff);
     setActiveRide(ride);
@@ -45,183 +125,345 @@ const Services: React.FC = () => {
 
   return (
     <div className="px-4 py-6 space-y-5">
-      <AnimatedPage>
-        <h1 className="text-xl font-bold text-foreground mb-1">Services</h1>
-        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-          <MapPin className="w-3 h-3 text-accent" /> {location.city} — Local services available
-        </p>
-      </AnimatedPage>
+      <header>
+        <Text as="h1" variant="title-2" tone="primary">
+          Services
+        </Text>
+        <Text variant="caption-1" tone="tertiary" className="mt-1 inline-flex items-center gap-1.5">
+          <MapPin className="w-3 h-3 text-state-accent" strokeWidth={2} />
+          {location.city} — Local services available
+        </Text>
+      </header>
 
-      <AnimatedPage>
-        <div className="flex gap-1.5 p-1 rounded-2xl glass border border-border/40">
-          {tabs.map((t) => {
-            const Icon = t.icon;
-            const active = tab === t.key;
-            return (
-              <button key={t.key} onClick={() => setTab(t.key)} className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-[var(--motion-small)] min-h-[44px]",
-                active ? `${t.gradient} text-primary-foreground shadow-depth-sm` : "text-muted-foreground hover:text-foreground"
-              )}>
-                <Icon className="w-3.5 h-3.5" strokeWidth={1.8} />{t.label}
-              </button>
-            );
-          })}
-        </div>
-      </AnimatedPage>
+      <Tabs value={tab} onValueChange={(next) => setTab(next as Tab)}>
+        <Tabs.List variant="segmented" className="w-full">
+          <Tabs.Trigger value="services" className="flex-1">
+            <Globe className="w-4 h-4" strokeWidth={1.8} />
+            Services
+          </Tabs.Trigger>
+          <Tabs.Trigger value="rides" className="flex-1">
+            <Car className="w-4 h-4" strokeWidth={1.8} />
+            Rides
+          </Tabs.Trigger>
+          <Tabs.Trigger value="food" className="flex-1">
+            <UtensilsCrossed className="w-4 h-4" strokeWidth={1.8} />
+            Food
+          </Tabs.Trigger>
+          <Tabs.Trigger value="safety" className="flex-1">
+            <Shield className="w-4 h-4" strokeWidth={1.8} />
+            Safety
+          </Tabs.Trigger>
+        </Tabs.List>
 
-      {tab === "services" && (
-        <div className="space-y-3">
-          <AnimatedPage>
-            <GlassCard
-              neonBorder
-              className="flex items-center gap-3 cursor-pointer"
-              depth="md"
-              onClick={() => navigate("/services/hub")}
+        {/* Services hub + travel services */}
+        <Tabs.Content value="services" className="mt-5 space-y-3">
+          <Surface
+            variant="elevated"
+            radius="surface"
+            onClick={() => navigate("/services/hub")}
+            className="flex items-center gap-3 px-4 py-3.5 cursor-pointer"
+          >
+            <span
+              aria-hidden
+              className="flex h-10 w-10 items-center justify-center rounded-p7-input bg-brand-soft"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 shadow-glow-sm">
-                <Sparkles className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-bold text-foreground">Services Hub</p>
-                <p className="text-xs text-muted-foreground">Hotels, rides, food, activities & more</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </GlassCard>
-          </AnimatedPage>
-          <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">Travel Services</h3>
-          {travelServices.map((svc, i) => (
-            <AnimatedPage key={svc.id} staggerIndex={i + 1}>
-              <ServiceCard
-                title={svc.title}
-                description={svc.description}
-                icon={svc.icon}
-                gradient={svc.gradient}
-              />
-            </AnimatedPage>
-          ))}
-        </div>
-      )}
+              <Sparkles className="w-4 h-4 text-brand" strokeWidth={2} />
+            </span>
+            <div className="flex-1 min-w-0">
+              <Text variant="body-em" tone="primary">
+                Services Hub
+              </Text>
+              <Text variant="caption-1" tone="tertiary">
+                Hotels, rides, food, activities &amp; more
+              </Text>
+            </div>
+            <ChevronRight className="w-4 h-4 text-ink-tertiary" />
+          </Surface>
 
-      {tab === "rides" && (
-        <div className="space-y-3">
-          {activeRide && (
-            <AnimatedPage>
-              <GlassCard neonBorder variant="premium" depth="lg">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-6 h-6 rounded-full bg-accent/15 flex items-center justify-center"><Check className="w-3.5 h-3.5 text-accent" /></div>
-                  <span className="text-sm font-bold text-accent">Ride Confirmed</span>
-                </div>
-                <div className="space-y-2.5 text-xs">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Driver</span><span className="text-foreground font-medium">{activeRide.driver?.name}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Vehicle</span><span className="text-foreground font-medium">{activeRide.driver?.vehicle} · {activeRide.driver?.plate}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">ETA</span><span className="text-foreground font-medium">{activeRide.eta}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Price</span><span className="text-foreground font-bold">{activeRide.currency} {activeRide.price}</span></div>
-                </div>
-              </GlassCard>
-            </AnimatedPage>
-          )}
-          <AnimatedPage>
-            <GlassCard>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2.5"><div className="w-2.5 h-2.5 rounded-full bg-primary shadow-glow-sm" /><span className="text-xs text-foreground font-medium">{pickup}</span></div>
-                <div className="ml-[5px] border-l border-dashed border-border/40 h-5" />
-                <div className="flex items-center gap-2.5"><div className="w-2.5 h-2.5 rounded-full bg-destructive" /><span className="text-xs text-foreground font-medium">{dropoff}</span></div>
+          <Text
+            as="h3"
+            variant="caption-1"
+            tone="tertiary"
+            className="px-1 uppercase tracking-[0.18em] pt-1"
+          >
+            Travel Services
+          </Text>
+
+          <motion.div
+            variants={containerVariants}
+            initial="initial"
+            animate="animate"
+            className="space-y-3"
+          >
+            {travelServices.map((svc) => (
+              <motion.div key={svc.id} variants={itemVariants}>
+                <ServiceCard
+                  title={svc.title}
+                  description={svc.description}
+                  icon={svc.icon}
+                  gradient="bg-brand-soft text-brand"
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        </Tabs.Content>
+
+        {/* Rides */}
+        <Tabs.Content value="rides" className="mt-5 space-y-3">
+          {activeRide ? (
+            <Surface
+              variant="elevated"
+              radius="surface"
+              className="px-4 py-4 space-y-3"
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  aria-hidden
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-state-accent-soft"
+                >
+                  <Check
+                    className="w-3.5 h-3.5 text-state-accent"
+                    strokeWidth={2.2}
+                  />
+                </span>
+                <Text variant="body-em" tone="accent">
+                  Ride Confirmed
+                </Text>
               </div>
-            </GlassCard>
-          </AnimatedPage>
-          {demoRideProviders.map((provider, i) => {
+              <div className="space-y-2">
+                <RideDetail
+                  label="Driver"
+                  value={activeRide.driver?.name ?? "—"}
+                />
+                <RideDetail
+                  label="Vehicle"
+                  value={`${activeRide.driver?.vehicle ?? "—"} · ${activeRide.driver?.plate ?? "—"}`}
+                />
+                <RideDetail label="ETA" value={activeRide.eta} />
+                <RideDetail
+                  label="Price"
+                  value={`${activeRide.currency} ${activeRide.price}`}
+                  emphasis
+                />
+              </div>
+            </Surface>
+          ) : null}
+
+          <Surface
+            variant="plain"
+            radius="surface"
+            className="px-4 py-3 space-y-2"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="w-2 h-2 rounded-full bg-brand" />
+              <Text variant="callout" tone="primary">
+                {pickup}
+              </Text>
+            </div>
+            <div className="ml-[3px] border-l border-dashed border-surface-hairline h-4" />
+            <div className="flex items-center gap-2.5">
+              <span className="w-2 h-2 rounded-full bg-state-critical" />
+              <Text variant="callout" tone="primary">
+                {dropoff}
+              </Text>
+            </div>
+          </Surface>
+
+          {demoRideProviders.map((provider) => {
             const PIcon = getIcon(provider.icon);
+            const disabled = !provider.available;
             return (
-              <AnimatedPage key={provider.id} staggerIndex={i}>
-                <GlassCard className={cn("flex items-center gap-3 cursor-pointer touch-bounce", !provider.available && "opacity-40")} onClick={() => provider.available && handleRequestRide(provider.id)}>
-                  <div className="w-10 h-10 rounded-xl bg-gradient-brand flex items-center justify-center shrink-0 shadow-depth-sm">
-                    <PIcon className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+              <Surface
+                key={provider.id}
+                variant="plain"
+                radius="surface"
+                onClick={() =>
+                  provider.available && handleRequestRide(provider.id)
+                }
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3.5",
+                  provider.available && "cursor-pointer",
+                  disabled && "opacity-50",
+                )}
+              >
+                <span
+                  aria-hidden
+                  className="flex h-9 w-9 items-center justify-center rounded-p7-input bg-brand-soft shrink-0"
+                >
+                  <PIcon className="w-4 h-4 text-brand" strokeWidth={1.8} />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Text variant="body-em" tone="primary">
+                      {provider.name}
+                    </Text>
+                    <Text variant="caption-2" tone="tertiary">
+                      {provider.vehicleType}
+                    </Text>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2"><p className="text-sm font-bold text-foreground">{provider.name}</p><span className="text-[10px] text-muted-foreground">{provider.vehicleType}</span></div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                      <Clock className="w-3 h-3" /><span>{provider.eta}</span><Star className="w-3 h-3 text-warning" /><span>{provider.rating}</span>
-                    </div>
+                  <div className="mt-0.5 flex items-center gap-3 text-p7-caption-2 text-ink-tertiary">
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> {provider.eta}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Star className="w-3 h-3 text-[hsl(var(--p7-warning))]" />
+                      {provider.rating}
+                    </span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-foreground">{provider.currency} {provider.price}</p>
-                    {!provider.available && <p className="text-[10px] text-muted-foreground">Unavailable</p>}
-                  </div>
-                </GlassCard>
-              </AnimatedPage>
+                </div>
+                <div className="text-right shrink-0">
+                  <Text variant="body-em" tone="primary">
+                    {provider.currency} {provider.price}
+                  </Text>
+                  {disabled ? (
+                    <Text variant="caption-2" tone="tertiary">
+                      Unavailable
+                    </Text>
+                  ) : null}
+                </div>
+              </Surface>
             );
           })}
-        </div>
-      )}
+        </Tabs.Content>
 
-      {tab === "food" && (
-        <div className="space-y-3">
-          {demoRestaurants.map((r, i) => {
+        {/* Food */}
+        <Tabs.Content value="food" className="mt-5 space-y-3">
+          {demoRestaurants.map((r) => {
             const RIcon = getIcon(r.icon);
             return (
-              <AnimatedPage key={r.id} staggerIndex={i}>
-                <GlassCard className="overflow-hidden p-0 cursor-pointer touch-bounce" depth="md">
-                  <div className="relative">
-                    <img src={r.image} alt={r.name} className="w-full h-36 object-cover" loading="lazy" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-                    <span className="absolute top-3 right-3 text-[10px] px-2.5 py-1 rounded-full glass font-semibold text-foreground border border-border/30">{r.provider}</span>
+              <Surface
+                key={r.id}
+                variant="elevated"
+                radius="surface"
+                className="overflow-hidden"
+              >
+                <div className="relative">
+                  <img
+                    src={r.image}
+                    alt={r.name}
+                    className="w-full h-36 object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-surface-elevated via-transparent to-transparent" />
+                  <span className="absolute top-3 right-3">
+                    <Pill tone="neutral" weight="solid">
+                      {r.provider}
+                    </Pill>
+                  </span>
+                </div>
+                <div className="p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <RIcon
+                      className="w-4 h-4 text-ink-tertiary"
+                      strokeWidth={1.8}
+                    />
+                    <Text variant="body-em" tone="primary">
+                      {r.name}
+                    </Text>
                   </div>
-                  <div className="p-4">
-                    <div className="flex items-center gap-2">
-                      <RIcon className="w-4 h-4 text-muted-foreground" strokeWidth={1.8} />
-                      <p className="text-sm font-bold text-foreground">{r.name}</p>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">{r.cuisine}</p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1"><Star className="w-3 h-3 text-warning" />{r.rating}</span>
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{r.deliveryTime}</span>
-                      <span>{r.deliveryFee}</span><span>{r.priceRange}</span>
-                    </div>
+                  <Text variant="caption-1" tone="tertiary">
+                    {r.cuisine}
+                  </Text>
+                  <div className="flex items-center gap-3 text-p7-caption-1 text-ink-tertiary">
+                    <span className="inline-flex items-center gap-1">
+                      <Star className="w-3 h-3 text-[hsl(var(--p7-warning))]" />
+                      {r.rating}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> {r.deliveryTime}
+                    </span>
+                    <span>{r.deliveryFee}</span>
+                    <span>{r.priceRange}</span>
                   </div>
-                </GlassCard>
-              </AnimatedPage>
+                </div>
+              </Surface>
             );
           })}
-        </div>
-      )}
+        </Tabs.Content>
 
-      {tab === "safety" && (
-        <div className="space-y-3">
-          <AnimatedPage>
-            <GlassCard neonBorder variant="premium" depth="md">
-              <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
-                <Shield className="w-4 h-4 text-accent" /> Emergency Contacts — Singapore
-              </h3>
-              <div className="space-y-2">
-                {demoEmergencyContacts.map((c) => {
-                  const CIcon = getIcon(c.icon);
-                  return (
-                    <div key={c.id} className="flex items-center gap-3 py-2.5 border-b border-border/20 last:border-0">
-                      <div className="w-8 h-8 rounded-lg bg-secondary/60 flex items-center justify-center border border-border/20">
-                        <CIcon className="w-4 h-4 text-muted-foreground" strokeWidth={1.8} />
-                      </div>
-                      <div className="flex-1"><p className="text-sm font-medium text-foreground">{c.name}</p></div>
-                      <a href={`tel:${c.number}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 text-accent text-xs font-semibold min-h-[36px] hover:bg-accent/20 transition-colors touch-bounce">
-                        <Phone className="w-3 h-3" />{c.number}
-                      </a>
-                    </div>
-                  );
-                })}
-              </div>
-            </GlassCard>
-          </AnimatedPage>
-          <AnimatedPage staggerIndex={1}>
-            <GlassCard>
-              <button className="w-full py-3.5 rounded-xl bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground text-sm font-bold active:scale-95 transition-transform min-h-[44px] shadow-depth-md btn-ripple">
-                Share Live Location
-              </button>
-              <p className="text-[10px] text-muted-foreground text-center mt-2">Shares your location with trusted contacts for 1 hour</p>
-            </GlassCard>
-          </AnimatedPage>
-        </div>
-      )}
+        {/* Safety */}
+        <Tabs.Content value="safety" className="mt-5 space-y-3">
+          <Surface variant="elevated" radius="surface" className="p-4">
+            <Text
+              as="h3"
+              variant="body-em"
+              tone="primary"
+              className="mb-3 inline-flex items-center gap-2"
+            >
+              <Shield
+                className="w-4 h-4 text-state-accent"
+                strokeWidth={2}
+              />
+              Emergency Contacts — {location.city}
+            </Text>
+            <div className="divide-y divide-surface-hairline">
+              {demoEmergencyContacts.map((c) => {
+                const CIcon = getIcon(c.icon);
+                return (
+                  <div
+                    key={c.id}
+                    className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+                  >
+                    <span
+                      aria-hidden
+                      className="flex h-8 w-8 items-center justify-center rounded-p7-input bg-surface-overlay"
+                    >
+                      <CIcon
+                        className="w-4 h-4 text-ink-tertiary"
+                        strokeWidth={1.8}
+                      />
+                    </span>
+                    <Text variant="callout" tone="primary" className="flex-1">
+                      {c.name}
+                    </Text>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      asChild
+                      leading={<Phone />}
+                    >
+                      <a href={`tel:${c.number}`}>{c.number}</a>
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </Surface>
+
+          <Surface variant="plain" radius="surface" className="p-4 space-y-2">
+            <Button variant="critical" size="lg" className="w-full">
+              Share Live Location
+            </Button>
+            <Text
+              variant="caption-2"
+              tone="tertiary"
+              className="text-center"
+            >
+              Shares your location with trusted contacts for 1 hour
+            </Text>
+          </Surface>
+        </Tabs.Content>
+      </Tabs>
     </div>
   );
 };
 
 export default Services;
+
+const RideDetail: React.FC<{
+  label: string;
+  value: string;
+  emphasis?: boolean;
+}> = ({ label, value, emphasis }) => (
+  <div className="flex items-center justify-between">
+    <Text variant="caption-1" tone="tertiary">
+      {label}
+    </Text>
+    <Text
+      variant={emphasis ? "body-em" : "callout"}
+      tone="primary"
+    >
+      {value}
+    </Text>
+  </div>
+);

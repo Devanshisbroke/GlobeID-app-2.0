@@ -1,6 +1,24 @@
 import React, { useState, lazy, Suspense } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  Globe,
+  Plane,
+  Clock,
+  ChevronRight,
+  Navigation,
+  Activity,
+  Users,
+  Route,
+  Radio,
+} from "lucide-react";
+import {
+  Surface,
+  Pill,
+  Text,
+  spring,
+  ease,
+  duration,
+} from "@/components/ui/v2";
 import { getAirport } from "@/lib/airports";
 import {
   useUserStore,
@@ -9,9 +27,6 @@ import {
   formatTripDate,
 } from "@/store/userStore";
 import { getGlobalStats } from "@/lib/destinationAnalytics";
-import { springs } from "@/hooks/useMotion";
-import { easing } from "@/motion/motionConfig";
-import { Globe, Plane, Clock, ChevronRight, Navigation, Activity, Users, Route, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MapControls from "@/components/map/MapControls";
 import SimulationHUD from "@/components/simulation/SimulationHUD";
@@ -45,32 +60,74 @@ const LiveFlightStats: React.FC = () => {
   const flights = useAnimatedNum(stats.totalFlightsToday);
   const routes = useAnimatedNum(stats.totalRoutes);
   return (
-    <GlassCard className="py-2.5 px-3 flex items-center justify-between" interactive={false}>
-      <div className="flex items-center gap-1.5">
-        <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-        <span className="text-[10px] text-muted-foreground font-medium">Live</span>
-      </div>
-      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-        <Activity className="w-3 h-3" />
-        <span className="font-bold text-foreground">{flights.toLocaleString()}</span> flights
-      </div>
-      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-        <Route className="w-3 h-3" />
-        <span className="font-bold text-foreground">{routes.toLocaleString()}</span> routes
-      </div>
-      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-        <Users className="w-3 h-3" />
-        <span className="font-bold text-foreground">{stats.topRoute}</span>
-      </div>
-    </GlassCard>
+    <Surface
+      variant="elevated"
+      radius="surface"
+      className="flex items-center justify-between gap-2 px-3 py-2"
+    >
+      <span className="inline-flex items-center gap-1.5">
+        <span className="w-2 h-2 rounded-full bg-state-accent animate-pulse" />
+        <Text variant="caption-2" tone="tertiary">
+          Live
+        </Text>
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <Activity className="w-3 h-3 text-ink-tertiary" strokeWidth={1.8} />
+        <Text variant="caption-2" tone="primary" className="font-semibold tabular-nums">
+          {flights.toLocaleString()}
+        </Text>
+        <Text variant="caption-2" tone="tertiary">
+          flights
+        </Text>
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <Route className="w-3 h-3 text-ink-tertiary" strokeWidth={1.8} />
+        <Text variant="caption-2" tone="primary" className="font-semibold tabular-nums">
+          {routes.toLocaleString()}
+        </Text>
+        <Text variant="caption-2" tone="tertiary">
+          routes
+        </Text>
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <Users className="w-3 h-3 text-ink-tertiary" strokeWidth={1.8} />
+        <Text variant="caption-2" tone="primary" className="font-semibold">
+          {stats.topRoute}
+        </Text>
+      </span>
+    </Surface>
   );
 };
 
+/**
+ * GlobalMap — Phase 7 PR-ε.
+ *
+ * 3D globe layer (Three.js) preserved unchanged per locked decision Q7
+ * (full-bleed Three.js on the Map tab). Visual reset is limited to the
+ * floating glass panels overlaying the globe.
+ *
+ * Functional surface preserved verbatim:
+ *  - Same state machine (`showHistory`, `showAirports`, `showPanel`,
+ *    `simMode`, `simSpeed`, `simHour`, `isLoaded`).
+ *  - Same store reads (`useUserStore.travelHistory`,
+ *    `selectVisitedCountries`, `selectUpcomingCountries`).
+ *  - Same lazy `GlobeScene` boundary.
+ *  - Same simulation HUD + speed control + continent traffic widgets.
+ *
+ * Visual changes:
+ *  - GlassCard floating panels → `Surface elevated`.
+ *  - Country chips → `Pill tone="accent" weight="tinted"`.
+ *  - Stat chips → `Surface elevated` row with v2 Text.
+ *  - Upcoming-flight cards → `Surface elevated` rows; drops the gradient-
+ *    brand icon-square pattern.
+ *  - Past-flight cards → `Surface plain` rows.
+ *  - framer-motion → motion@12; transitions tuned to v2 spring + ease.
+ */
 const GlobalMap: React.FC = () => {
   const [showHistory, setShowHistory] = useState(true);
   const [showAirports, setShowAirports] = useState(true);
   const [showPanel, setShowPanel] = useState(true);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [, setIsLoaded] = useState(false);
   const [simMode, setSimMode] = useState(false);
   const [simSpeed, setSimSpeed] = useState(1);
   const [simHour, setSimHour] = useState(12);
@@ -82,7 +139,7 @@ const GlobalMap: React.FC = () => {
         .filter((r) => r.type === "upcoming" || r.type === "current")
         .slice()
         .sort((a, b) => a.date.localeCompare(b.date)),
-    [travelHistory]
+    [travelHistory],
   );
   const pastFlights = React.useMemo(
     () =>
@@ -90,34 +147,41 @@ const GlobalMap: React.FC = () => {
         .filter((r) => r.type === "past")
         .slice()
         .sort((a, b) => b.date.localeCompare(a.date)),
-    [travelHistory]
+    [travelHistory],
   );
   const visitedCountries = React.useMemo(
     () => selectVisitedCountries(travelHistory),
-    [travelHistory]
+    [travelHistory],
   );
   const upcomingCountries = React.useMemo(
     () => selectUpcomingCountries(travelHistory),
-    [travelHistory]
+    [travelHistory],
   );
 
   return (
-    <div className="relative min-h-[100dvh] -mx-4 -mt-6" style={{ marginBottom: "-5rem" }}>
+    <div
+      className="relative min-h-[100dvh] -mx-4 -mt-6"
+      style={{ marginBottom: "-5rem" }}
+    >
       {/* 3D Globe — pointer-events contained to this layer */}
       <div
         className="absolute inset-0"
         style={{
           background: "#020617",
-          touchAction: "none", // Globe area: let Three.js handle gestures
+          touchAction: "none",
         }}
       >
         <Suspense
           fallback={
             <div className="flex items-center justify-center h-full flex-col gap-3">
-              <div className="w-8 h-8 rounded-full border-2 border-primary/40 border-t-primary animate-spin" />
-              <p className="text-xs text-muted-foreground font-medium tracking-wider animate-pulse">
+              <div className="w-8 h-8 rounded-full border-2 border-brand/40 border-t-brand animate-spin" />
+              <Text
+                variant="caption-1"
+                tone="tertiary"
+                className="font-medium tracking-[0.18em] animate-pulse"
+              >
                 Rendering Earth…
-              </p>
+              </Text>
             </div>
           }
         >
@@ -125,7 +189,7 @@ const GlobalMap: React.FC = () => {
             className="w-full h-full"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, ease: easing.cinematic }}
+            transition={{ duration: duration.hero, ease: ease.decelerated }}
             onAnimationComplete={() => setIsLoaded(true)}
           >
             <GlobeScene
@@ -151,171 +215,250 @@ const GlobalMap: React.FC = () => {
       {/* Simulation mode toggle — top left */}
       <motion.button
         onClick={() => setSimMode(!simMode)}
-        whileTap={{ scale: 0.9 }}
+        whileTap={{ scale: 0.92 }}
+        transition={spring.snap}
         className={cn(
-          "absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-2 rounded-xl border shadow-depth-sm transition-colors",
+          "absolute top-safe-4 left-safe-4 z-20 flex items-center gap-2 px-3 py-2 rounded-p7-input border shadow-p7-sm transition-colors duration-p7-pop ease-p7-standard",
           simMode
-            ? "bg-primary/20 border-primary/40 text-primary backdrop-blur-xl"
-            : "bg-background/60 border-border/[0.15] text-muted-foreground backdrop-blur-xl"
+            ? "bg-brand-soft border-brand/40 text-brand backdrop-blur-xl"
+            : "bg-surface-glass border-surface-hairline text-ink-tertiary backdrop-blur-xl",
         )}
       >
         <Radio className="w-3.5 h-3.5" strokeWidth={2} />
-        <span className="text-[10px] font-bold uppercase tracking-wider">Simulation</span>
-        {simMode && <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />}
+        <Text
+          variant="caption-2"
+          tone="primary"
+          className="uppercase tracking-[0.18em] font-bold"
+        >
+          Simulation
+        </Text>
+        {simMode ? (
+          <span className="w-1.5 h-1.5 rounded-full bg-state-accent animate-pulse" />
+        ) : null}
       </motion.button>
 
       {/* Simulation HUD overlay */}
       <AnimatePresence>
-        {simMode && (
+        {simMode ? (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: duration.page, ease: ease.standard }}
             className="absolute top-14 left-4 right-4 z-10 space-y-2"
           >
             <SimulationHUD speed={simSpeed} />
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
 
       {/* Bottom panel toggle */}
       <motion.button
         onClick={() => setShowPanel(!showPanel)}
-        className="absolute bottom-24 right-4 z-20 w-10 h-10 rounded-full bg-background/60 backdrop-blur-[20px] border border-border/[0.15] flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
-        whileTap={{ scale: 0.9 }}
-        transition={springs.bounce}
+        className="absolute bottom-24 right-4 z-20 w-10 h-10 rounded-full bg-surface-glass backdrop-blur-[20px] border border-surface-hairline flex items-center justify-center shadow-p7-md"
+        whileTap={{ scale: 0.92 }}
+        transition={spring.snap}
         aria-label="Toggle flight panel"
       >
         <ChevronRight
           className={cn(
-            "w-4 h-4 text-foreground transition-transform",
-            showPanel ? "rotate-90" : "-rotate-90"
+            "w-4 h-4 text-ink-primary transition-transform duration-p7-pop",
+            showPanel ? "rotate-90" : "-rotate-90",
           )}
         />
       </motion.button>
 
-      {/* Flight Info Panel — scrollable, touch-action allows vertical scroll */}
+      {/* Flight Info Panel — scrollable */}
       <AnimatePresence>
-        {showPanel && (
+        {showPanel ? (
           <motion.div
             initial={{ y: 200, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 200, opacity: 0 }}
-            transition={springs.gentle}
+            transition={spring.default}
             className="absolute bottom-20 left-0 right-0 z-10 px-4 pb-2 space-y-3 max-h-[45vh] overflow-y-auto overscroll-contain"
             style={{ touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
           >
             {/* Simulation controls when in sim mode */}
-            {simMode && (
-              <GlassCard className="space-y-3 py-3 px-3" interactive={false}>
+            {simMode ? (
+              <Surface
+                variant="elevated"
+                radius="surface"
+                className="space-y-3 px-3 py-3"
+              >
                 <SpeedControl speed={simSpeed} onSpeedChange={setSimSpeed} />
                 <TravelTimelineSim hour={simHour} onHourChange={setSimHour} />
                 <ContinentTraffic />
-              </GlassCard>
-            )}
+              </Surface>
+            ) : null}
 
             {/* Live global stats */}
             <LiveFlightStats />
 
             {/* Stats bar */}
             <div className="flex gap-2">
-              <GlassCard className="flex-1 py-2.5 px-3 flex items-center gap-2" interactive={false}>
-                <Globe className="w-4 h-4 text-accent" strokeWidth={1.8} />
-                <div>
-                  <p className="text-[10px] text-muted-foreground">Visited</p>
-                  <p className="text-sm font-bold text-foreground">{visitedCountries.length}</p>
-                </div>
-              </GlassCard>
-              <GlassCard className="flex-1 py-2.5 px-3 flex items-center gap-2" interactive={false}>
-                <Plane className="w-4 h-4 text-primary" strokeWidth={1.8} />
-                <div>
-                  <p className="text-[10px] text-muted-foreground">Flights</p>
-                  <p className="text-sm font-bold text-foreground">{travelHistory.length}</p>
-                </div>
-              </GlassCard>
-              <GlassCard className="flex-1 py-2.5 px-3 flex items-center gap-2" interactive={false}>
-                <Navigation className="w-4 h-4 text-warning" strokeWidth={1.8} />
-                <div>
-                  <p className="text-[10px] text-muted-foreground">Location</p>
-                  <p className="text-sm font-bold text-foreground">SFO</p>
-                </div>
-              </GlassCard>
+              <StatTile
+                icon={<Globe className="w-4 h-4 text-state-accent" strokeWidth={1.8} />}
+                label="Visited"
+                value={visitedCountries.length}
+              />
+              <StatTile
+                icon={<Plane className="w-4 h-4 text-brand" strokeWidth={1.8} />}
+                label="Flights"
+                value={travelHistory.length}
+              />
+              <StatTile
+                icon={<Navigation className="w-4 h-4 text-[hsl(var(--p7-warning))]" strokeWidth={1.8} />}
+                label="Location"
+                value="SFO"
+              />
             </div>
 
             {/* Upcoming flights */}
-            {upcomingFlights.length > 0 && (
+            {upcomingFlights.length > 0 ? (
               <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-2 px-1">Upcoming Flights</p>
-                {upcomingFlights.map((flight) => {
-                  const from = getAirport(flight.from);
-                  const to = getAirport(flight.to);
-                  if (!from || !to) return null;
-                  return (
-                    <GlassCard key={flight.id} className="mb-2" variant="premium" depth="md">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-brand flex items-center justify-center shrink-0">
-                          <Plane className="w-4 h-4 text-primary-foreground" strokeWidth={1.8} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-foreground">{flight.from}</span>
-                            <div className="flex-1 h-px bg-gradient-to-r from-primary/40 to-accent/40 mx-1" />
-                            <span className="text-sm font-bold text-foreground">{flight.to}</span>
+                <Text
+                  as="h3"
+                  variant="caption-1"
+                  tone="tertiary"
+                  className="mb-2 px-1 uppercase tracking-[0.18em]"
+                >
+                  Upcoming Flights
+                </Text>
+                <div className="space-y-2">
+                  {upcomingFlights.map((flight) => {
+                    const from = getAirport(flight.from);
+                    const to = getAirport(flight.to);
+                    if (!from || !to) return null;
+                    return (
+                      <Surface
+                        key={flight.id}
+                        variant="elevated"
+                        radius="surface"
+                        className="px-4 py-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Plane
+                            className="w-4 h-4 text-brand shrink-0"
+                            strokeWidth={1.8}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <Text variant="body-em" tone="primary">
+                                {flight.from}
+                              </Text>
+                              <span className="flex-1 h-px bg-surface-hairline mx-1" />
+                              <Text variant="body-em" tone="primary">
+                                {flight.to}
+                              </Text>
+                            </div>
+                            <Text variant="caption-2" tone="tertiary" className="mt-0.5">
+                              {flight.airline} · {flight.duration} ·{" "}
+                              {formatTripDate(flight.date)}
+                            </Text>
                           </div>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            {flight.airline} · {flight.duration} · {formatTripDate(flight.date)}
-                          </p>
                         </div>
-                      </div>
-                    </GlassCard>
-                  );
-                })}
+                      </Surface>
+                    );
+                  })}
+                </div>
               </div>
-            )}
+            ) : null}
 
             {/* Past flights */}
-            {showHistory && pastFlights.length > 0 && (
+            {showHistory && pastFlights.length > 0 ? (
               <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-2 px-1">Flight History</p>
-                {pastFlights.map((flight) => (
-                  <GlassCard key={flight.id} className="mb-2 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-secondary/60 flex items-center justify-center shrink-0 border border-border/20">
-                        <Clock className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.8} />
+                <Text
+                  as="h3"
+                  variant="caption-1"
+                  tone="tertiary"
+                  className="mb-2 px-1 uppercase tracking-[0.18em]"
+                >
+                  Flight History
+                </Text>
+                <div className="space-y-2">
+                  {pastFlights.map((flight) => (
+                    <Surface
+                      key={flight.id}
+                      variant="plain"
+                      radius="surface"
+                      className="px-4 py-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Clock
+                          className="w-3.5 h-3.5 text-ink-tertiary shrink-0"
+                          strokeWidth={1.8}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <Text variant="callout" tone="primary">
+                            {flight.from} → {flight.to}
+                          </Text>
+                          <Text variant="caption-2" tone="tertiary">
+                            {flight.airline} · {formatTripDate(flight.date)}
+                          </Text>
+                        </div>
+                        <Text variant="caption-2" tone="tertiary">
+                          {flight.duration}
+                        </Text>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-foreground">{flight.from} → {flight.to}</p>
-                        <p className="text-[10px] text-muted-foreground">{flight.airline} · {formatTripDate(flight.date)}</p>
-                      </div>
-                      <span className="text-[10px] text-muted-foreground">{flight.duration}</span>
-                    </div>
-                  </GlassCard>
-                ))}
+                    </Surface>
+                  ))}
+                </div>
               </div>
-            )}
+            ) : null}
 
             {/* Countries */}
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-2 px-1">Countries</p>
+              <Text
+                as="h3"
+                variant="caption-1"
+                tone="tertiary"
+                className="mb-2 px-1 uppercase tracking-[0.18em]"
+              >
+                Countries
+              </Text>
               <div className="flex flex-wrap gap-1.5">
                 {visitedCountries.map((country) => (
-                  <span key={country} className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-accent/15 text-accent border border-accent/20">
+                  <Pill key={country} tone="accent" weight="tinted">
                     {country}
-                  </span>
+                  </Pill>
                 ))}
-                {upcomingCountries.filter(c => !visitedCountries.includes(c)).map((country) => (
-                  <span key={country} className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-accent/15 text-accent border border-accent/20">
-                    {country}
-                  </span>
-                ))}
+                {upcomingCountries
+                  .filter((c) => !visitedCountries.includes(c))
+                  .map((country) => (
+                    <Pill key={country} tone="brand" weight="outline">
+                      {country}
+                    </Pill>
+                  ))}
               </div>
             </div>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
     </div>
   );
 };
 
 export default GlobalMap;
+
+const StatTile: React.FC<{
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+}> = ({ icon, label, value }) => (
+  <Surface
+    variant="elevated"
+    radius="surface"
+    className="flex-1 px-3 py-2 flex items-center gap-2"
+  >
+    <span aria-hidden>{icon}</span>
+    <div>
+      <Text variant="caption-2" tone="tertiary">
+        {label}
+      </Text>
+      <Text variant="body-em" tone="primary" className="tabular-nums">
+        {value}
+      </Text>
+    </div>
+  </Surface>
+);

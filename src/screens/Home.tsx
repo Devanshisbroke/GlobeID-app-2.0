@@ -41,7 +41,7 @@ const PULL_THRESHOLD = 80;
 
 const containerVariants = {
   initial: {},
-  animate: { transition: { staggerChildren: v2Stagger.list } },
+  animate: { transition: { staggerChildren: v2Stagger.default } },
 };
 
 const itemVariants = {
