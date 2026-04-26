@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
@@ -66,9 +67,10 @@ export type SurfaceProps = React.HTMLAttributes<HTMLDivElement> &
   };
 
 export const Surface = React.forwardRef<HTMLDivElement, SurfaceProps>(
-  ({ className, variant, radius, asChild: _asChild, ...rest }, ref) => {
+  ({ className, variant, radius, asChild = false, ...rest }, ref) => {
+    const Comp = asChild ? Slot : "div";
     return (
-      <div
+      <Comp
         ref={ref}
         className={cn(surfaceCva({ variant, radius }), className)}
         {...rest}

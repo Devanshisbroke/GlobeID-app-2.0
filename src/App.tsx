@@ -4,9 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense, useState, useCallback, useEffect } from "react";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageTransition } from "@/components/layout/PageTransition";
-import SplashScreen from "@/components/SplashScreen";
+import { AppChromeV2, SplashV2 } from "@/components/layout/v2";
 import NativeBackButton from "@/components/system/NativeBackButton";
 import { applyNativeChrome, wireNetworkListener } from "@/lib/nativeBridge";
 import { useUserStore } from "@/store/userStore";
@@ -135,7 +133,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+        {showSplash && <SplashV2 onComplete={handleSplashComplete} />}
         <BrowserRouter>
           <NativeBackButton />
           <Routes>
@@ -154,9 +152,8 @@ const App = () => {
             <Route
               path="/*"
               element={
-                <AppShell>
-                  <PageTransition>
-                    <Suspense fallback={<PageLoader />}>
+                <AppChromeV2>
+                  <Suspense fallback={<PageLoader />}>
                       <Routes>
                         {/* Core tabs — eagerly loaded, instant switch */}
                         <Route path="/" element={<Home />} />
@@ -187,8 +184,7 @@ const App = () => {
                         <Route path="*" element={<Navigate to="/" replace />} />
                       </Routes>
                     </Suspense>
-                  </PageTransition>
-                </AppShell>
+                </AppChromeV2>
               }
             />
           </Routes>
