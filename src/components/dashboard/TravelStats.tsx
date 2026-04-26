@@ -1,6 +1,6 @@
 import React from "react";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { Globe, Plane, Route, Map } from "lucide-react";
+import { Surface, Text } from "@/components/ui/v2";
 import { cn } from "@/lib/utils";
 import { useUserStore, selectVisitedCountries } from "@/store/userStore";
 
@@ -8,8 +8,7 @@ interface StatDef {
   icon: typeof Globe;
   label: string;
   getValue: (ctx: { tripCount: number; visitedCount: number }) => string;
-  gradient: string;
-  color: string;
+  halo: string;
 }
 
 const statDefs: StatDef[] = [
@@ -17,29 +16,25 @@ const statDefs: StatDef[] = [
     icon: Globe,
     label: "Countries",
     getValue: ({ visitedCount }) => visitedCount.toString(),
-    gradient: "from-primary/12 to-primary/5",
-    color: "text-primary",
+    halo: "bg-brand-soft text-brand",
   },
   {
     icon: Plane,
     label: "Flights",
     getValue: ({ tripCount }) => tripCount.toString(),
-    gradient: "from-accent/12 to-accent/5",
-    color: "text-accent",
+    halo: "bg-state-accent-soft text-state-accent",
   },
   {
     icon: Route,
     label: "Distance",
     getValue: () => "84,200 km",
-    gradient: "from-warning/12 to-warning/5",
-    color: "text-warning",
+    halo: "bg-[hsl(var(--p7-warning-soft))] text-[hsl(var(--p7-warning))]",
   },
   {
     icon: Map,
     label: "Continents",
     getValue: () => "4",
-    gradient: "from-accent/12 to-accent/5",
-    color: "text-accent",
+    halo: "bg-state-accent-soft text-state-accent",
   },
 ];
 
@@ -47,7 +42,7 @@ const TravelStats: React.FC = () => {
   const { travelHistory } = useUserStore();
   const visitedCount = React.useMemo(
     () => selectVisitedCountries(travelHistory).length,
-    [travelHistory]
+    [travelHistory],
   );
 
   return (
@@ -56,13 +51,27 @@ const TravelStats: React.FC = () => {
         const Icon = stat.icon;
         const value = stat.getValue({ tripCount: travelHistory.length, visitedCount });
         return (
-          <GlassCard key={stat.label} className="flex flex-col items-center py-3 px-1 text-center" depth="sm">
-            <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center mb-2 bg-gradient-to-br", stat.gradient)}>
-              <Icon className={cn("w-4 h-4", stat.color)} strokeWidth={1.8} />
+          <Surface
+            key={stat.label}
+            variant="elevated"
+            radius="surface"
+            className="flex flex-col items-center py-3 px-1 text-center"
+          >
+            <div
+              className={cn(
+                "w-9 h-9 rounded-p7-input flex items-center justify-center mb-2",
+                stat.halo,
+              )}
+            >
+              <Icon className="w-4 h-4" strokeWidth={1.8} />
             </div>
-            <p className="text-sm font-bold text-foreground tabular-nums">{value}</p>
-            <p className="text-[9px] text-muted-foreground mt-0.5">{stat.label}</p>
-          </GlassCard>
+            <Text variant="body-em" tone="primary" className="tabular-nums">
+              {value}
+            </Text>
+            <Text variant="caption-2" tone="tertiary" className="mt-0.5">
+              {stat.label}
+            </Text>
+          </Surface>
         );
       })}
     </div>

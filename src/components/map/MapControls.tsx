@@ -1,8 +1,8 @@
 import React from "react";
-import { motion } from "framer-motion";
-import { Route, Plane, RotateCcw } from "lucide-react";
+import { motion } from "motion/react";
+import { Route, Plane } from "lucide-react";
+import { spring } from "@/components/ui/v2";
 import { cn } from "@/lib/utils";
-import { springs } from "@/hooks/useMotion";
 
 interface MapControlsProps {
   showHistory: boolean;
@@ -30,21 +30,21 @@ const MapControls: React.FC<MapControlsProps> = ({
           <motion.button
             key={ctrl.label}
             onClick={ctrl.onClick}
-            whileTap={{ scale: 0.92 }}
-            transition={springs.snappy}
+            whileTap={{ scale: 0.94 }}
+            transition={spring.snap}
             className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold min-h-[38px]",
-              "bg-background/60 backdrop-blur-[20px] border border-border/[0.15]",
-              "shadow-[0_4px_20px_rgba(0,0,0,0.3)]",
-              ctrl.active
-                ? "text-primary border-primary/20"
-                : "text-muted-foreground"
+              "flex items-center gap-2 px-3 py-2 rounded-p7-input text-p7-caption-1",
+              "bg-[hsl(var(--p7-glass-tint))] border border-surface-hairline",
+              "[backdrop-filter:blur(var(--p7-glass-blur))_saturate(1.4)]",
+              "[-webkit-backdrop-filter:blur(var(--p7-glass-blur))_saturate(1.4)]",
+              "shadow-p7-sm min-h-[38px] transition-colors",
+              ctrl.active ? "text-brand" : "text-ink-secondary",
             )}
             aria-label={ctrl.label}
             aria-pressed={ctrl.active}
           >
             <Icon className="w-3.5 h-3.5" strokeWidth={1.8} />
-            <span className="text-[11px]">{ctrl.label}</span>
+            <span>{ctrl.label}</span>
           </motion.button>
         );
       })}

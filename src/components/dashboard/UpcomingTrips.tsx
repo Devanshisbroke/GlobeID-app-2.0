@@ -1,10 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { Plane, Clock, Calendar, ChevronRight } from "lucide-react";
+import { Surface, Text } from "@/components/ui/v2";
 import { useUserStore, formatTripDate } from "@/store/userStore";
 import { getAirport } from "@/lib/airports";
-import { Plane, Clock, Calendar, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 const UpcomingTrips: React.FC = () => {
   const navigate = useNavigate();
@@ -20,34 +19,48 @@ const UpcomingTrips: React.FC = () => {
         const to = getAirport(trip.to);
 
         return (
-          <GlassCard
+          <Surface
             key={trip.id}
-            className="cursor-pointer touch-bounce"
-            depth="md"
+            variant="elevated"
+            radius="surface"
+            className="p-3.5 cursor-pointer transition-transform active:scale-[0.99]"
             onClick={() => navigate("/map")}
           >
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-gradient-brand flex items-center justify-center shrink-0 shadow-glow-sm">
-                <Plane className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+              <div className="w-11 h-11 rounded-p7-input bg-brand-soft flex items-center justify-center shrink-0">
+                <Plane className="w-5 h-5 text-brand" strokeWidth={1.8} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <p className="text-sm font-bold text-foreground">{trip.from}</p>
-                  <div className="w-8 h-px bg-gradient-to-r from-primary to-accent" />
-                  <p className="text-sm font-bold text-foreground">{trip.to}</p>
+                  <Text variant="body-em" tone="primary" className="font-mono tabular-nums">
+                    {trip.from}
+                  </Text>
+                  <div className="w-8 h-px bg-brand/60" />
+                  <Text variant="body-em" tone="primary" className="font-mono tabular-nums">
+                    {trip.to}
+                  </Text>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <Text variant="caption-1" tone="tertiary" truncate>
                   {from?.city ?? trip.from} → {to?.city ?? trip.to}
-                </p>
+                </Text>
               </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
+              <ChevronRight className="w-4 h-4 text-ink-tertiary shrink-0" />
             </div>
-            <div className="mt-2.5 pt-2.5 border-t border-border/20 flex items-center gap-4 text-[10px] text-muted-foreground">
-              <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{formatTripDate(trip.date)}</span>
-              <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{trip.duration}</span>
-              <span className="flex items-center gap-1"><Plane className="w-3 h-3" />{trip.airline}</span>
+            <div className="mt-2.5 pt-2.5 border-t border-surface-hairline flex items-center gap-4">
+              <Text variant="caption-2" tone="tertiary" className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {formatTripDate(trip.date)}
+              </Text>
+              <Text variant="caption-2" tone="tertiary" className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {trip.duration}
+              </Text>
+              <Text variant="caption-2" tone="tertiary" className="flex items-center gap-1">
+                <Plane className="w-3 h-3" />
+                {trip.airline}
+              </Text>
             </div>
-          </GlassCard>
+          </Surface>
         );
       })}
     </div>

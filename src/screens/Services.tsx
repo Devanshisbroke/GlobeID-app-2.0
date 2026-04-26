@@ -201,7 +201,7 @@ const Services: React.FC = () => {
                   title={svc.title}
                   description={svc.description}
                   icon={svc.icon}
-                  gradient="bg-brand-soft text-brand"
+                  tone="brand"
                 />
               </motion.div>
             ))}

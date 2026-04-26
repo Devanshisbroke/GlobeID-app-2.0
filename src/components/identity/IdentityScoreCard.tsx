@@ -1,9 +1,9 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { IdentityScore } from "@/components/ui/IdentityScore";
+import { Surface, Text, ease, duration } from "@/components/ui/v2";
 import { useUserStore } from "@/store/userStore";
 import { cn } from "@/lib/utils";
-import { cinematicEase } from "@/cinematic/motionEngine";
 
 const factors = [
   { label: "Documents Verified", value: 5, max: 5 },
@@ -17,26 +17,44 @@ const IdentityScoreCard: React.FC<{ className?: string }> = ({ className }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: cinematicEase }}
-      className={cn("glass rounded-xl p-4", className)}
+      transition={{ duration: duration.hero, ease: ease.standard }}
     >
-      <div className="flex items-center gap-4">
-        <IdentityScore score={profile.identityScore} size={72} strokeWidth={5} />
-        <div className="flex-1 space-y-1.5">
-          <p className="text-sm font-bold text-foreground">Identity Score</p>
-          {factors.map((f) => (
-            <div key={f.label} className="flex items-center gap-2">
-              <span className="text-[10px] text-muted-foreground flex-1">{f.label}</span>
-              <div className="w-16 h-1 rounded-full bg-secondary overflow-hidden">
-                <div className="h-full bg-accent rounded-full" style={{ width: `${(f.value / f.max) * 100}%` }} />
+      <Surface
+        variant="elevated"
+        radius="surface"
+        className={cn("p-4", className)}
+      >
+        <div className="flex items-center gap-4">
+          <IdentityScore score={profile.identityScore} size={72} strokeWidth={5} />
+          <div className="flex-1 space-y-1.5">
+            <Text variant="caption-1" tone="tertiary" className="uppercase tracking-wider">
+              Identity Score
+            </Text>
+            {factors.map((f) => (
+              <div key={f.label} className="flex items-center gap-2">
+                <Text variant="caption-2" tone="secondary" className="flex-1">
+                  {f.label}
+                </Text>
+                <div className="w-16 h-1 rounded-full bg-surface-overlay overflow-hidden">
+                  <div
+                    className="h-full bg-state-accent rounded-full"
+                    style={{ width: `${(f.value / f.max) * 100}%` }}
+                  />
+                </div>
+                <Text
+                  variant="caption-2"
+                  tone="primary"
+                  className="font-mono w-7 text-right tabular-nums"
+                >
+                  {f.value}/{f.max}
+                </Text>
               </div>
-              <span className="text-[10px] font-mono text-foreground w-6 text-right">{f.value}/{f.max}</span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      </Surface>
     </motion.div>
   );
 };
