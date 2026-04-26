@@ -1,11 +1,18 @@
 import React, { lazy, Suspense, useState } from "react";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { AnimatedPage } from "@/components/layout/AnimatedPage";
+import { motion } from "motion/react";
+import {
+  ArrowUpRight,
+  ArrowDownLeft,
+  RefreshCw,
+  QrCode,
+  TrendingUp,
+  FileText,
+  ScanLine,
+  BarChart3,
+} from "lucide-react";
+import { Surface, Button, Pill, Tabs, Text, spring } from "@/components/ui/v2";
 import { useUserStore } from "@/store/userStore";
 import { useWalletStore } from "@/store/walletStore";
-import { staggerDelay } from "@/hooks/useMotion";
-import { ArrowUpRight, ArrowDownLeft, RefreshCw, QrCode, TrendingUp, FileText, ScanLine, BarChart3, ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
 import DocumentCard from "@/components/wallet/DocumentCard";
 import CurrencyCard from "@/components/wallet/CurrencyCard";
 import CurrencyConverter from "@/components/wallet/CurrencyConverter";
@@ -15,12 +22,18 @@ import QRScanner from "@/components/payments/QRScanner";
 
 /* Phase 6 PR-α — lazy-load SpendingAnalytics so the recharts vendor chunk
    (~524 KB / 152 KB gzipped) only fetches when the user actually opens
-   the Analytics tab, not on cold launch. */
-const SpendingAnalytics = lazy(() => import("@/components/wallet/SpendingAnalytics"));
+   the Analytics tab, not on cold launch. Phase 7 PR-δ preserves this
+   boundary verbatim. */
+const SpendingAnalytics = lazy(
+  () => import("@/components/wallet/SpendingAnalytics"),
+);
 
 const AnalyticsFallback: React.FC = () => (
   <div className="flex items-center justify-center min-h-[20dvh]">
-    <div className="w-2 h-2 rounded-full bg-primary/40 animate-pulse" />
+    <span
+      aria-hidden
+      className="w-2 h-2 rounded-full bg-brand/40 animate-pulse"
+    />
   </div>
 );
 
@@ -45,9 +58,32 @@ const countryCurrency: Record<string, string> = {
   "United Arab Emirates": "AED",
 };
 
+/**
+ * Wallet — Phase 7 PR-δ.
+ *
+ * Visual reset against the v2 design system. Functional surface
+ * preserved verbatim:
+ *  - 3 tabs (Balance / Documents / Analytics) — same state machine,
+ *    same lazy-load boundary on Analytics.
+ *  - Inline action panels (converter / QR pay / QR scan) — same toggle.
+ *  - Same store reads (`useUserStore`, `useWalletStore`).
+ *  - Same sub-components for the data-dense surfaces (`DocumentCard`,
+ *    `CurrencyCard`, `TransactionList`) — those migrate in their own
+ *    follow-up; PR-δ scopes the screen-level chrome only.
+ *
+ * Visual changes:
+ *  - Tab toggle → `Tabs.Root` segmented (shared-layout sliding indicator).
+ *  - Total balance card → `Surface variant="elevated"` (replaces
+ *    GlassCard `light-sweep` premium glow).
+ *  - Action row → `Button variant="primary|secondary"` (replaces 5
+ *    different ad-hoc class strings).
+ *  - Section headings → `Text variant="caption-1" tone="tertiary"`
+ *    (replaces `text-xs uppercase tracking-widest`).
+ */
 const Wallet: React.FC = () => {
   const { documents } = useUserStore();
-  const { balances, transactions, defaultCurrency, activeCountry } = useWalletStore();
+  const { balances, transactions, defaultCurrency, activeCountry } =
+    useWalletStore();
   const [walletTab, setWalletTab] = useState<WalletTab>("balance");
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
 
@@ -62,116 +98,179 @@ const Wallet: React.FC = () => {
     });
   }, [balances, activeCountry]);
 
-  const tabs: { key: WalletTab; label: string; icon: React.ElementType }[] = [
-    { key: "balance", label: "Balance", icon: TrendingUp },
-    { key: "documents", label: "Documents", icon: FileText },
-    { key: "analytics", label: "Analytics", icon: BarChart3 },
-  ];
+  const handleTabChange = (next: string) => {
+    setWalletTab(next as WalletTab);
+    setActivePanel(null);
+  };
+
+  const togglePanel = (panel: NonNullable<ActivePanel>) => {
+    setActivePanel((current) => (current === panel ? null : panel));
+  };
 
   return (
     <div className="px-4 py-6 space-y-5">
-      {/* Tab toggle */}
-      <AnimatedPage>
-        <div className="flex gap-1 p-1 rounded-2xl glass border border-border/40">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button key={tab.key} onClick={() => { setWalletTab(tab.key); setActivePanel(null); }} className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all min-h-[44px]",
-                walletTab === tab.key ? "bg-gradient-brand text-primary-foreground shadow-depth-sm" : "text-muted-foreground"
-              )}>
-                <Icon className="w-3.5 h-3.5" strokeWidth={1.8} />{tab.label}
-              </button>
-            );
-          })}
-        </div>
-      </AnimatedPage>
+      <Tabs value={walletTab} onValueChange={handleTabChange}>
+        <Tabs.List variant="segmented" className="w-full">
+          <Tabs.Trigger value="balance" className="flex-1">
+            <TrendingUp className="w-4 h-4" strokeWidth={1.8} />
+            Balance
+          </Tabs.Trigger>
+          <Tabs.Trigger value="documents" className="flex-1">
+            <FileText className="w-4 h-4" strokeWidth={1.8} />
+            Documents
+          </Tabs.Trigger>
+          <Tabs.Trigger value="analytics" className="flex-1">
+            <BarChart3 className="w-4 h-4" strokeWidth={1.8} />
+            Analytics
+          </Tabs.Trigger>
+        </Tabs.List>
 
-      {/* Panels overlay */}
-      {activePanel && (
-        <AnimatedPage>
-          {activePanel === "converter" && <CurrencyConverter onClose={() => setActivePanel(null)} />}
-          {activePanel === "qr-pay" && <QRPayment onClose={() => setActivePanel(null)} />}
-          {activePanel === "qr-scan" && <QRScanner onClose={() => setActivePanel(null)} />}
-        </AnimatedPage>
-      )}
+        {/* Active panel overlay — shared across tabs but mostly used on Balance. */}
+        {activePanel ? (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={spring.default}
+            className="mt-5"
+          >
+            {activePanel === "converter" ? (
+              <CurrencyConverter onClose={() => setActivePanel(null)} />
+            ) : null}
+            {activePanel === "qr-pay" ? (
+              <QRPayment onClose={() => setActivePanel(null)} />
+            ) : null}
+            {activePanel === "qr-scan" ? (
+              <QRScanner onClose={() => setActivePanel(null)} />
+            ) : null}
+          </motion.div>
+        ) : null}
 
-      {walletTab === "documents" ? (
-        <div className="space-y-3">
-          <h3 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-widest">Travel Documents</h3>
-          {documents.map((doc, i) => (
-            <AnimatedPage key={doc.id} staggerIndex={i}>
-              <DocumentCard doc={doc} />
-            </AnimatedPage>
+        <Tabs.Content value="balance" className="mt-5 space-y-5">
+          {/* Total balance — elevated hero. */}
+          <Surface
+            variant="elevated"
+            radius="sheet"
+            className="px-6 py-7 text-center"
+          >
+            <span
+              aria-hidden
+              className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-p7-input bg-brand-soft"
+            >
+              <TrendingUp className="w-5 h-5 text-brand" strokeWidth={2} />
+            </span>
+            <Text
+              variant="caption-1"
+              tone="tertiary"
+              className="uppercase tracking-[0.18em]"
+            >
+              Total Balance
+            </Text>
+            <Text
+              variant="display"
+              tone="primary"
+              className="mt-1 tabular-nums"
+            >
+              ${totalUSD.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </Text>
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              <Button
+                variant="primary"
+                size="md"
+                leading={<ArrowUpRight />}
+              >
+                Send
+              </Button>
+              <Button
+                variant="secondary"
+                size="md"
+                leading={<ArrowDownLeft />}
+              >
+                Receive
+              </Button>
+              <Button
+                variant={activePanel === "qr-pay" ? "subtle" : "secondary"}
+                size="md"
+                leading={<QrCode />}
+                onClick={() => togglePanel("qr-pay")}
+              >
+                Pay QR
+              </Button>
+              <Button
+                variant={activePanel === "qr-scan" ? "subtle" : "secondary"}
+                size="md"
+                leading={<ScanLine />}
+                onClick={() => togglePanel("qr-scan")}
+              >
+                Scan
+              </Button>
+              <Button
+                variant={activePanel === "converter" ? "subtle" : "secondary"}
+                size="md"
+                leading={<RefreshCw />}
+                onClick={() => togglePanel("converter")}
+              >
+                Convert
+              </Button>
+            </div>
+          </Surface>
+
+          {/* Currencies grid. */}
+          <section className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <Text
+                variant="caption-1"
+                tone="tertiary"
+                className="uppercase tracking-[0.18em]"
+              >
+                Currencies
+              </Text>
+              {activeCountry ? (
+                <Pill tone="accent" weight="tinted" dot pulse>
+                  Active in {activeCountry}
+                </Pill>
+              ) : null}
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              {sortedBalances.map((b, i) => (
+                <CurrencyCard
+                  key={b.currency}
+                  balance={b}
+                  index={i}
+                  defaultCurrency={defaultCurrency}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* Transactions. */}
+          <section>
+            <TransactionList transactions={transactions} />
+          </section>
+        </Tabs.Content>
+
+        <Tabs.Content value="documents" className="mt-5 space-y-3">
+          <Text
+            as="h3"
+            variant="caption-1"
+            tone="tertiary"
+            className="px-1 uppercase tracking-[0.18em]"
+          >
+            Travel Documents
+          </Text>
+          {documents.map((doc) => (
+            <DocumentCard key={doc.id} doc={doc} />
           ))}
-        </div>
-      ) : walletTab === "analytics" ? (
-        <AnimatedPage>
+        </Tabs.Content>
+
+        <Tabs.Content value="analytics" className="mt-5">
           <Suspense fallback={<AnalyticsFallback />}>
             <SpendingAnalytics transactions={transactions} />
           </Suspense>
-        </AnimatedPage>
-      ) : (
-        <>
-          {/* Total Balance */}
-          <AnimatedPage>
-            <GlassCard className="text-center py-8 relative overflow-hidden light-sweep" variant="premium" glow depth="lg">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/6 via-transparent to-accent/4 pointer-events-none" />
-              <div className="relative">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-brand flex items-center justify-center mx-auto mb-4 shadow-glow-md">
-                  <TrendingUp className="w-7 h-7 text-primary-foreground" />
-                </div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1 font-medium">Total Balance</p>
-                <p className="text-4xl font-bold text-foreground tabular-nums tracking-tight">
-                  ${totalUSD.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-                <div className="flex gap-2 justify-center mt-6 flex-wrap">
-                  {[
-                    { icon: ArrowUpRight, label: "Send", accent: true },
-                    { icon: ArrowDownLeft, label: "Receive" },
-                    { icon: QrCode, label: "Pay QR", panel: "qr-pay" as ActivePanel },
-                    { icon: ScanLine, label: "Scan", panel: "qr-scan" as ActivePanel },
-                    { icon: RefreshCw, label: "Convert", panel: "converter" as ActivePanel },
-                  ].map((btn) => {
-                    const Icon = btn.icon;
-                    return (
-                      <button
-                        key={btn.label}
-                        onClick={() => btn.panel && setActivePanel(activePanel === btn.panel ? null : btn.panel)}
-                        className={cn(
-                          "flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold active:scale-95 transition-all min-h-[44px] btn-ripple touch-bounce",
-                          btn.accent
-                            ? "bg-gradient-brand text-primary-foreground shadow-glow-md"
-                            : activePanel === btn.panel
-                              ? "bg-primary/15 text-primary border border-primary/30"
-                              : "glass border border-border/40 text-foreground hover:border-primary/30 hover:shadow-glow-sm"
-                        )}
-                      >
-                        <Icon className="w-4 h-4" strokeWidth={1.8} />{btn.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </GlassCard>
-          </AnimatedPage>
-
-          {/* Currency Cards */}
-          <AnimatedPage staggerIndex={1}>
-            <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-widest">Currencies</h3>
-            <div className="grid grid-cols-2 gap-2.5">
-              {sortedBalances.map((b, i) => (
-                <CurrencyCard key={b.currency} balance={b} index={i} defaultCurrency={defaultCurrency} />
-              ))}
-            </div>
-          </AnimatedPage>
-
-          {/* Transactions */}
-          <AnimatedPage staggerIndex={2}>
-            <TransactionList transactions={transactions} />
-          </AnimatedPage>
-        </>
-      )}
+        </Tabs.Content>
+      </Tabs>
     </div>
   );
 };

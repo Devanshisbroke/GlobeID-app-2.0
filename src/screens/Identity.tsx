@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { Shield, ScanLine, Link2, BookOpen } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { AnimatedPage } from "@/components/layout/AnimatedPage";
+import { motion, AnimatePresence } from "motion/react";
+import { Shield, Link2, BookOpen } from "lucide-react";
+import { Surface, Button, Tabs, Text, spring, duration, ease } from "@/components/ui/v2";
 import { useUserStore } from "@/store/userStore";
 import { useVerificationSession } from "@/hooks/useVerificationSession";
-import { cinematicEase } from "@/cinematic/motionEngine";
 
 import DigitalPassport from "@/components/identity/DigitalPassport";
 import QRDisplay from "@/components/identity/QRDisplay";
@@ -18,14 +16,46 @@ import IdentityScoreCard from "@/components/identity/IdentityScoreCard";
 import IdentityTimeline from "@/components/identity/IdentityTimeline";
 import IdentityMapLayer from "@/components/map/IdentityMapLayer";
 
+type IdentityTab = "documents" | "timeline" | "security";
+
+/**
+ * Identity — Phase 7 PR-δ.
+ *
+ * Visual reset against the v2 design system. Functional surface
+ * preserved verbatim:
+ *  - Verification session hook (`useVerificationSession`) drives the
+ *    inline kiosk-link sheet exactly as before.
+ *  - 3 tabs (Documents / Timeline / Security) — same state machine.
+ *  - Sub-components (`DigitalPassport`, `IdentityScoreCard`,
+ *    `IdentityTimeline`, `IdentityMapLayer`, `CredentialCard`,
+ *    `SecurityStatus`, `WelcomeOverlay`) preserved unchanged.
+ *
+ * Visual changes:
+ *  - Header CTAs (Link / Stamps) → `Button variant="secondary|primary"`.
+ *  - Tab toggle → `Tabs.Root` segmented (shared-layout indicator).
+ *  - Inline kiosk sheet → `Surface variant="elevated"` (replaces
+ *    `glass rounded-xl`).
+ *  - Tab transitions → motion@12 `AnimatePresence` with the v2 motion
+ *    tokens (default spring + standard ease).
+ */
 const Identity: React.FC = () => {
   const navigate = useNavigate();
-  const { profile, documents } = useUserStore();
+  const { documents } = useUserStore();
   const [showLinkSection, setShowLinkSection] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
-  const [activeTab, setActiveTab] = useState<"documents" | "timeline" | "security">("documents");
+  const [activeTab, setActiveTab] = useState<IdentityTab>("documents");
 
-  const { status, qrData, shortCode, expiresAt, sessionId, countryCode, receipt, generateQR, reset } = useVerificationSession();
+  const {
+    status,
+    qrData,
+    shortCode,
+    expiresAt,
+    sessionId,
+    countryCode,
+    receipt,
+    generateQR,
+    reset,
+  } = useVerificationSession();
 
   const handleStartLink = () => {
     setShowLinkSection(true);
@@ -43,101 +73,165 @@ const Identity: React.FC = () => {
     reset();
   };
 
-  const tabs = [
-    { id: "documents" as const, label: "Documents" },
-    { id: "timeline" as const, label: "Timeline" },
-    { id: "security" as const, label: "Security" },
-  ];
-
   return (
     <div className="px-4 py-6 space-y-5 pb-24">
-      {showWelcome && countryCode && (
-        <WelcomeOverlay countryCode={countryCode} onComplete={handleWelcomeComplete} />
-      )}
+      {showWelcome && countryCode ? (
+        <WelcomeOverlay
+          countryCode={countryCode}
+          onComplete={handleWelcomeComplete}
+        />
+      ) : null}
 
       {/* Header */}
-      <AnimatedPage>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <Shield className="w-5 h-5 text-accent" />
-              Identity Vault
-            </h1>
-            <p className="text-xs text-muted-foreground mt-1">{documents.length} credentials secured</p>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={handleStartLink} className="flex items-center gap-1.5 px-3 py-2 rounded-xl glass text-accent text-xs font-medium active:scale-95 transition-transform min-h-[44px]">
-              <Link2 className="w-4 h-4" /> Link
-            </button>
-            <button onClick={() => navigate("/passport-book")} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--ocean-aqua))] text-primary-foreground text-xs font-medium active:scale-95 transition-transform min-h-[44px] shadow-glow-sm">
-              <BookOpen className="w-4 h-4" /> Stamps
-            </button>
-          </div>
+      <header className="flex items-center justify-between">
+        <div>
+          <Text
+            as="h1"
+            variant="title-2"
+            tone="primary"
+            className="flex items-center gap-2"
+          >
+            <Shield className="w-5 h-5 text-state-accent" strokeWidth={1.8} />
+            Identity Vault
+          </Text>
+          <Text variant="caption-1" tone="tertiary" className="mt-1">
+            {documents.length} credential{documents.length === 1 ? "" : "s"} secured
+          </Text>
         </div>
-      </AnimatedPage>
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            leading={<Link2 />}
+            onClick={handleStartLink}
+          >
+            Link
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            leading={<BookOpen />}
+            onClick={() => navigate("/passport-book")}
+          >
+            Stamps
+          </Button>
+        </div>
+      </header>
 
       {/* Digital Passport Card */}
-      <AnimatedPage staggerIndex={0}>
-        <DigitalPassport />
-      </AnimatedPage>
+      <DigitalPassport />
 
       {/* Identity Score */}
-      <AnimatedPage staggerIndex={1}>
-        <IdentityScoreCard />
-      </AnimatedPage>
+      <IdentityScoreCard />
 
-      {/* Link at Kiosk */}
-      <AnimatePresence>
-        {showLinkSection && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.4, ease: cinematicEase }}>
-            <div className="glass rounded-xl flex flex-col items-center py-6 gap-4">
-              <h3 className="text-sm font-semibold text-foreground">Link at Kiosk</h3>
-              <p className="text-xs text-muted-foreground text-center px-4">Show this QR at any GlobeID kiosk</p>
-              <SessionStatus status={status} sessionId={sessionId ?? undefined} />
-              <QRDisplay data={qrData || "placeholder"} shortCode={shortCode || "------"} ttlSeconds={30} expiresAt={expiresAt} status={status} onRefresh={generateQR} />
-              <button onClick={() => { setShowLinkSection(false); reset(); }} className="text-xs text-muted-foreground underline mt-2">Cancel</button>
-            </div>
+      {/* Link at Kiosk inline sheet */}
+      <AnimatePresence initial={false}>
+        {showLinkSection ? (
+          <motion.div
+            key="kiosk-link"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: duration.medium / 1000, ease: ease.standard }}
+          >
+            <Surface
+              variant="elevated"
+              radius="surface"
+              className="flex flex-col items-center gap-4 px-6 py-7"
+            >
+              <Text as="h3" variant="title-3" tone="primary">
+                Link at Kiosk
+              </Text>
+              <Text
+                variant="caption-1"
+                tone="tertiary"
+                align="center"
+                className="px-4"
+              >
+                Show this QR at any GlobeID kiosk
+              </Text>
+              <SessionStatus
+                status={status}
+                sessionId={sessionId ?? undefined}
+              />
+              <QRDisplay
+                data={qrData || "placeholder"}
+                shortCode={shortCode || "------"}
+                ttlSeconds={30}
+                expiresAt={expiresAt}
+                status={status}
+                onRefresh={generateQR}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowLinkSection(false);
+                  reset();
+                }}
+              >
+                Cancel
+              </Button>
+            </Surface>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
 
-      {/* Tab navigation */}
-      <div className="flex gap-1 p-1 rounded-xl bg-secondary/50">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={cn(
-              "flex-1 text-xs font-medium py-2 rounded-lg transition-all",
-              activeTab === tab.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {/* Tabs */}
+      <Tabs
+        value={activeTab}
+        onValueChange={(next) => setActiveTab(next as IdentityTab)}
+      >
+        <Tabs.List variant="segmented" className="w-full">
+          <Tabs.Trigger value="documents" className="flex-1">
+            Documents
+          </Tabs.Trigger>
+          <Tabs.Trigger value="timeline" className="flex-1">
+            Timeline
+          </Tabs.Trigger>
+          <Tabs.Trigger value="security" className="flex-1">
+            Security
+          </Tabs.Trigger>
+        </Tabs.List>
 
-      {/* Tab content */}
-      <AnimatePresence mode="wait">
-        {activeTab === "documents" && (
-          <motion.div key="docs" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3, ease: cinematicEase }} className="space-y-2">
+        <Tabs.Content value="documents" className="mt-5">
+          <motion.div
+            key="docs"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={spring.default}
+            className="space-y-2"
+          >
             {documents.map((doc, i) => (
               <CredentialCard key={doc.id} doc={doc} index={i} />
             ))}
           </motion.div>
-        )}
-        {activeTab === "timeline" && (
-          <motion.div key="timeline" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3, ease: cinematicEase }} className="space-y-5">
+        </Tabs.Content>
+
+        <Tabs.Content value="timeline" className="mt-5">
+          <motion.div
+            key="timeline"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={spring.default}
+            className="space-y-5"
+          >
             <IdentityTimeline />
             <IdentityMapLayer />
           </motion.div>
-        )}
-        {activeTab === "security" && (
-          <motion.div key="security" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3, ease: cinematicEase }}>
+        </Tabs.Content>
+
+        <Tabs.Content value="security" className="mt-5">
+          <motion.div
+            key="security"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={spring.default}
+          >
             <SecurityStatus />
           </motion.div>
-        )}
-      </AnimatePresence>
+        </Tabs.Content>
+      </Tabs>
     </div>
   );
 };

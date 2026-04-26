@@ -216,7 +216,7 @@ const SplashGlobe: React.FC = () => {
           transition={{
             duration: arc.dur,
             delay: arc.delay,
-            ease: ease.exit,
+            ease: ease.accelerated,
           }}
           style={{
             filter: `drop-shadow(0 0 6px ${arc.color})`,

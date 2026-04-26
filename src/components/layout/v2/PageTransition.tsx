@@ -37,7 +37,7 @@ const PageTransitionV2: React.FC<Props> = ({ children }) => {
   // tuning lives in the easing token, not in the duration delta.
   const transition = prefersReducedMotion
     ? { duration: duration.tap, ease: ease.standard }
-    : { duration: duration.page, ease: ease.entry };
+    : { duration: duration.page, ease: ease.decelerated };
 
   const initial = prefersReducedMotion
     ? { opacity: 0 }
