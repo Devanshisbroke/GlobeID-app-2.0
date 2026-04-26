@@ -1,0 +1,79 @@
+name: Android APK build
+
+# Phase 8 — closes the deferred Phase 6 PR-γ APK build verification.
+# Runs on every push to main and every PR; produces a debug APK as an
+# artifact so reviewers can sideload directly without an Android SDK
+# installed locally.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platforms;android-36
+            build-tools;36.0.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck + lint
+        run: |
+          npm run typecheck
+          npm run lint
+
+      - name: Tests
+        run: npm test --silent
+
+      - name: Build web bundle
+        env:
+          # Override at workflow_dispatch time (or via repo variable) to
+          # bake a real backend URL into the APK; defaults to localhost
+          # which is fine for a smoke-build artifact.
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'http://localhost:4000/api/v1' }}
+        run: npm run build
+
+      - name: Capacitor sync (Android)
+        run: npx cap sync android
+
+      - name: Gradle assembleDebug
+        working-directory: android
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: globeid-debug-${{ github.sha }}
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14

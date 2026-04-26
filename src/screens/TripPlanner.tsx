@@ -33,7 +33,7 @@ const TripPlanner: React.FC = () => {
   const handleSave = () => {
     if (currentDestinations.length < 2) return;
     haptics.success();
-    saveCurrentTrip();
+    void saveCurrentTrip();
   };
 
   return (
@@ -80,7 +80,7 @@ const TripPlanner: React.FC = () => {
                         {trip.destinations.join(" → ")} · {trip.theme}
                       </p>
                     </button>
-                    <button onClick={() => deleteTrip(trip.id)} className="w-6 h-6 rounded-full hover:bg-destructive/10 flex items-center justify-center">
+                    <button onClick={() => void deleteTrip(trip.id)} className="w-6 h-6 rounded-full hover:bg-destructive/10 flex items-center justify-center">
                       <Trash2 className="w-3 h-3 text-muted-foreground" />
                     </button>
                   </div>

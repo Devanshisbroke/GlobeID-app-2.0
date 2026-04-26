@@ -8,6 +8,7 @@ import VoicePrompt from "@/components/ai/VoicePrompt";
 import { generateTrip, adjustTripDays, tripPresets, type GeneratedTrip } from "@/lib/tripGenerator";
 import { totalJourneyDistance, uniqueCountries, uniqueContinents } from "@/lib/distanceEngine";
 import { useTripPlannerStore, type TripTheme } from "@/store/tripPlannerStore";
+import { useCopilotStore } from "@/store/copilotStore";
 import { haptics } from "@/utils/haptics";
 import { cn } from "@/lib/utils";
 import {
@@ -45,13 +46,25 @@ const toTripTheme = (s: string): TripTheme =>
 const TravelCopilot: React.FC = () => {
   const navigate = useNavigate();
   const { saveCurrentTrip, setCurrentName, setCurrentTheme, addDestination, clearCurrent } = useTripPlannerStore();
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content: "Hey! I'm your AI Travel Copilot ✈️\n\nTell me where you want to go and I'll build the perfect itinerary. Try:\n\n• \"Plan a 10 day Asia trip\"\n• \"European capitals tour 2 weeks\"\n• \"Round the world adventure\"",
-    },
-  ]);
+  const sendCopilotPrompt = useCopilotStore((s) => s.sendPrompt);
+  const persistedHistory = useCopilotStore((s) => s.messages);
+  // Replay server-persisted history as plain messages (trip rendering data
+  // is intentionally not persisted; user can re-ask if they want the cards).
+  const seedHistory = React.useMemo<ChatMessage[]>(() => {
+    if (persistedHistory.length === 0) {
+      return [
+        {
+          id: "welcome",
+          role: "assistant",
+          content: "Hey! I'm your AI Travel Copilot ✈️\n\nTell me where you want to go and I'll build the perfect itinerary. Try:\n\n• \"Plan a 10 day Asia trip\"\n• \"European capitals tour 2 weeks\"\n• \"Round the world adventure\"",
+        },
+      ];
+    }
+    return persistedHistory.map((m) => ({ id: m.id, role: m.role, content: m.content }));
+    // We only seed once on mount; further updates flow via setMessages.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const [messages, setMessages] = useState<ChatMessage[]>(seedHistory);
   const [input, setInput] = useState("");
   const [currentTrip, setCurrentTrip] = useState<GeneratedTrip | null>(null);
   const [isTyping, setIsTyping] = useState(false);
@@ -61,40 +74,71 @@ const TravelCopilot: React.FC = () => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const processPrompt = useCallback((prompt: string) => {
-    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: prompt };
-    setMessages((prev) => [...prev, userMsg]);
-    setIsTyping(true);
-    haptics.selection();
-
-    setTimeout(() => {
-      const trip = generateTrip(prompt);
-      setCurrentTrip(trip);
-
-      const route = trip.stops.map((s) => s.iata).join(" → ");
-      const dist = totalJourneyDistance(trip.stops.map((s) => s.iata));
-      const countries = uniqueCountries(trip.stops.map((s) => s.iata));
-      const continents = uniqueContinents(trip.stops.map((s) => s.iata));
-
-      const response = `Here's your **${trip.name}**!\n\n` +
+  const renderGeneratedTrip = useCallback((prompt: string) => {
+    const trip = generateTrip(prompt);
+    setCurrentTrip(trip);
+    const route = trip.stops.map((s) => s.iata).join(" → ");
+    const dist = totalJourneyDistance(trip.stops.map((s) => s.iata));
+    const countries = uniqueCountries(trip.stops.map((s) => s.iata));
+    const continents = uniqueContinents(trip.stops.map((s) => s.iata));
+    return {
+      content:
+        `Here's your **${trip.name}**!\n\n` +
         `🗺️ **Route:** ${route}\n` +
         `📅 **Duration:** ${trip.totalDays} days\n` +
         `✈️ **Flights:** ${trip.stops.length - 1}\n` +
         `🌍 **Countries:** ${countries.length} · **Continents:** ${continents.length}\n` +
         `📏 **Distance:** ${(dist / 1000).toFixed(1)}k km\n\n` +
-        `Scroll down to see each stop. You can adjust the trip length or save it to your planner!`;
-
-      const assistantMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: response,
-        trip,
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-      setIsTyping(false);
-      haptics.success();
-    }, 1200);
+        `Scroll down to see each stop. You can adjust the trip length or save it to your planner!`,
+      trip,
+    };
   }, []);
+
+  const processPrompt = useCallback(
+    (prompt: string) => {
+      const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: prompt };
+      setMessages((prev) => [...prev, userMsg]);
+      setIsTyping(true);
+      haptics.selection();
+
+      void (async () => {
+        let serverMessage = "";
+        let actionType: string | null = null;
+        try {
+          const result = await sendCopilotPrompt(prompt);
+          serverMessage = result.message;
+          actionType = result.action?.type ?? null;
+        } catch {
+          // hard error → fall back to client generator
+          actionType = "generate_trip";
+        }
+
+        // Slight delay for natural typing feel.
+        await new Promise((r) => setTimeout(r, 600));
+
+        if (actionType === "generate_trip") {
+          const { content, trip } = renderGeneratedTrip(prompt);
+          setMessages((prev) => [
+            ...prev,
+            { id: crypto.randomUUID(), role: "assistant", content, trip },
+          ]);
+        } else {
+          // Data-grounded response — no trip card, just the server text.
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              role: "assistant",
+              content: serverMessage || "I'm not sure I caught that. Try: 'Plan a 10 day Asia trip'.",
+            },
+          ]);
+        }
+        setIsTyping(false);
+        haptics.success();
+      })();
+    },
+    [renderGeneratedTrip, sendCopilotPrompt],
+  );
 
   const handleSend = () => {
     const text = input.trim();
@@ -109,7 +153,7 @@ const TravelCopilot: React.FC = () => {
     setCurrentName(currentTrip.name);
     setCurrentTheme(toTripTheme(currentTrip.style));
     currentTrip.stops.forEach((s) => addDestination(s.iata));
-    saveCurrentTrip();
+    void saveCurrentTrip();
     haptics.success();
 
     const msg: ChatMessage = {

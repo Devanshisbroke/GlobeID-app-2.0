@@ -9,6 +9,8 @@ import { tripsRouter } from "./routes/trips.js";
 import { insightsRouter } from "./routes/insights.js";
 import { recommendationsRouter } from "./routes/recommendations.js";
 import { alertsRouter } from "./routes/alerts.js";
+import { copilotRouter } from "./routes/copilot.js";
+import { plannerRouter } from "./routes/planner.js";
 import { ok } from "./lib/validate.js";
 
 const app = new Hono();
@@ -35,6 +37,8 @@ api.route("/trips", tripsRouter);
 api.route("/insights", insightsRouter);
 api.route("/recommendations", recommendationsRouter);
 api.route("/alerts", alertsRouter);
+api.route("/copilot", copilotRouter);
+api.route("/planner/trips", plannerRouter);
 
 app.route("/api/v1", api);
 

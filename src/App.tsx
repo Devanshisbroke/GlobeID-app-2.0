@@ -11,6 +11,8 @@ import { useUserStore } from "@/store/userStore";
 import { useAlertsStore } from "@/store/alertsStore";
 import { useInsightsStore } from "@/store/insightsStore";
 import { useRecommendationsStore } from "@/store/recommendationsStore";
+import { useTripPlannerStore } from "@/store/tripPlannerStore";
+import { useCopilotStore } from "@/store/copilotStore";
 
 // ── Core tab screens: eagerly imported for instant switching ──
 import Home from "@/screens/Home";
@@ -106,6 +108,8 @@ const App = () => {
         useAlertsStore.getState().hydrate(),
         useInsightsStore.getState().hydrate(),
         useRecommendationsStore.getState().hydrate(),
+        useTripPlannerStore.getState().hydrate(),
+        useCopilotStore.getState().hydrate(),
       ]);
     };
     void hydrateAll();

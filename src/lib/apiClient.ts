@@ -120,6 +120,59 @@ export const api = {
         body: JSON.stringify(patch),
       }).then(unwrap<Alert>),
   },
+
+  copilot: {
+    respond: (prompt: string) =>
+      authedFetch("/copilot/respond", { method: "POST", body: JSON.stringify({ prompt }) })
+        .then(unwrap<{
+          userMessageId: string;
+          reply: {
+            id: string;
+            message: string;
+            action?: { type: string; payload: Record<string, unknown> };
+            citations: string[];
+          };
+        }>),
+    history: () =>
+      authedFetch("/copilot/history").then(
+        unwrap<Array<{ id: string; role: "user" | "assistant"; content: string; createdAt: number }>>,
+      ),
+    clear: () =>
+      authedFetch("/copilot/history", { method: "DELETE" }).then(unwrap<{ deleted: number }>),
+  },
+
+  planner: {
+    list: () =>
+      authedFetch("/planner/trips").then(
+        unwrap<Array<{
+          id: string;
+          name: string;
+          theme: "vacation" | "business" | "backpacking" | "world_tour";
+          destinations: string[];
+          createdAt: string;
+        }>>,
+      ),
+    upsert: (trip: {
+      id: string;
+      name: string;
+      theme: "vacation" | "business" | "backpacking" | "world_tour";
+      destinations: string[];
+      createdAt?: string;
+    }) =>
+      authedFetch("/planner/trips", { method: "POST", body: JSON.stringify(trip) }).then(
+        unwrap<{
+          id: string;
+          name: string;
+          theme: "vacation" | "business" | "backpacking" | "world_tour";
+          destinations: string[];
+          createdAt: string;
+        }>,
+      ),
+    remove: (id: string) =>
+      authedFetch(`/planner/trips/${encodeURIComponent(id)}`, { method: "DELETE" }).then(
+        unwrap<{ id: string; tripDeleted: boolean; legsDeleted: number }>,
+      ),
+  },
 };
 
 export const apiBaseUrl = BASE_URL;
