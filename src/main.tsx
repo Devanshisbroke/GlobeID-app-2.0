@@ -2,6 +2,16 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import ErrorBoundary from "@/components/system/ErrorBoundary";
 import { isNative } from "@/lib/nativeBridge";
+
+// Phase 7 PR-α — self-hosted variable type stack.
+// `Inter` provides body + UI sizes; `Inter` with `font-optical-sizing: auto`
+// also serves the display tier (Inter v4+ includes the InterDisplay optical
+// axis directly in the variable file). `JetBrains Mono` is reserved for
+// technical IDs (MRZ, tx hashes, route codes). All three load locally so the
+// Capacitor APK has zero font network dependency on first launch.
+import "@fontsource-variable/inter";
+import "@fontsource-variable/jetbrains-mono";
+
 import "./index.css";
 
 /**

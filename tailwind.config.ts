@@ -69,6 +69,72 @@ export default {
           DEFAULT: "hsl(var(--glass-bg))",
           border: "hsl(var(--glass-border))",
         },
+
+        /* ──────────────────────────────────────────────────────────────
+           Phase 7 — additive palette referenceable as Tailwind classes
+           (e.g. `bg-surface-base`, `text-ink-secondary`, `bg-brand`).
+           v2 components consume these; legacy components stay untouched.
+           ────────────────────────────────────────────────────────────── */
+        surface: {
+          base: "hsl(var(--p7-surface-base))",
+          elevated: "hsl(var(--p7-surface-elevated))",
+          overlay: "hsl(var(--p7-surface-overlay))",
+          hairline: "hsl(var(--p7-surface-hairline))",
+        },
+        ink: {
+          primary: "hsl(var(--p7-ink-primary))",
+          secondary: "hsl(var(--p7-ink-secondary))",
+          tertiary: "hsl(var(--p7-ink-tertiary))",
+          "on-brand": "hsl(var(--p7-ink-on-brand))",
+        },
+        brand: {
+          DEFAULT: "hsl(var(--p7-brand))",
+          soft: "hsl(var(--p7-brand-soft))",
+          strong: "hsl(var(--p7-brand-strong))",
+        },
+        "state-accent": {
+          DEFAULT: "hsl(var(--p7-accent))",
+          soft: "hsl(var(--p7-accent-soft))",
+        },
+        critical: {
+          DEFAULT: "hsl(var(--p7-critical))",
+          soft: "hsl(var(--p7-critical-soft))",
+        },
+      },
+      fontFamily: {
+        /* Phase 7: single Inter Variable stack with optical sizing for
+           the display tier; JBM Variable for technical IDs (MRZ, hashes). */
+        display: "var(--p7-font-display)",
+        sans: "var(--p7-font-sans)",
+        mono: "var(--p7-font-mono)",
+      },
+      fontSize: {
+        /* Phase 7 type scale — pairs `[size, { lineHeight, letterSpacing, fontWeight }]`.
+           These are net-new keys (`p7-display`, `p7-title-1`, …) so existing
+           `text-xs` / `text-sm` / etc. utilities remain untouched. */
+        "p7-display":   ["var(--p7-text-display)",   { lineHeight: "var(--p7-text-display-lh)",   letterSpacing: "var(--p7-text-display-track)",   fontWeight: "600" }],
+        "p7-title-1":   ["var(--p7-text-title-1)",   { lineHeight: "var(--p7-text-title-1-lh)",   letterSpacing: "var(--p7-text-title-1-track)",   fontWeight: "600" }],
+        "p7-title-2":   ["var(--p7-text-title-2)",   { lineHeight: "var(--p7-text-title-2-lh)",   letterSpacing: "var(--p7-text-title-2-track)",   fontWeight: "600" }],
+        "p7-title-3":   ["var(--p7-text-title-3)",   { lineHeight: "var(--p7-text-title-3-lh)",   letterSpacing: "var(--p7-text-title-3-track)",   fontWeight: "600" }],
+        "p7-body":      ["var(--p7-text-body)",      { lineHeight: "var(--p7-text-body-lh)",      letterSpacing: "var(--p7-text-body-track)",      fontWeight: "400" }],
+        "p7-body-em":   ["var(--p7-text-body)",      { lineHeight: "var(--p7-text-body-lh)",      letterSpacing: "var(--p7-text-body-track)",      fontWeight: "500" }],
+        "p7-callout":   ["var(--p7-text-callout)",   { lineHeight: "var(--p7-text-callout-lh)",   letterSpacing: "var(--p7-text-callout-track)",   fontWeight: "400" }],
+        "p7-caption-1": ["var(--p7-text-caption-1)", { lineHeight: "var(--p7-text-caption-1-lh)", letterSpacing: "var(--p7-text-caption-1-track)", fontWeight: "400" }],
+        "p7-caption-2": ["var(--p7-text-caption-2)", { lineHeight: "var(--p7-text-caption-2-lh)", letterSpacing: "var(--p7-text-caption-2-track)", fontWeight: "500" }],
+      },
+      transitionTimingFunction: {
+        /* Phase 7 — non-spring eases */
+        "p7-standard": "var(--p7-ease-standard)",
+        "p7-emphasized": "var(--p7-ease-emphasized)",
+        "p7-decelerated": "var(--p7-ease-decelerated)",
+        "p7-accelerated": "var(--p7-ease-accelerated)",
+      },
+      transitionDuration: {
+        /* Phase 7 — duration tokens for `transition-duration` utilities */
+        "p7-tap": "120ms",
+        "p7-pop": "200ms",
+        "p7-page": "320ms",
+        "p7-hero": "520ms",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -77,6 +143,11 @@ export default {
         xl: "calc(var(--radius) + 4px)",
         "2xl": "calc(var(--radius) + 8px)",
         "3xl": "1.5rem",
+        /* Phase 7 — semantic radii */
+        "p7-chip": "var(--p7-radius-chip)",
+        "p7-input": "var(--p7-radius-input)",
+        "p7-surface": "var(--p7-radius-surface)",
+        "p7-sheet": "var(--p7-radius-sheet)",
       },
       boxShadow: {
         "glow-sm": "0 0 12px hsl(var(--primary) / 0.15)",
@@ -87,6 +158,11 @@ export default {
         "depth-md": "var(--shadow-md)",
         "depth-lg": "var(--shadow-lg)",
         "depth-xl": "var(--shadow-xl)",
+        /* Phase 7 — 4-tier elevation (sm/md/lg/overlay) with theme-aware shadow tint */
+        "p7-sm": "var(--p7-shadow-sm)",
+        "p7-md": "var(--p7-shadow-md)",
+        "p7-lg": "var(--p7-shadow-lg)",
+        "p7-overlay": "var(--p7-shadow-overlay)",
       },
       keyframes: {
         "accordion-down": {
