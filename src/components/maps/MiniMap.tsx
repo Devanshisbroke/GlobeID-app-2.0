@@ -260,7 +260,7 @@ const MiniMap: React.FC<MiniMapProps> = ({
               }
               transition={
                 shouldAnimate
-                  ? { duration: 0.55, delay: 0.4, ease: ease.exit }
+                  ? { duration: 0.55, delay: 0.4, ease: ease.accelerated }
                   : undefined
               }
             />
