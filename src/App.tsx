@@ -43,6 +43,11 @@ const IdentityVault = lazy(() => import("@/screens/IdentityVault"));
 const TravelIntelligence = lazy(() => import("@/screens/TravelIntelligence"));
 const PlanetExplorer = lazy(() => import("@/screens/PlanetExplorer"));
 
+// Phase 7 PR-β — dev-only smoke route for v2 component primitives.
+// Tree-shaken out of production builds via the `import.meta.env.DEV`
+// guard at the route registration site below.
+const V2Showcase = lazy(() => import("@/components/ui/v2/__showcase"));
+
 // ── Preload secondary screens after initial load ──
 const preloadScreens = () => {
   import("@/screens/Profile");
@@ -139,6 +144,13 @@ const App = () => {
                 <LockScreen />
               </Suspense>
             } />
+            {import.meta.env.DEV ? (
+              <Route path="/__v2" element={
+                <Suspense fallback={<PageLoader />}>
+                  <V2Showcase />
+                </Suspense>
+              } />
+            ) : null}
             <Route
               path="/*"
               element={
