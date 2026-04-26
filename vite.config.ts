@@ -13,7 +13,21 @@ import { VitePWA } from "vite-plugin-pwa";
  *    the SW (see `src/main.tsx` for the runtime guard). The plugin still
  *    runs at build time so browser-served PWAs continue to install.
  */
-export default defineConfig(() => ({
+export default defineConfig(({ mode }) => {
+  // Phase 8 — production build guard.
+  // VITE_API_BASE_URL is required for any non-dev build that will be served
+  // off the local dev box (PWA upload, Capacitor APK, deployed bundle, etc.).
+  // Without it the client falls back to http://localhost:4000 which devices
+  // cannot reach. Warn loudly during build so the regression is visible.
+  if (mode === "production" && !process.env.VITE_API_BASE_URL) {
+    console.warn(
+      "\n[vite] WARNING: VITE_API_BASE_URL is not set for the production build.\n" +
+        "       The bundled client will fall back to http://localhost:4000/api/v1,\n" +
+        "       which is unreachable from devices. Copy .env.production.example to\n" +
+        ".env.production and set VITE_API_BASE_URL before rebuilding.\n",
+    );
+  }
+  return {
   server: {
     host: "::",
     port: 8080,
@@ -70,4 +84,5 @@ export default defineConfig(() => ({
     },
     chunkSizeWarningLimit: 900,
   },
-}));
+  };
+});
