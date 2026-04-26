@@ -1,22 +1,59 @@
 import React from "react";
-import { motion } from "framer-motion";
-import { FileText, Shield, Syringe, Plane, Clock, ShieldCheck, AlertTriangle } from "lucide-react";
+import { motion } from "motion/react";
+import {
+  FileText,
+  Shield,
+  Syringe,
+  Plane,
+  Clock,
+  ShieldCheck,
+  AlertTriangle,
+} from "lucide-react";
+import { Surface, Pill, Text, ease, duration } from "@/components/ui/v2";
+import type { TravelDocument } from "@/store/userStore";
 import { cn } from "@/lib/utils";
-import { TravelDocument } from "@/store/userStore";
-import { cinematicEase } from "@/cinematic/motionEngine";
 
-const typeConfig: Record<string, { icon: React.ElementType; gradient: string; label: string }> = {
-  passport: { icon: Shield, gradient: "from-[hsl(var(--ocean-deep))] to-[hsl(var(--ocean-blue))]", label: "Passport" },
-  visa: { icon: FileText, gradient: "from-[hsl(var(--primary))] to-[hsl(var(--ocean-aqua))]", label: "Visa" },
-  boarding_pass: { icon: Plane, gradient: "from-[hsl(var(--accent))] to-[hsl(var(--ocean-turquoise))]", label: "Boarding Pass" },
-  travel_insurance: { icon: ShieldCheck, gradient: "from-[hsl(185,72%,48%)] to-[hsl(168,70%,45%)]", label: "Insurance" },
-  vaccination: { icon: Syringe, gradient: "from-[hsl(var(--accent))] to-[hsl(168,70%,45%)]", label: "Vaccination" },
+type DocType = TravelDocument["type"];
+type DocStatus = TravelDocument["status"];
+
+const TYPE_CONFIG: Record<
+  DocType,
+  { icon: React.ElementType; label: string; halo: string }
+> = {
+  passport: {
+    icon: Shield,
+    label: "Passport",
+    halo: "bg-brand-soft text-brand",
+  },
+  visa: {
+    icon: FileText,
+    label: "Visa",
+    halo: "bg-state-accent-soft text-state-accent",
+  },
+  boarding_pass: {
+    icon: Plane,
+    label: "Boarding Pass",
+    halo: "bg-brand-soft text-brand",
+  },
+  travel_insurance: {
+    icon: ShieldCheck,
+    label: "Insurance",
+    halo: "bg-state-accent-soft text-state-accent",
+  },
+  vaccination: {
+    icon: Syringe,
+    label: "Vaccination",
+    halo: "bg-state-accent-soft text-state-accent",
+  },
 };
 
-const statusConfig: Record<string, { color: string; label: string; icon: React.ElementType }> = {
-  active: { color: "text-accent bg-accent/10", label: "Active", icon: ShieldCheck },
-  expired: { color: "text-destructive bg-destructive/10", label: "Expired", icon: AlertTriangle },
-  pending: { color: "text-primary bg-primary/10", label: "Pending", icon: Clock },
+const STATUS_CONFIG: Record<
+  DocStatus,
+  { tone: "accent" | "critical" | "brand"; label: string; icon: React.ElementType }
+> = {
+  active: { tone: "accent", label: "Active", icon: ShieldCheck },
+  expired: { tone: "critical", label: "Expired", icon: AlertTriangle },
+  pending: { tone: "brand", label: "Pending", icon: Clock },
 };
 
 interface CredentialCardProps {
@@ -26,36 +63,55 @@ interface CredentialCardProps {
   className?: string;
 }
 
-const CredentialCard: React.FC<CredentialCardProps> = ({ doc, index = 0, onTap, className }) => {
-  const type = typeConfig[doc.type] ?? typeConfig.passport;
-  const status = statusConfig[doc.status] ?? statusConfig.active;
+const CredentialCard: React.FC<CredentialCardProps> = ({
+  doc,
+  index = 0,
+  onTap,
+  className,
+}) => {
+  const type = TYPE_CONFIG[doc.type] ?? TYPE_CONFIG.passport;
+  const status = STATUS_CONFIG[doc.status] ?? STATUS_CONFIG.active;
   const Icon = type.icon;
   const StatusIcon = status.icon;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
+      initial={{ opacity: 0, y: 10, filter: "blur(2px)" }}
       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      transition={{ duration: 0.4, delay: index * 0.06, ease: cinematicEase }}
-      onClick={onTap}
-      className={cn(
-        "glass rounded-xl p-3.5 cursor-pointer active:scale-[0.98] transition-transform",
-        className
-      )}
+      transition={{ duration: duration.page, delay: index * 0.05, ease: ease.standard }}
     >
-      <div className="flex items-center gap-3">
-        <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shrink-0", type.gradient)}>
-          <Icon className="w-4.5 h-4.5 text-primary-foreground" strokeWidth={1.8} />
+      <Surface
+        variant="elevated"
+        radius="surface"
+        onClick={onTap}
+        className={cn(
+          "p-3.5 cursor-pointer transition-transform active:scale-[0.99]",
+          className,
+        )}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className={cn(
+              "w-10 h-10 rounded-p7-input flex items-center justify-center shrink-0",
+              type.halo,
+            )}
+          >
+            <Icon className="w-4 h-4" strokeWidth={1.8} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <Text variant="body-em" tone="primary" truncate>
+              {doc.label}
+            </Text>
+            <Text variant="caption-1" tone="tertiary" truncate>
+              {doc.countryFlag} {doc.country} · {doc.number}
+            </Text>
+          </div>
+          <Pill tone={status.tone} weight="tinted">
+            <StatusIcon className="w-3 h-3" />
+            {status.label}
+          </Pill>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-foreground truncate">{doc.label}</p>
-          <p className="text-xs text-muted-foreground">{doc.countryFlag} {doc.country} · {doc.number}</p>
-        </div>
-        <div className={cn("flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold", status.color)}>
-          <StatusIcon className="w-3 h-3" />
-          {status.label}
-        </div>
-      </div>
+      </Surface>
     </motion.div>
   );
 };

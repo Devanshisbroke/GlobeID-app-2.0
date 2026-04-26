@@ -1,26 +1,29 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { ChevronRight, Plane, Wallet, Compass, ShieldCheck } from "lucide-react";
+import { Surface, Pill, Text } from "@/components/ui/v2";
 import { useRecommendationsStore } from "@/store/recommendationsStore";
 import { getTravelSuggestions } from "@/lib/travelSuggestions";
 import { useUserStore, selectVisitedCountries } from "@/store/userStore";
 import { getIcon } from "@/lib/iconMap";
-import { ChevronRight, Plane, Wallet, Compass, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Recommendation } from "@shared/types/insights";
 
-const KIND_ICON: Record<Recommendation["kind"], React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
+const KIND_ICON: Record<
+  Recommendation["kind"],
+  React.ComponentType<{ className?: string; strokeWidth?: number }>
+> = {
   trip_continuation: Plane,
   next_destination: Compass,
   currency_action: Wallet,
   readiness: ShieldCheck,
 };
 
-const KIND_GRADIENT: Record<Recommendation["kind"], string> = {
-  trip_continuation: "bg-gradient-to-br from-accent to-primary",
-  next_destination: "bg-gradient-to-br from-primary to-warning",
-  currency_action: "bg-gradient-to-br from-warning to-primary",
-  readiness: "bg-gradient-to-br from-primary to-accent",
+const KIND_HALO: Record<Recommendation["kind"], string> = {
+  trip_continuation: "bg-state-accent-soft text-state-accent",
+  next_destination: "bg-brand-soft text-brand",
+  currency_action: "bg-[hsl(var(--p7-warning-soft))] text-[hsl(var(--p7-warning))]",
+  readiness: "bg-brand-soft text-brand",
 };
 
 const Suggestions: React.FC = () => {
@@ -28,12 +31,11 @@ const Suggestions: React.FC = () => {
   const recommendations = useRecommendationsStore((s) => s.items);
   const recsStatus = useRecommendationsStore((s) => s.status);
 
-  // Fallback to local catalog while backend hydrates or in offline mode.
   const travelHistory = useUserStore((s) => s.travelHistory);
   const nationality = useUserStore((s) => s.profile.nationality);
   const fallback = React.useMemo(
     () => getTravelSuggestions(nationality, selectVisitedCountries(travelHistory)),
-    [nationality, travelHistory]
+    [nationality, travelHistory],
   );
 
   const handleAction = (rec: Recommendation) => {
@@ -41,35 +43,39 @@ const Suggestions: React.FC = () => {
     else navigate("/map");
   };
 
-  // Backend ready & has items → use them. Otherwise fall back so we never
-  // render an empty card on cold boot.
   if (recsStatus === "ready" && recommendations.length > 0) {
     return (
       <div className="space-y-2.5">
         {recommendations.slice(0, 3).map((rec) => {
           const Icon = KIND_ICON[rec.kind];
           return (
-            <GlassCard
+            <Surface
               key={rec.id}
-              className="cursor-pointer touch-bounce"
+              variant="elevated"
+              radius="surface"
+              className="p-3.5 cursor-pointer transition-transform active:scale-[0.99]"
               onClick={() => handleAction(rec)}
             >
               <div className="flex items-center gap-3">
                 <div
                   className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-depth-sm",
-                    KIND_GRADIENT[rec.kind]
+                    "w-10 h-10 rounded-p7-input flex items-center justify-center shrink-0",
+                    KIND_HALO[rec.kind],
                   )}
                 >
-                  <Icon className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+                  <Icon className="w-5 h-5" strokeWidth={1.8} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground">{rec.title}</p>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{rec.description}</p>
+                  <Text variant="body-em" tone="primary" truncate>
+                    {rec.title}
+                  </Text>
+                  <Text variant="caption-1" tone="tertiary" className="line-clamp-2">
+                    {rec.description}
+                  </Text>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
+                <ChevronRight className="w-4 h-4 text-ink-tertiary shrink-0" />
               </div>
-            </GlassCard>
+            </Surface>
           );
         })}
       </div>
@@ -81,28 +87,42 @@ const Suggestions: React.FC = () => {
       {fallback.slice(0, 3).map((sug) => {
         const SugIcon = getIcon(sug.icon);
         return (
-          <GlassCard key={sug.id} className="cursor-pointer touch-bounce" onClick={() => navigate("/map")}>
+          <Surface
+            key={sug.id}
+            variant="elevated"
+            radius="surface"
+            className="p-3.5 cursor-pointer transition-transform active:scale-[0.99]"
+            onClick={() => navigate("/map")}
+          >
             <div className="flex items-center gap-3">
-              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-depth-sm", sug.gradient)}>
-                <SugIcon className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+              <div className="w-10 h-10 rounded-p7-input bg-brand-soft flex items-center justify-center shrink-0">
+                <SugIcon className="w-5 h-5 text-brand" strokeWidth={1.8} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">{sug.title}</p>
-                <p className="text-xs text-muted-foreground">{sug.description}</p>
+                <Text variant="body-em" tone="primary" truncate>
+                  {sug.title}
+                </Text>
+                <Text variant="caption-1" tone="tertiary" truncate>
+                  {sug.description}
+                </Text>
                 {sug.countries.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-1.5">
                     {sug.countries.slice(0, 3).map((c) => (
-                      <span key={c} className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary/50 text-muted-foreground border border-border/20">{c}</span>
+                      <Pill key={c} tone="neutral" weight="outline">
+                        {c}
+                      </Pill>
                     ))}
                     {sug.countries.length > 3 && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary/50 text-muted-foreground">+{sug.countries.length - 3}</span>
+                      <Pill tone="neutral" weight="outline">
+                        +{sug.countries.length - 3}
+                      </Pill>
                     )}
                   </div>
                 )}
               </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
+              <ChevronRight className="w-4 h-4 text-ink-tertiary shrink-0" />
             </div>
-          </GlassCard>
+          </Surface>
         );
       })}
     </div>

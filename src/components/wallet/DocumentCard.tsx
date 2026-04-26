@@ -1,60 +1,73 @@
 import React from "react";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { FileText, Plane, ShieldCheck, CreditCard, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Surface, Pill, Text } from "@/components/ui/v2";
 import type { TravelDocument } from "@/store/userStore";
+import { cn } from "@/lib/utils";
 
 interface DocumentCardProps {
   doc: TravelDocument;
   className?: string;
 }
 
-const typeConfig = {
-  passport: { icon: FileText, gradient: "bg-gradient-brand", label: "Passport" },
-  visa: { icon: ShieldCheck, gradient: "bg-gradient-brand", label: "Visa" },
-  boarding_pass: { icon: Plane, gradient: "bg-gradient-brand", label: "Boarding Pass" },
-  travel_insurance: { icon: CreditCard, gradient: "bg-gradient-brand", label: "Insurance" },
-};
+const TYPE_CONFIG = {
+  passport: { icon: FileText, label: "Passport" },
+  visa: { icon: ShieldCheck, label: "Visa" },
+  boarding_pass: { icon: Plane, label: "Boarding Pass" },
+  travel_insurance: { icon: CreditCard, label: "Insurance" },
+} as const;
 
-const statusColors = {
-  active: "bg-accent/15 text-accent",
-  expired: "bg-destructive/15 text-destructive",
-  pending: "bg-primary/15 text-primary",
-};
+const STATUS_TONE = {
+  active: "accent",
+  expired: "critical",
+  pending: "brand",
+} as const satisfies Record<TravelDocument["status"], "accent" | "critical" | "brand">;
 
 const DocumentCard: React.FC<DocumentCardProps> = ({ doc, className }) => {
-  const config = typeConfig[doc.type];
+  const config = TYPE_CONFIG[doc.type];
   const Icon = config.icon;
 
   return (
-    <GlassCard className={cn("cursor-pointer touch-bounce", className)} depth="md">
+    <Surface
+      variant="elevated"
+      radius="surface"
+      className={cn("p-3.5 cursor-pointer transition-transform active:scale-[0.99]", className)}
+    >
       <div className="flex items-center gap-3">
-        <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-depth-sm", config.gradient)}>
-          <Icon className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
+        <div className="w-11 h-11 rounded-p7-input bg-brand-soft flex items-center justify-center shrink-0">
+          <Icon className="w-5 h-5 text-brand" strokeWidth={1.8} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-foreground">{doc.label}</p>
-          <p className="text-xs text-muted-foreground">
+          <Text variant="body-em" tone="primary" truncate>
+            {doc.label}
+          </Text>
+          <Text variant="caption-1" tone="tertiary" truncate>
             {doc.countryFlag} {doc.country} · {doc.number}
-          </p>
+          </Text>
         </div>
-        <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-semibold", statusColors[doc.status])}>
+        <Pill tone={STATUS_TONE[doc.status]} weight="tinted">
           {doc.status}
-        </span>
+        </Pill>
       </div>
-      <div className="mt-3 pt-3 border-t border-border/30 grid grid-cols-2 gap-2 text-xs">
+      <div className="mt-3 pt-3 border-t border-surface-hairline grid grid-cols-2 gap-2">
         <div>
-          <p className="text-muted-foreground">Type</p>
-          <p className="text-foreground font-medium">{config.label}</p>
+          <Text variant="caption-2" tone="tertiary">
+            Type
+          </Text>
+          <Text variant="caption-1" tone="primary" className="font-medium">
+            {config.label}
+          </Text>
         </div>
         <div>
-          <p className="text-muted-foreground">Expires</p>
-          <p className="text-foreground font-medium flex items-center gap-1">
-            <Clock className="w-3 h-3" />{doc.expiryDate}
-          </p>
+          <Text variant="caption-2" tone="tertiary">
+            Expires
+          </Text>
+          <Text variant="caption-1" tone="primary" className="font-medium flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            {doc.expiryDate}
+          </Text>
         </div>
       </div>
-    </GlassCard>
+    </Surface>
   );
 };
 
