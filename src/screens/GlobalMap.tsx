@@ -10,6 +10,7 @@ import {
   Users,
   Route,
   Radio,
+  Map as MapIcon,
 } from "lucide-react";
 import {
   Surface,
@@ -35,6 +36,7 @@ import ContinentTraffic from "@/components/simulation/ContinentTraffic";
 import SpeedControl from "@/components/simulation/SpeedControl";
 
 const GlobeScene = lazy(() => import("@/components/map/GlobeScene"));
+const Map2DView = lazy(() => import("@/components/map/Map2DView"));
 
 const USER_LAT = 37.7749;
 const USER_LNG = -122.4194;
@@ -131,6 +133,8 @@ const GlobalMap: React.FC = () => {
   const [simMode, setSimMode] = useState(false);
   const [simSpeed, setSimSpeed] = useState(1);
   const [simHour, setSimHour] = useState(12);
+  // Phase 9-γ — 2D/3D hybrid toggle.
+  const [viewMode, setViewMode] = useState<"3d" | "2d">("3d");
 
   const travelHistory = useUserStore((s) => s.travelHistory);
   const upcomingFlights = React.useMemo(
@@ -191,15 +195,29 @@ const GlobalMap: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: duration.hero, ease: ease.decelerated }}
             onAnimationComplete={() => setIsLoaded(true)}
+            key={viewMode}
           >
-            <GlobeScene
-              showHistory={showHistory}
-              showAirports={showAirports}
-              userLat={USER_LAT}
-              userLng={USER_LNG}
-              showSimulation={simMode}
-              simSpeed={simSpeed}
-            />
+            {viewMode === "3d" ? (
+              <GlobeScene
+                showHistory={showHistory}
+                showAirports={showAirports}
+                userLat={USER_LAT}
+                userLng={USER_LNG}
+                showSimulation={simMode}
+                simSpeed={simSpeed}
+              />
+            ) : (
+              <div className="w-full h-full">
+                <Map2DView
+                  records={
+                    showHistory
+                      ? travelHistory
+                      : travelHistory.filter((r) => r.type !== "past")
+                  }
+                  className="w-full h-full !rounded-none !border-0"
+                />
+              </div>
+            )}
           </motion.div>
         </Suspense>
       </div>
@@ -211,6 +229,44 @@ const GlobalMap: React.FC = () => {
         onToggleHistory={() => setShowHistory(!showHistory)}
         onToggleAirports={() => setShowAirports(!showAirports)}
       />
+
+      {/* 2D / 3D mode toggle — top center */}
+      <div
+        className="absolute top-safe-4 left-1/2 -translate-x-1/2 z-20 inline-flex items-center rounded-full border border-surface-hairline bg-surface-glass backdrop-blur-xl shadow-p7-sm overflow-hidden"
+        role="tablist"
+        aria-label="Map view mode"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={viewMode === "3d"}
+          onClick={() => setViewMode("3d")}
+          className={cn(
+            "inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors duration-p7-pop",
+            viewMode === "3d"
+              ? "bg-brand-soft text-brand"
+              : "text-ink-tertiary hover:text-ink-primary",
+          )}
+        >
+          <Globe className="w-3.5 h-3.5" strokeWidth={2} />
+          3D
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={viewMode === "2d"}
+          onClick={() => setViewMode("2d")}
+          className={cn(
+            "inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors duration-p7-pop",
+            viewMode === "2d"
+              ? "bg-brand-soft text-brand"
+              : "text-ink-tertiary hover:text-ink-primary",
+          )}
+        >
+          <MapIcon className="w-3.5 h-3.5" strokeWidth={2} />
+          2D
+        </button>
+      </div>
 
       {/* Simulation mode toggle — top left */}
       <motion.button

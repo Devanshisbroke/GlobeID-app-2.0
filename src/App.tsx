@@ -44,6 +44,7 @@ const UserProfile = lazy(() => import("@/screens/UserProfile"));
 const IdentityVault = lazy(() => import("@/screens/IdentityVault"));
 const TravelIntelligence = lazy(() => import("@/screens/TravelIntelligence"));
 const PlanetExplorer = lazy(() => import("@/screens/PlanetExplorer"));
+const TripDetail = lazy(() => import("@/screens/TripDetail"));
 
 // Phase 7 PR-β — dev-only smoke route for v2 component primitives.
 // Tree-shaken out of production builds via the `import.meta.env.DEV`
@@ -198,6 +199,7 @@ const App = () => {
                         <Route path="/passport-book" element={<IdentityVault />} />
                         <Route path="/intelligence" element={<TravelIntelligence />} />
                         <Route path="/explorer" element={<PlanetExplorer />} />
+                        <Route path="/trip/:tripId" element={<TripDetail />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                       </Routes>
                     </Suspense>
