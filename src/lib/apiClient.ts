@@ -28,6 +28,27 @@ import type {
   UpdateStateRequest,
   WalletStateView,
 } from "@shared/types/wallet";
+import type {
+  LoyaltySnapshot,
+  LoyaltyEarnRequest,
+  LoyaltyRedeemRequest,
+  LoyaltyMutationResponse,
+} from "@shared/types/loyalty";
+import type {
+  EmergencyContact,
+  EmergencyContactCreate,
+  EmergencyContactPatch,
+} from "@shared/types/safety";
+import type { BudgetCap, BudgetCapUpsert, BudgetSnapshot, BudgetUsage } from "@shared/types/budget";
+import type { TravelScore } from "@shared/types/score";
+import type { WeatherForecast } from "@shared/types/weather";
+import type { FraudFinding, FraudScanResponse } from "@shared/types/fraud";
+import type { VisaPolicy } from "@shared/data/visaCatalog";
+import type { InsurancePlan } from "@shared/data/insuranceCatalog";
+import type { ESimPlan } from "@shared/data/esimCatalog";
+import type { Hotel } from "@shared/data/hotelsCatalog";
+import type { Restaurant } from "@shared/data/foodCatalog";
+import type { LocalService, ServiceKind } from "@shared/data/localServicesCatalog";
 
 export class ApiError extends Error {
   constructor(public code: string, message: string, public status: number) {
@@ -212,6 +233,243 @@ export const api = {
         method: "PATCH",
         body: JSON.stringify(req),
       }).then(unwrap<WalletStateView>),
+  },
+
+  loyalty: {
+    snapshot: () => authedFetch("/loyalty").then(unwrap<LoyaltySnapshot>),
+    earn: (req: LoyaltyEarnRequest) =>
+      authedFetch("/loyalty/earn", { method: "POST", body: JSON.stringify(req) }).then(
+        unwrap<LoyaltyMutationResponse>,
+      ),
+    redeem: (req: LoyaltyRedeemRequest) =>
+      authedFetch("/loyalty/redeem", { method: "POST", body: JSON.stringify(req) }).then(
+        unwrap<LoyaltyMutationResponse>,
+      ),
+  },
+
+  safety: {
+    contacts: () => authedFetch("/safety/contacts").then(unwrap<EmergencyContact[]>),
+    addContact: (req: EmergencyContactCreate) =>
+      authedFetch("/safety/contacts", { method: "POST", body: JSON.stringify(req) }).then(
+        unwrap<EmergencyContact>,
+      ),
+    patchContact: (id: string, patch: EmergencyContactPatch) =>
+      authedFetch(`/safety/contacts/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(patch),
+      }).then(unwrap<EmergencyContact>),
+    deleteContact: (id: string) =>
+      authedFetch(`/safety/contacts/${encodeURIComponent(id)}`, { method: "DELETE" }).then(
+        unwrap<{ deleted: string }>,
+      ),
+  },
+
+  score: {
+    snapshot: () => authedFetch("/score").then(unwrap<TravelScore>),
+  },
+
+  weather: {
+    forecast: (iata: string, days = 7) =>
+      authedFetch(`/weather/forecast?iata=${encodeURIComponent(iata)}&days=${days}`).then(
+        unwrap<WeatherForecast>,
+      ),
+  },
+
+  budget: {
+    snapshot: () => authedFetch("/budget").then(unwrap<BudgetSnapshot>),
+    upsertCap: (req: BudgetCapUpsert) =>
+      authedFetch("/budget/caps", { method: "PUT", body: JSON.stringify(req) }).then(
+        unwrap<{ cap: BudgetCap; usage: BudgetUsage }>,
+      ),
+    deleteCap: (scope: string) =>
+      authedFetch(`/budget/caps/${encodeURIComponent(scope)}`, { method: "DELETE" }).then(
+        unwrap<{ deleted: string }>,
+      ),
+  },
+
+  fraud: {
+    findings: () =>
+      authedFetch("/fraud/findings").then(
+        unwrap<{ scanned: number; findings: FraudFinding[] }>,
+      ),
+    scan: () =>
+      authedFetch("/fraud/scan", { method: "POST" }).then(unwrap<FraudScanResponse>),
+  },
+
+  exchange: {
+    rates: (base = "USD") =>
+      authedFetch(`/exchange/rates?base=${encodeURIComponent(base)}`).then(
+        unwrap<{ base: string; asOf: string; rates: Record<string, number>; source: string }>,
+      ),
+    quote: (from: string, to: string, amount: number) =>
+      authedFetch(
+        `/exchange/quote?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&amount=${amount}`,
+      ).then(
+        unwrap<{
+          from: string;
+          to: string;
+          amount: number;
+          rate: number;
+          converted: number;
+          asOf: string;
+          source: string;
+        }>,
+      ),
+  },
+
+  visa: {
+    policies: (citizenship?: string) =>
+      authedFetch(
+        `/visa/policies${citizenship ? `?citizenship=${encodeURIComponent(citizenship)}` : ""}`,
+      ).then(unwrap<{ policies: VisaPolicy[]; total: number }>),
+    policy: (citizenship: string, destination: string) =>
+      authedFetch(
+        `/visa/policy?citizenship=${encodeURIComponent(citizenship)}&destination=${encodeURIComponent(destination)}`,
+      ).then(unwrap<VisaPolicy>),
+  },
+
+  insurance: {
+    plans: () => authedFetch("/insurance/plans").then(unwrap<{ plans: InsurancePlan[] }>),
+    quote: (days: number, age: number, destination: string) =>
+      authedFetch(
+        `/insurance/quote?days=${days}&age=${age}&destination=${encodeURIComponent(destination)}`,
+      ).then(
+        unwrap<{
+          region: string;
+          quotes: Array<{
+            plan: InsurancePlan;
+            quote: { premiumUsd: number; ageMultiplier: number; regionMultiplier: number };
+          }>;
+        }>,
+      ),
+  },
+
+  esim: {
+    plans: (country?: string) =>
+      authedFetch(
+        `/esim/plans${country ? `?country=${encodeURIComponent(country)}` : ""}`,
+      ).then(unwrap<{ plans: ESimPlan[]; total: number }>),
+  },
+
+  hotels: {
+    search: (params: {
+      city?: string;
+      country?: string;
+      minStar?: number;
+      maxPrice?: number;
+      minRating?: number;
+      amenities?: string[];
+      checkIn?: string;
+      checkOut?: string;
+      sort?: "price_asc" | "price_desc" | "rating_desc" | "stars_desc" | "distance_asc";
+    }) => {
+      const q = new URLSearchParams();
+      if (params.city) q.set("city", params.city);
+      if (params.country) q.set("country", params.country);
+      if (params.minStar !== undefined) q.set("minStar", String(params.minStar));
+      if (params.maxPrice !== undefined) q.set("maxPrice", String(params.maxPrice));
+      if (params.minRating !== undefined) q.set("minRating", String(params.minRating));
+      if (params.amenities && params.amenities.length) q.set("amenities", params.amenities.join(","));
+      if (params.checkIn) q.set("checkIn", params.checkIn);
+      if (params.checkOut) q.set("checkOut", params.checkOut);
+      if (params.sort) q.set("sort", params.sort);
+      return authedFetch(`/hotels/search?${q.toString()}`).then(
+        unwrap<{
+          total: number;
+          nights: number | null;
+          sort: string;
+          results: Array<Hotel & { totalUsd: number | null; nights: number | null }>;
+        }>,
+      );
+    },
+    get: (id: string) => authedFetch(`/hotels/${encodeURIComponent(id)}`).then(unwrap<Hotel>),
+  },
+
+  food: {
+    restaurants: (params: {
+      city?: string;
+      cuisine?: string;
+      priceTier?: string;
+      minRating?: number;
+      sort?: "rating_desc" | "eta_asc" | "price_asc";
+    }) => {
+      const q = new URLSearchParams();
+      if (params.city) q.set("city", params.city);
+      if (params.cuisine) q.set("cuisine", params.cuisine);
+      if (params.priceTier) q.set("priceTier", params.priceTier);
+      if (params.minRating !== undefined) q.set("minRating", String(params.minRating));
+      if (params.sort) q.set("sort", params.sort);
+      return authedFetch(`/food/restaurants?${q.toString()}`).then(
+        unwrap<{ total: number; sort: string; results: Restaurant[] }>,
+      );
+    },
+    restaurant: (id: string) =>
+      authedFetch(`/food/restaurants/${encodeURIComponent(id)}`).then(unwrap<Restaurant>),
+    quote: (req: {
+      restaurantId: string;
+      items: Array<{ menuItemId: string; qty: number }>;
+      taxRate?: number;
+      tipFraction?: number;
+    }) =>
+      authedFetch("/food/quote", { method: "POST", body: JSON.stringify(req) }).then(
+        unwrap<{
+          restaurantId: string;
+          lines: Array<{ menuItemId: string; name: string; qty: number; lineTotalUsd: number }>;
+          subtotalUsd: number;
+          taxUsd: number;
+          tipUsd: number;
+          deliveryUsd: number;
+          totalUsd: number;
+          etaMinutes: number;
+        }>,
+      ),
+  },
+
+  rides: {
+    estimate: (req: {
+      fromIata?: string;
+      fromLat?: number;
+      fromLng?: number;
+      toLat: number;
+      toLng: number;
+      vehicle: "bike" | "auto" | "sedan" | "suv" | "premium";
+      surge?: number;
+    }) =>
+      authedFetch("/rides/estimate", { method: "POST", body: JSON.stringify(req) }).then(
+        unwrap<{
+          distanceKm: number;
+          fareUsd: number;
+          etaMinutes: number;
+          vehicle: string;
+          label: string;
+          capacity: number;
+          surge: number;
+        }>,
+      ),
+    vehicles: () =>
+      authedFetch("/rides/vehicles").then(
+        unwrap<{
+          vehicles: Array<{
+            id: string;
+            perKmUsd: number;
+            baseFare: number;
+            capacity: number;
+            etaMinPerKm: number;
+            label: string;
+          }>;
+        }>,
+      ),
+  },
+
+  local: {
+    services: (params: { country?: string; kind?: ServiceKind }) => {
+      const q = new URLSearchParams();
+      if (params.country) q.set("country", params.country);
+      if (params.kind) q.set("kind", params.kind);
+      return authedFetch(`/local/services?${q.toString()}`).then(
+        unwrap<{ total: number; kinds: ServiceKind[]; results: LocalService[] }>,
+      );
+    },
   },
 };
 
