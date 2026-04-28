@@ -11,6 +11,8 @@ import { recommendationsRouter } from "./routes/recommendations.js";
 import { alertsRouter } from "./routes/alerts.js";
 import { copilotRouter } from "./routes/copilot.js";
 import { plannerRouter } from "./routes/planner.js";
+import { contextRouter } from "./routes/context.js";
+import { lifecycleRouter } from "./routes/lifecycle.js";
 import { ok } from "./lib/validate.js";
 
 const app = new Hono();
@@ -39,6 +41,8 @@ api.route("/recommendations", recommendationsRouter);
 api.route("/alerts", alertsRouter);
 api.route("/copilot", copilotRouter);
 api.route("/planner/trips", plannerRouter);
+api.route("/context", contextRouter);
+api.route("/lifecycle", lifecycleRouter);
 
 app.route("/api/v1", api);
 

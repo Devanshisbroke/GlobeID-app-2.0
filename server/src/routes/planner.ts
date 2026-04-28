@@ -19,6 +19,12 @@ import { db } from "../db/client.js";
 import { plannedTrips, travelRecords } from "../db/schema.js";
 import { authMiddleware, getUserId } from "../auth/token.js";
 import { ok, err, parseBody } from "../lib/validate.js";
+import { cacheInvalidate } from "../lib/cache.js";
+
+function invalidateDerived(userId: string): void {
+  cacheInvalidate(`context:current:${userId}`);
+  cacheInvalidate(`lifecycle:trips:${userId}`);
+}
 
 export const plannerRouter = new Hono();
 plannerRouter.use("*", authMiddleware);
@@ -100,6 +106,8 @@ plannerRouter.post("/", async (c) => {
       .run();
   }
 
+  invalidateDerived(userId);
+
   return ok(
     c,
     {
@@ -136,6 +144,14 @@ plannerRouter.delete("/:id", (c) => {
 
   if (tripResult.changes === 0 && legResult.changes === 0) {
     return err(c, "not_found", "Planned trip not found", 404);
+  }
+  invalidateDerived(userId);
+  // Trips affect insights/recommendations too when legs are cascaded.
+  if (legResult.changes > 0) {
+    cacheInvalidate(`insights:travel:${userId}`);
+    cacheInvalidate(`insights:wallet:${userId}`);
+    cacheInvalidate(`insights:activity:${userId}`);
+    cacheInvalidate(`recommendations:${userId}`);
   }
   return ok(c, { id, tripDeleted: tripResult.changes > 0, legsDeleted: legResult.changes });
 });

@@ -36,6 +36,8 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import Suggestions from "@/components/dashboard/Suggestions";
 import TravelAlerts from "@/components/dashboard/TravelAlerts";
 import TravelAssistant from "@/components/ai/TravelAssistant";
+import ContextBanner from "@/components/intelligence/ContextBanner";
+import AutomationFlagList from "@/components/intelligence/AutomationFlagList";
 
 const PULL_THRESHOLD = 80;
 
@@ -213,9 +215,19 @@ const Home: React.FC = () => {
           animate="animate"
           className="space-y-5"
         >
+          {/* 0. Context banner (Phase 9-β) — single-line "you're in / next trip / N flags" */}
+          <motion.div variants={itemVariants}>
+            <ContextBanner />
+          </motion.div>
+
           {/* 1. Profile Summary */}
           <motion.div variants={itemVariants}>
             <ProfileCard />
+          </motion.div>
+
+          {/* 1b. Automation flags (Phase 9-β) — passport/currency/document checks. */}
+          <motion.div variants={itemVariants}>
+            <AutomationFlagList limit={3} heading="Action items" />
           </motion.div>
 
           {/* 2. Travel Statistics */}

@@ -17,6 +17,8 @@ import type {
   RecommendationsResponse,
 } from "@shared/types/insights";
 import type { Alert, AlertPatch } from "@shared/types/alerts";
+import type { ContextSnapshot } from "@shared/types/intelligence";
+import type { TripLifecycle, FlightStatus } from "@shared/types/lifecycle";
 
 export class ApiError extends Error {
   constructor(public code: string, message: string, public status: number) {
@@ -172,6 +174,16 @@ export const api = {
       authedFetch(`/planner/trips/${encodeURIComponent(id)}`, { method: "DELETE" }).then(
         unwrap<{ id: string; tripDeleted: boolean; legsDeleted: number }>,
       ),
+  },
+
+  context: {
+    current: () => authedFetch("/context/current").then(unwrap<ContextSnapshot>),
+  },
+
+  lifecycle: {
+    trips: () => authedFetch("/lifecycle/trips").then(unwrap<TripLifecycle[]>),
+    flightStatus: (legId: string) =>
+      authedFetch(`/lifecycle/flights/${encodeURIComponent(legId)}`).then(unwrap<FlightStatus>),
   },
 };
 

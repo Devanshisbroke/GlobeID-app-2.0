@@ -10,18 +10,26 @@ import { getTopDestinations } from "@/lib/destinationAnalytics";
 import IntelligenceHUD from "@/components/intelligence/IntelligenceHUD";
 import DestinationCard from "@/components/intelligence/DestinationCard";
 import TravelTrends from "@/components/intelligence/TravelTrends";
+import AutomationFlagList from "@/components/intelligence/AutomationFlagList";
+import PredictiveNextTripCard from "@/components/intelligence/PredictiveNextTripCard";
+import TripLifecycleCard from "@/components/travel/TripLifecycleCard";
+import { useLifecycleStore } from "@/store/lifecycleStore";
 
 const GlobeScene = lazy(() => import("@/components/map/GlobeScene"));
 
 const tabs = [
   { id: "overview" as const, label: "Overview", icon: Radio },
+  { id: "lifecycles" as const, label: "Trips", icon: Sparkles },
   { id: "destinations" as const, label: "Destinations", icon: Globe },
   { id: "trends" as const, label: "Trends", icon: BarChart3 },
 ];
 
 const TravelIntelligence: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"overview" | "destinations" | "trends">("overview");
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "lifecycles" | "destinations" | "trends"
+  >("overview");
+  const lifecycles = useLifecycleStore((s) => s.trips);
   const [showGlobe, setShowGlobe] = useState(false);
   const topDests = getTopDestinations(8);
 
@@ -107,11 +115,30 @@ const TravelIntelligence: React.FC = () => {
         {/* Tab content */}
         <AnimatePresence mode="wait">
           {activeTab === "overview" && (
-            <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3, ease: cinematicEase }} className="space-y-3">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Top Destinations</p>
+            <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3, ease: cinematicEase }} className="space-y-4">
+              <AutomationFlagList heading="Action items" />
+              <PredictiveNextTripCard />
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest pt-1">Top Destinations</p>
               {topDests.slice(0, 5).map((d, i) => (
                 <DestinationCard key={d.iata} dest={d} rank={i + 1} index={i} />
               ))}
+            </motion.div>
+          )}
+          {activeTab === "lifecycles" && (
+            <motion.div key="lifecycles" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3, ease: cinematicEase }} className="space-y-3">
+              {lifecycles.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-6 text-center">
+                  No trips on file yet. Save one in Trip Planner to see lifecycle here.
+                </p>
+              ) : (
+                lifecycles.map((trip, i) => (
+                  <TripLifecycleCard
+                    key={trip.tripId ?? `adhoc-${i}`}
+                    trip={trip}
+                    index={i}
+                  />
+                ))
+              )}
             </motion.div>
           )}
           {activeTab === "destinations" && (
