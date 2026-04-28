@@ -136,6 +136,9 @@ const TravelIntelligence: React.FC = () => {
                     key={trip.tripId ?? `adhoc-${i}`}
                     trip={trip}
                     index={i}
+                    onSelect={(t) =>
+                      navigate(`/trip/${t.tripId ?? "adhoc"}`)
+                    }
                   />
                 ))
               )}
