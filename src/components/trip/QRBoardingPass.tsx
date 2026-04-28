@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { Plane, AlertCircle, User, Calendar, Hash } from "lucide-react";
 import { encodeBoardingPass } from "@/lib/qrEncoding";
@@ -32,17 +32,35 @@ const QRBoardingPass: React.FC<QRBoardingPassProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { payload, qrText } = encodeBoardingPass({
-    passenger,
-    passportNo,
-    flightNumber,
-    airline,
-    fromIata,
-    toIata,
-    scheduledDate,
-    legId,
-    tripId,
-  });
+  // `encodeBoardingPass` stamps `issuedAt: Date.now()` into the payload, so
+  // calling it in the render body would produce a new `qrText` every render
+  // and re-fire the QR draw effect (visible flicker on parent re-renders).
+  // Memoise on the actual identity-shaping inputs.
+  const { payload, qrText } = useMemo(
+    () =>
+      encodeBoardingPass({
+        passenger,
+        passportNo,
+        flightNumber,
+        airline,
+        fromIata,
+        toIata,
+        scheduledDate,
+        legId,
+        tripId,
+      }),
+    [
+      passenger,
+      passportNo,
+      flightNumber,
+      airline,
+      fromIata,
+      toIata,
+      scheduledDate,
+      legId,
+      tripId,
+    ],
+  );
 
   useEffect(() => {
     let cancelled = false;
