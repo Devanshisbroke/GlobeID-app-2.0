@@ -34,8 +34,12 @@ interface SplashProps {
   onComplete: () => void;
 }
 
-const TOTAL_MS = 900;
-const FADE_MS = 200;
+// Slice-B target: 1.5 s total splash (per Devansh's "1.5s start animation"
+// brief). Hydration still runs in parallel in App.tsx, so the longer
+// window simply gives the cinematic more headroom — the app remains
+// fully painted under the splash before the fade completes.
+const TOTAL_MS = 1500;
+const FADE_MS = 250;
 
 const SplashV2: React.FC<SplashProps> = ({ onComplete }) => {
   const [visible, setVisible] = React.useState(true);
