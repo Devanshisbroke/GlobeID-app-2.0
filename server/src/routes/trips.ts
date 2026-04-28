@@ -5,7 +5,20 @@ import { db } from "../db/client.js";
 import { travelRecords } from "../db/schema.js";
 import { authMiddleware, getUserId } from "../auth/token.js";
 import { ok, err, parseBody } from "../lib/validate.js";
+import { cacheInvalidate } from "../lib/cache.js";
 import { travelRecordSchema, type TravelRecord } from "../../../shared/types/travel.js";
+
+/** Invalidate downstream derivation caches whenever travel_records change.
+ *  Phase 9-β contextSnapshot + lifecycle entries are pure derivations of
+ *  these rows, so a stale cache would lie about the user's current state. */
+function invalidateDerived(userId: string): void {
+  cacheInvalidate(`insights:travel:${userId}`);
+  cacheInvalidate(`insights:wallet:${userId}`);
+  cacheInvalidate(`insights:activity:${userId}`);
+  cacheInvalidate(`recommendations:${userId}`);
+  cacheInvalidate(`context:current:${userId}`);
+  cacheInvalidate(`lifecycle:trips:${userId}`);
+}
 
 export const tripsRouter = new Hono();
 
@@ -70,6 +83,8 @@ tripsRouter.post("/", async (c) => {
     ).run();
   }
 
+  if (fresh.length > 0) invalidateDerived(userId);
+
   return ok(c, { added: fresh.length, skipped: parsed.records.length - fresh.length, records: fresh }, 201);
 });
 
@@ -81,5 +96,6 @@ tripsRouter.delete("/:id", (c) => {
     .where(and(eq(travelRecords.userId, userId), eq(travelRecords.id, id)))
     .run();
   if (result.changes === 0) return err(c, "not_found", "Travel record not found", 404);
+  invalidateDerived(userId);
   return ok(c, { id, deleted: true });
 });

@@ -13,6 +13,8 @@ import { useInsightsStore } from "@/store/insightsStore";
 import { useRecommendationsStore } from "@/store/recommendationsStore";
 import { useTripPlannerStore } from "@/store/tripPlannerStore";
 import { useCopilotStore } from "@/store/copilotStore";
+import { useContextStore } from "@/store/contextStore";
+import { useLifecycleStore } from "@/store/lifecycleStore";
 
 // ── Core tab screens: eagerly imported for instant switching ──
 import Home from "@/screens/Home";
@@ -117,6 +119,10 @@ const App = () => {
         useRecommendationsStore.getState().hydrate(),
         useTripPlannerStore.getState().hydrate(),
         useCopilotStore.getState().hydrate(),
+        // Phase 9-β: context engine + trip lifecycles. Both depend on the
+        // primary user/trip rows, so hydrate them after `userStore.hydrate()`.
+        useContextStore.getState().hydrate(),
+        useLifecycleStore.getState().hydrate(),
       ]);
     };
     void hydrateAll();
