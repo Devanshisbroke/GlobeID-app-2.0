@@ -61,7 +61,7 @@ export const duration = Object.freeze({
   pop: 0.2,
   page: 0.32,
   hero: 0.52,
-  splash: 1.4,
+  splash: 0.9,
 });
 
 /**

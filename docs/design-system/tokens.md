@@ -150,7 +150,7 @@ code.** `motion`/`framer-motion` accept the tuple via:
 | `duration.pop` | 200 ms | `--p7-dur-pop` | `duration-p7-pop` | Toggle, popover |
 | `duration.page` | 320 ms | `--p7-dur-page` | `duration-p7-page` | Page transition |
 | `duration.hero` | 520 ms | `--p7-dur-hero` | `duration-p7-hero` | Hero entrance |
-| `duration.splash` | 1400 ms | `--p7-dur-splash` | (splash only) | Splash sequence |
+| `duration.splash` | 900 ms | `--p7-dur-splash` | (splash only) | Splash sequence (compressed in Phase 9-α) |
 
 ### Stagger choreography
 
