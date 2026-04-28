@@ -97,6 +97,65 @@ export const copilotMessages = sqliteTable("copilot_messages", {
   createdAt: integer("created_at").notNull(),
 });
 
+/* Slice-B — emergency contacts.
+ *
+ * Stored per user. Phone validation is done at the route layer (Zod E.164).
+ * Soft-delete is a future concern; for now contacts are deleted outright. */
+export const emergencyContacts = sqliteTable("emergency_contacts", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  relationship: text("relationship").notNull(),
+  phoneE164: text("phone_e164").notNull(),
+  email: text("email"),
+  isPrimary: integer("is_primary").notNull().default(0),
+  createdAt: integer("created_at").notNull(),
+});
+
+/* Slice-B — append-only loyalty ledger.
+ *
+ * Same pattern as wallet_transactions: a unique (user_id, idempotency_key)
+ * index lets retried POSTs collapse onto a single row. Earn/redeem totals
+ * derive from a SUM over `points` instead of a denormalised balance, so
+ * the ledger is the single source of truth and can never disagree with
+ * itself. */
+export const loyaltyTransactions = sqliteTable("loyalty_transactions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  /** Positive for earns, negative for redemptions. */
+  points: integer("points").notNull(),
+  kind: text("kind", {
+    enum: ["wallet_payment", "trip_completion", "signup_bonus", "redemption", "adjustment"],
+  }).notNull(),
+  description: text("description").notNull(),
+  reference: text("reference"),
+  idempotencyKey: text("idempotency_key"),
+  createdAt: integer("created_at").notNull(),
+});
+
+/* Slice-B — budget caps.
+ *
+ * One row per (user, scope) where scope is either a category or a tripId.
+ * Aggregation happens in the route by SUMming wallet_transactions filtered
+ * to the matching category/tripId. Caps live in the user's default currency
+ * — we don't try to FX-convert each ledger row. The currency is denormalised
+ * onto the row to make that explicit. */
+export const budgetCaps = sqliteTable(
+  "budget_caps",
+  {
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    /** "category:food", "category:hotel", "trip:trip_abc", "global". */
+    scope: text("scope").notNull(),
+    capAmount: real("cap_amount").notNull(),
+    currency: text("currency").notNull(),
+    /** Notify when projected spend hits this fraction (0..1) of cap. */
+    alertThreshold: real("alert_threshold").notNull().default(0.8),
+    period: text("period", { enum: ["trip", "monthly", "yearly", "global"] }).notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.userId, t.scope] }) }),
+);
+
 /** Raw DDL applied on boot before drizzle-kit migrations are introduced.
  *  Keeps PR-A self-contained without adding a migration step. */
 export const ddl = `
@@ -190,5 +249,41 @@ CREATE TABLE IF NOT EXISTS copilot_messages (
   role TEXT NOT NULL CHECK (role IN ('user','assistant')),
   content TEXT NOT NULL,
   created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS emergency_contacts (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  relationship TEXT NOT NULL,
+  phone_e164 TEXT NOT NULL,
+  email TEXT,
+  is_primary INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_emergency_contacts_user ON emergency_contacts(user_id);
+CREATE TABLE IF NOT EXISTS loyalty_transactions (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  points INTEGER NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('wallet_payment','trip_completion','signup_bonus','redemption','adjustment')),
+  description TEXT NOT NULL,
+  reference TEXT,
+  idempotency_key TEXT,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_loyalty_user_created
+  ON loyalty_transactions(user_id, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_loyalty_user_idem
+  ON loyalty_transactions(user_id, idempotency_key)
+  WHERE idempotency_key IS NOT NULL;
+CREATE TABLE IF NOT EXISTS budget_caps (
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  scope TEXT NOT NULL,
+  cap_amount REAL NOT NULL,
+  currency TEXT NOT NULL,
+  alert_threshold REAL NOT NULL DEFAULT 0.8,
+  period TEXT NOT NULL CHECK (period IN ('trip','monthly','yearly','global')),
+  updated_at INTEGER NOT NULL,
+  PRIMARY KEY (user_id, scope)
 );
 `;
