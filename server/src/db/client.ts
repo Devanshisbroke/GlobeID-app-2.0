@@ -35,5 +35,22 @@ sqlite.exec(
      ON alerts(user_id, signature) WHERE signature IS NOT NULL;`
 );
 
+// Slice-A: extend wallet_transactions with ledger metadata + idempotency key.
+ensureColumn("wallet_transactions", "idempotency_key", "idempotency_key TEXT");
+ensureColumn("wallet_transactions", "tx_type", "tx_type TEXT");
+ensureColumn("wallet_transactions", "merchant", "merchant TEXT");
+ensureColumn("wallet_transactions", "category", "category TEXT");
+ensureColumn("wallet_transactions", "country", "country TEXT");
+ensureColumn("wallet_transactions", "country_flag", "country_flag TEXT");
+ensureColumn("wallet_transactions", "icon", "icon TEXT");
+ensureColumn("wallet_transactions", "reference", "reference TEXT");
+sqlite.exec(
+  `CREATE INDEX IF NOT EXISTS idx_wallet_tx_user_created
+     ON wallet_transactions(user_id, created_at DESC);
+   CREATE UNIQUE INDEX IF NOT EXISTS idx_wallet_tx_user_idem
+     ON wallet_transactions(user_id, idempotency_key)
+     WHERE idempotency_key IS NOT NULL;`
+);
+
 export const db = drizzle(sqlite, { schema });
 export { sqlite };

@@ -23,4 +23,16 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  // shadcn primitives idiomatically co-export their CVA variant constants
+  // alongside the component (e.g. `Button` + `buttonVariants`) so consumers
+  // can compose styles. Splitting them into sibling files diverges from
+  // upstream shadcn and creates merge friction. The `react-refresh` warning
+  // is a dev-only HMR concern that does not affect production correctness;
+  // disable it for these primitive files only.
+  {
+    files: ["src/components/ui/**/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
 );

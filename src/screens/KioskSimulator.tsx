@@ -4,8 +4,9 @@ import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { kioskVerifyPassport, kioskScanApp, getAllSessions, type VerificationSession } from "@/lib/verificationSession";
 import { getAuditLog } from "@/lib/auditLog";
 import { countryThemes } from "@/lib/countryThemes";
+import { verifyBoardingPass, type BoardingPassPayload } from "@/lib/boardingPass";
 import { cn } from "@/lib/utils";
-import { Monitor, ScanLine, Wifi, AlertTriangle, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Monitor, ScanLine, Wifi, AlertTriangle, CheckCircle2, XCircle, Clock, Plane } from "lucide-react";
 
 const KIOSK_ID = "kiosk-sim-001";
 
@@ -24,7 +25,25 @@ const KioskSimulator: React.FC = () => {
   const [currentSession, setCurrentSession] = useState<VerificationSession | null>(null);
   const [appToken, setAppToken] = useState("");
   const [scanResult, setScanResult] = useState<{ success: boolean; error?: string } | null>(null);
-  const [tab, setTab] = useState<"scan" | "sessions" | "audit">("scan");
+  const [tab, setTab] = useState<"scan" | "boarding" | "sessions" | "audit">("scan");
+  const [bpInput, setBpInput] = useState("");
+  const [bpResult, setBpResult] = useState<
+    | { kind: "idle" }
+    | { kind: "verifying" }
+    | { kind: "ok"; payload: BoardingPassPayload }
+    | { kind: "fail"; payload: BoardingPassPayload | null; error: string }
+  >({ kind: "idle" });
+
+  const handleBoardingScan = async () => {
+    if (!bpInput.trim()) return;
+    setBpResult({ kind: "verifying" });
+    const result = await verifyBoardingPass(bpInput.trim());
+    if (result.valid) {
+      setBpResult({ kind: "ok", payload: result.payload });
+    } else {
+      setBpResult({ kind: "fail", payload: result.payload, error: result.error });
+    }
+  };
 
   const handlePassportScan = () => {
     const { session } = kioskVerifyPassport({
@@ -67,7 +86,7 @@ const KioskSimulator: React.FC = () => {
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 rounded-xl glass">
-        {(["scan", "sessions", "audit"] as const).map((t) => (
+        {(["scan", "boarding", "sessions", "audit"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -213,6 +232,65 @@ const KioskSimulator: React.FC = () => {
             </AnimatedPage>
           )}
         </div>
+      )}
+
+      {tab === "boarding" && (
+        <AnimatedPage>
+          <GlassCard>
+            <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+              <Plane className="w-4 h-4 text-accent" />
+              Boarding pass verifier
+            </h3>
+            <p className="text-xs text-muted-foreground mb-3">
+              Paste a GlobeID-signed boarding-pass payload (the JSON the QR encodes,
+              including the <code className="font-mono">s</code> signature). The kiosk
+              recomputes HMAC-SHA256 with its shared secret and reports a real verdict.
+            </p>
+
+            <textarea
+              value={bpInput}
+              onChange={(e) => setBpInput(e.target.value)}
+              placeholder='{"p":{...},"s":"…"}'
+              rows={4}
+              className="w-full px-3 py-2 rounded-lg glass text-xs text-foreground font-mono bg-transparent border border-border focus:border-accent outline-none resize-none mb-3"
+            />
+
+            <button
+              onClick={handleBoardingScan}
+              disabled={!bpInput.trim() || bpResult.kind === "verifying"}
+              className="w-full py-2.5 rounded-xl bg-accent text-accent-foreground text-sm font-medium active:scale-95 transition-transform disabled:opacity-40 min-h-[44px]"
+            >
+              {bpResult.kind === "verifying" ? "Verifying…" : "Verify boarding pass"}
+            </button>
+
+            {bpResult.kind === "ok" && (
+              <div className="mt-3 p-3 rounded-lg bg-accent/10 text-accent text-xs space-y-1">
+                <div className="flex items-center gap-2 font-semibold">
+                  <CheckCircle2 className="w-4 h-4" /> Signature valid
+                </div>
+                <div className="font-mono text-[11px] text-foreground space-y-0.5">
+                  <div>{bpResult.payload.flightNumber} {bpResult.payload.fromIata} → {bpResult.payload.toIata}</div>
+                  <div>{bpResult.payload.passenger} · {bpResult.payload.scheduledDate}</div>
+                  <div className="text-muted-foreground">leg {bpResult.payload.legId.slice(0, 12)}…</div>
+                  <div className="text-muted-foreground">exp {new Date(bpResult.payload.exp).toLocaleString()}</div>
+                </div>
+              </div>
+            )}
+
+            {bpResult.kind === "fail" && (
+              <div className="mt-3 p-3 rounded-lg bg-destructive/10 text-destructive text-xs space-y-1">
+                <div className="flex items-center gap-2 font-semibold">
+                  <XCircle className="w-4 h-4" /> {bpResult.error}
+                </div>
+                {bpResult.payload && (
+                  <div className="font-mono text-[11px] text-muted-foreground">
+                    Claimed: {bpResult.payload.flightNumber} · {bpResult.payload.passenger}
+                  </div>
+                )}
+              </div>
+            )}
+          </GlassCard>
+        </AnimatedPage>
       )}
 
       {tab === "sessions" && (

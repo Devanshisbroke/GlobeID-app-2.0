@@ -12,6 +12,7 @@
  */
 import { create } from "zustand";
 import { api, ApiError } from "@/lib/apiClient";
+import { scheduleTripReminders, notifyDelay } from "@/services/notificationService";
 import type { TripLifecycle, FlightStatus } from "@shared/types/lifecycle";
 
 type Status = "idle" | "loading" | "ready" | "error";
@@ -36,6 +37,11 @@ export const useLifecycleStore = create<LifecycleState>((set, get) => ({
     try {
       const trips = await api.lifecycle.trips();
       set({ trips, status: "ready", lastHydratedAt: Date.now() });
+      // Slice-A: schedule local notifications for upcoming legs. Best-effort
+      // — denied permission, no-platform browsers, or scheduler errors must
+      // not break hydration. Each reminder is idempotent on (kind, legId)
+      // so repeat calls upsert.
+      void Promise.all(trips.map((t) => scheduleTripReminders(t).catch(() => undefined)));
     } catch (e) {
       if (!(e instanceof ApiError) || e.status >= 500 || e.status === 0) {
         set((s) => ({ status: s.trips.length > 0 ? "ready" : "error" }));
@@ -51,6 +57,11 @@ export const useLifecycleStore = create<LifecycleState>((set, get) => ({
     try {
       const status = await api.lifecycle.flightStatus(legId);
       set((s) => ({ flightStatuses: { ...s.flightStatuses, [legId]: status } }));
+      // Slice-A: surface delays as a real OS notification. Idempotent on
+      // (kind:legId), so re-fetching the same delayed leg won't double-fire.
+      if (status.statusKind === "delayed" && status.delayMinutes > 0) {
+        void notifyDelay(legId, status.airline, status.flightNumber, status.delayMinutes);
+      }
       return status;
     } catch {
       return null;

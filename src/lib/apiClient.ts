@@ -19,6 +19,15 @@ import type {
 import type { Alert, AlertPatch } from "@shared/types/alerts";
 import type { ContextSnapshot } from "@shared/types/intelligence";
 import type { TripLifecycle, FlightStatus } from "@shared/types/lifecycle";
+import type {
+  WalletSnapshot,
+  RecordTransactionRequest,
+  RecordTransactionResponse,
+  ConvertRequest,
+  ConvertResponse,
+  UpdateStateRequest,
+  WalletStateView,
+} from "@shared/types/wallet";
 
 export class ApiError extends Error {
   constructor(public code: string, message: string, public status: number) {
@@ -184,6 +193,25 @@ export const api = {
     trips: () => authedFetch("/lifecycle/trips").then(unwrap<TripLifecycle[]>),
     flightStatus: (legId: string) =>
       authedFetch(`/lifecycle/flights/${encodeURIComponent(legId)}`).then(unwrap<FlightStatus>),
+  },
+
+  wallet: {
+    snapshot: () => authedFetch("/wallet").then(unwrap<WalletSnapshot>),
+    record: (req: RecordTransactionRequest) =>
+      authedFetch("/wallet/transactions", {
+        method: "POST",
+        body: JSON.stringify(req),
+      }).then(unwrap<RecordTransactionResponse>),
+    convert: (req: ConvertRequest) =>
+      authedFetch("/wallet/convert", {
+        method: "POST",
+        body: JSON.stringify(req),
+      }).then(unwrap<ConvertResponse>),
+    updateState: (req: UpdateStateRequest) =>
+      authedFetch("/wallet/state", {
+        method: "PATCH",
+        body: JSON.stringify(req),
+      }).then(unwrap<WalletStateView>),
   },
 };
 

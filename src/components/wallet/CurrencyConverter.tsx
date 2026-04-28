@@ -5,12 +5,14 @@ import { RefreshCw, ArrowRightLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const CurrencyConverter: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
-  const { balances, convertCurrency } = useWalletStore();
+  const balances = useWalletStore((s) => s.balances);
+  const convert = useWalletStore((s) => s.convert);
   const [from, setFrom] = useState(balances[0]?.currency ?? "USD");
   const [to, setTo] = useState(balances[1]?.currency ?? "EUR");
   const [amount, setAmount] = useState("");
   const [converting, setConverting] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fromBal = balances.find((b) => b.currency === from);
   const toBal = balances.find((b) => b.currency === to);
@@ -25,13 +27,18 @@ const CurrencyConverter: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
   const handleConvert = async () => {
     const val = parseFloat(amount);
-    if (!val || !fromBal || val > fromBal.amount) return;
+    if (!val || !fromBal || val > fromBal.amount || from === to) return;
     setConverting(true);
-    await new Promise((r) => setTimeout(r, 600));
-    convertCurrency(from, to, val);
-    setResult(`Converted ${fromBal.symbol}${val.toLocaleString()} to ${toBal?.symbol}${converted?.toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
-    setConverting(false);
-    setAmount("");
+    setError(null);
+    try {
+      await convert({ fromCurrency: from, toCurrency: to, amount: val });
+      setResult(`Converted ${fromBal.symbol}${val.toLocaleString()} to ${toBal?.symbol}${converted?.toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
+      setAmount("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Conversion failed");
+    } finally {
+      setConverting(false);
+    }
   };
 
   return (
@@ -95,8 +102,11 @@ const CurrencyConverter: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           </div>
         )}
 
-        {result && (
+        {result && !error && (
           <div className="text-center py-2 text-xs text-accent font-medium animate-fade-in">{result}</div>
+        )}
+        {error && (
+          <div className="text-center py-2 text-xs text-destructive font-medium animate-fade-in">{error}</div>
         )}
 
         <button

@@ -55,6 +55,18 @@ export const walletTransactions = sqliteTable("wallet_transactions", {
   description: text("description").notNull(),
   date: text("date").notNull(),
   createdAt: integer("created_at").notNull(),
+  // Slice-A: append-only ledger metadata. `idempotencyKey` is unique per
+  // (user, key) and lets retried POSTs collapse onto a single row.
+  idempotencyKey: text("idempotency_key"),
+  txType: text("tx_type", {
+    enum: ["payment", "send", "receive", "convert", "refund"],
+  }),
+  merchant: text("merchant"),
+  category: text("category"),
+  country: text("country"),
+  countryFlag: text("country_flag"),
+  icon: text("icon"),
+  reference: text("reference"),
 });
 
 export const walletState = sqliteTable("wallet_state", {
@@ -137,8 +149,21 @@ CREATE TABLE IF NOT EXISTS wallet_transactions (
   kind TEXT NOT NULL CHECK (kind IN ('credit','debit')),
   description TEXT NOT NULL,
   date TEXT NOT NULL,
-  created_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL,
+  idempotency_key TEXT,
+  tx_type TEXT CHECK (tx_type IN ('payment','send','receive','convert','refund')),
+  merchant TEXT,
+  category TEXT,
+  country TEXT,
+  country_flag TEXT,
+  icon TEXT,
+  reference TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_wallet_tx_user_created
+  ON wallet_transactions(user_id, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_wallet_tx_user_idem
+  ON wallet_transactions(user_id, idempotency_key)
+  WHERE idempotency_key IS NOT NULL;
 CREATE TABLE IF NOT EXISTS wallet_state (
   user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   active_country TEXT,

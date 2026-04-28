@@ -13,6 +13,7 @@ import { copilotRouter } from "./routes/copilot.js";
 import { plannerRouter } from "./routes/planner.js";
 import { contextRouter } from "./routes/context.js";
 import { lifecycleRouter } from "./routes/lifecycle.js";
+import { walletRouter } from "./routes/wallet.js";
 import { ok } from "./lib/validate.js";
 
 const app = new Hono();
@@ -43,6 +44,7 @@ api.route("/copilot", copilotRouter);
 api.route("/planner/trips", plannerRouter);
 api.route("/context", contextRouter);
 api.route("/lifecycle", lifecycleRouter);
+api.route("/wallet", walletRouter);
 
 app.route("/api/v1", api);
 

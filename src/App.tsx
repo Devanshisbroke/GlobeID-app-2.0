@@ -15,6 +15,7 @@ import { useTripPlannerStore } from "@/store/tripPlannerStore";
 import { useCopilotStore } from "@/store/copilotStore";
 import { useContextStore } from "@/store/contextStore";
 import { useLifecycleStore } from "@/store/lifecycleStore";
+import { useWalletStore } from "@/store/walletStore";
 
 // ── Core tab screens: eagerly imported for instant switching ──
 import Home from "@/screens/Home";
@@ -51,21 +52,27 @@ const TripDetail = lazy(() => import("@/screens/TripDetail"));
 // guard at the route registration site below.
 const V2Showcase = lazy(() => import("@/components/ui/v2/__showcase"));
 
-// ── Preload secondary screens after initial load ──
+// ── Preload secondary screens ──
 //
 // Phase 9-α bug-fix #2: AI Copilot is reachable from a card on the Travel
 // screen, and the lazy chunk load on first nav was visibly blank for ~600 ms
 // (Suspense fallback rendered while the chunk fetched). Preloading after
 // splash dismisses gets the chunk into the browser cache before the user
 // taps in, eliminating the perceived "blank screen on nav".
+//
+// Slice-A tightening: also kick this off DURING the splash window (alongside
+// `hydrateAll()`) so the 0.9 s splash isn't network-idle. `import()` is
+// idempotent — calling twice resolves to the same cached module — so the
+// post-splash `requestIdleCallback` invocation is now a no-op fallback for
+// hardware where the splash dismissed before any chunk finished fetching.
 const preloadScreens = () => {
-  import("@/screens/Profile");
-  import("@/screens/SocialFeed");
-  import("@/screens/TravelTimeline");
-  import("@/screens/TripPlanner");
-  import("@/screens/TravelIntelligence");
-  import("@/screens/PlanetExplorer");
-  import("@/components/ai/TravelCopilot");
+  void import("@/screens/Profile");
+  void import("@/screens/SocialFeed");
+  void import("@/screens/TravelTimeline");
+  void import("@/screens/TripPlanner");
+  void import("@/screens/TravelIntelligence");
+  void import("@/screens/PlanetExplorer");
+  void import("@/components/ai/TravelCopilot");
 };
 
 const queryClient = new QueryClient();
@@ -124,10 +131,17 @@ const App = () => {
         // primary user/trip rows, so hydrate them after `userStore.hydrate()`.
         useContextStore.getState().hydrate(),
         useLifecycleStore.getState().hydrate(),
+        // Slice-A: pull authoritative wallet snapshot from the server. The
+        // store keeps a localStorage read-cache so the UI doesn't flash
+        // empty before this resolves on cold launch.
+        useWalletStore.getState().hydrate(),
       ]);
     };
     void hydrateAll();
     void applyNativeChrome();
+    // Slice-A: warm secondary chunks during the splash window so first-tap
+    // nav has them in cache. Idempotent with the post-splash idle callback.
+    preloadScreens();
 
     let cancelled = false;
     let unsubscribe: (() => void) | null = null;
