@@ -31,6 +31,7 @@ const ServicesHub: React.FC = () => {
   const [search, setSearch] = useState("");
 
   const quickLinks = [
+    { label: "Super", icon: Sparkles, route: "/services/super", gradient: "bg-gradient-brand" },
     { label: "Hotels", icon: Hotel, route: "/services/hotels", gradient: "bg-gradient-brand" },
     { label: "Rides", icon: Car, route: "/services/rides", gradient: "bg-gradient-brand" },
     { label: "Food", icon: UtensilsCrossed, route: "/services/food", gradient: "bg-gradient-brand" },
@@ -73,7 +74,7 @@ const ServicesHub: React.FC = () => {
 
       {/* Quick links grid */}
       <AnimatedPage staggerIndex={1}>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-6 gap-2">
           {quickLinks.map((link) => {
             const Icon = link.icon;
             return (

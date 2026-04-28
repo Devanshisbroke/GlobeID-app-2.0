@@ -10,9 +10,12 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   const [phase, setPhase] = useState<"logo" | "sweep" | "exit">("logo");
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase("sweep"), 800);
-    const t2 = setTimeout(() => setPhase("exit"), 1800);
-    const t3 = setTimeout(() => onComplete(), 2400);
+    // Slice-B target: 1.5s total splash. Phase budget tuned so the logo
+    // beat reads cleanly without cropping the sweep:
+    //   logo 0–500 ms · sweep 500–1100 ms · exit fade 1100–1500 ms.
+    const t1 = setTimeout(() => setPhase("sweep"), 500);
+    const t2 = setTimeout(() => setPhase("exit"), 1100);
+    const t3 = setTimeout(() => onComplete(), 1500);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [onComplete]);
 

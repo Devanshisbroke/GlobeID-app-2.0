@@ -35,6 +35,18 @@ sqlite.exec(
      ON alerts(user_id, signature) WHERE signature IS NOT NULL;`
 );
 
+// Slice-B: ensure new domain tables exist on existing DBs without an explicit
+// migration step. Idempotent — DDL above already CREATE-IF-NOT-EXISTS them.
+sqlite.exec(
+  `CREATE INDEX IF NOT EXISTS idx_emergency_contacts_user
+     ON emergency_contacts(user_id);
+   CREATE INDEX IF NOT EXISTS idx_loyalty_user_created
+     ON loyalty_transactions(user_id, created_at DESC);
+   CREATE UNIQUE INDEX IF NOT EXISTS idx_loyalty_user_idem
+     ON loyalty_transactions(user_id, idempotency_key)
+     WHERE idempotency_key IS NOT NULL;`,
+);
+
 // Slice-A: extend wallet_transactions with ledger metadata + idempotency key.
 ensureColumn("wallet_transactions", "idempotency_key", "idempotency_key TEXT");
 ensureColumn("wallet_transactions", "tx_type", "tx_type TEXT");

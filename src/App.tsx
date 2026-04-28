@@ -34,6 +34,7 @@ const TravelTimeline = lazy(() => import("@/screens/TravelTimeline"));
 const TripPlanner = lazy(() => import("@/screens/TripPlanner"));
 const AICopilot = lazy(() => import("@/components/ai/TravelCopilot"));
 const ServicesHub = lazy(() => import("@/screens/ServicesHub"));
+const SuperServicesHub = lazy(() => import("@/screens/SuperServicesHub"));
 const HotelBooking = lazy(() => import("@/screens/services/HotelBooking"));
 const RideBooking = lazy(() => import("@/screens/services/RideBooking"));
 const FoodDiscovery = lazy(() => import("@/screens/services/FoodDiscovery"));
@@ -202,6 +203,7 @@ const App = () => {
                         <Route path="/planner" element={<TripPlanner />} />
                         <Route path="/copilot" element={<AICopilot />} />
                         <Route path="/services/hub" element={<ServicesHub />} />
+                        <Route path="/services/super" element={<SuperServicesHub />} />
                         <Route path="/services/hotels" element={<HotelBooking />} />
                         <Route path="/services/rides" element={<RideBooking />} />
                         <Route path="/services/food" element={<FoodDiscovery />} />
