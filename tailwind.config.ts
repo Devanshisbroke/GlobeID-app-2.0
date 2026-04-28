@@ -121,6 +121,21 @@ export default {
         "p7-callout":   ["var(--p7-text-callout)",   { lineHeight: "var(--p7-text-callout-lh)",   letterSpacing: "var(--p7-text-callout-track)",   fontWeight: "400" }],
         "p7-caption-1": ["var(--p7-text-caption-1)", { lineHeight: "var(--p7-text-caption-1-lh)", letterSpacing: "var(--p7-text-caption-1-track)", fontWeight: "400" }],
         "p7-caption-2": ["var(--p7-text-caption-2)", { lineHeight: "var(--p7-text-caption-2-lh)", letterSpacing: "var(--p7-text-caption-2-track)", fontWeight: "500" }],
+
+        /* Slice-A — fluid typography scale.
+           clamp(min, preferred, max) where the preferred grows with viewport
+           width via `cqi`-equivalent `vi`. Lower bound holds steady at
+           320 px (foldable narrow); upper bound stops at the 430 px
+           iPhone-Pro-Max class. Use these on UI surfaces that need to
+           shrink gracefully on iPhone-mini without losing legibility on
+           large phones. Not a replacement for the `p7-*` tier — that
+           remains the design-system tier. */
+        "fluid-xs":   ["clamp(0.6875rem, 0.62rem + 0.34vw, 0.8125rem)",   { lineHeight: "1.35", letterSpacing: "0.005em" }],
+        "fluid-sm":   ["clamp(0.75rem,   0.69rem + 0.34vw, 0.875rem)",    { lineHeight: "1.4",  letterSpacing: "0.003em" }],
+        "fluid-base": ["clamp(0.875rem,  0.81rem + 0.34vw, 1rem)",        { lineHeight: "1.5",  letterSpacing: "0" }],
+        "fluid-lg":   ["clamp(1rem,      0.91rem + 0.45vw, 1.125rem)",    { lineHeight: "1.45", letterSpacing: "-0.005em" }],
+        "fluid-xl":   ["clamp(1.125rem,  1rem + 0.6vw, 1.375rem)",        { lineHeight: "1.35", letterSpacing: "-0.01em",  fontWeight: "600" }],
+        "fluid-2xl":  ["clamp(1.375rem,  1.16rem + 1.05vw, 1.875rem)",    { lineHeight: "1.2",  letterSpacing: "-0.015em", fontWeight: "600" }],
       },
       transitionTimingFunction: {
         /* Phase 7 — non-spring eases */

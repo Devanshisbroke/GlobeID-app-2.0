@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { Plane, AlertCircle, User, Calendar, Hash } from "lucide-react";
-import { encodeBoardingPass } from "@/lib/qrEncoding";
+import { issueBoardingPass, type BoardingPassPayload } from "@/lib/boardingPass";
 import { cn } from "@/lib/utils";
 
 export interface QRBoardingPassProps {
@@ -31,25 +31,16 @@ const QRBoardingPass: React.FC<QRBoardingPassProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [payload, setPayload] = useState<BoardingPassPayload | null>(null);
 
-  // `encodeBoardingPass` stamps `issuedAt: Date.now()` into the payload, so
-  // calling it in the render body would produce a new `qrText` every render
-  // and re-fire the QR draw effect (visible flicker on parent re-renders).
-  // Memoise on the actual identity-shaping inputs.
-  const { payload, qrText } = useMemo(
-    () =>
-      encodeBoardingPass({
-        passenger,
-        passportNo,
-        flightNumber,
-        airline,
-        fromIata,
-        toIata,
-        scheduledDate,
-        legId,
-        tripId,
-      }),
-    [
+  // `issueBoardingPass` is async (HMAC-SHA256 via Web Crypto) and stamps
+  // `iat: Date.now()` into the payload, so we sign once on identity-shaping
+  // input changes and let `<canvas>` re-render only when the resulting
+  // qrText flips.
+  useEffect(() => {
+    let cancelled = false;
+    setError(null);
+    issueBoardingPass({
       passenger,
       passportNo,
       flightNumber,
@@ -59,24 +50,37 @@ const QRBoardingPass: React.FC<QRBoardingPassProps> = ({
       scheduledDate,
       legId,
       tripId,
-    ],
-  );
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!canvasRef.current) return;
-    QRCode.toCanvas(canvasRef.current, qrText, {
-      width: 200,
-      margin: 1,
-      color: { dark: "#0f172a", light: "#ffffff" },
-      errorCorrectionLevel: "M",
-    }).catch((e: unknown) => {
-      if (!cancelled) setError(e instanceof Error ? e.message : "QR render failed");
-    });
+    })
+      .then(({ payload: p, qrText }) => {
+        if (cancelled) return;
+        setPayload(p);
+        if (canvasRef.current) {
+          return QRCode.toCanvas(canvasRef.current, qrText, {
+            width: 200,
+            margin: 1,
+            color: { dark: "#0f172a", light: "#ffffff" },
+            errorCorrectionLevel: "M",
+          });
+        }
+      })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        setError(e instanceof Error ? e.message : "QR render failed");
+      });
     return () => {
       cancelled = true;
     };
-  }, [qrText]);
+  }, [
+    passenger,
+    passportNo,
+    flightNumber,
+    airline,
+    fromIata,
+    toIata,
+    scheduledDate,
+    legId,
+    tripId,
+  ]);
 
   return (
     <div
@@ -145,7 +149,7 @@ const QRBoardingPass: React.FC<QRBoardingPassProps> = ({
                 <p className="font-semibold text-foreground truncate">
                   {passenger}
                 </p>
-                {payload.passportLast4 ? (
+                {payload?.passportLast4 ? (
                   <p className="text-[10.5px] font-mono text-muted-foreground">
                     Passport ····{payload.passportLast4}
                   </p>
@@ -190,9 +194,10 @@ const QRBoardingPass: React.FC<QRBoardingPassProps> = ({
         <AlertCircle className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
         <p className="text-[10.5px] text-amber-600 dark:text-amber-400 leading-snug">
           <span className="font-semibold">Demo boarding pass.</span> Not airline-issued.
-          QR encodes a GlobeID v1 demo payload (kind=
-          <span className="font-mono">globeid.demo-pass.v1</span>) and is not valid
-          for gate clearance.
+          QR encodes a GlobeID-signed v1 demo payload (kind=
+          <span className="font-mono">globeid.bp.v1</span>) verified by HMAC-SHA256
+          inside the bundled <span className="font-mono">KioskSimulator</span> only;
+          not valid for gate clearance.
         </p>
       </div>
     </div>

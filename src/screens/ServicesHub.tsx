@@ -26,7 +26,7 @@ const ServicesHub: React.FC = () => {
   const { history, favorites, toggleFavorite } = useServiceFavoritesStore();
   const setActiveCountry = useWalletStore((s) => s.setActiveCountry);
   React.useEffect(() => {
-    setActiveCountry(location.country);
+    void setActiveCountry(location.country);
   }, [location.country, setActiveCountry]);
   const [search, setSearch] = useState("");
 

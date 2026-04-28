@@ -6,6 +6,7 @@ import { AIAssistantButton } from "@/components/ai/AIAssistantButton";
 import ThemeToggle from "@/components/ThemeToggle";
 import AtmosphereLayer from "@/cinematic/AtmosphereLayer";
 import SyncBadge from "@/components/layout/SyncBadge";
+import OfflineBanner from "@/components/layout/OfflineBanner";
 import CommandPaletteProvider from "./CommandPalette";
 
 /**
@@ -41,6 +42,7 @@ const AppChromeV2: React.FC<AppChromeProps> = ({ children }) => {
             screens migrate. */}
         <div className="fixed inset-0 pointer-events-none bg-mesh -z-10" />
         <AtmosphereLayer />
+        <OfflineBanner />
         <SyncBadge />
         {/* Theme toggle — safe-area-aware so on Android it sits below the
             status bar punch-hole / notch. Will be folded into a top status
