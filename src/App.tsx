@@ -49,6 +49,12 @@ const PlanetExplorer = lazy(() => import("@/screens/PlanetExplorer"));
 const V2Showcase = lazy(() => import("@/components/ui/v2/__showcase"));
 
 // ── Preload secondary screens after initial load ──
+//
+// Phase 9-α bug-fix #2: AI Copilot is reachable from a card on the Travel
+// screen, and the lazy chunk load on first nav was visibly blank for ~600 ms
+// (Suspense fallback rendered while the chunk fetched). Preloading after
+// splash dismisses gets the chunk into the browser cache before the user
+// taps in, eliminating the perceived "blank screen on nav".
 const preloadScreens = () => {
   import("@/screens/Profile");
   import("@/screens/SocialFeed");
@@ -56,6 +62,7 @@ const preloadScreens = () => {
   import("@/screens/TripPlanner");
   import("@/screens/TravelIntelligence");
   import("@/screens/PlanetExplorer");
+  import("@/components/ai/TravelCopilot");
 };
 
 const queryClient = new QueryClient();

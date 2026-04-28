@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import {
   ArrowLeft, Send, Sparkles, Plane, MapPin, Globe2, Ruler,
   Save, RotateCcw, Minus, Plus, Palmtree, Briefcase, Mountain,
-  Compass, Zap,
+  Compass, Zap, Trash2,
 } from "lucide-react";
 
 interface ChatMessage {
@@ -47,28 +47,50 @@ const TravelCopilot: React.FC = () => {
   const navigate = useNavigate();
   const { saveCurrentTrip, setCurrentName, setCurrentTheme, addDestination, clearCurrent } = useTripPlannerStore();
   const sendCopilotPrompt = useCopilotStore((s) => s.sendPrompt);
+  const clearCopilotHistory = useCopilotStore((s) => s.clear);
   const persistedHistory = useCopilotStore((s) => s.messages);
-  // Replay server-persisted history as plain messages (trip rendering data
-  // is intentionally not persisted; user can re-ask if they want the cards).
-  const seedHistory = React.useMemo<ChatMessage[]>(() => {
-    if (persistedHistory.length === 0) {
-      return [
-        {
-          id: "welcome",
-          role: "assistant",
-          content: "Hey! I'm your AI Travel Copilot ✈️\n\nTell me where you want to go and I'll build the perfect itinerary. Try:\n\n• \"Plan a 10 day Asia trip\"\n• \"European capitals tour 2 weeks\"\n• \"Round the world adventure\"",
-        },
-      ];
-    }
-    return persistedHistory.map((m) => ({ id: m.id, role: m.role, content: m.content }));
-    // We only seed once on mount; further updates flow via setMessages.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const [messages, setMessages] = useState<ChatMessage[]>(seedHistory);
+
+  const WELCOME_MSG: ChatMessage = React.useMemo(
+    () => ({
+      id: "welcome",
+      role: "assistant",
+      content:
+        "Hey! I'm your AI Travel Copilot ✈️\n\nTell me where you want to go and I'll build the perfect itinerary. Try:\n\n• \"Plan a 10 day Asia trip\"\n• \"European capitals tour 2 weeks\"\n• \"Round the world adventure\"",
+    }),
+    [],
+  );
+
+  // Initialize with whatever the store has at first render. If the store hasn't
+  // hydrated yet (Phase 8: server `/copilot/history` is async), persistedHistory
+  // is `[]` so we paint the welcome bubble. The effect below replaces that with
+  // server-replay as soon as hydrate resolves.
+  const [messages, setMessages] = useState<ChatMessage[]>(() =>
+    persistedHistory.length === 0
+      ? [WELCOME_MSG]
+      : persistedHistory.map((m) => ({ id: m.id, role: m.role, content: m.content })),
+  );
   const [input, setInput] = useState("");
   const [currentTrip, setCurrentTrip] = useState<GeneratedTrip | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Phase 9-α bug-fix #1: Copilot history rehydrate-after-clear.
+  //
+  // The previous implementation seeded `messages` from `persistedHistory` once
+  // via `useMemo([], [])`, so when zustand-persist + the Phase-8 server hydrate
+  // landed asynchronously after mount, the UI never re-rendered the recovered
+  // log — it stayed pinned to the welcome bubble. We now mirror the store
+  // exactly once, the first time it transitions from empty → populated, and
+  // only when the local view hasn't been mutated by the user yet.
+  const hydratedFromStore = useRef(false);
+  useEffect(() => {
+    if (hydratedFromStore.current) return;
+    if (persistedHistory.length === 0) return;
+    setMessages(
+      persistedHistory.map((m) => ({ id: m.id, role: m.role, content: m.content })),
+    );
+    hydratedFromStore.current = true;
+  }, [persistedHistory]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -96,6 +118,9 @@ const TravelCopilot: React.FC = () => {
 
   const processPrompt = useCallback(
     (prompt: string) => {
+      // Once the user starts a turn, freeze the rehydrate-from-store effect so
+      // a late-arriving server hydrate can't trample over the live session.
+      hydratedFromStore.current = true;
       const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: prompt };
       setMessages((prev) => [...prev, userMsg]);
       setIsTyping(true);
@@ -172,6 +197,19 @@ const TravelCopilot: React.FC = () => {
     haptics.selection();
   };
 
+  // Phase 9-α bug-fix #3: clear-chat surface. The store + server endpoint
+  // already exist (Phase 8 PR #16) but had no UI trigger, leaving the
+  // E2E test of `DELETE /copilot/history` unverifiable through the app.
+  // Wipes server + persisted history, then resets the local view to the
+  // welcome bubble so the next prompt starts clean.
+  const handleClearChat = useCallback(() => {
+    void clearCopilotHistory();
+    setCurrentTrip(null);
+    setMessages([WELCOME_MSG]);
+    hydratedFromStore.current = true;
+    haptics.selection();
+  }, [clearCopilotHistory, WELCOME_MSG]);
+
   return (
     <div className="flex flex-col h-[calc(100dvh-5rem)]">
       {/* Header */}
@@ -179,21 +217,28 @@ const TravelCopilot: React.FC = () => {
         <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl glass border border-border/30 flex items-center justify-center">
           <ArrowLeft className="w-4 h-4 text-foreground" />
         </button>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <motion.div
               animate={{ scale: [1, 1.15, 1] }}
               transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
-              className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow-sm"
+              className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow-sm shrink-0"
             >
               <Sparkles className="w-4 h-4 text-primary-foreground" />
             </motion.div>
-            <div>
-              <h1 className="text-lg font-bold text-foreground">AI Copilot</h1>
-              <p className="text-[10px] text-muted-foreground">Powered by GlobeID</p>
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold text-foreground truncate">AI Copilot</h1>
+              <p className="text-[10px] text-muted-foreground truncate">Powered by GlobeID</p>
             </div>
           </div>
         </div>
+        <button
+          onClick={handleClearChat}
+          aria-label="Clear chat history"
+          className="w-9 h-9 rounded-xl glass border border-border/30 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Presets */}

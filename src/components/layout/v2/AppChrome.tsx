@@ -49,7 +49,7 @@ const AppChromeV2: React.FC<AppChromeProps> = ({ children }) => {
           <ThemeToggle />
         </div>
         <main
-          className="pb-20 pt-safe gpu-layer"
+          className="pb-nav-safe pt-safe gpu-layer"
           style={{
             touchAction: "pan-y",
             WebkitOverflowScrolling: "touch",

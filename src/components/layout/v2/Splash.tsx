@@ -5,20 +5,23 @@ import { ease, duration, spring } from "@/lib/motion-tokens";
 /**
  * Splash v2 — Phase 7 PR-γ.
  *
- * Choreography (locked in Phase 7 audit, Q5):
- *   1. 0.0–0.45s — Wireframe globe draws on. The 5 latitude ellipses + 5
+ * Choreography (Phase 9-α: compressed by ~35% from the Phase-7 1.40 s timeline,
+ * locked at ≤1.0 s while preserving the same four-beat rhythm):
+ *   1. 0.00–0.30s — Wireframe globe draws on. The 5 latitude ellipses + 5
  *      longitude meridians stroke in (path-length animation), giving the
  *      sense of a wireframe spinning into existence rather than fading in.
- *   2. 0.30–0.85s — Three brand arcs (sapphire / sapphire-deep / mint) trace
+ *   2. 0.20–0.55s — Three brand arcs (sapphire / sapphire-deep / mint) trace
  *      across the surface of the globe, like aircraft routes. Each arc is a
  *      stroke-dashoffset animation on a quadratic curve.
- *   3. 0.70–1.05s — Wordmark "GlobeID" + tagline resolve in from below with
+ *   3. 0.45–0.70s — Wordmark "GlobeID" + tagline resolve in from below with
  *      a soft spring. The dot of the "i" in GlobeID is a brand sapphire
  *      pulse to pick up the arc accent.
- *   4. 1.05–1.40s — Whole layer fades to fully transparent and unmounts.
+ *   4. 0.70–0.90s — Whole layer fades to fully transparent and unmounts.
  *
- * Total duration: 1.40s exactly. Onboarding-to-first-paint matches the
- * Phase 5/6 budget, but the visual is no longer the orb-spam template.
+ * Total duration: 0.90 s exactly. Hydration calls in App.tsx run in parallel
+ * during the splash (see `hydrateAll()` — queryClient + userStore + alerts +
+ * insights + recommendations + tripPlanner + copilot all kick off on mount,
+ * not at splash dismiss), so this number is wall-clock, not blocking I/O.
  *
  * Theme: this splash is rendered against the OLED-near-black `--p7-surface-base`
  * regardless of the persisted user theme. A splash that flashes warm-paper
@@ -31,7 +34,8 @@ interface SplashProps {
   onComplete: () => void;
 }
 
-const TOTAL_MS = 1400;
+const TOTAL_MS = 900;
+const FADE_MS = 200;
 
 const SplashV2: React.FC<SplashProps> = ({ onComplete }) => {
   const [visible, setVisible] = React.useState(true);
@@ -42,7 +46,7 @@ const SplashV2: React.FC<SplashProps> = ({ onComplete }) => {
     // unmount on `exit`.
     const t = window.setTimeout(() => {
       setVisible(false);
-    }, TOTAL_MS - 280);
+    }, TOTAL_MS - FADE_MS);
     return () => window.clearTimeout(t);
   }, []);
 
@@ -59,7 +63,7 @@ const SplashV2: React.FC<SplashProps> = ({ onComplete }) => {
           }}
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.28, ease: ease.standard }}
+          transition={{ duration: FADE_MS / 1000, ease: ease.standard }}
         >
           <SplashGlobe />
           <Wordmark />
@@ -108,7 +112,7 @@ const SplashGlobe: React.FC = () => {
         fill="url(#p7-splash-sphere)"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.32, ease: ease.standard }}
+        transition={{ duration: 0.22, ease: ease.standard }}
       />
 
       {/* Equator ring — drawn first as a visual anchor. */}
@@ -122,7 +126,7 @@ const SplashGlobe: React.FC = () => {
         strokeWidth={1}
         initial={{ pathLength: 0, opacity: 0 }}
         animate={{ pathLength: 1, opacity: 1 }}
-        transition={{ duration: 0.55, ease: ease.standard }}
+        transition={{ duration: 0.36, ease: ease.standard }}
       />
 
       {/* Latitude rings */}
@@ -144,8 +148,8 @@ const SplashGlobe: React.FC = () => {
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 1 }}
             transition={{
-              duration: 0.45,
-              delay: 0.12 + i * 0.04,
+              duration: 0.30,
+              delay: 0.08 + i * 0.025,
               ease: ease.standard,
             }}
           />
@@ -169,8 +173,8 @@ const SplashGlobe: React.FC = () => {
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 1 }}
             transition={{
-              duration: 0.45,
-              delay: 0.18 + i * 0.04,
+              duration: 0.30,
+              delay: 0.12 + i * 0.025,
               ease: ease.standard,
             }}
           />
@@ -184,24 +188,24 @@ const SplashGlobe: React.FC = () => {
           d: "M -90 -70 Q 0 -130, 95 -20",
           color: "hsl(214 88% 64%)",
           width: 2.0,
-          delay: 0.5,
-          dur: 0.55,
+          delay: 0.32,
+          dur: 0.36,
         },
         // sapphire-deep — bottom-left arc
         {
           d: "M -100 30 Q -10 80, 80 60",
           color: "hsl(222 80% 55%)",
           width: 1.8,
-          delay: 0.62,
-          dur: 0.5,
+          delay: 0.40,
+          dur: 0.32,
         },
         // mint — vertical-ish accent
         {
           d: "M 30 -100 Q 70 0, 20 95",
           color: "hsl(168 76% 56%)",
           width: 1.6,
-          delay: 0.74,
-          dur: 0.45,
+          delay: 0.48,
+          dur: 0.30,
         },
       ].map((arc, i) => (
         <motion.path
@@ -226,9 +230,9 @@ const SplashGlobe: React.FC = () => {
 
       {/* Three city dots at the arc endpoints — reads as "connections". */}
       {[
-        { cx: -90, cy: -70, color: "hsl(214 88% 64%)", delay: 0.95 },
-        { cx: 95, cy: -20, color: "hsl(214 88% 64%)", delay: 1.0 },
-        { cx: 80, cy: 60, color: "hsl(168 76% 56%)", delay: 1.05 },
+        { cx: -90, cy: -70, color: "hsl(214 88% 64%)", delay: 0.62 },
+        { cx: 95, cy: -20, color: "hsl(214 88% 64%)", delay: 0.65 },
+        { cx: 80, cy: 60, color: "hsl(168 76% 56%)", delay: 0.68 },
       ].map((d, i) => (
         <motion.circle
           key={`dot-${i}`}
@@ -262,7 +266,7 @@ const Wordmark: React.FC = () => {
       className="text-center"
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.7, ease: ease.standard }}
+      transition={{ duration: 0.26, delay: 0.45, ease: ease.standard }}
     >
       <div className="font-display text-[28px] leading-none tracking-tight text-white">
         Globe
@@ -280,7 +284,7 @@ const Wordmark: React.FC = () => {
             }}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ ...spring.snap, delay: 1.0 }}
+            transition={{ ...spring.snap, delay: 0.62 }}
           />
         </span>
       </div>
@@ -288,7 +292,7 @@ const Wordmark: React.FC = () => {
         className="mt-2 text-[11px] uppercase tracking-[0.22em] text-white/50"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.45, delay: 0.95, ease: ease.standard }}
+        transition={{ duration: 0.28, delay: 0.58, ease: ease.standard }}
       >
         Identity for the borderless world
       </motion.p>

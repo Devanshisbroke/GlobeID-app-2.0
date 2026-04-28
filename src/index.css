@@ -137,17 +137,24 @@
     --p7-font-sans:    'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     --p7-font-mono:    'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-    /* Type — sizes (px) + line-heights + tracking */
-    --p7-text-display:        2.5rem;     /* 40 */
+    /* Type — sizes (px) + line-heights + tracking.
+       Phase 9-α: top three tiers are fluid via `clamp(min, preferred, max)` so
+       on a 320 px iPhone SE the headline never exceeds the viewport, while a
+       720 px+ tablet still gets the full Phase-7 display proportions. The
+       previous fixed-rem tokens caused overflow + horizontal scroll on the
+       narrow 4.7" viewport; the new `clamp()` form pegs the floor a touch
+       below the previous value and the ceiling at the previous value. Body
+       text and below stay fixed for readability/legibility. */
+    --p7-text-display:        clamp(2rem, 1.5rem + 2.4vw, 2.5rem);     /* 32 → 40 */
     --p7-text-display-lh:     1.05;
     --p7-text-display-track:  -0.04em;
-    --p7-text-title-1:        1.75rem;    /* 28 */
+    --p7-text-title-1:        clamp(1.5rem, 1.25rem + 1.25vw, 1.75rem); /* 24 → 28 */
     --p7-text-title-1-lh:     1.15;
     --p7-text-title-1-track:  -0.025em;
-    --p7-text-title-2:        1.375rem;   /* 22 */
+    --p7-text-title-2:        clamp(1.25rem, 1.1rem + 0.75vw, 1.375rem); /* 20 → 22 */
     --p7-text-title-2-lh:     1.2;
     --p7-text-title-2-track:  -0.02em;
-    --p7-text-title-3:        1.0625rem;  /* 17 */
+    --p7-text-title-3:        clamp(1rem, 0.95rem + 0.3vw, 1.0625rem);  /* 16 → 17 */
     --p7-text-title-3-lh:     1.3;
     --p7-text-title-3-track:  -0.01em;
     --p7-text-body:           0.9375rem;  /* 15 */
@@ -345,6 +352,22 @@
        Android WebView. */
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+    /* Phase 9-α: prevent any rogue full-bleed element (long unbroken IDs,
+       a wide motion canvas, an SVG with absolute width) from forcing the
+       whole document into horizontal scroll on a 320 px iPhone SE. The
+       AppChrome already caps to `max-w-lg` and clips its own overflow,
+       but the body-level guard catches anything fixed/absolute that
+       escapes the container. */
+    overflow-x: hidden;
+  }
+
+  /* Phase 9-α: long unbroken tokens — passport numbers, MRZ strings,
+     wallet addresses, IATA chains — should wrap at the next available
+     break point on narrow viewports rather than blow out their card.
+     Scoped to text-heavy elements only (not span/a — those are inline
+     chrome and `break-word` there can shrink intrinsic min-content). */
+  p, li, dd, dt {
+    overflow-wrap: break-word;
   }
 
   /* Hide scroll chaining bounce on iOS Capacitor while still allowing
@@ -549,6 +572,14 @@
   .right-safe-4 { right: calc(env(safe-area-inset-right, 0px) + 1rem); }
   .left-safe-4 { left: calc(env(safe-area-inset-left, 0px) + 1rem); }
   .bottom-safe-20 { bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem); }
+  /* Phase 9-α: AppChrome reserves room for the bottom tab bar via this
+     utility instead of a fixed `pb-20`. The bottom nav itself is `h-16`
+     (64 px) with an additional `pb-safe`, so on a notched device the nav
+     grows by `safe-area-inset-bottom`. Fixed `pb-20` only covered 80 px,
+     leaving the last screen content tucked behind the safe-area padding
+     of the nav. The `calc(env(...) + 5rem)` form keeps a 16 px gap above
+     the nav at all device classes. */
+  .pb-nav-safe { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem); }
 
   /* ── Reduced Motion ── */
   @media (prefers-reduced-motion: reduce) {
