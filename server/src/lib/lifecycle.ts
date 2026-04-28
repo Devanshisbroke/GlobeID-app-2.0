@@ -153,7 +153,7 @@ function computeReminders(
   }
 
   if (state === "complete") {
-    const last = legs.sort((a, b) => b.date.localeCompare(a.date))[0]!;
+    const last = [...legs].sort((a, b) => b.date.localeCompare(a.date))[0]!;
     const daysSince = daysBetween(last.date, today);
     if (daysSince <= 14) {
       reminders.push({
