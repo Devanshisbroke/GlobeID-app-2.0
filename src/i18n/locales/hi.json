@@ -1,0 +1,75 @@
+{
+  "nav": {
+    "home": "होम",
+    "travel": "यात्रा",
+    "wallet": "वॉलेट",
+    "identity": "पहचान",
+    "services": "सेवाएँ",
+    "profile": "प्रोफ़ाइल",
+    "social": "फ़ीड",
+    "explore": "खोजें"
+  },
+  "common": {
+    "add": "जोड़ें",
+    "remove": "हटाएँ",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "confirm": "पुष्टि करें",
+    "back": "वापस",
+    "search": "खोजें",
+    "loading": "लोड हो रहा है…",
+    "error": "कुछ गड़बड़ हो गई",
+    "retry": "पुनः प्रयास करें",
+    "settings": "सेटिंग्स",
+    "language": "भाषा",
+    "permissions": "अनुमतियाँ"
+  },
+  "home": {
+    "greetingMorning": "सुप्रभात",
+    "greetingAfternoon": "नमस्ते",
+    "greetingEvening": "शुभ संध्या",
+    "recommendations": "सिफ़ारिशें",
+    "liveIntelligence": "लाइव इंटेलिजेंस",
+    "upcomingTrip": "आगामी यात्रा",
+    "noTrips": "कोई यात्रा निर्धारित नहीं"
+  },
+  "profile": {
+    "title": "प्रोफ़ाइल",
+    "languageLabel": "ऐप की भाषा",
+    "signOut": "साइन आउट",
+    "permissionsHeading": "डिवाइस अनुमतियाँ",
+    "cameraNeeded": "दस्तावेज़ स्कैन के लिए कैमरा चाहिए",
+    "micNeeded": "वॉइस कमांड के लिए माइक चाहिए"
+  },
+  "services": {
+    "super": "सुपर सेवाएँ",
+    "intelligence": "इंटेलिजेंस",
+    "hotels": "होटल",
+    "rides": "राइड",
+    "food": "खाना",
+    "visa": "वीज़ा",
+    "insurance": "बीमा",
+    "esim": "ई-सिम",
+    "exchange": "विनिमय",
+    "local": "स्थानीय"
+  },
+  "voice": {
+    "listening": "सुन रहा है…",
+    "say": "एक कमांड बोलें",
+    "unsupported": "इस डिवाइस पर वॉइस कमांड समर्थित नहीं है",
+    "permissionDenied": "माइक्रोफ़ोन अनुमति अस्वीकृत",
+    "start": "सुनना शुरू करें",
+    "stop": "रोकें"
+  },
+  "vault": {
+    "title": "दस्तावेज़ वॉल्ट",
+    "scanDocument": "दस्तावेज़ स्कैन करें",
+    "uploadDocument": "छवि अपलोड करें",
+    "encryptedNote": "दस्तावेज़ डिवाइस पर AES-GCM से एन्क्रिप्टेड हैं।",
+    "detected": "पहचाना गया",
+    "passport": "पासपोर्ट",
+    "visa": "वीज़ा",
+    "idCard": "पहचान पत्र",
+    "unknown": "अज्ञात दस्तावेज़"
+  }
+}

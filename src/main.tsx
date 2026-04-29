@@ -14,6 +14,10 @@ import "@fontsource-variable/jetbrains-mono";
 
 import "./index.css";
 
+// Slice-C: boot react-i18next before React mounts so the first render has
+// the resolved language. Importing for side-effects only.
+import "./i18n";
+
 /**
  * Phase 6 PR-α:
  *  - Wrap <App /> in <ErrorBoundary /> so a single thrown render error in

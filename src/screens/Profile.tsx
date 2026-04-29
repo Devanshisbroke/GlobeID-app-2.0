@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import {
   ShieldCheck,
   Landmark,
@@ -13,6 +14,12 @@ import {
   Monitor,
   ScrollText,
   RotateCcw,
+  Camera,
+  Mic,
+  MapPin,
+  FileText,
+  BarChart3,
+  MessageSquare,
 } from "lucide-react";
 import {
   Surface,
@@ -21,8 +28,11 @@ import {
   spring,
   stagger as v2Stagger,
 } from "@/components/ui/v2";
+import { Button } from "@/components/ui/button";
 import { demoUser } from "@/lib/demoData";
 import { cn } from "@/lib/utils";
+import { usePermissions, type PermissionState } from "@/hooks/usePermissions";
+import { LANG_LABELS, SUPPORTED_LANGS, setLanguage, type SupportedLang } from "@/i18n";
 
 interface SettingItem {
   icon: React.ElementType;
@@ -143,9 +153,19 @@ const TONE_HALO_CLASS: Record<
  *    hood).
  *  - `AnimatedPage` per-row stagger → motion@12 stagger via v2 tokens.
  */
+const PERM_TONE: Record<PermissionState, string> = {
+  granted: "text-emerald-400",
+  denied: "text-rose-400",
+  prompt: "text-amber-300",
+  unsupported: "text-ink-tertiary",
+};
+
 const Profile: React.FC = () => {
   const navigate = useNavigate();
+  const { i18n, t } = useTranslation();
   const [demoMode, setDemoMode] = useState(true);
+  const { permissions, request } = usePermissions();
+  const currentLang = (i18n.language?.slice(0, 2) as SupportedLang) ?? "en";
 
   return (
     <motion.div
@@ -252,6 +272,117 @@ const Profile: React.FC = () => {
           </motion.div>
         </motion.section>
       ))}
+
+      {/* Slice-C — language toggle */}
+      <motion.section variants={itemVariants} className="space-y-2">
+        <Text
+          as="h3"
+          variant="caption-1"
+          tone="tertiary"
+          className="px-1 uppercase tracking-[0.18em]"
+        >
+          {t("profile.languageLabel")}
+        </Text>
+        <Surface variant="plain" radius="surface" className="px-4 py-3 flex gap-2 flex-wrap">
+          {SUPPORTED_LANGS.map((lng) => (
+            <Button
+              key={lng}
+              size="sm"
+              variant={currentLang === lng ? "default" : "ghost"}
+              onClick={() => setLanguage(lng)}
+              className="text-xs"
+            >
+              {LANG_LABELS[lng]}
+            </Button>
+          ))}
+        </Surface>
+      </motion.section>
+
+      {/* Slice-CDE — permissions surface */}
+      <motion.section variants={itemVariants} className="space-y-2">
+        <Text
+          as="h3"
+          variant="caption-1"
+          tone="tertiary"
+          className="px-1 uppercase tracking-[0.18em]"
+        >
+          {t("profile.permissionsHeading")}
+        </Text>
+        <div className="space-y-2">
+          {(
+            [
+              { kind: "camera", icon: Camera, label: t("profile.cameraNeeded") },
+              { kind: "microphone", icon: Mic, label: t("profile.micNeeded") },
+              { kind: "geolocation", icon: MapPin, label: "Location for smart recommendations" },
+              { kind: "notifications", icon: Bell, label: "Boarding & delay alerts" },
+            ] as const
+          ).map(({ kind, icon: Icon, label }) => {
+            const state = permissions[kind];
+            return (
+              <Surface
+                key={kind}
+                variant="plain"
+                radius="surface"
+                className="flex items-center gap-3 px-4 py-3"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-p7-input bg-surface-overlay">
+                  <Icon className="w-4 h-4 text-ink-primary" strokeWidth={1.8} />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <Text variant="body-em" tone="primary" className="capitalize">
+                    {kind}
+                  </Text>
+                  <Text variant="caption-1" tone="tertiary">
+                    {label}
+                  </Text>
+                </div>
+                <div className="shrink-0 flex items-center gap-2">
+                  <span className={cn("text-[10px] uppercase tracking-wider", PERM_TONE[state])}>
+                    {state}
+                  </span>
+                  {state !== "granted" && state !== "unsupported" && (
+                    <Button size="sm" variant="ghost" onClick={() => request(kind)}>
+                      Grant
+                    </Button>
+                  )}
+                </div>
+              </Surface>
+            );
+          })}
+        </div>
+      </motion.section>
+
+      {/* Slice-CDE — quick links */}
+      <motion.section variants={itemVariants} className="space-y-2">
+        <Text
+          as="h3"
+          variant="caption-1"
+          tone="tertiary"
+          className="px-1 uppercase tracking-[0.18em]"
+        >
+          Explore
+        </Text>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { icon: FileText, label: t("vault.title"), route: "/vault" },
+            { icon: BarChart3, label: "Analytics", route: "/analytics" },
+            { icon: MessageSquare, label: t("nav.social"), route: "/feed" },
+          ].map(({ icon: Icon, label, route }) => (
+            <Surface
+              key={route}
+              variant="plain"
+              radius="surface"
+              onClick={() => navigate(route)}
+              className="flex flex-col items-center gap-2 px-3 py-4 cursor-pointer"
+            >
+              <Icon className="w-5 h-5 text-brand" strokeWidth={1.8} />
+              <Text variant="caption-1" tone="primary" className="text-center">
+                {label}
+              </Text>
+            </Surface>
+          ))}
+        </div>
+      </motion.section>
 
       {/* Demo-mode toggle */}
       <motion.div variants={itemVariants}>
