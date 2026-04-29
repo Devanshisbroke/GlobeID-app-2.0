@@ -72,6 +72,53 @@ export function travelSplit(txs: WalletTransaction[]): {
   return { travel, nonTravel, total: travel + nonTravel };
 }
 
+/**
+ * Slice-F — filter a transaction list to a date window (inclusive).
+ * `from`/`to` are `YYYY-MM-DD` strings (same shape as `tx.date`).
+ */
+export function filterByDateRange(
+  txs: WalletTransaction[],
+  from: string,
+  to: string,
+): WalletTransaction[] {
+  return txs.filter((tx) => tx.date >= from && tx.date <= to);
+}
+
+/**
+ * Slice-F — week-of-day × category heatmap data.
+ *
+ * Rows = 7 days of week (Mon..Sun), columns = one entry per category.
+ * Used to drive the visx heatmap in Analytics 2.0.
+ */
+export interface HeatmapCell {
+  day: number; // 0..6 (Mon..Sun)
+  category: TxCategory;
+  spend: number;
+}
+
+export function spendHeatmap(
+  txs: WalletTransaction[],
+): HeatmapCell[] {
+  const cells = new Map<string, HeatmapCell>();
+  for (const tx of txs) {
+    if (tx.amount >= 0) continue;
+    // Parse YYYY-MM-DD → day of week (Mon=0..Sun=6).
+    const [y, m, d] = tx.date.split("-").map(Number);
+    if (!y || !m || !d) continue;
+    const dayJs = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+    // JS: Sun=0..Sat=6 → map to Mon=0..Sun=6.
+    const day = (dayJs + 6) % 7;
+    const key = `${day}_${tx.category}`;
+    const prev = cells.get(key);
+    if (prev) {
+      prev.spend += Math.abs(tx.amount);
+    } else {
+      cells.set(key, { day, category: tx.category, spend: Math.abs(tx.amount) });
+    }
+  }
+  return [...cells.values()];
+}
+
 /** Count of transactions per merchant, top-N. */
 export function topMerchants(
   txs: WalletTransaction[],
