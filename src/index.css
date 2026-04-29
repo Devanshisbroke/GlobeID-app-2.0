@@ -336,6 +336,13 @@
 @layer base {
   * {
     @apply border-border;
+    /* Slice G: `min-width: 0` on every flex/grid descendant is the
+       canonical fix for "text overflows its parent on narrow viewports"
+       — children of flex/grid have an intrinsic min-content width that
+       ignores `overflow: hidden` unless this is set. Paired with the
+       `overflow-wrap: break-word` rule below it eliminates the entire
+       class of "passport number overflows card" bugs on 320 px devices. */
+    min-width: 0;
   }
 
   body {
