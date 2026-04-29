@@ -1,0 +1,75 @@
+{
+  "nav": {
+    "home": "Home",
+    "travel": "Travel",
+    "wallet": "Wallet",
+    "identity": "Identity",
+    "services": "Services",
+    "profile": "Profile",
+    "social": "Feed",
+    "explore": "Explore"
+  },
+  "common": {
+    "add": "Add",
+    "remove": "Remove",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "Back",
+    "search": "Search",
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "settings": "Settings",
+    "language": "Language",
+    "permissions": "Permissions"
+  },
+  "home": {
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "recommendations": "Recommendations",
+    "liveIntelligence": "Live intelligence",
+    "upcomingTrip": "Upcoming trip",
+    "noTrips": "No trips planned"
+  },
+  "profile": {
+    "title": "Profile",
+    "languageLabel": "App language",
+    "signOut": "Sign out",
+    "permissionsHeading": "Device permissions",
+    "cameraNeeded": "Camera needed for document scanning",
+    "micNeeded": "Microphone needed for voice commands"
+  },
+  "services": {
+    "super": "Super Services",
+    "intelligence": "Intelligence",
+    "hotels": "Hotels",
+    "rides": "Rides",
+    "food": "Food",
+    "visa": "Visa",
+    "insurance": "Insurance",
+    "esim": "eSIM",
+    "exchange": "Exchange",
+    "local": "Local"
+  },
+  "voice": {
+    "listening": "Listening…",
+    "say": "Say a command",
+    "unsupported": "Voice commands are not supported on this device",
+    "permissionDenied": "Microphone permission denied",
+    "start": "Start listening",
+    "stop": "Stop"
+  },
+  "vault": {
+    "title": "Document vault",
+    "scanDocument": "Scan document",
+    "uploadDocument": "Upload image",
+    "encryptedNote": "Documents are encrypted on-device with AES-GCM.",
+    "detected": "Detected",
+    "passport": "Passport",
+    "visa": "Visa",
+    "idCard": "ID card",
+    "unknown": "Unknown document"
+  }
+}

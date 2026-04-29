@@ -47,6 +47,12 @@ const IdentityVault = lazy(() => import("@/screens/IdentityVault"));
 const TravelIntelligence = lazy(() => import("@/screens/TravelIntelligence"));
 const PlanetExplorer = lazy(() => import("@/screens/PlanetExplorer"));
 const TripDetail = lazy(() => import("@/screens/TripDetail"));
+// Slice-D: OCR-powered encrypted document vault.
+const DocumentVault = lazy(() => import("@/screens/DocumentVault"));
+// Slice-E: Real social feed v2 (IndexedDB-backed CRUD).
+const SocialFeedV2 = lazy(() => import("@/screens/SocialFeedV2"));
+// Slice-C: recharts analytics dashboard.
+const AnalyticsDashboard = lazy(() => import("@/screens/AnalyticsDashboard"));
 
 // Phase 7 PR-β — dev-only smoke route for v2 component primitives.
 // Tree-shaken out of production builds via the `import.meta.env.DEV`
@@ -216,6 +222,9 @@ const App = () => {
                         <Route path="/intelligence" element={<TravelIntelligence />} />
                         <Route path="/explorer" element={<PlanetExplorer />} />
                         <Route path="/trip/:tripId" element={<TripDetail />} />
+                        <Route path="/vault" element={<DocumentVault />} />
+                        <Route path="/feed" element={<SocialFeedV2 />} />
+                        <Route path="/analytics" element={<AnalyticsDashboard />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                       </Routes>
                     </Suspense>

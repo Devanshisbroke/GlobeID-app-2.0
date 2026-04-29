@@ -3,6 +3,7 @@ import BottomNavV2 from "./BottomNav";
 import PageTransitionV2 from "./PageTransition";
 import { FAB } from "@/components/layout/FAB";
 import { AIAssistantButton } from "@/components/ai/AIAssistantButton";
+import VoiceCommandButton from "@/components/voice/VoiceCommandButton";
 import ThemeToggle from "@/components/ThemeToggle";
 import AtmosphereLayer from "@/cinematic/AtmosphereLayer";
 import SyncBadge from "@/components/layout/SyncBadge";
@@ -62,6 +63,7 @@ const AppChromeV2: React.FC<AppChromeProps> = ({ children }) => {
         </main>
         <FAB />
         <AIAssistantButton />
+        <VoiceCommandButton />
         <BottomNavV2 />
       </div>
     </CommandPaletteProvider>
