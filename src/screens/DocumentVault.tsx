@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { usePermissions } from "@/hooks/usePermissions";
 import { capturePhoto } from "@/lib/cameraCapture";
 import { ocrImage } from "@/lib/ocrService";
+import { preprocessForOcr } from "@/lib/ocrPreprocess";
 import { classifyDocument, parseMrz, type DocumentKind } from "@/lib/mrzParser";
 import {
   deleteDocument,
@@ -98,7 +99,17 @@ const DocumentVault: React.FC = () => {
         setBusy("idle");
         return;
       }
-      const result = await ocrImage(blob);
+      // Slice-F: run the edge-detect / binarisation pipeline before
+      // Tesseract. Falls back to the raw blob if preprocessing throws
+      // (e.g. OffscreenCanvas unavailable in old browsers).
+      let ocrInput: Blob = blob;
+      try {
+        const pre = await preprocessForOcr(blob);
+        ocrInput = pre.blob;
+      } catch {
+        // ignore — fall back to raw capture
+      }
+      const result = await ocrImage(ocrInput);
       const mrz = parseMrz(result.text);
       const kind = classifyDocument(result.text);
       setLastScan({ kind, text: result.text, mrzOk: mrz.ok });

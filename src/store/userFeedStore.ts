@@ -14,7 +14,15 @@
  * state. Hydration on boot reads from Dexie.
  */
 import { create } from "zustand";
-import { socialDB, type UserPost, type UserComment, type UserLike } from "@/lib/socialDB";
+import {
+  socialDB,
+  type UserPost,
+  type UserComment,
+  type UserLike,
+  type UserReaction,
+  type ReactionKind,
+  type MediaBlob,
+} from "@/lib/socialDB";
 
 export type MutationStatus = "idle" | "pending" | "success" | "error";
 
@@ -24,6 +32,8 @@ export interface CreatePostInput {
   authorAvatar?: string;
   caption: string;
   image?: string;
+  /** Slice-F: optional image blob, stored in mediaBlobs table. */
+  imageBlob?: Blob;
   location?: string;
   country?: string;
   iata?: string;
@@ -34,6 +44,8 @@ interface UserFeedState {
   posts: UserPost[];
   comments: UserComment[];
   likes: UserLike[];
+  reactions: UserReaction[];
+  mediaUrls: Record<string, string>; // mediaId → object URL
   hydrated: boolean;
   status: MutationStatus;
   error: string | null;
@@ -47,6 +59,10 @@ interface UserFeedState {
   hasLiked: (userId: string, postId: string) => boolean;
   likesFor: (postId: string) => number;
   commentsFor: (postId: string) => UserComment[];
+  toggleReaction: (userId: string, postId: string, kind: ReactionKind) => Promise<boolean>;
+  hasReaction: (userId: string, postId: string, kind: ReactionKind) => boolean;
+  reactionsFor: (postId: string) => Record<ReactionKind, number>;
+  getMediaUrl: (mediaId: string) => Promise<string | null>;
 }
 
 function nowIso() {
@@ -58,25 +74,37 @@ function rid(): string {
   return `id-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+const EMPTY_REACTION_BUCKET: Record<ReactionKind, number> = {
+  like: 0,
+  love: 0,
+  clap: 0,
+  plane: 0,
+  fire: 0,
+};
+
 export const useUserFeedStore = create<UserFeedState>((set, get) => ({
   posts: [],
   comments: [],
   likes: [],
+  reactions: [],
+  mediaUrls: {},
   hydrated: false,
   status: "idle",
   error: null,
 
   hydrate: async () => {
     try {
-      const [posts, comments, likes] = await Promise.all([
+      const [posts, comments, likes, reactions] = await Promise.all([
         socialDB.posts.where("deleted").equals(0).toArray(),
         socialDB.comments.where("deleted").equals(0).toArray(),
         socialDB.likes.toArray(),
+        socialDB.reactions.toArray(),
       ]);
       set({
         posts: posts.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
         comments,
         likes,
+        reactions,
         hydrated: true,
       });
     } catch (e) {
@@ -86,6 +114,18 @@ export const useUserFeedStore = create<UserFeedState>((set, get) => ({
 
   createPost: async (input) => {
     set({ status: "pending", error: null });
+    let mediaId: string | undefined;
+    if (input.imageBlob) {
+      mediaId = rid();
+      const media: MediaBlob = {
+        id: mediaId,
+        blob: input.imageBlob,
+        mime: input.imageBlob.type || "image/jpeg",
+        byteSize: input.imageBlob.size,
+        createdAt: nowIso(),
+      };
+      await socialDB.mediaBlobs.put(media);
+    }
     const post: UserPost = {
       id: rid(),
       authorId: input.authorId,
@@ -93,6 +133,7 @@ export const useUserFeedStore = create<UserFeedState>((set, get) => ({
       authorAvatar: input.authorAvatar,
       caption: input.caption,
       image: input.image,
+      mediaId,
       location: input.location,
       country: input.country,
       iata: input.iata,
@@ -175,4 +216,41 @@ export const useUserFeedStore = create<UserFeedState>((set, get) => ({
     get()
       .comments.filter((c) => c.postId === postId)
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+
+  toggleReaction: async (userId, postId, kind) => {
+    const key = `${userId}_${postId}_${kind}`;
+    const existing = await socialDB.reactions.get(key);
+    if (existing) {
+      await socialDB.reactions.delete(key);
+      set((s) => ({ reactions: s.reactions.filter((r) => r.id !== key) }));
+      return false;
+    }
+    const r: UserReaction = { id: key, userId, postId, kind, createdAt: nowIso() };
+    await socialDB.reactions.put(r);
+    set((s) => ({ reactions: [...s.reactions, r] }));
+    return true;
+  },
+
+  hasReaction: (userId, postId, kind) => {
+    const key = `${userId}_${postId}_${kind}`;
+    return get().reactions.some((r) => r.id === key);
+  },
+
+  reactionsFor: (postId) => {
+    const bucket = { ...EMPTY_REACTION_BUCKET };
+    for (const r of get().reactions) {
+      if (r.postId === postId) bucket[r.kind] += 1;
+    }
+    return bucket;
+  },
+
+  getMediaUrl: async (mediaId) => {
+    const cached = get().mediaUrls[mediaId];
+    if (cached) return cached;
+    const row = await socialDB.mediaBlobs.get(mediaId);
+    if (!row) return null;
+    const url = URL.createObjectURL(row.blob);
+    set((s) => ({ mediaUrls: { ...s.mediaUrls, [mediaId]: url } }));
+    return url;
+  },
 }));

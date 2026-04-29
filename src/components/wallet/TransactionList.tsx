@@ -1,9 +1,12 @@
 import React, { useState } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, FileDown } from "lucide-react";
 import { Surface, Text, Tabs, Input } from "@/components/ui/v2";
 import { getIcon } from "@/lib/iconMap";
 import { cn } from "@/lib/utils";
 import type { WalletTransaction } from "@/store/walletStore";
+import { downloadReceipt } from "@/lib/receiptRenderer";
+import { useUserStore } from "@/store/userStore";
+import { toast } from "sonner";
 
 type TxFilter = "all" | "payment" | "send" | "receive" | "convert";
 
@@ -22,6 +25,26 @@ interface TransactionListProps {
 const TransactionList: React.FC<TransactionListProps> = ({ transactions }) => {
   const [filter, setFilter] = useState<TxFilter>("all");
   const [search, setSearch] = useState("");
+  const userName = useUserStore((s) => s.profile?.name ?? "Globe traveller");
+  const userEmail = useUserStore((s) => s.profile?.email);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const handleDownloadReceipt = async (tx: WalletTransaction) => {
+    try {
+      setDownloadingId(tx.id);
+      await downloadReceipt(tx, {
+        holderName: userName,
+        holderEmail: userEmail,
+      });
+      toast.success("Receipt downloaded");
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : "Failed to render receipt",
+      );
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const filtered = transactions.filter((tx) => {
     if (filter !== "all" && tx.type !== filter) return false;
@@ -89,14 +112,29 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions }) => {
                   {tx.date} {tx.location && `· ${tx.location}`} {tx.countryFlag && tx.countryFlag}
                 </Text>
               </div>
-              <Text
-                variant="callout"
-                tone={positive ? "accent" : "primary"}
-                className={cn("tabular-nums tracking-tight font-semibold")}
-              >
-                {positive ? "+" : ""}
-                {tx.amount.toLocaleString()} {tx.currency}
-              </Text>
+              <div className="flex flex-col items-end gap-1">
+                <Text
+                  variant="callout"
+                  tone={positive ? "accent" : "primary"}
+                  className={cn("tabular-nums tracking-tight font-semibold")}
+                >
+                  {positive ? "+" : ""}
+                  {tx.amount.toLocaleString()} {tx.currency}
+                </Text>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void handleDownloadReceipt(tx);
+                  }}
+                  disabled={downloadingId === tx.id}
+                  className="flex items-center gap-1 text-[10px] text-ink-tertiary hover:text-ink-primary disabled:opacity-50"
+                  aria-label={`Download receipt for ${tx.description}`}
+                >
+                  <FileDown className="w-3 h-3" />
+                  {downloadingId === tx.id ? "…" : "Receipt"}
+                </button>
+              </div>
             </Surface>
           );
         })}

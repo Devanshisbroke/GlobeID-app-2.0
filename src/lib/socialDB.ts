@@ -1,21 +1,11 @@
 /**
- * Slice-E — IndexedDB schema for the real social feed (posts / comments /
- * likes).
+ * Slice-E + Slice-F — IndexedDB schema for the real social feed.
  *
- * Uses Dexie because the existing store file uses plain Zustand without
- * persistence middleware, and we want strongly-typed indexed queries
- * (`where({ postId }).toArray()`) without reinventing them on top of the
- * lower-level `idb` module.
+ * Slice-E tables (v1): posts / comments / likes.
+ * Slice-F tables (v2): reactions (richer than binary likes) + a dedicated
+ * `mediaBlobs` table so image attachments don't blow up the posts row.
  *
- * Schema choices:
- *  - All three tables use UUIDs (crypto.randomUUID) rather than
- *    auto-increment ints. That way the same ID survives across devices
- *    once we get a sync backend.
- *  - `posts.createdAt` is an ISO-8601 string and is indexed so feed
- *    sort-by-newest is a cheap range query instead of an array sort.
- *  - `likes` is its own table (not a counter on `posts`) — this mirrors
- *    the eventual server schema and lets us idempotently upsert a like
- *    per (userId, postId) without race conditions.
+ * Dexie migrates users from v1 → v2 on next open without data loss.
  */
 import Dexie, { type Table } from "dexie";
 
@@ -25,6 +15,8 @@ export interface UserPost {
   authorName: string;
   authorAvatar?: string;
   image?: string;
+  /** v2: optional mediaBlobs.id reference. Takes precedence over `image`. */
+  mediaId?: string;
   caption: string;
   location?: string;
   country?: string;
@@ -54,17 +46,50 @@ export interface UserLike {
   createdAt: string;
 }
 
+export const REACTIONS = ["like", "love", "clap", "plane", "fire"] as const;
+export type ReactionKind = (typeof REACTIONS)[number];
+
+export interface UserReaction {
+  /** Composite PK `${userId}_${postId}_${kind}` so upserts are idempotent. */
+  id: string;
+  userId: string;
+  postId: string;
+  kind: ReactionKind;
+  createdAt: string;
+}
+
+export interface MediaBlob {
+  id: string;
+  blob: Blob;
+  mime: string;
+  byteSize: number;
+  width?: number;
+  height?: number;
+  createdAt: string;
+}
+
 class SocialDB extends Dexie {
   posts!: Table<UserPost, string>;
   comments!: Table<UserComment, string>;
   likes!: Table<UserLike, string>;
+  reactions!: Table<UserReaction, string>;
+  mediaBlobs!: Table<MediaBlob, string>;
 
   constructor() {
     super("globe-social");
+    // v1 schema (Slice E).
     this.version(1).stores({
       posts: "id, authorId, createdAt, deleted",
       comments: "id, postId, createdAt, deleted",
       likes: "id, userId, postId, createdAt",
+    });
+    // v2: add reactions + mediaBlobs; upgrade posts index to include mediaId.
+    this.version(2).stores({
+      posts: "id, authorId, createdAt, deleted, mediaId",
+      comments: "id, postId, createdAt, deleted",
+      likes: "id, userId, postId, createdAt",
+      reactions: "id, userId, postId, kind, createdAt",
+      mediaBlobs: "id, createdAt",
     });
   }
 }
