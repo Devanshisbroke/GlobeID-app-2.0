@@ -13,7 +13,7 @@ import {
 import { Surface, Button, Pill, Tabs, Text, spring } from "@/components/ui/v2";
 import { useUserStore } from "@/store/userStore";
 import { useWalletStore } from "@/store/walletStore";
-import DocumentCard from "@/components/wallet/DocumentCard";
+import PassStack from "@/components/wallet/PassStack";
 import CurrencyCard from "@/components/wallet/CurrencyCard";
 import CurrencyConverter from "@/components/wallet/CurrencyConverter";
 import TransactionList from "@/components/wallet/TransactionList";
@@ -251,18 +251,23 @@ const Wallet: React.FC = () => {
           </section>
         </Tabs.Content>
 
-        <Tabs.Content value="documents" className="mt-5 space-y-3">
+        <Tabs.Content value="documents" className="mt-5 space-y-4">
           <Text
             as="h3"
             variant="caption-1"
             tone="tertiary"
             className="px-1 uppercase tracking-[0.18em]"
           >
-            Travel Documents
+            Travel Passes
           </Text>
-          {documents.map((doc) => (
-            <DocumentCard key={doc.id} doc={doc} />
-          ))}
+          <PassStack documents={documents} />
+          <Text
+            variant="caption-2"
+            tone="tertiary"
+            className="px-1 text-center"
+          >
+            Tap to expand. Swipe down to flip through passes.
+          </Text>
         </Tabs.Content>
 
         <Tabs.Content value="analytics" className="mt-5">

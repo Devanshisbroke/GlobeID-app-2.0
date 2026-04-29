@@ -39,17 +39,21 @@ const PageTransitionV2: React.FC<Props> = ({ children }) => {
     ? { duration: duration.tap, ease: ease.standard }
     : { duration: duration.page, ease: ease.decelerated };
 
+  // Slice-G: widened Y + scale deltas and added subtle backdrop blur on the
+  // entering page (2–6px) so the transition reads as "layered settle-in"
+  // rather than a fade. Blur is GPU-cheap here because the filter is applied
+  // to the single transitioning page node, not to descendants individually.
   const initial = prefersReducedMotion
     ? { opacity: 0 }
-    : { opacity: 0, y: 10, scale: 0.992 };
+    : { opacity: 0, y: 12, scale: 0.98, filter: "blur(6px)" };
 
   const animate = prefersReducedMotion
     ? { opacity: 1 }
-    : { opacity: 1, y: 0, scale: 1 };
+    : { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" };
 
   const exit = prefersReducedMotion
     ? { opacity: 0 }
-    : { opacity: 0, y: -6, scale: 1.004 };
+    : { opacity: 0, y: -8, scale: 1.006, filter: "blur(4px)" };
 
   return (
     <AnimatePresence mode="popLayout" initial={false}>

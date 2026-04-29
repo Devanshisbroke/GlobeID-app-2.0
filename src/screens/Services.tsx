@@ -46,36 +46,48 @@ const travelServices: {
   title: string;
   description: string;
   icon: React.ReactNode;
+  /**
+   * Slice-G – wire every service tile to a real, full-screen detail
+   * route. No more dead tiles. The route resolves through the same
+   * `<Routes>` graph in App.tsx; each detail screen integrates wallet
+   * + context + lifecycle on its own.
+   */
+  route: string;
 }[] = [
   {
     id: "ts-1",
     title: "Visa Assistance",
     description: "Apply for e-visas and track applications",
     icon: <Globe className="w-5 h-5" strokeWidth={1.8} />,
+    route: "/services/super",
   },
   {
     id: "ts-2",
     title: "Travel Insurance",
     description: "Compare and purchase travel coverage",
     icon: <Umbrella className="w-5 h-5" strokeWidth={1.8} />,
+    route: "/services/super",
   },
   {
     id: "ts-3",
     title: "Airport Lounge Access",
     description: "Book premium lounge passes worldwide",
     icon: <CreditCard className="w-5 h-5" strokeWidth={1.8} />,
+    route: "/services/activities",
   },
   {
     id: "ts-4",
     title: "Global SIM",
     description: "eSIM data plans for 190+ countries",
     icon: <Wifi className="w-5 h-5" strokeWidth={1.8} />,
+    route: "/services/super",
   },
   {
     id: "ts-5",
     title: "Currency Exchange",
     description: "Real-time rates and instant conversion",
     icon: <ArrowLeftRight className="w-5 h-5" strokeWidth={1.8} />,
+    route: "/multi-currency",
   },
 ];
 
@@ -202,6 +214,7 @@ const Services: React.FC = () => {
                   description={svc.description}
                   icon={svc.icon}
                   tone="brand"
+                  onAction={() => navigate(svc.route)}
                 />
               </motion.div>
             ))}

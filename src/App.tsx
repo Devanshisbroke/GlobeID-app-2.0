@@ -2,10 +2,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { lazy, Suspense, useState, useCallback, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import React, { lazy, Suspense, useState, useCallback, useEffect } from "react";
 import { AppChromeV2, SplashV2 } from "@/components/layout/v2";
 import NativeBackButton from "@/components/system/NativeBackButton";
+import EdgeSwipeBack from "@/components/system/EdgeSwipeBack";
 import { applyNativeChrome, wireNetworkListener } from "@/lib/nativeBridge";
 import { useUserStore } from "@/store/userStore";
 import { useAlertsStore } from "@/store/alertsStore";
@@ -57,6 +58,30 @@ const AnalyticsDashboard = lazy(() => import("@/screens/AnalyticsDashboard"));
 const MultiCurrency = lazy(() => import("@/screens/MultiCurrency"));
 // Slice-F: hybrid QR + document scanner.
 const HybridScanner = lazy(() => import("@/screens/HybridScanner"));
+// Slice-G: first-run onboarding.
+const Onboarding = lazy(() => import("@/screens/Onboarding"));
+
+// Slice-G – redirect cold launches to /onboarding if the user has
+// never completed it. `/onboarding` and `/lock` are allowlisted so we
+// don't trap users in a redirect loop.
+const FirstRunGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  useEffect(() => {
+    const onboarded = (() => {
+      try {
+        return localStorage.getItem("globeid:onboarded") === "1";
+      } catch {
+        return true;
+      }
+    })();
+    const pass = ["/onboarding", "/lock"];
+    if (!onboarded && !pass.includes(location.pathname)) {
+      navigate("/onboarding", { replace: true });
+    }
+  }, [location.pathname, navigate]);
+  return <>{children}</>;
+};
 
 // Phase 7 PR-β — dev-only smoke route for v2 component primitives.
 // Tree-shaken out of production builds via the `import.meta.env.DEV`
@@ -189,10 +214,17 @@ const App = () => {
         {showSplash && <SplashV2 onComplete={handleSplashComplete} />}
         <BrowserRouter>
           <NativeBackButton />
+          <EdgeSwipeBack />
+          <FirstRunGate>
           <Routes>
             <Route path="/lock" element={
               <Suspense fallback={<PageLoader />}>
                 <LockScreen />
+              </Suspense>
+            } />
+            <Route path="/onboarding" element={
+              <Suspense fallback={<PageLoader />}>
+                <Onboarding />
               </Suspense>
             } />
             {import.meta.env.DEV ? (
@@ -248,6 +280,7 @@ const App = () => {
               }
             />
           </Routes>
+          </FirstRunGate>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

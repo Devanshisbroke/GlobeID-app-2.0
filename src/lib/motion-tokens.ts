@@ -56,11 +56,17 @@ export const ease = Object.freeze({
  * Duration tokens (seconds — `motion` / `framer-motion` accept seconds).
  * Mirrors `--p7-dur-*` in `index.css`.
  */
+/**
+ * Slice-G timing bands (300–450ms base, 500–700ms long, 120–200ms micro).
+ * These replace the tighter Phase-7 values so screen transitions no longer
+ * feel jump-cut at <0.25s. Keep micro-interactions in `tap` / `pop` —
+ * page-level changes use `page` or `hero`.
+ */
 export const duration = Object.freeze({
-  tap: 0.12,
+  tap: 0.14,
   pop: 0.2,
-  page: 0.32,
-  hero: 0.52,
+  page: 0.38,
+  hero: 0.58,
   splash: 0.9,
 });
 
