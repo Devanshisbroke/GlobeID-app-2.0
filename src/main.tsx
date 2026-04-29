@@ -18,6 +18,14 @@ import "./index.css";
 // the resolved language. Importing for side-effects only.
 import "./i18n";
 
+// Slice-F: boot the offline sync engine + context background loop. Both
+// idempotent, both safe to start at module-init time; they internally gate
+// on visibility + network so they don't burn CPU when the tab is hidden.
+import { startSyncEngine } from "@/lib/syncEngine";
+import { startContextLoop } from "@/core/contextBackgroundLoop";
+startSyncEngine();
+startContextLoop();
+
 /**
  * Phase 6 PR-α:
  *  - Wrap <App /> in <ErrorBoundary /> so a single thrown render error in

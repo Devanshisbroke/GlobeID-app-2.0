@@ -53,6 +53,10 @@ const DocumentVault = lazy(() => import("@/screens/DocumentVault"));
 const SocialFeedV2 = lazy(() => import("@/screens/SocialFeedV2"));
 // Slice-C: recharts analytics dashboard.
 const AnalyticsDashboard = lazy(() => import("@/screens/AnalyticsDashboard"));
+// Slice-F: multi-currency portfolio + best-route conversion.
+const MultiCurrency = lazy(() => import("@/screens/MultiCurrency"));
+// Slice-F: hybrid QR + document scanner.
+const HybridScanner = lazy(() => import("@/screens/HybridScanner"));
 
 // Phase 7 PR-β — dev-only smoke route for v2 component primitives.
 // Tree-shaken out of production builds via the `import.meta.env.DEV`
@@ -95,6 +99,16 @@ const App = () => {
   const [showSplash, setShowSplash] = useState(true);
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
+    // Slice-F: play the GSAP hero reveal once the chrome mounts. One frame
+    // of delay so newly-rendered `[data-reveal]` nodes exist when the
+    // timeline scans.
+    if (typeof window !== "undefined") {
+      requestAnimationFrame(() => {
+        void import("@/cinematic/motionOrchestrator").then(({ playHeroReveal }) => {
+          playHeroReveal();
+        });
+      });
+    }
     // Preload secondary screens after splash dismisses. `requestIdleCallback`
     // is undefined in older Android WebViews, so feature-detect rather than
     // relying on a truthy global reference.
@@ -224,6 +238,8 @@ const App = () => {
                         <Route path="/trip/:tripId" element={<TripDetail />} />
                         <Route path="/vault" element={<DocumentVault />} />
                         <Route path="/feed" element={<SocialFeedV2 />} />
+                        <Route path="/multi-currency" element={<MultiCurrency />} />
+                        <Route path="/scan" element={<HybridScanner />} />
                         <Route path="/analytics" element={<AnalyticsDashboard />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                       </Routes>

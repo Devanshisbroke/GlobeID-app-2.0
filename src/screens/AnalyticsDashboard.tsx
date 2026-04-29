@@ -11,7 +11,7 @@
  * Uses `recharts` — already in the bundle for the legacy SpendingAnalytics
  * component, so no net size increase.
  */
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -31,7 +31,15 @@ import { ArrowLeft } from "lucide-react";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { useWalletStore } from "@/store/walletStore";
-import { dailyBurn, spendByCategory, topMerchants, travelSplit } from "@/lib/analytics";
+import {
+  dailyBurn,
+  spendByCategory,
+  topMerchants,
+  travelSplit,
+  filterByDateRange,
+  spendHeatmap,
+} from "@/lib/analytics";
+import CategoryHeatmap from "@/components/analytics/CategoryHeatmap";
 
 const CATEGORY_COLORS: Record<string, string> = {
   transport: "#22d3ee",
@@ -43,32 +51,53 @@ const CATEGORY_COLORS: Record<string, string> = {
   entertainment: "#f87171",
 };
 
+type RangeKey = "7d" | "30d" | "90d" | "all";
+
+function rangeToBounds(range: RangeKey, now: Date): { from: string; to: string } {
+  const to = now.toISOString().slice(0, 10);
+  if (range === "all") return { from: "1970-01-01", to };
+  const days = range === "7d" ? 7 : range === "30d" ? 30 : 90;
+  const d = new Date(now);
+  d.setUTCDate(d.getUTCDate() - days);
+  return { from: d.toISOString().slice(0, 10), to };
+}
+
 const AnalyticsDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const transactions = useWalletStore((s) => s.transactions);
   const defaultCurrency = useWalletStore((s) => s.defaultCurrency);
+  const [range, setRange] = useState<RangeKey>("30d");
+
+  const filteredTx = useMemo(() => {
+    const { from, to } = rangeToBounds(range, new Date());
+    return filterByDateRange(transactions, from, to);
+  }, [transactions, range]);
 
   const categoryData = useMemo(
     () =>
-      spendByCategory(transactions).map((d) => ({
+      spendByCategory(filteredTx).map((d) => ({
         name: d.category,
         value: Math.round(d.spend * 100) / 100,
       })),
-    [transactions],
+    [filteredTx],
   );
 
   const burnData = useMemo(
     () =>
-      dailyBurn(transactions, { now: new Date(), days: 30 }).map((d) => ({
+      dailyBurn(filteredTx, {
+        now: new Date(),
+        days: range === "7d" ? 7 : range === "30d" ? 30 : 90,
+      }).map((d) => ({
         date: d.date.slice(5),
         total: Math.round(d.total * 100) / 100,
       })),
-    [transactions],
+    [filteredTx, range],
   );
 
-  const split = useMemo(() => travelSplit(transactions), [transactions]);
-  const merchants = useMemo(() => topMerchants(transactions, 5), [transactions]);
+  const split = useMemo(() => travelSplit(filteredTx), [filteredTx]);
+  const merchants = useMemo(() => topMerchants(filteredTx, 5), [filteredTx]);
+  const heatmapData = useMemo(() => spendHeatmap(filteredTx), [filteredTx]);
 
   const totalSpend = split.total;
 
@@ -85,11 +114,28 @@ const AnalyticsDashboard: React.FC = () => {
           <div>
             <h1 className="text-xl font-bold text-foreground">Analytics</h1>
             <p className="text-xs text-muted-foreground">
-              {t("common.loading")} · {transactions.length} transactions · {defaultCurrency}
+              {t("common.loading")} · {filteredTx.length} of {transactions.length} transactions · {defaultCurrency}
             </p>
           </div>
         </div>
       </AnimatedPage>
+
+      <div className="flex gap-2">
+        {(["7d", "30d", "90d", "all"] as const).map((r) => (
+          <button
+            key={r}
+            type="button"
+            onClick={() => setRange(r)}
+            className={`flex-1 rounded-full border px-3 py-1.5 text-xs transition ${
+              range === r
+                ? "border-primary bg-primary/15 text-foreground"
+                : "border-border/40 bg-transparent text-muted-foreground hover:bg-secondary/30"
+            }`}
+          >
+            {r === "all" ? "All time" : `Last ${r}`}
+          </button>
+        ))}
+      </div>
 
       <GlassCard className="p-4">
         <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
@@ -193,6 +239,13 @@ const AnalyticsDashboard: React.FC = () => {
             />
           </div>
         )}
+      </GlassCard>
+
+      <GlassCard className="p-4">
+        <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
+          Day × category heatmap
+        </p>
+        <CategoryHeatmap data={heatmapData} />
       </GlassCard>
 
       <GlassCard className="p-4">
