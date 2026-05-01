@@ -6,6 +6,7 @@ import { getAirport } from "@/lib/airports";
 import { cn } from "@/lib/utils";
 import { formatTripDate, type TravelRecord } from "@/store/userStore";
 import { haptics } from "@/utils/haptics";
+import { relativeDate } from "@/lib/relativeDate";
 
 interface TripCardProps {
   trip: TravelRecord;
@@ -79,7 +80,10 @@ const TripCard: React.FC<TripCardProps> = ({ trip, className, onClick }) => {
       <div className="mt-3 pt-3 border-t border-surface-hairline flex items-center gap-4">
         <Text variant="caption-2" tone="tertiary" className="flex items-center gap-1">
           <Calendar className="w-3 h-3" />
-          {formatTripDate(trip.date)}
+          {(() => {
+            const rel = relativeDate(trip.date);
+            return rel && rel !== trip.date.slice(0, 10) ? rel : formatTripDate(trip.date);
+          })()}
         </Text>
         <Text variant="caption-2" tone="tertiary" className="flex items-center gap-1">
           <Clock className="w-3 h-3" />

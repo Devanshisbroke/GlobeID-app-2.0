@@ -7,6 +7,7 @@ import React, { lazy, Suspense, useState, useCallback, useEffect } from "react";
 import { AppChromeV2, SplashV2 } from "@/components/layout/v2";
 import NativeBackButton from "@/components/system/NativeBackButton";
 import EdgeSwipeBack from "@/components/system/EdgeSwipeBack";
+import KeyboardShortcuts from "@/components/ui/KeyboardShortcuts";
 import { applyNativeChrome, wireNetworkListener } from "@/lib/nativeBridge";
 import { useUserStore } from "@/store/userStore";
 import { useAlertsStore } from "@/store/alertsStore";
@@ -214,6 +215,7 @@ const App = () => {
         <BrowserRouter>
           <NativeBackButton />
           <EdgeSwipeBack />
+          <KeyboardShortcuts />
           <FirstRunGate>
           <Routes>
             <Route path="/lock" element={

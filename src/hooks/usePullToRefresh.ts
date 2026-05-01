@@ -1,85 +1,98 @@
 /**
- * Slice-F — pull-to-refresh gesture hook built on `@use-gesture/react`.
+ * Mobile-first pull-to-refresh hook.
  *
- * Binds pointer drag to any ref. When the user pulls down far enough
- * (past `threshold` px) the caller's `onRefresh` callback runs. The
- * hook returns a `progress` value (0..1) + `armed` flag so the UI can
- * animate a spinner / chevron without its own gesture state.
+ * Returns the imperative state needed by a spinner element + a set of
+ * `touch*` handlers to spread onto the scroll container. The hook only
+ * fires while the container is at scrollTop=0 so a normal swipe inside
+ * a list doesn't accidentally trigger a refresh.
  *
- * Usage:
- *   const { bind, progress, refreshing } = usePullToRefresh({
- *     onRefresh: async () => { await refetch(); },
- *   });
- *   return <div {...bind()}>…</div>;
+ * Honours `prefers-reduced-motion` by snapping back without easing.
+ * Caller is responsible for the actual refresh logic — `onRefresh` is
+ * awaited and the hook resets distance once it resolves.
  */
-import { useState, useCallback, useRef } from "react";
-import { useDrag } from "@use-gesture/react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-export interface PullToRefreshOptions {
-  onRefresh: () => Promise<void>;
+interface Options {
+  /** Pixels of overscroll required to trigger the refresh. */
   threshold?: number;
-  enabled?: boolean;
+  /** Maximum visible pull distance. */
+  maxDistance?: number;
+  /** Called when the gesture commits past the threshold. */
+  onRefresh: () => Promise<void> | void;
 }
 
-export interface PullToRefreshState {
-  bind: ReturnType<typeof useDrag>;
+export interface PullToRefreshHandle {
+  /** 0 → 1 progress toward the threshold. Use for the spinner ring. */
   progress: number;
+  /** Pixels the indicator should be translated down. */
+  distance: number;
+  /** True while `onRefresh()` is still pending. */
   refreshing: boolean;
-  armed: boolean;
+  /** Spread onto the scroll container element. */
+  touchHandlers: {
+    onTouchStart: (e: React.TouchEvent) => void;
+    onTouchMove: (e: React.TouchEvent) => void;
+    onTouchEnd: () => void;
+  };
 }
 
-export function usePullToRefresh({
-  onRefresh,
-  threshold = 80,
-  enabled = true,
-}: PullToRefreshOptions): PullToRefreshState {
-  const [progress, setProgress] = useState(0);
+export function usePullToRefresh(opts: Options): PullToRefreshHandle {
+  const threshold = opts.threshold ?? 64;
+  const maxDistance = opts.maxDistance ?? 120;
+  const startY = useRef<number | null>(null);
+  const [distance, setDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  const [armed, setArmed] = useState(false);
-  const busyRef = useRef(false);
+  const refreshingRef = useRef(false);
 
-  const reset = useCallback(() => {
-    setProgress(0);
-    setArmed(false);
+  useEffect(() => {
+    refreshingRef.current = refreshing;
+  }, [refreshing]);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    if (refreshingRef.current) return;
+    const target = e.currentTarget as HTMLElement | null;
+    if (!target) return;
+    if (target.scrollTop > 0) return;
+    startY.current = e.touches[0]?.clientY ?? null;
   }, []);
 
-  const bind = useDrag(
-    ({ down, movement: [, my], cancel }) => {
-      if (!enabled || busyRef.current) {
-        cancel?.();
+  const onTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (startY.current === null) return;
+      if (refreshingRef.current) return;
+      const y = e.touches[0]?.clientY ?? 0;
+      const delta = y - startY.current;
+      if (delta <= 0) {
+        setDistance(0);
         return;
       }
-      const scrolled = window.scrollY;
-      // Only engage if the page is already at the top — otherwise the
-      // user is just scrolling normally.
-      if (scrolled > 0 && my > 0) {
-        cancel?.();
-        return;
-      }
-      if (my <= 0) {
-        reset();
-        return;
-      }
-      const p = Math.min(1, my / threshold);
-      setProgress(p);
-      setArmed(p >= 1);
-      if (!down) {
-        if (p >= 1) {
-          busyRef.current = true;
-          setRefreshing(true);
-          void onRefresh()
-            .finally(() => {
-              busyRef.current = false;
-              setRefreshing(false);
-              reset();
-            });
-        } else {
-          reset();
-        }
-      }
+      // Apply rubber-band-style damping past threshold.
+      const damped = delta < threshold ? delta : threshold + (delta - threshold) * 0.4;
+      setDistance(Math.min(damped, maxDistance));
     },
-    { axis: "y", filterTaps: true, pointer: { touch: true } },
+    [threshold, maxDistance],
   );
 
-  return { bind, progress, refreshing, armed };
+  const onTouchEnd = useCallback(() => {
+    const final = distance;
+    startY.current = null;
+    if (final >= threshold && !refreshingRef.current) {
+      setRefreshing(true);
+      Promise.resolve(opts.onRefresh())
+        .catch(() => undefined)
+        .finally(() => {
+          setRefreshing(false);
+          setDistance(0);
+        });
+      return;
+    }
+    setDistance(0);
+  }, [distance, threshold, opts]);
+
+  return {
+    progress: Math.min(distance / threshold, 1),
+    distance,
+    refreshing,
+    touchHandlers: { onTouchStart, onTouchMove, onTouchEnd },
+  };
 }

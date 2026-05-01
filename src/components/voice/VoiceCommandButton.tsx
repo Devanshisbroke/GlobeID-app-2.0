@@ -13,6 +13,7 @@ import { useVoiceCommands } from "@/hooks/useVoiceCommands";
 import { type VoiceIntent } from "@/lib/voiceIntents";
 import { setLanguage, currentLanguage, SUPPORTED_LANGS } from "@/i18n";
 import { toast } from "sonner";
+import { useUserStore } from "@/store/userStore";
 
 const VoiceCommandButton: React.FC = () => {
   const navigate = useNavigate();
@@ -37,9 +38,25 @@ const VoiceCommandButton: React.FC = () => {
           toast.success(`Language → ${next}`);
         }
       } else if (intent.kind === "query") {
+        if (intent.query === "next-trip") {
+          // Resolve the next upcoming trip directly so the user lands
+          // on the trip detail rather than the timeline list.
+          const history = useUserStore.getState().travelHistory;
+          const today = new Date().toISOString().slice(0, 10);
+          const upcoming = history
+            .filter((r) => r.type !== "past" && r.date.slice(0, 10) >= today)
+            .sort((a, b) => a.date.localeCompare(b.date))[0];
+          if (upcoming) {
+            navigate(`/trip/${encodeURIComponent(upcoming.id)}`);
+            toast.success(`→ Next trip · ${upcoming.from} → ${upcoming.to}`);
+          } else {
+            navigate("/timeline");
+            toast.info("No upcoming trips — opening Timeline");
+          }
+          return;
+        }
         const map: Record<string, string> = {
           "wallet-balance": "/wallet",
-          "next-trip": "/timeline",
           score: "/intelligence",
           weather: "/services/super",
         };
