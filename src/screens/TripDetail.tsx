@@ -1,6 +1,15 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Clock, Plane, AlertCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  MapPin,
+  Clock,
+  Plane,
+  AlertCircle,
+  CalendarPlus,
+  Share2,
+  ScanLine,
+} from "lucide-react";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import TripLifecycleBadge from "@/components/travel/TripLifecycleBadge";
 import ItineraryView from "@/components/trip/ItineraryView";
@@ -9,10 +18,24 @@ import TripGlobePreview from "@/components/trip/TripGlobePreview";
 import { useLifecycleStore } from "@/store/lifecycleStore";
 import { useUserStore } from "@/store/userStore";
 import { travelRecordToLifecycle } from "@/lib/tripLifecycle";
+import { countdownTo, formatCountdown } from "@/lib/countdown";
+import { tripToIcs } from "@/lib/ics";
+import { shareOrDownload } from "@/lib/shareSheet";
+import { haptics } from "@/utils/haptics";
+import { toast } from "sonner";
 import type { TripLifecycle } from "@shared/types/lifecycle";
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function useTickingClock(intervalMs: number): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), intervalMs);
+    return () => window.clearInterval(id);
+  }, [intervalMs]);
+  return now;
 }
 
 const TripDetail: React.FC = () => {
@@ -46,6 +69,23 @@ const TripDetail: React.FC = () => {
 
   const today = todayIso();
 
+  // Hooks must run unconditionally — derive upcoming-leg ahead of any
+  // early return so the countdown/share handlers can rely on a stable
+  // hook order across render cycles. `null` trip is handled below.
+  const upcomingFirst = useMemo(() => {
+    if (!trip) return null;
+    const upcoming = trip.legs.filter((l) => l.date >= today);
+    return upcoming[0] ?? null;
+  }, [trip, today]);
+
+  // Tick once a minute pre-trip; the countdown component renders
+  // nothing when there's no upcoming leg, so a passive tick is cheap.
+  const nowTick = useTickingClock(60_000);
+  const cd = useMemo(() => {
+    if (!upcomingFirst) return null;
+    return countdownTo(upcomingFirst.date, new Date(nowTick));
+  }, [upcomingFirst, nowTick]);
+
   if (!trip) {
     return (
       <div className="px-4 py-6 space-y-4">
@@ -66,8 +106,51 @@ const TripDetail: React.FC = () => {
     );
   }
 
-  const upcomingLegs = trip.legs.filter((l) => l.date >= today);
-  const upcomingFirst = upcomingLegs[0] ?? null;
+  const handleAddToCalendar = async () => {
+    haptics.selection();
+    const ics = tripToIcs(trip);
+    const slug = trip.tripId ?? "trip";
+    const result = await shareOrDownload("ics", {
+      title: trip.name,
+      text: `${trip.legs.length} flight${trip.legs.length === 1 ? "" : "s"}`,
+      icsContent: ics,
+      filename: `${slug}.ics`,
+    });
+    if (result === "native") toast.success("Shared to calendar");
+    else if (result === "download") toast.success("Calendar file ready");
+    else if (result === "web-share") toast.success("Shared");
+  };
+
+  const handleShareTrip = async () => {
+    haptics.selection();
+    const summary =
+      upcomingFirst && cd && !cd.past
+        ? `Departs ${formatCountdown(cd)}`
+        : `${trip.legs.length} legs`;
+    const result = await shareOrDownload("text", {
+      title: trip.name,
+      text: `${trip.name} · ${summary}`,
+      url: typeof window !== "undefined" ? window.location.href : undefined,
+    });
+    if (result === "native" || result === "web-share") toast.success("Shared");
+    else if (result === "download") toast.success("Copied to clipboard");
+  };
+
+  const handleVerifyAtKiosk = () => {
+    if (!upcomingFirst) return;
+    haptics.selection();
+    const params = new URLSearchParams({
+      passenger: profile.name,
+      flight: upcomingFirst.flightNumber ?? "",
+      airline: upcomingFirst.airline,
+      from: upcomingFirst.fromIata,
+      to: upcomingFirst.toIata,
+      date: upcomingFirst.date,
+      legId: upcomingFirst.id,
+      tripId: trip.tripId ?? "",
+    });
+    navigate(`/kiosk-sim?${params.toString()}`);
+  };
 
   return (
     <div className="px-4 py-6 space-y-5 pb-12">
@@ -125,6 +208,64 @@ const TripDetail: React.FC = () => {
             }
           />
         </div>
+
+        {/* Live countdown — only when there's an upcoming leg. */}
+        {upcomingFirst && cd ? (
+          <section
+            aria-live="polite"
+            aria-label={`Time until departure: ${formatCountdown(cd)}`}
+            className="mb-5 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3"
+          >
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              {cd.past ? "Trip in progress" : "Departure in"}
+            </p>
+            <p
+              className="mt-1 text-2xl font-semibold tabular-nums text-foreground"
+              data-testid="trip-countdown"
+            >
+              {formatCountdown(cd)}
+            </p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              {upcomingFirst.airline}
+              {upcomingFirst.flightNumber ? ` · ${upcomingFirst.flightNumber}` : ""}
+              {" · "}
+              {upcomingFirst.fromIata} → {upcomingFirst.toIata}
+            </p>
+          </section>
+        ) : null}
+
+        {/* Action row — calendar, share, verify */}
+        <section className="mb-5 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleAddToCalendar}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-[12px] font-medium text-foreground min-h-[44px] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
+            aria-label="Add trip to calendar"
+          >
+            <CalendarPlus className="w-3.5 h-3.5" />
+            Add to calendar
+          </button>
+          <button
+            type="button"
+            onClick={handleShareTrip}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-[12px] font-medium text-foreground min-h-[44px] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
+            aria-label="Share trip"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            Share
+          </button>
+          {upcomingFirst ? (
+            <button
+              type="button"
+              onClick={handleVerifyAtKiosk}
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-[12px] font-medium text-primary-foreground min-h-[44px] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
+              aria-label="Verify boarding pass at kiosk"
+            >
+              <ScanLine className="w-3.5 h-3.5" />
+              Verify at kiosk
+            </button>
+          ) : null}
+        </section>
 
         {/* Globe preview */}
         <section className="mb-5">

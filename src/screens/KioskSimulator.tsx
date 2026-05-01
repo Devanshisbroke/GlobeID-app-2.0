@@ -1,10 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { kioskVerifyPassport, kioskScanApp, getAllSessions, type VerificationSession } from "@/lib/verificationSession";
 import { getAuditLog } from "@/lib/auditLog";
 import { countryThemes } from "@/lib/countryThemes";
-import { verifyBoardingPass, type BoardingPassPayload } from "@/lib/boardingPass";
+import {
+  issueBoardingPass,
+  verifyBoardingPass,
+  type BoardingPassPayload,
+} from "@/lib/boardingPass";
 import { cn } from "@/lib/utils";
 import { Monitor, ScanLine, Wifi, AlertTriangle, CheckCircle2, XCircle, Clock, Plane } from "lucide-react";
 
@@ -27,6 +32,46 @@ const KioskSimulator: React.FC = () => {
   const [scanResult, setScanResult] = useState<{ success: boolean; error?: string } | null>(null);
   const [tab, setTab] = useState<"scan" | "boarding" | "sessions" | "audit">("scan");
   const [bpInput, setBpInput] = useState("");
+  const [searchParams] = useSearchParams();
+
+  // When TripDetail navigates here with leg params, sign the boarding
+  // pass on the fly and prefill the verifier input. Tab switches to
+  // "boarding" so the user lands on the right step. This keeps the
+  // dev tool useful both standalone and as a verify-at-gate target.
+  useEffect(() => {
+    const passenger = searchParams.get("passenger");
+    const flight = searchParams.get("flight");
+    const airline = searchParams.get("airline");
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
+    const date = searchParams.get("date");
+    const legId = searchParams.get("legId");
+    if (!passenger || !airline || !from || !to || !date || !legId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const signed = await issueBoardingPass({
+          passenger,
+          passportNo: null,
+          flightNumber: flight ?? "",
+          airline,
+          fromIata: from,
+          toIata: to,
+          scheduledDate: date,
+          legId,
+          tripId: searchParams.get("tripId") || null,
+        });
+        if (cancelled) return;
+        setBpInput(signed.qrText);
+        setTab("boarding");
+      } catch {
+        /* If signing fails (e.g. no Web Crypto), leave the input blank. */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams]);
   const [bpResult, setBpResult] = useState<
     | { kind: "idle" }
     | { kind: "verifying" }

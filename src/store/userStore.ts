@@ -191,7 +191,18 @@ export const useUserStore = create<UserState>()(
         }
       },
 
-      addDocument: (doc) => set((state) => ({ documents: [...state.documents, doc] })),
+      addDocument: (doc) =>
+        set((state) => {
+          // Idempotent on `id` so re-scans of the same passport (or two
+          // QR-boarding-pass surfaces sharing the same legId) don't
+          // duplicate. Existing entry wins on field updates so a wallet
+          // edit isn't clobbered by a re-scan.
+          const idx = state.documents.findIndex((d) => d.id === doc.id);
+          if (idx === -1) return { documents: [...state.documents, doc] };
+          const next = state.documents.slice();
+          next[idx] = { ...doc, ...next[idx] };
+          return { documents: next };
+        }),
       removeDocument: (id) => set((state) => ({ documents: state.documents.filter((d) => d.id !== id) })),
 
       hydrate: async () => {
