@@ -3,7 +3,6 @@ import BottomNavV2 from "./BottomNav";
 import PageTransitionV2 from "./PageTransition";
 import { FAB } from "@/components/layout/FAB";
 import { AIAssistantButton } from "@/components/ai/AIAssistantButton";
-import VoiceCommandButton from "@/components/voice/VoiceCommandButton";
 import ThemeToggle from "@/components/ThemeToggle";
 import AtmosphereLayer from "@/cinematic/AtmosphereLayer";
 import SyncBadge from "@/components/layout/SyncBadge";
@@ -17,8 +16,9 @@ import CommandPaletteProvider from "./CommandPalette";
  *  - `BottomNavV2`         — v2 glass surface + shared-layout active pill.
  *  - `PageTransitionV2`    — motion@12, prefers-reduced-motion aware.
  *  - `CommandPaletteProvider` — Cmd+K reachable from any screen.
- *  - `FAB`, `AIAssistantButton`, `VoiceCommandButton`, `ThemeToggle`,
- *    `SyncBadge`, `OfflineBanner`, `AtmosphereLayer` — shared chrome.
+ *  - `FAB` (with voice command speed-dial item baked in),
+ *    `AIAssistantButton`, `ThemeToggle`, `SyncBadge`, `OfflineBanner`,
+ *    `AtmosphereLayer` — shared chrome.
  *
  * Exported as the default so `src/App.tsx` can use it as the route element.
  */
@@ -57,7 +57,6 @@ const AppChromeV2: React.FC<AppChromeProps> = ({ children }) => {
         </main>
         <FAB />
         <AIAssistantButton />
-        <VoiceCommandButton />
         <BottomNavV2 />
       </div>
     </CommandPaletteProvider>

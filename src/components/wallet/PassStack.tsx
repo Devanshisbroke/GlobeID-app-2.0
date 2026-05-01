@@ -125,6 +125,9 @@ const PassStack: React.FC<PassStackProps> = ({ documents, className }) => {
                   top: 180 + (depth - 1) * PEEK_Y,
                   height: PEEK_Y,
                   zIndex: 30 - depth,
+                  // Allow vertical page scroll to win over button tap on
+                  // touch devices — taps are still recognised on click.
+                  touchAction: "pan-y",
                 }}
                 whileTap={{ scale: 0.995 }}
               />
@@ -132,32 +135,36 @@ const PassStack: React.FC<PassStackProps> = ({ documents, className }) => {
           );
         })}
 
-        {/* Active pass — top of stack, draggable, tap to expand. */}
-        <motion.button
+        {/* Active pass — top of stack. Tap to expand.
+            NOTE: framer-motion's `drag="y"` was capturing every vertical
+            pointer pan on the card and blocking page scroll on Wallet.
+            Page scroll is more important than drag-to-cycle here — users
+            can still cycle by tapping a peek card or a dot. The expand
+            interaction is via `onTap` which observes taps without
+            capturing the touch stream. */}
+        <motion.div
           key={ordered.head.id}
-          type="button"
+          role="button"
+          tabIndex={0}
           aria-label={`Open ${ordered.head.label} pass`}
           layoutId={`pass-${ordered.head.id}`}
-          className="absolute inset-x-0 top-0 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-          style={{ zIndex: 20 }}
-          drag="y"
-          dragConstraints={{ top: 0, bottom: 40 }}
-          dragElastic={0.25}
-          onDragEnd={(_, info) => {
-            if (info.offset.y > 30 && documents.length > 1) {
-              // swipe down to cycle to next pass
-              haptics.medium();
-              setActiveIdx((i) => (i + 1) % documents.length);
-            }
-          }}
+          className="absolute inset-x-0 top-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-[22px]"
+          style={{ zIndex: 20, touchAction: "pan-y" }}
           onTap={() => {
             haptics.light();
             setExpandedId(ordered.head.id);
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              haptics.light();
+              setExpandedId(ordered.head.id);
+            }
+          }}
           whileTap={{ scale: 0.985 }}
         >
           <PassCard doc={ordered.head} active />
-        </motion.button>
+        </motion.div>
       </div>
 
       <AnimatePresence>

@@ -46,15 +46,21 @@ export interface PassDetailProps {
  */
 async function setBrightness(value: number | null): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
+  // Resolve via the Capacitor proxy so we don't import the plugin
+  // package directly. Apps that ship with the optional
+  // `@capacitor-community/screen-brightness` plugin installed get the
+  // real native call; everywhere else this is a silent no-op.
+  type BrightnessPlugin = {
+    setBrightness?: (opts: { brightness: number }) => Promise<unknown>;
+  };
+  const Plugin = (
+    Capacitor as unknown as {
+      Plugins?: Record<string, BrightnessPlugin | undefined>;
+    }
+  ).Plugins?.["ScreenBrightness"];
+  if (!Plugin?.setBrightness) return;
   try {
-    const mod = await import(
-      /* @vite-ignore */ "@capacitor-community/screen-brightness"
-    );
-    const Plugin = (mod as { ScreenBrightness?: { setBrightness?: (opts: { brightness: number }) => Promise<unknown> } })
-      .ScreenBrightness;
-    if (!Plugin?.setBrightness) return;
     if (value === null) {
-      // No restore API across all versions — set to a sensible default.
       await Plugin.setBrightness({ brightness: 0.7 });
     } else {
       await Plugin.setBrightness({ brightness: Math.max(0, Math.min(1, value)) });
