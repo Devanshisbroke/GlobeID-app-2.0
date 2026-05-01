@@ -33,6 +33,10 @@ export interface TravelDocument {
   issueDate: string;
   expiryDate: string;
   status: "active" | "expired" | "pending";
+  /** Linked trip lifecycle id (boarding passes only). */
+  tripId?: string | null;
+  /** Linked leg id (boarding passes only). */
+  legId?: string;
 }
 
 export interface UserProfile {

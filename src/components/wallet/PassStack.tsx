@@ -16,11 +16,12 @@
  */
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, Plane, ShieldCheck, CreditCard } from "lucide-react";
+import { FileText, Plane, ShieldCheck, CreditCard, AlertTriangle } from "lucide-react";
 import { spring } from "@/components/ui/v2";
 import type { TravelDocument } from "@/store/userStore";
 import { cn } from "@/lib/utils";
 import { haptics } from "@/utils/haptics";
+import { describeExpiry } from "@/lib/documentExpiry";
 import PassDetail from "./PassDetail";
 
 export interface PassStackProps {
@@ -182,6 +183,7 @@ interface PassCardProps {
 export const PassCard: React.FC<PassCardProps> = ({ doc, active = false }) => {
   const meta = TYPE_META[doc.type];
   const Icon = meta.icon;
+  const expiry = describeExpiry(doc.expiryDate);
   return (
     <div
       className={cn(
@@ -192,6 +194,20 @@ export const PassCard: React.FC<PassCardProps> = ({ doc, active = false }) => {
         active ? "ring-1 ring-white/10" : "ring-1 ring-white/5",
       )}
     >
+      {expiry.severity !== "none" ? (
+        <div
+          aria-label={expiry.label}
+          className={cn(
+            "absolute right-4 top-4 z-10 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium tracking-wide",
+            expiry.severity === "critical"
+              ? "bg-rose-500/95 text-white"
+              : "bg-amber-400/95 text-amber-950",
+          )}
+        >
+          <AlertTriangle className="h-2.5 w-2.5" />
+          {expiry.daysUntil < 0 ? "Expired" : `${expiry.daysUntil}d`}
+        </div>
+      ) : null}
       <div className="flex items-start justify-between text-white">
         <div>
           <p className={cn("text-[10px] uppercase tracking-[0.24em]", meta.accent)}>
