@@ -878,3 +878,28 @@
   85% { opacity: 0.5; }
   100% { transform: translateX(200%) rotate(-15deg); opacity: 0; }
 }
+
+/* ── Skeleton shimmer (reduced-motion respected) ── */
+@keyframes globeid-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.globeid-skeleton {
+  background-image: linear-gradient(
+    100deg,
+    hsl(var(--muted) / 0.4) 30%,
+    hsl(var(--muted) / 0.7) 50%,
+    hsl(var(--muted) / 0.4) 70%
+  );
+  background-size: 200% 100%;
+  animation: globeid-shimmer 1.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .globeid-skeleton {
+    animation: none;
+    background-image: none;
+    background-color: hsl(var(--muted) / 0.5);
+  }
+}

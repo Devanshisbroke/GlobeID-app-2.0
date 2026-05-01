@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { CloudOff, RefreshCw } from "lucide-react";
 import { wireNetworkListener } from "@/lib/nativeBridge";
+import { useUserStore } from "@/store/userStore";
 
 /**
  * Slice-A — full-width offline banner.
@@ -19,6 +20,7 @@ const OfflineBanner: React.FC = () => {
     typeof navigator !== "undefined" ? navigator.onLine : true,
   );
   const [retrying, setRetrying] = useState(false);
+  const queuedCount = useUserStore((s) => s.pendingMutations.length);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,7 +66,9 @@ const OfflineBanner: React.FC = () => {
       <div className="flex items-center gap-2 min-w-0">
         <CloudOff className="w-3.5 h-3.5 shrink-0" />
         <p className="text-[11px] leading-tight truncate">
-          You're offline — changes are queued and will sync when you reconnect.
+          {queuedCount > 0
+            ? `You're offline — ${queuedCount} change${queuedCount === 1 ? "" : "s"} queued, will sync when you reconnect.`
+            : "You're offline — changes will sync when you reconnect."}
         </p>
       </div>
       <button

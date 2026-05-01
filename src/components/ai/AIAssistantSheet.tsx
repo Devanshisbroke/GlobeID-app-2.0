@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAI, AI_SUGGESTIONS } from "@/hooks/useAI";
 import { Send, X, Sparkles } from "lucide-react";
+import { haptics } from "@/utils/haptics";
 
 interface AIAssistantSheetProps {
   open: boolean;
@@ -15,6 +17,14 @@ const AIAssistantSheet: React.FC<AIAssistantSheetProps> = ({
   const { messages, isTyping, sendMessage, clearMessages } = useAI();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  const handleAction = (route?: string) => {
+    if (!route) return;
+    haptics.selection();
+    onOpenChange(false);
+    navigate(route);
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -108,11 +118,13 @@ const AIAssistantSheet: React.FC<AIAssistantSheetProps> = ({
             >
               <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
               {msg.actions && (
-                <div className="flex gap-2 mt-2.5">
+                <div className="flex gap-2 mt-2.5 flex-wrap">
                   {msg.actions.map((a) => (
                     <button
                       key={a.label}
-                      className="text-xs px-3 py-1.5 rounded-full bg-accent/15 text-accent font-semibold hover:bg-accent/25 transition-colors"
+                      type="button"
+                      onClick={() => handleAction(a.route)}
+                      className="text-xs px-3 py-1.5 rounded-full bg-accent/15 text-accent font-semibold hover:bg-accent/25 transition-colors min-h-[36px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
                     >
                       {a.label}
                     </button>

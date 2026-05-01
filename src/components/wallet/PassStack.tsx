@@ -16,11 +16,12 @@
  */
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, Plane, ShieldCheck, CreditCard } from "lucide-react";
+import { FileText, Plane, ShieldCheck, CreditCard, AlertTriangle } from "lucide-react";
 import { spring } from "@/components/ui/v2";
 import type { TravelDocument } from "@/store/userStore";
 import { cn } from "@/lib/utils";
 import { haptics } from "@/utils/haptics";
+import { describeExpiry } from "@/lib/documentExpiry";
 import PassDetail from "./PassDetail";
 
 export interface PassStackProps {
@@ -124,6 +125,9 @@ const PassStack: React.FC<PassStackProps> = ({ documents, className }) => {
                   top: 180 + (depth - 1) * PEEK_Y,
                   height: PEEK_Y,
                   zIndex: 30 - depth,
+                  // Allow vertical page scroll to win over button tap on
+                  // touch devices — taps are still recognised on click.
+                  touchAction: "pan-y",
                 }}
                 whileTap={{ scale: 0.995 }}
               />
@@ -131,32 +135,36 @@ const PassStack: React.FC<PassStackProps> = ({ documents, className }) => {
           );
         })}
 
-        {/* Active pass — top of stack, draggable, tap to expand. */}
-        <motion.button
+        {/* Active pass — top of stack. Tap to expand.
+            NOTE: framer-motion's `drag="y"` was capturing every vertical
+            pointer pan on the card and blocking page scroll on Wallet.
+            Page scroll is more important than drag-to-cycle here — users
+            can still cycle by tapping a peek card or a dot. The expand
+            interaction is via `onTap` which observes taps without
+            capturing the touch stream. */}
+        <motion.div
           key={ordered.head.id}
-          type="button"
+          role="button"
+          tabIndex={0}
           aria-label={`Open ${ordered.head.label} pass`}
           layoutId={`pass-${ordered.head.id}`}
-          className="absolute inset-x-0 top-0 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-          style={{ zIndex: 20 }}
-          drag="y"
-          dragConstraints={{ top: 0, bottom: 40 }}
-          dragElastic={0.25}
-          onDragEnd={(_, info) => {
-            if (info.offset.y > 30 && documents.length > 1) {
-              // swipe down to cycle to next pass
-              haptics.medium();
-              setActiveIdx((i) => (i + 1) % documents.length);
-            }
-          }}
+          className="absolute inset-x-0 top-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-[22px]"
+          style={{ zIndex: 20, touchAction: "pan-y" }}
           onTap={() => {
             haptics.light();
             setExpandedId(ordered.head.id);
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              haptics.light();
+              setExpandedId(ordered.head.id);
+            }
+          }}
           whileTap={{ scale: 0.985 }}
         >
           <PassCard doc={ordered.head} active />
-        </motion.button>
+        </motion.div>
       </div>
 
       <AnimatePresence>
@@ -182,6 +190,7 @@ interface PassCardProps {
 export const PassCard: React.FC<PassCardProps> = ({ doc, active = false }) => {
   const meta = TYPE_META[doc.type];
   const Icon = meta.icon;
+  const expiry = describeExpiry(doc.expiryDate);
   return (
     <div
       className={cn(
@@ -192,6 +201,20 @@ export const PassCard: React.FC<PassCardProps> = ({ doc, active = false }) => {
         active ? "ring-1 ring-white/10" : "ring-1 ring-white/5",
       )}
     >
+      {expiry.severity !== "none" ? (
+        <div
+          aria-label={expiry.label}
+          className={cn(
+            "absolute right-4 top-4 z-10 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium tracking-wide",
+            expiry.severity === "critical"
+              ? "bg-rose-500/95 text-white"
+              : "bg-amber-400/95 text-amber-950",
+          )}
+        >
+          <AlertTriangle className="h-2.5 w-2.5" />
+          {expiry.daysUntil < 0 ? "Expired" : `${expiry.daysUntil}d`}
+        </div>
+      ) : null}
       <div className="flex items-start justify-between text-white">
         <div>
           <p className={cn("text-[10px] uppercase tracking-[0.24em]", meta.accent)}>

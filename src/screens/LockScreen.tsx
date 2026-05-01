@@ -1,22 +1,65 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { demoUser } from "@/lib/demoData";
 import { Fingerprint, ScanLine, Lock } from "lucide-react";
+import { toast } from "sonner";
+import {
+  isBiometricAvailable,
+  requestBiometricAuth,
+} from "@/lib/biometricAuth";
+import { haptics } from "@/utils/haptics";
 
 const LockScreen: React.FC = () => {
   const navigate = useNavigate();
   const [showBiometric, setShowBiometric] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
+  const [biometricSupported, setBiometricSupported] = useState<boolean | null>(null);
   const [showPin, setShowPin] = useState(false);
   const [pin, setPin] = useState("");
 
-  const handleBiometric = () => {
+  useEffect(() => {
+    let cancelled = false;
+    void isBiometricAvailable().then((ok) => {
+      if (!cancelled) setBiometricSupported(ok);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleBiometric = async () => {
     setShowBiometric(true);
     setUnlocking(true);
-    setTimeout(() => {
+    haptics.selection();
+    const result = await requestBiometricAuth(
+      "Unlock GlobeID",
+      "Use your fingerprint or face",
+    );
+    if (result.ok) {
+      haptics.success();
       navigate("/", { replace: true });
-    }, 1500);
+      return;
+    }
+    setUnlocking(false);
+    setShowBiometric(false);
+    if (result.code === "cancelled") return;
+    if (result.code === "unsupported") {
+      toast.error("Biometric auth unavailable on this device");
+      setShowPin(true);
+      return;
+    }
+    if (result.code === "unenrolled") {
+      toast.error("No biometrics enrolled — using PIN");
+      setShowPin(true);
+      return;
+    }
+    if (result.code === "lockout") {
+      toast.error("Biometrics locked. Try again later.");
+      setShowPin(true);
+      return;
+    }
+    toast.error("Authentication failed");
   };
 
   const handlePinEntry = (digit: string) => {
@@ -105,7 +148,11 @@ const LockScreen: React.FC = () => {
         >
           <Fingerprint className={cn("w-10 h-10", unlocking && "text-accent animate-glow-pulse")} />
           <span className="text-xs">
-            {unlocking ? "Verifying..." : "Use Biometrics"}
+            {unlocking
+              ? "Verifying…"
+              : biometricSupported === false
+                ? "Biometrics unavailable"
+                : "Use Biometrics"}
           </span>
         </button>
 

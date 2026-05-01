@@ -59,6 +59,8 @@ const QRBoardingPass: React.FC<QRBoardingPassProps> = ({
       issueDate: new Date().toISOString().slice(0, 10),
       expiryDate: scheduledDate,
       status: "active",
+      tripId,
+      legId,
     });
     toast.success("Boarding pass saved to Wallet");
   };

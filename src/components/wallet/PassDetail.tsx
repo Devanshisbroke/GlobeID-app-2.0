@@ -6,13 +6,31 @@
  * instead of a hard cross-fade. Contains a QR code generated from the
  * doc's number (deterministic — same doc always produces the same QR)
  * and structured key/value rows.
+ *
+ * On native (Capacitor) the screen brightness is ramped to maximum
+ * while the sheet is open so the QR scans cleanly under bright light,
+ * and restored on close. The brightness ramp is best-effort: any
+ * import/permission failure is swallowed so web/dev still renders.
  */
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
-import { X, Calendar, Hash, Flag } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  X,
+  Calendar,
+  Hash,
+  Flag,
+  Copy,
+  AlertTriangle,
+  ExternalLink,
+} from "lucide-react";
 import QRCode from "qrcode";
+import { Capacitor } from "@capacitor/core";
+import { toast } from "sonner";
 import { PassCard } from "./PassStack";
+import { haptics } from "@/utils/haptics";
+import { describeExpiry } from "@/lib/documentExpiry";
 import type { TravelDocument } from "@/store/userStore";
 
 export interface PassDetailProps {
@@ -20,8 +38,43 @@ export interface PassDetailProps {
   onClose: () => void;
 }
 
+/**
+ * Best-effort screen brightness ramp via the optional plugin
+ * `@capacitor-community/screen-brightness`. The plugin is dynamically
+ * imported and any failure is silently ignored so the build doesn't
+ * require the plugin to be installed.
+ */
+async function setBrightness(value: number | null): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+  // Resolve via the Capacitor proxy so we don't import the plugin
+  // package directly. Apps that ship with the optional
+  // `@capacitor-community/screen-brightness` plugin installed get the
+  // real native call; everywhere else this is a silent no-op.
+  type BrightnessPlugin = {
+    setBrightness?: (opts: { brightness: number }) => Promise<unknown>;
+  };
+  const Plugin = (
+    Capacitor as unknown as {
+      Plugins?: Record<string, BrightnessPlugin | undefined>;
+    }
+  ).Plugins?.["ScreenBrightness"];
+  if (!Plugin?.setBrightness) return;
+  try {
+    if (value === null) {
+      await Plugin.setBrightness({ brightness: 0.7 });
+    } else {
+      await Plugin.setBrightness({ brightness: Math.max(0, Math.min(1, value)) });
+    }
+  } catch {
+    /* plugin unavailable or no permission — silent fallback */
+  }
+}
+
 const PassDetail: React.FC<PassDetailProps> = ({ doc, onClose }) => {
   const qrRef = useRef<HTMLCanvasElement | null>(null);
+  const navigate = useNavigate();
+
+  const expiryInfo = useMemo(() => describeExpiry(doc.expiryDate), [doc.expiryDate]);
 
   useEffect(() => {
     if (!qrRef.current) return;
@@ -40,6 +93,33 @@ const PassDetail: React.FC<PassDetailProps> = ({ doc, onClose }) => {
       errorCorrectionLevel: "M",
     });
   }, [doc]);
+
+  // Brightness ramp lifecycle — fire-and-forget; the helper itself is
+  // resilient to missing plugin / permissions.
+  useEffect(() => {
+    void setBrightness(1);
+    return () => {
+      void setBrightness(null);
+    };
+  }, []);
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(doc.number);
+      haptics.medium();
+      toast.success("Code copied");
+    } catch {
+      toast.error("Could not copy code");
+    }
+  };
+
+  const handleViewTrip = () => {
+    const target = doc.tripId ?? doc.legId;
+    if (!target) return;
+    haptics.selection();
+    onClose();
+    navigate(`/trip/${target}`);
+  };
 
   const overlay = (
     <motion.div
@@ -60,7 +140,7 @@ const PassDetail: React.FC<PassDetailProps> = ({ doc, onClose }) => {
         <button
           type="button"
           onClick={onClose}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground active:scale-95"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
           aria-label="Close pass"
         >
           <X className="h-4 w-4" />
@@ -84,12 +164,53 @@ const PassDetail: React.FC<PassDetailProps> = ({ doc, onClose }) => {
           <PassCard doc={doc} active />
         </motion.div>
 
+        {/* Expiry chip — only when ≤30 days or already expired. */}
+        {expiryInfo.severity !== "none" ? (
+          <div
+            className={`mx-auto mt-4 flex max-w-md items-center gap-2 rounded-xl px-3.5 py-2.5 text-[12px] ${
+              expiryInfo.severity === "critical"
+                ? "border border-rose-400/40 bg-rose-500/10 text-rose-200"
+                : expiryInfo.severity === "warning"
+                  ? "border border-amber-400/40 bg-amber-500/10 text-amber-100"
+                  : "border border-border bg-card text-muted-foreground"
+            }`}
+            aria-label={expiryInfo.label}
+          >
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+            <span className="font-medium">{expiryInfo.label}</span>
+          </div>
+        ) : null}
+
         {/* QR */}
         <div className="mx-auto mt-6 flex max-w-md flex-col items-center rounded-[22px] bg-white p-5 shadow-[0_14px_32px_-16px_rgba(0,0,0,0.3)]">
           <canvas ref={qrRef} className="rounded-md" />
           <p className="mt-2 text-[11px] uppercase tracking-widest text-slate-500">
             Scan to verify
           </p>
+        </div>
+
+        {/* Action row */}
+        <div className="mx-auto mt-4 flex max-w-md flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleCopyCode}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-[12px] font-medium text-foreground min-h-[44px] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
+            aria-label="Copy document code"
+          >
+            <Copy className="w-3.5 h-3.5" />
+            Copy code
+          </button>
+          {doc.type === "boarding_pass" && (doc.tripId || doc.legId) ? (
+            <button
+              type="button"
+              onClick={handleViewTrip}
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-[12px] font-medium text-primary-foreground min-h-[44px] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
+              aria-label="View linked trip"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              View trip
+            </button>
+          ) : null}
         </div>
 
         {/* Details */}

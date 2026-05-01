@@ -33,6 +33,11 @@ import { demoUser } from "@/lib/demoData";
 import { cn } from "@/lib/utils";
 import { usePermissions, type PermissionState } from "@/hooks/usePermissions";
 import { LANG_LABELS, SUPPORTED_LANGS, setLanguage, type SupportedLang } from "@/i18n";
+import { resetOnboarding } from "@/lib/onboarding";
+import { haptics } from "@/utils/haptics";
+import { toast } from "sonner";
+
+type SettingAction = "reset-onboarding" | "reset-demo-data";
 
 interface SettingItem {
   icon: React.ElementType;
@@ -40,6 +45,7 @@ interface SettingItem {
   description: string;
   tone?: "neutral" | "brand" | "accent" | "critical";
   route?: string;
+  action?: SettingAction;
 }
 
 const settingSections: { title: string; items: SettingItem[] }[] = [
@@ -111,6 +117,14 @@ const settingSections: { title: string; items: SettingItem[] }[] = [
         label: "Reset Demo Data",
         description: "Clear all sessions & receipts",
         tone: "critical",
+        action: "reset-demo-data",
+      },
+      {
+        icon: RotateCcw,
+        label: "Replay onboarding",
+        description: "Walk through first-run again",
+        tone: "neutral",
+        action: "reset-onboarding",
       },
     ],
   },
@@ -166,6 +180,32 @@ const Profile: React.FC = () => {
   const [demoMode, setDemoMode] = useState(true);
   const { permissions, request } = usePermissions();
   const currentLang = (i18n.language?.slice(0, 2) as SupportedLang) ?? "en";
+
+  const handleItemClick = (item: SettingItem) => {
+    if (item.action === "reset-onboarding") {
+      haptics.medium();
+      resetOnboarding();
+      toast.success("Onboarding reset");
+      navigate("/onboarding");
+      return;
+    }
+    if (item.action === "reset-demo-data") {
+      haptics.medium();
+      try {
+        // Best-effort: drop persisted Zustand stores so the next boot
+        // re-seeds. Keys are namespaced by store name.
+        for (const key of Object.keys(localStorage)) {
+          if (key.startsWith("globeid:")) localStorage.removeItem(key);
+        }
+        toast.success("Demo data cleared — relaunching");
+        setTimeout(() => window.location.assign("/"), 400);
+      } catch {
+        toast.error("Could not reset demo data");
+      }
+      return;
+    }
+    if (item.route) navigate(item.route);
+  };
 
   return (
     <motion.div
@@ -234,12 +274,10 @@ const Profile: React.FC = () => {
                   <Surface
                     variant="plain"
                     radius="surface"
-                    onClick={() =>
-                      item.route ? navigate(item.route) : undefined
-                    }
+                    onClick={() => handleItemClick(item)}
                     className={cn(
                       "flex items-center gap-3 px-4 py-3.5",
-                      item.route && "cursor-pointer",
+                      (item.route || item.action) && "cursor-pointer",
                     )}
                   >
                     <span

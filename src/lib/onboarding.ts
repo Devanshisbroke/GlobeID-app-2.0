@@ -21,3 +21,17 @@ export function hasCompletedOnboarding(): boolean {
     return false;
   }
 }
+
+/**
+ * Clear the onboarding flag. Used by the Settings screen's "Reset
+ * onboarding" affordance — combined with a redirect to /onboarding the
+ * cold-launch flow is replayed exactly as a brand new install would
+ * see it.
+ */
+export function resetOnboarding(): void {
+  try {
+    localStorage.removeItem(ONBOARDED_KEY);
+  } catch {
+    // localStorage can throw in private mode; swallow.
+  }
+}

@@ -32,10 +32,35 @@ import { preprocessForOcr } from "@/lib/ocrPreprocess";
 import { ocrImage } from "@/lib/ocrService";
 import { classifyDocument, parseMrz, type DocumentKind, type MrzFields } from "@/lib/mrzParser";
 import { saveDocument } from "@/lib/documentVault";
+import { mrzFieldsToTravelDocument } from "@/lib/mrzToDocument";
+import { useUserStore } from "@/store/userStore";
 import { usePermissions } from "@/hooks/usePermissions";
+import { haptics } from "@/utils/haptics";
+import { audioCues } from "@/lib/audioFeedback";
 import { toast } from "sonner";
 
 type Mode = "picker" | "qr" | "doc";
+
+const LAST_MODE_KEY = "globeid:scanner:last-mode";
+
+function loadLastMode(): Mode {
+  try {
+    const raw = localStorage.getItem(LAST_MODE_KEY);
+    if (raw === "qr" || raw === "doc") return raw;
+  } catch {
+    /* localStorage may be unavailable */
+  }
+  return "picker";
+}
+
+function persistMode(mode: Mode): void {
+  try {
+    if (mode === "picker") localStorage.removeItem(LAST_MODE_KEY);
+    else localStorage.setItem(LAST_MODE_KEY, mode);
+  } catch {
+    /* ignore */
+  }
+}
 
 interface OcrSummary {
   kind: DocumentKind;
@@ -57,6 +82,8 @@ const KIND_LABEL: Record<DocumentKind, string> = {
 
 const HybridScanner: React.FC = () => {
   const navigate = useNavigate();
+  const addDocument = useUserStore((s) => s.addDocument);
+  const documents = useUserStore((s) => s.documents);
   const [mode, setMode] = useState<Mode>("picker");
   const [qrResult, setQrResult] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -66,6 +93,7 @@ const HybridScanner: React.FC = () => {
   const [capturedDoc, setCapturedDoc] = useState<Blob | null>(null);
   const [passphrase, setPassphrase] = useState("");
   const [savedDocumentId, setSavedDocumentId] = useState<number | null>(null);
+  const [walletDocId, setWalletDocId] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
   const permissions = usePermissions();
@@ -76,6 +104,19 @@ const HybridScanner: React.FC = () => {
       controlsRef.current = null;
     };
   }, []);
+
+  // Restore last-used mode on mount so a power user that always scans
+  // documents skips the picker. Camera permission is still requested
+  // explicitly inside `startQr` / `startDoc` so this never opens the
+  // camera unsolicited.
+  useEffect(() => {
+    const last = loadLastMode();
+    if (last !== "picker") setMode(last);
+  }, []);
+
+  useEffect(() => {
+    persistMode(mode);
+  }, [mode]);
 
   const startQr = async () => {
     if (permissions.permissions.camera !== "granted") {
@@ -186,13 +227,41 @@ const HybridScanner: React.FC = () => {
         ocrText: ocrSummary.text,
       });
       setSavedDocumentId(id);
+      audioCues.success();
       toast.success("Document saved to vault");
     } catch (e) {
+      audioCues.error();
       toast.error(e instanceof Error ? e.message : "Failed to save document");
     } finally {
       setSaving(false);
     }
   };
+
+  /**
+   * Promote a successful MRZ scan to a wallet `TravelDocument` so it
+   * shows up in `Wallet → Documents → PassStack`. The encrypted
+   * vault entry (if the user also entered a passphrase) is the
+   * source of truth for the raw image; this is the surfaced
+   * metadata + QR target. Idempotent on `id`.
+   */
+  const handleAddToWallet = () => {
+    if (!ocrSummary || !ocrSummary.fields) return;
+    const doc = mrzFieldsToTravelDocument({
+      kind: ocrSummary.kind,
+      fields: ocrSummary.fields,
+    });
+    if (!doc) {
+      toast.error("Document type not supported in Wallet yet");
+      return;
+    }
+    haptics.success();
+    addDocument(doc);
+    setWalletDocId(doc.id);
+    toast.success(`Added ${doc.label} to your Wallet`);
+  };
+
+  const alreadyInWallet =
+    walletDocId !== null && documents.some((d) => d.id === walletDocId);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -368,12 +437,28 @@ const HybridScanner: React.FC = () => {
                   MRZ checksum: {ocrSummary.mrzOk ? "passed" : "not available / needs review"}
                 </Text>
                 {ocrSummary.fields ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    <ExtractedField label="Name" value={`${ocrSummary.fields.givenNames} ${ocrSummary.fields.surname}`.trim()} />
-                    <ExtractedField label="Document" value={ocrSummary.fields.documentNumber} />
-                    <ExtractedField label="Nationality" value={ocrSummary.fields.nationality} />
-                    <ExtractedField label="Expires" value={ocrSummary.fields.dateOfExpiry} />
-                  </div>
+                  <>
+                    <div className="grid grid-cols-2 gap-2">
+                      <ExtractedField label="Name" value={`${ocrSummary.fields.givenNames} ${ocrSummary.fields.surname}`.trim()} />
+                      <ExtractedField label="Document" value={ocrSummary.fields.documentNumber} />
+                      <ExtractedField label="Nationality" value={ocrSummary.fields.nationality} />
+                      <ExtractedField label="Expires" value={ocrSummary.fields.dateOfExpiry} />
+                    </div>
+                    <Button
+                      variant={alreadyInWallet ? "secondary" : "primary"}
+                      onClick={handleAddToWallet}
+                      disabled={alreadyInWallet}
+                      leading={alreadyInWallet ? <Check /> : <Save />}
+                      className="w-full"
+                      aria-label={
+                        alreadyInWallet
+                          ? "Document already in wallet"
+                          : "Add scanned document to wallet"
+                      }
+                    >
+                      {alreadyInWallet ? "Added to Wallet" : "Add to Wallet"}
+                    </Button>
+                  </>
                 ) : (
                   <Text variant="caption-1" tone="secondary">
                     No MRZ fields found. The raw OCR text is still available below.

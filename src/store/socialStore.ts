@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 // ── Types ──
 export interface SocialUser {
@@ -119,53 +120,101 @@ interface SocialState {
   unreadCount: () => number;
 }
 
-export const useSocialStore = create<SocialState>((set, get) => ({
-  users: sampleUsers,
-  posts: samplePosts,
-  stories: sampleStories,
-  notifications: sampleNotifications,
-  following: ["u2", "u5"],
-  likedPosts: [],
+export const useSocialStore = create<SocialState>()(
+  persist(
+    (set, get) => ({
+      users: sampleUsers,
+      posts: samplePosts,
+      stories: sampleStories,
+      notifications: sampleNotifications,
+      following: ["u2", "u5"],
+      likedPosts: [],
 
-  getUser: (id) => get().users.find((u) => u.id === id),
+      getUser: (id) => get().users.find((u) => u.id === id),
 
-  toggleFollow: (userId) =>
-    set((s) => ({
-      following: s.following.includes(userId)
-        ? s.following.filter((f) => f !== userId)
-        : [...s.following, userId],
-    })),
+      toggleFollow: (userId) =>
+        set((s) => ({
+          following: s.following.includes(userId)
+            ? s.following.filter((f) => f !== userId)
+            : [...s.following, userId],
+        })),
 
-  toggleLike: (postId) =>
-    set((s) => ({
-      likedPosts: s.likedPosts.includes(postId)
-        ? s.likedPosts.filter((l) => l !== postId)
-        : [...s.likedPosts, postId],
-      posts: s.posts.map((p) =>
-        p.id === postId
-          ? { ...p, likes: s.likedPosts.includes(postId) ? p.likes - 1 : p.likes + 1 }
-          : p
-      ),
-    })),
+      toggleLike: (postId) =>
+        set((s) => ({
+          likedPosts: s.likedPosts.includes(postId)
+            ? s.likedPosts.filter((l) => l !== postId)
+            : [...s.likedPosts, postId],
+          posts: s.posts.map((p) =>
+            p.id === postId
+              ? { ...p, likes: s.likedPosts.includes(postId) ? p.likes - 1 : p.likes + 1 }
+              : p,
+          ),
+        })),
 
-  addComment: (postId, text) =>
-    set((s) => ({
-      posts: s.posts.map((p) =>
-        p.id === postId
-          ? { ...p, comments: [...p.comments, { id: `c-${Date.now()}`, userId: "me", text, createdAt: "now" }] }
-          : p
-      ),
-    })),
+      addComment: (postId, text) =>
+        set((s) => ({
+          posts: s.posts.map((p) =>
+            p.id === postId
+              ? {
+                  ...p,
+                  comments: [
+                    ...p.comments,
+                    { id: `c-${Date.now()}`, userId: "me", text, createdAt: "now" },
+                  ],
+                }
+              : p,
+          ),
+        })),
 
-  markStoryViewed: (storyId) =>
-    set((s) => ({
-      stories: s.stories.map((st) => (st.id === storyId ? { ...st, viewed: true } : st)),
-    })),
+      markStoryViewed: (storyId) =>
+        set((s) => ({
+          stories: s.stories.map((st) =>
+            st.id === storyId ? { ...st, viewed: true } : st,
+          ),
+        })),
 
-  markNotificationRead: (notificationId) =>
-    set((s) => ({
-      notifications: s.notifications.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
-    })),
+      markNotificationRead: (notificationId) =>
+        set((s) => ({
+          notifications: s.notifications.map((n) =>
+            n.id === notificationId ? { ...n, read: true } : n,
+          ),
+        })),
 
-  unreadCount: () => get().notifications.filter((n) => !n.read).length,
-}));
+      unreadCount: () => get().notifications.filter((n) => !n.read).length,
+    }),
+    {
+      name: "globeid:social-store",
+      version: 1,
+      storage: createJSONStorage(() => localStorage),
+      // Only persist mutable user state — sample fixtures stay
+      // canonical so a schema bump doesn't ship stale data.
+      partialize: (s) => ({
+        following: s.following,
+        likedPosts: s.likedPosts,
+        notifications: s.notifications.map((n) => ({ id: n.id, read: n.read })),
+        stories: s.stories.map((st) => ({ id: st.id, viewed: st.viewed })),
+      }),
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<{
+          following: string[];
+          likedPosts: string[];
+          notifications: Array<{ id: string; read: boolean }>;
+          stories: Array<{ id: string; viewed: boolean }>;
+        }>;
+        return {
+          ...current,
+          following: p.following ?? current.following,
+          likedPosts: p.likedPosts ?? current.likedPosts,
+          notifications: current.notifications.map((n) => {
+            const hit = p.notifications?.find((x) => x.id === n.id);
+            return hit ? { ...n, read: hit.read } : n;
+          }),
+          stories: current.stories.map((st) => {
+            const hit = p.stories?.find((x) => x.id === st.id);
+            return hit ? { ...st, viewed: hit.viewed } : st;
+          }),
+        };
+      },
+    },
+  ),
+);
