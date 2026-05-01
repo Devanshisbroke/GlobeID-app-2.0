@@ -36,6 +36,7 @@ import { mrzFieldsToTravelDocument } from "@/lib/mrzToDocument";
 import { useUserStore } from "@/store/userStore";
 import { usePermissions } from "@/hooks/usePermissions";
 import { haptics } from "@/utils/haptics";
+import { audioCues } from "@/lib/audioFeedback";
 import { toast } from "sonner";
 
 type Mode = "picker" | "qr" | "doc";
@@ -226,8 +227,10 @@ const HybridScanner: React.FC = () => {
         ocrText: ocrSummary.text,
       });
       setSavedDocumentId(id);
+      audioCues.success();
       toast.success("Document saved to vault");
     } catch (e) {
+      audioCues.error();
       toast.error(e instanceof Error ? e.message : "Failed to save document");
     } finally {
       setSaving(false);

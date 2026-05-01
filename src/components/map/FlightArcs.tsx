@@ -1,8 +1,11 @@
-import React, { useRef, useMemo } from "react";
+import React, { useRef, useMemo, useCallback } from "react";
 import { useFrame } from "@react-three/fiber";
+import { useNavigate } from "react-router-dom";
 import * as THREE from "three";
 import { getAirport, latLngToVector3, createArcPoints } from "@/lib/airports";
 import { useUserStore, type TravelRecord } from "@/store/userStore";
+import { haptics } from "@/utils/haptics";
+import { toast } from "sonner";
 
 interface FlightArcsProps {
   showHistory: boolean;
@@ -20,7 +23,11 @@ const arcGlowColors: Record<TravelRecord["type"], THREE.Color> = {
   past: new THREE.Color("#5bb8ff"),
 };
 
-const FlightArc: React.FC<{ route: TravelRecord; radius: number }> = ({ route, radius }) => {
+const FlightArc: React.FC<{
+  route: TravelRecord;
+  radius: number;
+  onPick: (id: string) => void;
+}> = ({ route, radius, onPick }) => {
   const glowLineRef = useRef<THREE.Line>(null);
   const coreLineRef = useRef<THREE.Line>(null);
   const planeRef = useRef<THREE.Group>(null);
@@ -85,6 +92,23 @@ const FlightArc: React.FC<{ route: TravelRecord; radius: number }> = ({ route, r
 
   return (
     <group>
+      {/* Invisible pickable tube along the curve so users can tap an
+          arc on the globe to jump straight to that trip's detail. The
+          tube is wide enough (radius 0.012) for forgiving touch picks
+          but `visible={false}` so it doesn't render. */}
+      {curve ? (
+        <mesh
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            haptics.selection();
+            onPick(route.id);
+          }}
+          visible={false}
+        >
+          <tubeGeometry args={[curve, 64, 0.012, 8, false]} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+        </mesh>
+      ) : null}
       {/* Outer glow */}
       <line ref={glowLineRef as React.Ref<THREE.Line>}>
         <bufferGeometry>
@@ -144,14 +168,25 @@ const FlightArc: React.FC<{ route: TravelRecord; radius: number }> = ({ route, r
 
 const FlightArcs: React.FC<FlightArcsProps> = ({ showHistory }) => {
   const travelHistory = useUserStore((s) => s.travelHistory);
+  const navigate = useNavigate();
   const routes = showHistory
     ? travelHistory
     : travelHistory.filter(r => r.type === "upcoming" || r.type === "current");
 
+  const handlePick = useCallback(
+    (id: string) => {
+      const route = travelHistory.find((r) => r.id === id);
+      if (!route) return;
+      toast.success(`→ ${route.from} → ${route.to}`);
+      navigate(`/trip/${encodeURIComponent(id)}`);
+    },
+    [navigate, travelHistory],
+  );
+
   return (
     <group>
       {routes.map(route => (
-        <FlightArc key={route.id} route={route} radius={1} />
+        <FlightArc key={route.id} route={route} radius={1} onPick={handlePick} />
       ))}
     </group>
   );
