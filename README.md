@@ -1,73 +1,103 @@
-# Welcome to your Lovable project
+# GlobeID
 
-## Project info
+Travel identity, wallet, and trip companion — a Capacitor-packaged
+React app that pairs a verifiable identity layer with a multi-currency
+wallet, trip planner, document vault, and a service marketplace.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+The stack is a Vite + React 18 + TypeScript frontend, a Fastify-style
+TypeScript server in `server/`, and a Capacitor 8 Android shell that
+ships the same web bundle inside a WebView.
 
-## How can I edit this code?
+## Highlights
 
-There are several ways of editing your application.
+- **Identity** — verifiable digital passport with QR session linking,
+  identity score, kiosk simulator, and a session timeline.
+- **Wallet** — Apple-Wallet-style stacked passes (`PassStack`),
+  multi-currency balances with on-device FX rates, transaction list,
+  and a recharts spending breakdown.
+- **Trips** — single-source `TravelRecord` store; trip lifecycles
+  (`upcoming` / `active` / `complete`) drive boarding passes, reminders,
+  and a Three.js globe arc preview. Boarding passes are signed
+  HMAC-SHA256 v1 demo payloads (verified by the bundled
+  `KioskSimulator`).
+- **Hybrid scanner** — QR via `@zxing/browser`, document OCR via
+  Tesseract.js, MRZ parsing, plus an encrypted on-device document vault.
+- **Services** — locale-aware service hub with hotels, rides, food,
+  activities, transport, and a "Super" services view.
+- **Voice** — speech-to-text command bar wired to navigation actions
+  via `@capacitor-community/speech-recognition`.
+- **Offline-first** — Dexie/IndexedDB-backed sync engine with retryable
+  pending mutations on `userStore` and `walletStore`.
 
-**Use Lovable**
+## Getting started
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+```bash
+# Node 22 LTS is the development baseline.
+nvm use 22
 
-Changes made via Lovable will be committed automatically to this repo.
+# Install all workspace dependencies (frontend + server).
+npm ci
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the dev server (Vite on http://localhost:8080).
 npm run dev
+
+# Or start the API server.
+npm --workspace globeid-server run dev
 ```
 
-**Edit a file directly in GitHub**
+### Quality gates
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The repo ships with a strict CI baseline. Each of these must pass before
+opening a PR:
 
-**Use GitHub Codespaces**
+```bash
+npm run lint        # eslint, --max-warnings=0
+npm run typecheck   # tsc --noEmit (frontend + server)
+npm test            # vitest run
+npm run build       # vite build
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+`husky` + `lint-staged` enforce the same on every commit.
 
-## What technologies are used for this project?
+### Capacitor / Android
 
-This project is built with:
+The release APK is built by the GitHub Actions workflow
+`.github/workflows/android-apk.yml`. To reproduce locally:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```bash
+npm run build                              # produce dist/
+npx cap sync android                       # copy dist/ + plugins
+cd android && ./gradlew assembleDebug      # requires Android SDK 36
+```
 
-## How can I deploy this project?
+## Project layout
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+```
+src/                    React app (Vite + TS)
+  App.tsx               Router + lazy boundaries
+  components/
+    layout/v2/          AppChromeV2, BottomNavV2, PageTransitionV2
+    wallet/             PassStack, PassCard, PassDetail, currency cards
+    trip/               QRBoardingPass, TripGlobePreview, ItineraryView
+    travel/             TripCard, TripLifecycleBadge
+    identity/           DigitalPassport, IdentityScoreCard, kiosk hooks
+    services/           local services panel, ride/food/etc surfaces
+    ai/                 TravelAssistant + AIAssistantSheet
+  screens/              Top-level routes
+  store/                Zustand stores (user, wallet, lifecycle, ...)
+  lib/                  airports catalog, OCR pipeline, boarding pass HMAC
+  i18n/                 i18next bundle (partial coverage)
+server/                 TypeScript API + sync targets
+shared/                 Schemas + types shared across frontend and server
+android/                Capacitor Android shell
+```
 
-## Can I connect a custom domain to my Lovable project?
+## Notes
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- The boarding-pass QR is **demo-mode only** — verifiable inside
+  `KioskSimulator` but never accepted by a real airline gate. The
+  amber surface marker on every pass is required by the project's
+  "no fake features" rule.
+- Flight statuses on the trip detail view are deterministic mock data
+  derived from the flight number + scheduled date so reloads stay
+  repeatable across sessions.

@@ -266,8 +266,21 @@ const Home: React.FC = () => {
               <Surface
                 variant="elevated"
                 radius="sheet"
-                onClick={() => handleNavigate("/travel")}
-                className="cursor-pointer p-5 space-y-4"
+                role="button"
+                tabIndex={0}
+                aria-label={`Open boarding pass for ${nextTrip.airline} ${nextTrip.flightNumber ?? nextTrip.id}`}
+                onClick={() =>
+                  handleNavigate(`/trip/${encodeURIComponent(nextTrip.id)}`)
+                }
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    handleNavigate(
+                      `/trip/${encodeURIComponent(nextTrip.id)}`,
+                    );
+                  }
+                }}
+                className="cursor-pointer p-5 space-y-4 outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
               >
                 <div className="flex items-center gap-3">
                   <span
