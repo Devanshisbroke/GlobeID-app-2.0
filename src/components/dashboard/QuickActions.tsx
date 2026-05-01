@@ -6,7 +6,7 @@ import { Surface, Text, spring } from "@/components/ui/v2";
 
 const actions = [
   { icon: PlusCircle, label: "Add Trip", route: "/travel" },
-  { icon: ScanLine, label: "Scan ID", route: "/identity" },
+  { icon: ScanLine, label: "Scan ID", route: "/scan" },
   { icon: BrainCircuit, label: "Intel", route: "/intelligence" },
   { icon: Compass, label: "Explorer", route: "/explorer" },
   { icon: FileText, label: "Docs", route: "/wallet" },

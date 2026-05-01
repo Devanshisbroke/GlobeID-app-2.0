@@ -84,12 +84,12 @@ const LockScreen: React.FC = () => {
 
         {/* Scan Passport CTA */}
         <button
-          onClick={() => navigate("/identity")}
+          onClick={() => navigate("/scan")}
           className={cn(
             "relative mt-4 px-8 py-4 rounded-2xl font-semibold text-primary-foreground",
             "bg-gradient-to-r from-primary via-primary to-accent",
             "shadow-[0_0_30px_hsl(var(--neon-cyan)/0.4)]",
-            "transition-all duration-[var(--motion-small)] ease-[var(--ease-out-expo)]",
+            "transition-all duration-300 ease-out",
             "active:scale-95 hover:shadow-[0_0_40px_hsl(var(--neon-cyan)/0.6)]",
             "flex items-center gap-3 min-h-[52px]"
           )}
@@ -126,7 +126,7 @@ const LockScreen: React.FC = () => {
                 <div
                   key={i}
                   className={cn(
-                    "w-3 h-3 rounded-full border border-border transition-colors duration-[var(--motion-micro)]",
+                    "w-3 h-3 rounded-full border border-border transition-colors duration-300",
                     i < pin.length ? "bg-accent" : "bg-transparent"
                   )}
                 />

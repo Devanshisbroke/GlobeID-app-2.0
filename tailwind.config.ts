@@ -133,9 +133,9 @@ export default {
         "fluid-xs":   ["clamp(0.6875rem, 0.62rem + 0.34vw, 0.8125rem)",   { lineHeight: "1.35", letterSpacing: "0.005em" }],
         "fluid-sm":   ["clamp(0.75rem,   0.69rem + 0.34vw, 0.875rem)",    { lineHeight: "1.4",  letterSpacing: "0.003em" }],
         "fluid-base": ["clamp(0.875rem,  0.81rem + 0.34vw, 1rem)",        { lineHeight: "1.5",  letterSpacing: "0" }],
-        "fluid-lg":   ["clamp(1rem,      0.91rem + 0.45vw, 1.125rem)",    { lineHeight: "1.45", letterSpacing: "-0.005em" }],
-        "fluid-xl":   ["clamp(1.125rem,  1rem + 0.6vw, 1.375rem)",        { lineHeight: "1.35", letterSpacing: "-0.01em",  fontWeight: "600" }],
-        "fluid-2xl":  ["clamp(1.375rem,  1.16rem + 1.05vw, 1.875rem)",    { lineHeight: "1.2",  letterSpacing: "-0.015em", fontWeight: "600" }],
+        "fluid-lg":   ["clamp(1rem,      0.91rem + 0.45vw, 1.125rem)",    { lineHeight: "1.45", letterSpacing: "0" }],
+        "fluid-xl":   ["clamp(1.125rem,  1rem + 0.6vw, 1.375rem)",        { lineHeight: "1.35", letterSpacing: "0", fontWeight: "600" }],
+        "fluid-2xl":  ["clamp(1.375rem,  1.16rem + 1.05vw, 1.875rem)",    { lineHeight: "1.2",  letterSpacing: "0", fontWeight: "600" }],
       },
       transitionTimingFunction: {
         /* Phase 7 — non-spring eases */

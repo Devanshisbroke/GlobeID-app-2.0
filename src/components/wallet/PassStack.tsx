@@ -98,33 +98,46 @@ const PassStack: React.FC<PassStackProps> = ({ documents, className }) => {
           const depth = i + 1;
           const origIdx = documents.findIndex((d) => d.id === doc.id);
           return (
-            <motion.button
-              key={doc.id}
-              type="button"
-              aria-label={`Select ${doc.label}`}
-              onClick={() => handlePick(origIdx)}
-              className="absolute inset-x-0"
-              style={{
-                top: depth * PEEK_Y,
-                zIndex: 10 - depth,
-              }}
-              initial={false}
-              animate={{
-                scale: 1 - depth * PEEK_SCALE,
-                opacity: 1 - depth * 0.12,
-              }}
-              transition={spring.default}
-            >
-              <PassCard doc={doc} />
-            </motion.button>
+            <React.Fragment key={doc.id}>
+              <motion.div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0"
+                style={{
+                  top: depth * PEEK_Y,
+                  zIndex: 10 - depth,
+                }}
+                initial={false}
+                animate={{
+                  scale: 1 - depth * PEEK_SCALE,
+                  opacity: 1 - depth * 0.12,
+                }}
+                transition={spring.default}
+              >
+                <PassCard doc={doc} />
+              </motion.div>
+              <motion.button
+                type="button"
+                aria-label={`Select ${doc.label}`}
+                onClick={() => handlePick(origIdx)}
+                className="absolute inset-x-0 rounded-b-[22px] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                style={{
+                  top: 180 + (depth - 1) * PEEK_Y,
+                  height: PEEK_Y,
+                  zIndex: 30 - depth,
+                }}
+                whileTap={{ scale: 0.995 }}
+              />
+            </React.Fragment>
           );
         })}
 
         {/* Active pass — top of stack, draggable, tap to expand. */}
-        <motion.div
+        <motion.button
           key={ordered.head.id}
+          type="button"
+          aria-label={`Open ${ordered.head.label} pass`}
           layoutId={`pass-${ordered.head.id}`}
-          className="absolute inset-x-0 top-0"
+          className="absolute inset-x-0 top-0 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           style={{ zIndex: 20 }}
           drag="y"
           dragConstraints={{ top: 0, bottom: 40 }}
@@ -143,7 +156,7 @@ const PassStack: React.FC<PassStackProps> = ({ documents, className }) => {
           whileTap={{ scale: 0.985 }}
         >
           <PassCard doc={ordered.head} active />
-        </motion.div>
+        </motion.button>
       </div>
 
       <AnimatePresence>

@@ -81,7 +81,7 @@ const COMMANDS: CommandGroup[] = [
     heading: "Quick actions",
     entries: [
       { id: "act-plan", kind: "navigate", path: "/planner", label: "Plan a trip", icon: Sparkles, shortcut: "⌘T", keywords: ["new", "create", "itinerary"] },
-      { id: "act-scan", kind: "navigate", path: "/kiosk-sim", label: "Scan at kiosk", icon: ScanLine, keywords: ["entry", "passport scan", "border"] },
+      { id: "act-scan", kind: "navigate", path: "/scan", label: "Scan ID or QR", icon: ScanLine, keywords: ["entry", "passport scan", "document", "camera", "ocr", "qr"] },
       { id: "act-receipt", kind: "navigate", path: "/receipt", label: "Open last entry receipt", icon: History, keywords: ["receipt", "border", "stamp"] },
       { id: "act-pay", kind: "navigate", path: "/wallet", label: "Add payment method", icon: CreditCard, shortcut: "⌘P", keywords: ["card", "money"] },
       { id: "act-copilot", kind: "navigate", path: "/copilot", label: "Ask Travel Copilot", icon: Sparkles, shortcut: "⌘K K", keywords: ["ai", "chat", "assistant"] },

@@ -51,7 +51,7 @@ const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ countryCode, onComplete
       {/* Flag reveal */}
       <div
         className={cn(
-          "transition-all ease-[cubic-bezier(0.22,1,0.36,1)]",
+          "transition-all ease-out",
           phase === "flag" && "scale-0 opacity-0",
           phase !== "flag" && "scale-100 opacity-100"
         )}
@@ -75,7 +75,7 @@ const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ countryCode, onComplete
       {/* Text */}
       <div
         className={cn(
-          "mt-6 text-center transition-all ease-[cubic-bezier(0.22,1,0.36,1)]",
+          "mt-6 text-center transition-all ease-out",
           (phase === "text" || phase === "exit") ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
         )}
         style={{ transitionDuration: "280ms" }}

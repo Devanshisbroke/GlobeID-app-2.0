@@ -15,6 +15,8 @@ import SecurityStatus from "@/components/identity/SecurityStatus";
 import IdentityScoreCard from "@/components/identity/IdentityScoreCard";
 import IdentityTimeline from "@/components/identity/IdentityTimeline";
 import IdentityMapLayer from "@/components/map/IdentityMapLayer";
+import PassDetail from "@/components/wallet/PassDetail";
+import type { TravelDocument } from "@/store/userStore";
 
 type IdentityTab = "documents" | "timeline" | "security";
 
@@ -44,6 +46,7 @@ const Identity: React.FC = () => {
   const [showLinkSection, setShowLinkSection] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [activeTab, setActiveTab] = useState<IdentityTab>("documents");
+  const [activeDocument, setActiveDocument] = useState<TravelDocument | null>(null);
 
   const {
     status,
@@ -81,6 +84,15 @@ const Identity: React.FC = () => {
           onComplete={handleWelcomeComplete}
         />
       ) : null}
+      <AnimatePresence>
+        {activeDocument ? (
+          <PassDetail
+            key={activeDocument.id}
+            doc={activeDocument}
+            onClose={() => setActiveDocument(null)}
+          />
+        ) : null}
+      </AnimatePresence>
 
       {/* Header */}
       <header className="flex items-center justify-between">
@@ -203,7 +215,12 @@ const Identity: React.FC = () => {
             className="space-y-2"
           >
             {documents.map((doc, i) => (
-              <CredentialCard key={doc.id} doc={doc} index={i} />
+              <CredentialCard
+                key={doc.id}
+                doc={doc}
+                index={i}
+                onTap={() => setActiveDocument(doc)}
+              />
             ))}
           </motion.div>
         </Tabs.Content>

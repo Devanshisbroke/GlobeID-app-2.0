@@ -19,6 +19,8 @@ import {
   Loader2,
   ImageOff,
   Check,
+  Save,
+  Lock,
 } from "lucide-react";
 import { Surface, Button, Text, Pill } from "@/components/ui/v2";
 import {
@@ -28,19 +30,30 @@ import {
 import { capturePhoto } from "@/lib/cameraCapture";
 import { preprocessForOcr } from "@/lib/ocrPreprocess";
 import { ocrImage } from "@/lib/ocrService";
-import { classifyDocument } from "@/lib/mrzParser";
+import { classifyDocument, parseMrz, type DocumentKind, type MrzFields } from "@/lib/mrzParser";
+import { saveDocument } from "@/lib/documentVault";
 import { usePermissions } from "@/hooks/usePermissions";
 import { toast } from "sonner";
 
 type Mode = "picker" | "qr" | "doc";
 
 interface OcrSummary {
-  kind: string;
+  kind: DocumentKind;
   excerpt: string;
+  text: string;
   confidence: number;
   elapsedMs: number;
   edgeDensity: number;
+  mrzOk: boolean;
+  fields: MrzFields | null;
 }
+
+const KIND_LABEL: Record<DocumentKind, string> = {
+  passport: "Passport",
+  visa: "Visa",
+  id_card: "ID card",
+  unknown: "Document",
+};
 
 const HybridScanner: React.FC = () => {
   const navigate = useNavigate();
@@ -48,7 +61,11 @@ const HybridScanner: React.FC = () => {
   const [qrResult, setQrResult] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [ocrSummary, setOcrSummary] = useState<OcrSummary | null>(null);
+  const [capturedDoc, setCapturedDoc] = useState<Blob | null>(null);
+  const [passphrase, setPassphrase] = useState("");
+  const [savedDocumentId, setSavedDocumentId] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
   const permissions = usePermissions();
@@ -113,6 +130,8 @@ const HybridScanner: React.FC = () => {
     }
     setMode("doc");
     setOcrSummary(null);
+    setCapturedDoc(null);
+    setSavedDocumentId(null);
     setProcessing(true);
     try {
       const photo = await capturePhoto();
@@ -120,20 +139,58 @@ const HybridScanner: React.FC = () => {
         setProcessing(false);
         return;
       }
-      const pre = await preprocessForOcr(photo);
-      const ocr = await ocrImage(pre.blob);
+      let ocrInput = photo;
+      let preprocessMs = 0;
+      let edgeDensity = 0;
+      try {
+        const pre = await preprocessForOcr(photo);
+        ocrInput = pre.blob;
+        preprocessMs = pre.elapsedMs;
+        edgeDensity = pre.edgeDensity;
+      } catch {
+        // Keep the scan usable on older mobile WebViews without OffscreenCanvas.
+      }
+      const ocr = await ocrImage(ocrInput);
       const kind = classifyDocument(ocr.text);
+      const mrz = parseMrz(ocr.text);
+      setCapturedDoc(photo);
       setOcrSummary({
         kind,
         excerpt: ocr.text.slice(0, 120),
+        text: ocr.text,
         confidence: ocr.confidence,
-        elapsedMs: ocr.elapsedMs + pre.elapsedMs,
-        edgeDensity: pre.edgeDensity,
+        elapsedMs: ocr.elapsedMs + preprocessMs,
+        edgeDensity,
+        mrzOk: mrz.ok,
+        fields: mrz.fields,
       });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to scan document");
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const handleSaveDocument = async () => {
+    if (!capturedDoc || !ocrSummary) return;
+    if (passphrase.trim().length < 4) {
+      toast.error("Enter a 4+ character vault passphrase");
+      return;
+    }
+    setSaving(true);
+    try {
+      const id = await saveDocument(passphrase, {
+        kind: ocrSummary.kind,
+        label: KIND_LABEL[ocrSummary.kind],
+        imageBlob: capturedDoc,
+        ocrText: ocrSummary.text,
+      });
+      setSavedDocumentId(id);
+      toast.success("Document saved to vault");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save document");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -192,7 +249,7 @@ const HybridScanner: React.FC = () => {
               onClick={() => void startQr()}
             >
               <QrCode className="w-8 h-8 text-brand" />
-              <Text variant="body-strong" tone="primary">
+              <Text variant="body-em" tone="primary">
                 QR code
               </Text>
               <Text variant="caption-2" tone="secondary" align="center">
@@ -207,7 +264,7 @@ const HybridScanner: React.FC = () => {
               onClick={() => void startDoc()}
             >
               <FileText className="w-8 h-8 text-brand" />
-              <Text variant="body-strong" tone="primary">
+              <Text variant="body-em" tone="primary">
                 Document
               </Text>
               <Text variant="caption-2" tone="secondary" align="center">
@@ -240,7 +297,7 @@ const HybridScanner: React.FC = () => {
               >
                 <div className="flex items-center gap-2 mb-1">
                   <Check className="w-4 h-4 text-green-500" />
-                  <Text variant="body-strong" tone="primary">
+                  <Text variant="body-em" tone="primary">
                     Decoded
                   </Text>
                 </div>
@@ -266,7 +323,7 @@ const HybridScanner: React.FC = () => {
               </Button>
               {qrResult && (
                 <Button
-                  variant="default"
+                  variant="primary"
                   onClick={() => {
                     setQrResult(null);
                     void startQr();
@@ -298,19 +355,34 @@ const HybridScanner: React.FC = () => {
               </div>
             )}
             {ocrSummary && (
-              <div className="space-y-2">
-                <Text variant="body-strong" tone="primary">
-                  {ocrSummary.kind.toUpperCase()}
+              <div className="space-y-3">
+                <Text variant="body-em" tone="primary">
+                  {KIND_LABEL[ocrSummary.kind]}
                 </Text>
                 <Text variant="caption-1" tone="secondary">
                   Confidence {Math.round(ocrSummary.confidence)}%, edge density{" "}
                   {(ocrSummary.edgeDensity * 100).toFixed(1)}%,{" "}
                   {Math.round(ocrSummary.elapsedMs)}ms
                 </Text>
+                <Text variant="caption-1" tone={ocrSummary.mrzOk ? "accent" : "warning"}>
+                  MRZ checksum: {ocrSummary.mrzOk ? "passed" : "not available / needs review"}
+                </Text>
+                {ocrSummary.fields ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <ExtractedField label="Name" value={`${ocrSummary.fields.givenNames} ${ocrSummary.fields.surname}`.trim()} />
+                    <ExtractedField label="Document" value={ocrSummary.fields.documentNumber} />
+                    <ExtractedField label="Nationality" value={ocrSummary.fields.nationality} />
+                    <ExtractedField label="Expires" value={ocrSummary.fields.dateOfExpiry} />
+                  </div>
+                ) : (
+                  <Text variant="caption-1" tone="secondary">
+                    No MRZ fields found. The raw OCR text is still available below.
+                  </Text>
+                )}
                 <Surface
                   variant="plain"
                   radius="surface"
-                  className="p-2 mt-2 bg-surface-overlay"
+                  className="p-2 bg-surface-overlay"
                 >
                   <Text
                     variant="caption-2"
@@ -318,8 +390,43 @@ const HybridScanner: React.FC = () => {
                     className="font-mono whitespace-pre-wrap break-all"
                   >
                     {ocrSummary.excerpt}
-                    {ocrSummary.excerpt.length >= 120 ? "…" : ""}
+                    {ocrSummary.excerpt.length >= 120 ? "..." : ""}
                   </Text>
+                </Surface>
+                <Surface
+                  variant="plain"
+                  radius="surface"
+                  className="p-3 space-y-2 bg-surface-overlay"
+                >
+                  <div className="flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-ink-tertiary" />
+                    <Text variant="caption-1" tone="secondary">
+                      Save encrypted copy to document vault
+                    </Text>
+                  </div>
+                  <input
+                    type="password"
+                    value={passphrase}
+                    onChange={(e) => setPassphrase(e.target.value)}
+                    placeholder="Vault passphrase"
+                    className="w-full rounded-p7-input border border-surface-hairline bg-surface-base px-3 py-2 text-p7-callout text-ink-primary outline-none focus:ring-2 focus:ring-[hsl(var(--p7-ring))]"
+                    autoComplete="new-password"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      onClick={() => void handleSaveDocument()}
+                      disabled={saving || savedDocumentId !== null}
+                      loading={saving}
+                      leading={<Save />}
+                    >
+                      {savedDocumentId ? "Saved" : "Save document"}
+                    </Button>
+                    {savedDocumentId ? (
+                      <Button variant="secondary" onClick={() => navigate("/vault")}>
+                        Open vault
+                      </Button>
+                    ) : null}
+                  </div>
                 </Surface>
               </div>
             )}
@@ -329,6 +436,8 @@ const HybridScanner: React.FC = () => {
                 onClick={() => {
                   setMode("picker");
                   setOcrSummary(null);
+                  setCapturedDoc(null);
+                  setSavedDocumentId(null);
                 }}
               >
                 Back to picker
@@ -347,5 +456,16 @@ const HybridScanner: React.FC = () => {
     </div>
   );
 };
+
+const ExtractedField: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+  <Surface variant="plain" radius="input" className="p-2 bg-surface-overlay">
+    <Text variant="caption-2" tone="tertiary" className="uppercase">
+      {label}
+    </Text>
+    <Text variant="caption-1" tone="primary" className="break-words">
+      {value || "Not found"}
+    </Text>
+  </Surface>
+);
 
 export default HybridScanner;

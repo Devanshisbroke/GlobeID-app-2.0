@@ -8,9 +8,9 @@ import { spring } from "@/motion/motionConfig";
 
 const actions = [
   { icon: CreditCard, label: "Quick Pay", path: "/wallet", color: "bg-gradient-brand" },
-  { icon: Scan, label: "Scan ID", path: "/identity", color: "bg-gradient-brand" },
+  { icon: Scan, label: "Scan ID", path: "/scan", color: "bg-gradient-brand" },
   { icon: Plane, label: "Add Trip", path: "/travel", color: "bg-gradient-brand" },
-  { icon: FileText, label: "Add Doc", path: "/wallet", color: "bg-gradient-brand" },
+  { icon: FileText, label: "Add Doc", path: "/scan", color: "bg-gradient-brand" },
 ];
 
 const FAB: React.FC = () => {

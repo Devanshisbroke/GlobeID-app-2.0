@@ -23,7 +23,7 @@ import Home from "@/screens/Home";
 import Identity from "@/screens/Identity";
 import Wallet from "@/screens/Wallet";
 import Travel from "@/screens/Travel";
-import Services from "@/screens/Services";
+import ServicesHub from "@/screens/ServicesHub";
 import GlobalMap from "@/screens/GlobalMap";
 
 // ── Secondary screens: lazy loaded ──
@@ -34,7 +34,6 @@ const EntryReceipt = lazy(() => import("@/screens/EntryReceipt"));
 const TravelTimeline = lazy(() => import("@/screens/TravelTimeline"));
 const TripPlanner = lazy(() => import("@/screens/TripPlanner"));
 const AICopilot = lazy(() => import("@/components/ai/TravelCopilot"));
-const ServicesHub = lazy(() => import("@/screens/ServicesHub"));
 const SuperServicesHub = lazy(() => import("@/screens/SuperServicesHub"));
 const HotelBooking = lazy(() => import("@/screens/services/HotelBooking"));
 const RideBooking = lazy(() => import("@/screens/services/RideBooking"));
@@ -245,7 +244,7 @@ const App = () => {
                         <Route path="/identity" element={<Identity />} />
                         <Route path="/wallet" element={<Wallet />} />
                         <Route path="/travel" element={<Travel />} />
-                        <Route path="/services" element={<Services />} />
+                        <Route path="/services" element={<ServicesHub />} />
                         <Route path="/map" element={<GlobalMap />} />
                         {/* Secondary screens */}
                         <Route path="/profile" element={<Profile />} />
@@ -254,7 +253,7 @@ const App = () => {
                         <Route path="/timeline" element={<TravelTimeline />} />
                         <Route path="/planner" element={<TripPlanner />} />
                         <Route path="/copilot" element={<AICopilot />} />
-                        <Route path="/services/hub" element={<ServicesHub />} />
+                        <Route path="/services/hub" element={<Navigate to="/services" replace />} />
                         <Route path="/services/super" element={<SuperServicesHub />} />
                         <Route path="/services/hotels" element={<HotelBooking />} />
                         <Route path="/services/rides" element={<RideBooking />} />

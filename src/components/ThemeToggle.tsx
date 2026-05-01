@@ -33,7 +33,7 @@ const ThemeToggle: React.FC = () => {
         "w-9 h-9 rounded-xl flex items-center justify-center",
         "glass border border-border/40",
         "text-muted-foreground hover:text-foreground",
-        "transition-all duration-[var(--motion-small)]",
+        "transition-all duration-300",
         "active:scale-90"
       )}
       aria-label="Toggle theme"

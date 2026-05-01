@@ -44,7 +44,7 @@ const QRDisplay: React.FC<QRDisplayProps> = ({
       <div className="relative">
         <div
           className={cn(
-            "rounded-2xl p-3 bg-white transition-all duration-[var(--motion-small)]",
+            "rounded-2xl p-3 bg-white transition-all duration-300",
             isActive && "animate-qr-pulse",
             status === "processing" && "scale-95 opacity-70",
             status === "verified" && "scale-90 opacity-0",

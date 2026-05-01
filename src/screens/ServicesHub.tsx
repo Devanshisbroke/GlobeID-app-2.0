@@ -1,10 +1,9 @@
 import React, { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
-import { detectCurrentLocation, getLocalizedServices, getHotels, getActivities, getTransportOptions } from "@/lib/locationEngine";
-import { demoRideProviders, demoRestaurants } from "@/lib/demoServices";
+import { detectCurrentLocation, getLocalizedServices } from "@/lib/locationEngine";
 import { useServiceFavoritesStore } from "@/store/serviceFavorites";
 import { useWalletStore } from "@/store/walletStore";
 import { getIcon } from "@/lib/iconMap";
@@ -21,6 +20,8 @@ const categoryIcons: Record<string, React.ElementType> = {
 
 const ServicesHub: React.FC = () => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isRootHub = pathname === "/services";
   const location = useMemo(() => detectCurrentLocation(), []);
   const localServices = useMemo(() => getLocalizedServices(location.country), [location.country]);
   const { history, favorites, toggleFavorite } = useServiceFavoritesStore();
@@ -43,13 +44,23 @@ const ServicesHub: React.FC = () => {
     ? localServices.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()) || s.category.includes(search.toLowerCase()))
     : localServices;
 
+  const routeForCategory = (category: string): string => {
+    if (category === "ride") return "/services/rides";
+    if (category === "food") return "/services/food";
+    if (category === "activity" || category === "shopping") return "/services/activities";
+    if (category === "transport") return "/services/transport";
+    return "/services/super";
+  };
+
   return (
     <div className="px-4 py-6 pb-28 space-y-5">
       <AnimatedPage>
         <div className="flex items-center gap-3 mb-1">
-          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl glass border border-border/30 flex items-center justify-center">
-            <ArrowLeft className="w-4 h-4 text-foreground" />
-          </button>
+          {!isRootHub ? (
+            <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl glass border border-border/30 flex items-center justify-center shrink-0">
+              <ArrowLeft className="w-4 h-4 text-foreground" />
+            </button>
+          ) : null}
           <div className="flex-1">
             <h1 className="text-xl font-bold text-foreground">Services</h1>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -74,7 +85,7 @@ const ServicesHub: React.FC = () => {
 
       {/* Quick links grid */}
       <AnimatedPage staggerIndex={1}>
-        <div className="grid grid-cols-6 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
           {quickLinks.map((link) => {
             const Icon = link.icon;
             return (
@@ -103,7 +114,14 @@ const ServicesHub: React.FC = () => {
           const isFav = favorites.includes(svc.id);
           return (
             <AnimatedPage key={svc.id} staggerIndex={i + 2}>
-              <GlassCard className="flex items-center gap-3" depth="md">
+              <GlassCard
+                className="flex items-center gap-3 cursor-pointer"
+                depth="md"
+                onClick={() => {
+                  navigate(routeForCategory(svc.category));
+                  haptics.selection();
+                }}
+              >
                 <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-depth-sm", svc.gradient)}>
                   <Icon className="w-5 h-5 text-primary-foreground" strokeWidth={1.8} />
                 </div>
@@ -114,9 +132,11 @@ const ServicesHub: React.FC = () => {
                 <button
                   onClick={(e) => { e.stopPropagation(); toggleFavorite(svc.id); haptics.selection(); }}
                   className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/5 transition-colors"
+                  aria-label={isFav ? `Remove ${svc.name} from favorites` : `Favorite ${svc.name}`}
                 >
                   <Heart className={cn("w-4 h-4", isFav ? "fill-destructive text-destructive" : "text-muted-foreground")} />
                 </button>
+                <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
               </GlassCard>
             </AnimatedPage>
           );

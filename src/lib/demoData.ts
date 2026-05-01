@@ -113,7 +113,7 @@ export const demoActivity: ActivityItem[] = [
 ];
 
 export const quickActions = [
-  { id: "qa-1", label: "Scan Passport", icon: "scan-line", route: "/identity" },
+  { id: "qa-1", label: "Scan Passport", icon: "scan-line", route: "/scan" },
   { id: "qa-2", label: "Send Payment", icon: "banknote", route: "/wallet" },
   { id: "qa-3", label: "Book Flight", icon: "plane", route: "/travel" },
   { id: "qa-4", label: "Book Hotel", icon: "hotel", route: "/travel" },

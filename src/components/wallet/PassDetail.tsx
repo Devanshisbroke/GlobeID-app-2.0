@@ -8,6 +8,7 @@
  * and structured key/value rows.
  */
 import React, { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { X, Calendar, Hash, Flag } from "lucide-react";
 import QRCode from "qrcode";
@@ -40,19 +41,22 @@ const PassDetail: React.FC<PassDetailProps> = ({ doc, onClose }) => {
     });
   }, [doc]);
 
-  return (
+  const overlay = (
     <motion.div
-      className="fixed inset-0 z-50 flex flex-col bg-background/95 backdrop-blur-xl"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.24 }}
+      className="fixed inset-0 z-[100] flex min-h-[100dvh] w-screen flex-col bg-background/95 backdrop-blur-xl"
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.36, ease: [0.32, 0.72, 0, 1] }}
       role="dialog"
       aria-modal="true"
       aria-label={`${doc.label} pass`}
     >
       {/* Header — close button */}
-      <div className="flex items-center justify-between px-5 pt-[env(safe-area-inset-top)] pb-3 pt-3">
+      <div
+        className="flex items-center justify-between px-5 pb-3"
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.75rem)" }}
+      >
         <button
           type="button"
           onClick={onClose}
@@ -67,7 +71,10 @@ const PassDetail: React.FC<PassDetailProps> = ({ doc, onClose }) => {
         <span className="h-9 w-9" />
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 pb-8">
+      <div
+        className="flex-1 overflow-y-auto px-5 pb-8"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 2rem)" }}
+      >
         {/* Hero pass, morphed from the stack via layoutId. */}
         <motion.div
           layoutId={`pass-${doc.id}`}
@@ -112,6 +119,8 @@ const PassDetail: React.FC<PassDetailProps> = ({ doc, onClose }) => {
       </div>
     </motion.div>
   );
+
+  return createPortal(overlay, document.body);
 };
 
 interface RowProps {

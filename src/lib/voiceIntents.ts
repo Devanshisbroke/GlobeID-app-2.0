@@ -33,8 +33,12 @@ const RULES: Rule[] = [
     build: () => ({ kind: "navigate", path: "/wallet", label: "Wallet" }),
   },
   {
-    re: /\b(go to|open|show)\s+(identity|passport|vault)\b/,
-    build: () => ({ kind: "navigate", path: "/vault", label: "Identity vault" }),
+    re: /\b(go to|open|show)\s+(identity|passport)\b/,
+    build: () => ({ kind: "navigate", path: "/identity", label: "Identity" }),
+  },
+  {
+    re: /\b(go to|open|show)\s+(document\s+vault|vault|documents)\b/,
+    build: () => ({ kind: "navigate", path: "/vault", label: "Document vault" }),
   },
   {
     re: /\b(go to|open|show)\s+(services|super|hub)\b/,
@@ -53,8 +57,12 @@ const RULES: Rule[] = [
     build: () => ({ kind: "navigate", path: "/profile", label: "Profile" }),
   },
   {
-    re: /\b(go to|open|show)\s+(map|globe|planet)\b/,
-    build: () => ({ kind: "navigate", path: "/planet", label: "Planet Explorer" }),
+    re: /\b(go to|open|show)\s+(map|globe)\b/,
+    build: () => ({ kind: "navigate", path: "/map", label: "Map" }),
+  },
+  {
+    re: /\b(go to|open|show)\s+planet\b/,
+    build: () => ({ kind: "navigate", path: "/explorer", label: "Planet Explorer" }),
   },
   // Actions
   {

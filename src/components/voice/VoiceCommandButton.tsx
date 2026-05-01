@@ -27,8 +27,8 @@ const VoiceCommandButton: React.FC = () => {
           toast.info("Refreshing…");
           window.location.reload();
         } else if (intent.action === "start-scan") {
-          navigate("/vault");
-          toast.success("→ Document vault");
+          navigate("/scan");
+          toast.success("→ Scanner");
         } else if (intent.action === "toggle-language") {
           const cur = currentLanguage();
           const idx = SUPPORTED_LANGS.indexOf(cur);
