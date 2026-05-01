@@ -7,21 +7,17 @@ import { spring } from "@/lib/motion-tokens";
 import { haptics } from "@/utils/haptics";
 
 /**
- * BottomNav v2 — Phase 7 PR-γ.
+ * BottomNav v2 — 6-tab persistent bottom navigation.
  *
- * Restyled 6-tab bottom navigation. Differs from the legacy `BottomTabBar`:
- *  - Surface is true v2 glass (`--p7-glass-tint` + blur) — chrome-only use,
- *    not the same blur class as the legacy `glass-premium`.
+ *  - Surface is v2 glass (`--p7-glass-tint` + blur) — chrome-only use.
  *  - Active tab marker is a single shared-layout pill that springs between
- *    triggers via motion's `layoutId` (PR-β review-fix scopes layoutId per
- *    component instance, so multiple navs on screen don't cross-animate).
- *  - Icon weight is uniform (1.6) when inactive, 2.0 when active — no
- *    drop-shadow neon tic.
+ *    triggers via motion's `layoutId` (scoped per component instance so
+ *    multiple navs on screen never cross-animate).
+ *  - Icon weight is uniform (1.6) when inactive, 2.0 when active.
  *  - Label always renders below the icon. Active label is brand sapphire.
  *  - Hairline top border + safe-area-aware bottom padding for Android edge.
  *
- * The route list is identical to the legacy nav (Home / Identity / Wallet /
- * Travel / Map / Services) so this is a drop-in replacement.
+ * Tabs: Home / Identity / Wallet / Travel / Map / Services.
  */
 
 const tabs = [

@@ -1,10 +1,10 @@
 /**
- * Phase 7 PR-γ — v2 layout barrel.
+ * v2 layout barrel — primary chrome surface for the app.
  *
- * The v2 chrome is parallel to the legacy `src/components/layout/AppShell.tsx`
- * during the migration window. App.tsx imports `AppChromeV2` here; legacy
- * AppShell.tsx remains on disk for back-compat reference until PR-ζ removes
- * it in the final cleanup pass.
+ * The legacy `AppShell.tsx`, `BottomTabBar.tsx`, and `PageTransition.tsx`
+ * variants were removed once every screen migrated to the v2 system.
+ * `AppChromeV2` is the only chrome wrapper used in `App.tsx`; everything
+ * else here is a re-export so screens can import from a single barrel.
  */
 
 export { default as AppChromeV2 } from "./AppChrome";

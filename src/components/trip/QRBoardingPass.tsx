@@ -1,8 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
-import { Plane, AlertCircle, User, Calendar, Hash } from "lucide-react";
+import { Plane, AlertCircle, User, Calendar, Hash, Wallet, Check } from "lucide-react";
 import { issueBoardingPass, type BoardingPassPayload } from "@/lib/boardingPass";
 import { cn } from "@/lib/utils";
+import { useUserStore } from "@/store/userStore";
+import { getAirport } from "@/lib/airports";
+import { haptics } from "@/utils/haptics";
+import { toast } from "sonner";
 
 export interface QRBoardingPassProps {
   passenger: string;
@@ -15,6 +19,10 @@ export interface QRBoardingPassProps {
   legId: string;
   tripId: string | null;
   className?: string;
+}
+
+function passDocumentId(legId: string): string {
+  return `bp-${legId}`;
 }
 
 const QRBoardingPass: React.FC<QRBoardingPassProps> = ({
@@ -32,6 +40,28 @@ const QRBoardingPass: React.FC<QRBoardingPassProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [payload, setPayload] = useState<BoardingPassPayload | null>(null);
+  const documentId = passDocumentId(legId);
+  const documents = useUserStore((s) => s.documents);
+  const addDocument = useUserStore((s) => s.addDocument);
+  const inWallet = documents.some((d) => d.id === documentId);
+
+  const handleAddToWallet = () => {
+    if (inWallet) return;
+    const toAirport = getAirport(toIata);
+    haptics.success();
+    addDocument({
+      id: documentId,
+      type: "boarding_pass",
+      label: `${airline} ${flightNumber}`,
+      country: toAirport?.country ?? toIata,
+      countryFlag: "✈️",
+      number: flightNumber,
+      issueDate: new Date().toISOString().slice(0, 10),
+      expiryDate: scheduledDate,
+      status: "active",
+    });
+    toast.success("Boarding pass saved to Wallet");
+  };
 
   // `issueBoardingPass` is async (HMAC-SHA256 via Web Crypto) and stamps
   // `iat: Date.now()` into the payload, so we sign once on identity-shaping
@@ -187,6 +217,46 @@ const QRBoardingPass: React.FC<QRBoardingPassProps> = ({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Add-to-wallet action — wires the trip → wallet system per Phase 24
+          (full system cohesion). Saves an idempotent TravelDocument so the
+          pass shows up in `Wallet → Documents → PassStack`. */}
+      <div className="px-4 py-2.5 border-t border-border flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <Wallet className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+          <p className="text-[11px] text-muted-foreground truncate">
+            {inWallet ? "Saved to your Wallet" : "Save to Wallet for offline access"}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleAddToWallet}
+          disabled={inWallet}
+          aria-label={
+            inWallet
+              ? "Boarding pass already in wallet"
+              : "Add boarding pass to wallet"
+          }
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold",
+            "transition-colors duration-150 ease-out",
+            "outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]",
+            inWallet
+              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 cursor-default"
+              : "bg-primary text-primary-foreground hover:opacity-90 active:scale-[0.97]",
+          )}
+        >
+          {inWallet ? (
+            <>
+              <Check className="w-3.5 h-3.5" /> In Wallet
+            </>
+          ) : (
+            <>
+              <Wallet className="w-3.5 h-3.5" /> Add to Wallet
+            </>
+          )}
+        </button>
       </div>
 
       {/* Required surface marker — non-removable per Phase 9 rules */}

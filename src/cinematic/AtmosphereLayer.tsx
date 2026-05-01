@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 import { useReducedEffects } from "@/hooks/useReducedEffects";
 
 /**
- * AtmosphereLayer — subtle ambient particles + glow orbs behind UI
- * Renders as a fixed full-screen layer. Use inside AppShell.
+ * AtmosphereLayer — subtle ambient particles + glow orbs behind UI.
+ * Renders as a fixed full-screen layer. Used inside `AppChromeV2`.
  *
  * On mobile / Capacitor / reduced-motion devices the layer falls back to
  * a small set of static-looking blurred orbs and skips the per-particle

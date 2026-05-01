@@ -11,22 +11,16 @@ import OfflineBanner from "@/components/layout/OfflineBanner";
 import CommandPaletteProvider from "./CommandPalette";
 
 /**
- * AppChrome v2 — Phase 7 PR-γ.
+ * AppChrome v2 — primary chrome wrapper for every routed screen.
  *
- * Persistent shell that wraps every routed screen. Replaces the Phase 6
- * `AppShell.tsx`. Differences:
- *  - Uses `BottomNavV2` (v2 glass surface + sliding indicator) instead of
- *    the legacy `BottomTabBar`.
- *  - Uses `PageTransitionV2` (motion@12, prefers-reduced-motion aware)
- *    instead of the legacy framer-motion `PageTransition`.
- *  - Adds `CommandPaletteProvider` so Cmd+K is reachable from any screen.
+ * Composes the v2 design system:
+ *  - `BottomNavV2`         — v2 glass surface + shared-layout active pill.
+ *  - `PageTransitionV2`    — motion@12, prefers-reduced-motion aware.
+ *  - `CommandPaletteProvider` — Cmd+K reachable from any screen.
+ *  - `FAB`, `AIAssistantButton`, `VoiceCommandButton`, `ThemeToggle`,
+ *    `SyncBadge`, `OfflineBanner`, `AtmosphereLayer` — shared chrome.
  *
- * The screen-level chrome (FAB, AIAssistantButton, theme toggle, sync badge,
- * atmosphere layer) is preserved as-is to avoid touching unrelated surfaces
- * in PR-γ. Their visual migration to v2 happens in PR-δ / PR-ε / PR-ζ.
- *
- * `AppChrome` is exported as a default named component so the App router
- * can use it as a layout element. See `src/App.tsx` for wiring.
+ * Exported as the default so `src/App.tsx` can use it as the route element.
  */
 
 interface AppChromeProps {

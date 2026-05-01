@@ -1,25 +1,56 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Plane, Clock, Calendar } from "lucide-react";
 import { Surface, Pill, Text } from "@/components/ui/v2";
 import { getAirport } from "@/lib/airports";
 import { cn } from "@/lib/utils";
 import { formatTripDate, type TravelRecord } from "@/store/userStore";
+import { haptics } from "@/utils/haptics";
 
 interface TripCardProps {
   trip: TravelRecord;
   className?: string;
+  /** Override the default navigation. When omitted the card opens
+   *  `/trip/:tripId` so taps are never dead-ends. */
+  onClick?: () => void;
 }
 
-const TripCard: React.FC<TripCardProps> = ({ trip, className }) => {
+const TripCard: React.FC<TripCardProps> = ({ trip, className, onClick }) => {
+  const navigate = useNavigate();
   const fromAirport = getAirport(trip.from);
   const toAirport = getAirport(trip.to);
   const isUpcoming = trip.type === "upcoming" || trip.type === "current";
+
+  const handleClick = () => {
+    haptics.selection();
+    if (onClick) {
+      onClick();
+      return;
+    }
+    navigate(`/trip/${encodeURIComponent(trip.id)}`);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleClick();
+    }
+  };
 
   return (
     <Surface
       variant={isUpcoming ? "elevated" : "plain"}
       radius="surface"
-      className={cn("p-3.5 cursor-pointer transition-transform active:scale-[0.99]", className)}
+      role="button"
+      tabIndex={0}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      aria-label={`Open trip ${trip.from} to ${trip.to}`}
+      className={cn(
+        "p-3.5 cursor-pointer transition-transform active:scale-[0.99] outline-none",
+        "focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]",
+        className,
+      )}
     >
       <div className="flex items-center gap-3">
         <div

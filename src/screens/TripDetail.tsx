@@ -8,6 +8,7 @@ import QRBoardingPass from "@/components/trip/QRBoardingPass";
 import TripGlobePreview from "@/components/trip/TripGlobePreview";
 import { useLifecycleStore } from "@/store/lifecycleStore";
 import { useUserStore } from "@/store/userStore";
+import { travelRecordToLifecycle } from "@/lib/tripLifecycle";
 import type { TripLifecycle } from "@shared/types/lifecycle";
 
 function todayIso(): string {
@@ -21,6 +22,7 @@ const TripDetail: React.FC = () => {
   const status = useLifecycleStore((s) => s.status);
   const hydrate = useLifecycleStore((s) => s.hydrate);
   const profile = useUserStore((s) => s.profile);
+  const travelHistory = useUserStore((s) => s.travelHistory);
 
   useEffect(() => {
     if (status === "idle") hydrate().catch(() => undefined);
@@ -31,8 +33,16 @@ const TripDetail: React.FC = () => {
     if (tripId === "adhoc") {
       return trips.find((t) => t.tripId === null) ?? null;
     }
-    return trips.find((t) => t.tripId === tripId) ?? null;
-  }, [tripId, trips]);
+    const lifecycleHit = trips.find((t) => t.tripId === tripId);
+    if (lifecycleHit) return lifecycleHit;
+    // Fallback: a TripCard rendered from `userStore.travelHistory`
+    // navigates here with the source `TravelRecord.id` (e.g. `tr-f1`).
+    // Synthesise a single-leg lifecycle so the same detail view still
+    // renders meaningfully — boarding pass + globe arc + summary tiles.
+    const recordHit = travelHistory.find((r) => r.id === tripId);
+    if (recordHit) return travelRecordToLifecycle(recordHit);
+    return null;
+  }, [tripId, trips, travelHistory]);
 
   const today = todayIso();
 
