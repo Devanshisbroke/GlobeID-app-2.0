@@ -13,6 +13,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { Surface, Button, Pill, Tabs, Text, spring } from "@/components/ui/v2";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { useUserStore } from "@/store/userStore";
 import { useWalletStore } from "@/store/walletStore";
 import PassStack from "@/components/wallet/PassStack";
@@ -179,10 +180,13 @@ const Wallet: React.FC = () => {
               tone="primary"
               className="mt-1 tabular-nums"
             >
-              ${totalUSD.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              <AnimatedNumber
+                value={totalUSD}
+                decimals={2}
+                prefix="$"
+                duration={650}
+                ariaLabel={`Total balance ${totalUSD.toFixed(2)} US dollars`}
+              />
             </Text>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               <Button
