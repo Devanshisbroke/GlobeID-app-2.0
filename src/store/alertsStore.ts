@@ -42,6 +42,11 @@ interface AlertsState {
   hydrate: () => Promise<void>;
   drainPendingMutations: () => Promise<void>;
   unreadCount: () => number;
+  /** Push a locally-derived alert (e.g. nightly expiry check, weekly
+   *  digest). Idempotent on `id` — repeated calls update in place. */
+  pushLocal: (
+    alert: Omit<TravelAlert, "timestamp" | "source"> & { timestamp?: string },
+  ) => void;
 }
 
 const CATEGORY_TO_TYPE: Record<BackendAlert["category"], TravelAlert["type"]> = {
@@ -183,6 +188,24 @@ export const useAlertsStore = create<AlertsState>()(
       },
 
       unreadCount: () => get().alerts.filter((a) => !a.read).length,
+
+      pushLocal: (alert) => {
+        const ts = alert.timestamp ?? "just now";
+        set((state) => {
+          const existingIdx = state.alerts.findIndex((a) => a.id === alert.id);
+          const next: TravelAlert = {
+            ...alert,
+            timestamp: ts,
+            source: "system",
+          };
+          if (existingIdx >= 0) {
+            const copy = state.alerts.slice();
+            copy[existingIdx] = next;
+            return { alerts: copy };
+          }
+          return { alerts: [next, ...state.alerts] };
+        });
+      },
     }),
     {
       name: "globe-alerts",
