@@ -1,7 +1,7 @@
 import React, { lazy, Suspense, useMemo, useState } from "react";
 import { orderPasses } from "@/lib/passOrdering";
 import { useVisibleClock } from "@/hooks/useVisibleClock";
-import { motion } from "motion/react";
+import { motion, useScroll, useTransform } from "motion/react";
 import {
   ArrowUpRight,
   ArrowDownLeft,
@@ -117,8 +117,25 @@ const Wallet: React.FC = () => {
     setActivePanel((current) => (current === panel ? null : panel));
   };
 
+  // Parallax: scroll position drives a subtle Y translation on a
+  // decorative atmosphere layer pinned behind the wallet content,
+  // so cards drift past a slower-moving background. GPU-only
+  // (transform), so 120Hz friendly. useScroll defaults to window
+  // scroll which is what AppChrome scrolls.
+  const { scrollY } = useScroll();
+  const atmoY = useTransform(scrollY, [0, 600], [0, -90]);
+
   return (
-    <div className="px-4 py-6 space-y-5">
+    <div className="relative px-4 py-6 space-y-5">
+      {/* Decorative atmosphere — drifts slower than the foreground.
+          Pointer-events none so it never intercepts taps. */}
+      <motion.div
+        aria-hidden
+        style={{ y: atmoY }}
+        className="pointer-events-none absolute inset-x-0 -top-24 h-[420px] -z-10
+          bg-[radial-gradient(ellipse_at_top,hsl(var(--brand)/0.18)_0%,transparent_60%)]
+          motion-reduce:hidden"
+      />
       <Tabs value={walletTab} onValueChange={handleTabChange}>
         <Tabs.List variant="segmented" className="w-full">
           <Tabs.Trigger value="balance" className="flex-1">

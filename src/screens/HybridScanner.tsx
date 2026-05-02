@@ -147,6 +147,12 @@ const HybridScanner: React.FC = () => {
           ctrl.stop();
           controlsRef.current = null;
           setScanning(false);
+          // Pass scan haptic — subtle "did you copy that" pulse
+          // matches Apple Wallet's behaviour when a pass is read at
+          // the gate. Best-effort, swallows errors on unsupported
+          // platforms.
+          haptics.medium();
+          audioCues.success();
           setQrResult(result.getText());
         },
       );
