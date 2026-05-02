@@ -1,4 +1,6 @@
-import React, { lazy, Suspense, useState } from "react";
+import React, { lazy, Suspense, useMemo, useState } from "react";
+import { orderPasses } from "@/lib/passOrdering";
+import { useVisibleClock } from "@/hooks/useVisibleClock";
 import { motion } from "motion/react";
 import {
   ArrowUpRight,
@@ -82,6 +84,13 @@ const countryCurrency: Record<string, string> = {
  */
 const Wallet: React.FC = () => {
   const { documents } = useUserStore();
+  // Re-evaluate auto-pin every minute so a pass that crosses the
+  // 24h-to-departure threshold bubbles to the top without a refresh.
+  const now = useVisibleClock(60_000);
+  const orderedDocuments = useMemo(
+    () => orderPasses(documents, now),
+    [documents, now],
+  );
   const { balances, transactions, defaultCurrency, activeCountry } =
     useWalletStore();
   const [walletTab, setWalletTab] = useState<WalletTab>("balance");
@@ -260,7 +269,7 @@ const Wallet: React.FC = () => {
           >
             Travel Passes
           </Text>
-          <PassStack documents={documents} />
+          <PassStack documents={orderedDocuments} />
           <Text
             variant="caption-2"
             tone="tertiary"

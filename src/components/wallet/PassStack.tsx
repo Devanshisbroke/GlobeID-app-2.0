@@ -22,6 +22,7 @@ import type { TravelDocument } from "@/store/userStore";
 import { cn } from "@/lib/utils";
 import { haptics } from "@/utils/haptics";
 import { describeExpiry } from "@/lib/documentExpiry";
+import { brandForBoardingPass } from "@/lib/airlineBrand";
 import PassDetail from "./PassDetail";
 
 export interface PassStackProps {
@@ -209,12 +210,17 @@ export const PassCard: React.FC<PassCardProps> = ({ doc, active = false }) => {
   const meta = TYPE_META[doc.type];
   const Icon = meta.icon;
   const expiry = describeExpiry(doc.expiryDate);
+  // Boarding-pass cards adopt the carrier's brand gradient (real Apple
+  // / Google Wallet behaviour). Other doc types keep their semantic hue.
+  const brand = doc.type === "boarding_pass" ? brandForBoardingPass(doc) : null;
+  const hueClasses = brand?.gradient ?? meta.hue;
+  const accentClass = brand?.accent ?? meta.accent;
   return (
     <div
       className={cn(
         "relative w-full overflow-hidden rounded-[22px] p-5",
         "bg-gradient-to-br",
-        meta.hue,
+        hueClasses,
         "shadow-[0_18px_40px_-20px_rgba(0,0,0,0.45)]",
         active ? "ring-1 ring-white/10" : "ring-1 ring-white/5",
       )}
@@ -235,7 +241,7 @@ export const PassCard: React.FC<PassCardProps> = ({ doc, active = false }) => {
       ) : null}
       <div className="flex items-start justify-between text-white">
         <div>
-          <p className={cn("text-[10px] uppercase tracking-[0.24em]", meta.accent)}>
+          <p className={cn("text-[10px] uppercase tracking-[0.24em]", accentClass)}>
             {doc.label}
           </p>
           <p className="mt-1 text-lg font-medium leading-tight">{doc.country}</p>
