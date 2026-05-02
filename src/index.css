@@ -361,11 +361,15 @@
     -webkit-overflow-scrolling: touch;
     /* Phase 9-α: prevent any rogue full-bleed element (long unbroken IDs,
        a wide motion canvas, an SVG with absolute width) from forcing the
-       whole document into horizontal scroll on a 320 px iPhone SE. The
-       AppChrome already caps to `max-w-lg` and clips its own overflow,
-       but the body-level guard catches anything fixed/absolute that
-       escapes the container. */
-    overflow-x: hidden;
+       whole document into horizontal scroll on a 320 px iPhone SE.
+       `overflow-x: clip` is critical here: the older `overflow-x: hidden`
+       implicitly promotes `overflow-y: visible` → `overflow-y: auto` per
+       the CSS spec, which created a nested scroll container on body and
+       #root and broke vertical page scroll on touch devices (the
+       Wallet stack scroll bug). `clip` clips without forcing a scroll
+       context. */
+    overflow-x: clip;
+    overflow-y: visible;
   }
 
   html,
@@ -373,7 +377,8 @@
   #root {
     width: 100%;
     min-height: 100%;
-    overflow-x: hidden;
+    overflow-x: clip;
+    overflow-y: visible;
   }
 
   button,
