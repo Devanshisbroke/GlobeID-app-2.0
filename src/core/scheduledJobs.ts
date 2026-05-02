@@ -30,12 +30,79 @@ import { useWalletStore } from "@/store/walletStore";
 import { describeExpiry } from "@/lib/documentExpiry";
 
 const STORAGE_KEY = "globeid:scheduledJobs";
+const PREFS_KEY = "globeid:scheduledJobs:prefs";
 const DAY_MS = 86_400_000;
 const WEEK_MS = 7 * DAY_MS;
 
 interface JobState {
   lastNightly?: number;
   lastWeekly?: number;
+}
+
+/**
+ * Quiet hours window — local-time hours 0–23 inclusive on either end.
+ * If `startHour <= endHour`, it's a same-day window (e.g. 22→6 spans
+ * midnight, but 13→17 is afternoon). When unset, no quiet window
+ * applies and jobs are free to run any time.
+ */
+export interface QuietHoursPrefs {
+  enabled: boolean;
+  startHour: number;
+  endHour: number;
+}
+
+const DEFAULT_QUIET: QuietHoursPrefs = { enabled: true, startHour: 22, endHour: 7 };
+
+function readQuietPrefs(): QuietHoursPrefs {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (!raw) return DEFAULT_QUIET;
+    const parsed = JSON.parse(raw) as Partial<QuietHoursPrefs>;
+    return {
+      enabled: parsed.enabled ?? DEFAULT_QUIET.enabled,
+      startHour:
+        typeof parsed.startHour === "number" && parsed.startHour >= 0 && parsed.startHour <= 23
+          ? parsed.startHour
+          : DEFAULT_QUIET.startHour,
+      endHour:
+        typeof parsed.endHour === "number" && parsed.endHour >= 0 && parsed.endHour <= 23
+          ? parsed.endHour
+          : DEFAULT_QUIET.endHour,
+    };
+  } catch {
+    return DEFAULT_QUIET;
+  }
+}
+
+export function setQuietHours(prefs: QuietHoursPrefs): void {
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function getQuietHours(): QuietHoursPrefs {
+  return readQuietPrefs();
+}
+
+/**
+ * True when `now` (a unix ms) sits inside the user's quiet-hours window.
+ * A window from 22→7 means "10pm to 7am next morning"; a window from
+ * 13→17 means 1pm to 5pm same day. Local-time evaluation matches what
+ * the user sees on their wall clock.
+ */
+export function isQuietHour(now: number = Date.now()): boolean {
+  const prefs = readQuietPrefs();
+  if (!prefs.enabled) return false;
+  const hour = new Date(now).getHours();
+  const { startHour, endHour } = prefs;
+  if (startHour === endHour) return false; // disabled implicitly
+  if (startHour < endHour) {
+    return hour >= startHour && hour < endHour;
+  }
+  // Wraps midnight, e.g. 22 → 7
+  return hour >= startHour || hour < endHour;
 }
 
 function readState(): JobState {
@@ -146,6 +213,10 @@ let timer: ReturnType<typeof setInterval> | null = null;
 function tick(): void {
   if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
   const now = Date.now();
+  // Suppress non-urgent push during the user's quiet hours (default
+  // 22:00-07:00 local). Both jobs are advisory/digest — no urgency
+  // worth waking the user for.
+  if (isQuietHour(now)) return;
   const state = readState();
   let dirty = false;
 

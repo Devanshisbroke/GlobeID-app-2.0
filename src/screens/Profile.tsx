@@ -36,6 +36,7 @@ import { LANG_LABELS, SUPPORTED_LANGS, setLanguage, type SupportedLang } from "@
 import { resetOnboarding } from "@/lib/onboarding";
 import { haptics } from "@/utils/haptics";
 import { toast } from "sonner";
+import AppearanceSettings from "@/components/settings/AppearanceSettings";
 
 type SettingAction = "reset-onboarding" | "reset-demo-data";
 
@@ -244,6 +245,23 @@ const Profile: React.FC = () => {
           />
         </Surface>
       </motion.div>
+
+      {/* Appearance — accent picker, reduce transparency, quiet hours */}
+      <motion.section
+        variants={itemVariants}
+        className="space-y-2"
+        aria-label="Appearance settings"
+      >
+        <Text
+          as="h3"
+          variant="caption-1"
+          tone="tertiary"
+          className="px-1 uppercase tracking-[0.18em]"
+        >
+          Appearance
+        </Text>
+        <AppearanceSettings />
+      </motion.section>
 
       {/* Settings sections */}
       {settingSections.map((section) => (
