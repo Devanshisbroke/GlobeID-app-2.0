@@ -24,6 +24,10 @@ import "./i18n";
 import { startSyncEngine } from "@/lib/syncEngine";
 import { startContextLoop } from "@/core/contextBackgroundLoop";
 import { startScheduledJobs } from "@/core/scheduledJobs";
+import { applyThemePrefs } from "@/lib/themePrefs";
+// Apply persisted accent + reduce-transparency before React mounts so
+// there's no flash of default accent on the first paint.
+applyThemePrefs();
 startSyncEngine();
 startContextLoop();
 startScheduledJobs();

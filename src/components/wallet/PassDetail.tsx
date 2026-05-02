@@ -37,6 +37,7 @@ import { PassCard } from "./PassStack";
 import { haptics } from "@/utils/haptics";
 import { describeExpiry } from "@/lib/documentExpiry";
 import { brandForBoardingPass } from "@/lib/airlineBrand";
+import { secureCopy } from "@/lib/secureClipboard";
 import type { TravelDocument } from "@/store/userStore";
 
 export interface PassDetailProps {
@@ -112,11 +113,14 @@ const PassDetail: React.FC<PassDetailProps> = ({ doc, onClose }) => {
   }, []);
 
   const handleCopyCode = async () => {
-    try {
-      await navigator.clipboard.writeText(doc.number);
+    // Sensitive value (passport / boarding-pass number) — auto-clear
+    // the system clipboard 30 s after copy unless the user copied
+    // something else in the meantime. Mirrors 1Password / Bitwarden.
+    const ok = await secureCopy(doc.number, { key: `pass-${doc.id}` });
+    if (ok) {
       haptics.medium();
-      toast.success("Code copied");
-    } catch {
+      toast.success("Code copied — clears in 30 s");
+    } else {
       toast.error("Could not copy code");
     }
   };

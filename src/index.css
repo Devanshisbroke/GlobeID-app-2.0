@@ -381,6 +381,24 @@
     overflow-y: visible;
   }
 
+  /* Reduce-transparency mode — accessibility / battery preference.
+     Replaces translucent glass surfaces with opaque ones, eliminating
+     the per-frame backdrop-filter cost. Toggled via
+     `setReduceTransparency` in `lib/themePrefs.ts`, which sets
+     `data-reduce-transparency="true"` on <html>. */
+  html[data-reduce-transparency="true"] {
+    --p7-glass-tint: var(--p7-surface-base);
+    --p7-glass-blur: 0px;
+  }
+  html[data-reduce-transparency="true"] .glass-tier-1,
+  html[data-reduce-transparency="true"] .glass-tier-2,
+  html[data-reduce-transparency="true"] .glass-tier-3,
+  html[data-reduce-transparency="true"] [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: hsl(var(--p7-surface-elevated)) !important;
+  }
+
   button,
   input,
   select,
