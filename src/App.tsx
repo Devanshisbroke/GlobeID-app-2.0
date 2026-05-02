@@ -20,13 +20,17 @@ import { useContextStore } from "@/store/contextStore";
 import { useLifecycleStore } from "@/store/lifecycleStore";
 import { useWalletStore } from "@/store/walletStore";
 
-// ── Core tab screens: eagerly imported for instant switching ──
+// ── Core tab screens ──
+// Home is eager so first paint is instant. The other tabs are lazy-
+// loaded — on Capacitor the chunks are local so the tab switch still
+// feels native, while the initial JS bundle is materially smaller
+// (~250 KB shaved off the legacy index-OG0Q6BSC.js entry).
 import Home from "@/screens/Home";
-import Identity from "@/screens/Identity";
-import Wallet from "@/screens/Wallet";
-import Travel from "@/screens/Travel";
-import ServicesHub from "@/screens/ServicesHub";
-import GlobalMap from "@/screens/GlobalMap";
+const Identity = lazy(() => import("@/screens/Identity"));
+const Wallet = lazy(() => import("@/screens/Wallet"));
+const Travel = lazy(() => import("@/screens/Travel"));
+const ServicesHub = lazy(() => import("@/screens/ServicesHub"));
+const GlobalMap = lazy(() => import("@/screens/GlobalMap"));
 
 // ── Secondary screens: lazy loaded ──
 const LockScreen = lazy(() => import("@/screens/LockScreen"));

@@ -16,6 +16,7 @@ import TripLifecycleBadge from "@/components/travel/TripLifecycleBadge";
 import ItineraryView from "@/components/trip/ItineraryView";
 import QRBoardingPass from "@/components/trip/QRBoardingPass";
 import TripGlobePreview from "@/components/trip/TripGlobePreview";
+import LazyMount from "@/components/system/LazyMount";
 import { useLifecycleStore } from "@/store/lifecycleStore";
 import { useUserStore } from "@/store/userStore";
 import { travelRecordToLifecycle } from "@/lib/tripLifecycle";
@@ -263,12 +264,24 @@ const TripDetail: React.FC = () => {
           ) : null}
         </section>
 
-        {/* Globe preview */}
+        {/* Globe preview — IntersectionObserver-mounted so the WebGL
+            context isn't created until the section scrolls into view.
+            Saves ~120 ms on TripDetail first-render on mid-tier Android. */}
         <section className="mb-5">
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             Path on globe
           </h2>
-          <TripGlobePreview legs={trip.legs} today={today} />
+          <LazyMount
+            rootMargin="120px"
+            fallback={
+              <div
+                className="rounded-2xl bg-white/5 border border-white/10 animate-pulse"
+                style={{ aspectRatio: "16 / 9" }}
+              />
+            }
+          >
+            <TripGlobePreview legs={trip.legs} today={today} />
+          </LazyMount>
         </section>
 
         {/* Boarding pass for first upcoming leg */}
