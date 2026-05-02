@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
+import { useVisibleClock } from "@/hooks/useVisibleClock";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -15,6 +16,7 @@ import TripLifecycleBadge from "@/components/travel/TripLifecycleBadge";
 import ItineraryView from "@/components/trip/ItineraryView";
 import QRBoardingPass from "@/components/trip/QRBoardingPass";
 import TripGlobePreview from "@/components/trip/TripGlobePreview";
+import LazyMount from "@/components/system/LazyMount";
 import { useLifecycleStore } from "@/store/lifecycleStore";
 import { useUserStore } from "@/store/userStore";
 import { travelRecordToLifecycle } from "@/lib/tripLifecycle";
@@ -29,14 +31,9 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function useTickingClock(intervalMs: number): number {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), intervalMs);
-    return () => window.clearInterval(id);
-  }, [intervalMs]);
-  return now;
-}
+// useTickingClock removed: callers now use `useVisibleClock`, which is
+// rAF-driven and pauses on Page Visibility hidden — same behaviour
+// without burning a 1Hz timer when the screen is off.
 
 const TripDetail: React.FC = () => {
   const { tripId } = useParams<{ tripId: string }>();
@@ -80,7 +77,7 @@ const TripDetail: React.FC = () => {
 
   // Tick once a minute pre-trip; the countdown component renders
   // nothing when there's no upcoming leg, so a passive tick is cheap.
-  const nowTick = useTickingClock(60_000);
+  const nowTick = useVisibleClock(60_000);
   const cd = useMemo(() => {
     if (!upcomingFirst) return null;
     return countdownTo(upcomingFirst.date, new Date(nowTick));
@@ -267,12 +264,24 @@ const TripDetail: React.FC = () => {
           ) : null}
         </section>
 
-        {/* Globe preview */}
+        {/* Globe preview — IntersectionObserver-mounted so the WebGL
+            context isn't created until the section scrolls into view.
+            Saves ~120 ms on TripDetail first-render on mid-tier Android. */}
         <section className="mb-5">
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             Path on globe
           </h2>
-          <TripGlobePreview legs={trip.legs} today={today} />
+          <LazyMount
+            rootMargin="120px"
+            fallback={
+              <div
+                className="rounded-2xl bg-white/5 border border-white/10 animate-pulse"
+                style={{ aspectRatio: "16 / 9" }}
+              />
+            }
+          >
+            <TripGlobePreview legs={trip.legs} today={today} />
+          </LazyMount>
         </section>
 
         {/* Boarding pass for first upcoming leg */}

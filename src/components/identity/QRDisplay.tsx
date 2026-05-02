@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { generateQRSvg } from "@/lib/qrEncoder";
+import { useVisibleClock } from "@/hooks/useVisibleClock";
 import { cn } from "@/lib/utils";
 
 interface QRDisplayProps {
@@ -21,17 +22,14 @@ const QRDisplay: React.FC<QRDisplayProps> = ({
   onRefresh,
   className,
 }) => {
-  const [remaining, setRemaining] = useState(ttlSeconds);
-
-  useEffect(() => {
-    const tick = () => {
-      const left = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
-      setRemaining(left);
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, [expiresAt]);
+  // rAF-driven, visibility-aware clock; pauses when the screen is off so
+  // we don't waste a 1Hz timer on a backgrounded WebView.
+  const now = useVisibleClock(1000);
+  const remaining = Math.max(0, Math.ceil((expiresAt - now) / 1000));
+  // ttlSeconds is the original budget; not currently surfaced in render
+  // but we keep it in the prop signature for callers that may show
+  // "x / ttl" progress later. Reference it once to silence noUnusedLocals.
+  void ttlSeconds;
 
   const svgString = useMemo(() => generateQRSvg(data, 200, 25), [data]);
 

@@ -38,6 +38,9 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { haptics } from "@/utils/haptics";
 import { audioCues } from "@/lib/audioFeedback";
 import { toast } from "sonner";
+import LottieView from "@/components/animations/LottieView";
+import successCheckLottie from "@/assets/lottie/success-check.json";
+import { AnimatePresence, motion } from "framer-motion";
 
 type Mode = "picker" | "qr" | "doc";
 
@@ -94,6 +97,7 @@ const HybridScanner: React.FC = () => {
   const [passphrase, setPassphrase] = useState("");
   const [savedDocumentId, setSavedDocumentId] = useState<number | null>(null);
   const [walletDocId, setWalletDocId] = useState<string | null>(null);
+  const [showSuccessBurst, setShowSuccessBurst] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
   const permissions = usePermissions();
@@ -143,6 +147,12 @@ const HybridScanner: React.FC = () => {
           ctrl.stop();
           controlsRef.current = null;
           setScanning(false);
+          // Pass scan haptic — subtle "did you copy that" pulse
+          // matches Apple Wallet's behaviour when a pass is read at
+          // the gate. Best-effort, swallows errors on unsupported
+          // platforms.
+          haptics.medium();
+          audioCues.success();
           setQrResult(result.getText());
         },
       );
@@ -257,6 +267,9 @@ const HybridScanner: React.FC = () => {
     haptics.success();
     addDocument(doc);
     setWalletDocId(doc.id);
+    setShowSuccessBurst(true);
+    // Auto-dismiss the burst after the Lottie completes (60 frames @ 60fps).
+    window.setTimeout(() => setShowSuccessBurst(false), 1100);
     toast.success(`Added ${doc.label} to your Wallet`);
   };
 
@@ -265,6 +278,36 @@ const HybridScanner: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
+      {/* Lottie success burst — overlays the scanner briefly when a
+          document is added to the wallet. AnimatePresence mounts the
+          backdrop only while showSuccessBurst is true so the Lottie
+          chunk is also kept off the cold-start path. */}
+      <AnimatePresence>
+        {showSuccessBurst && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-[var(--z-toast)] flex items-center justify-center bg-black/40 backdrop-blur-sm pointer-events-none"
+            aria-hidden
+          >
+            <LottieView
+              data={successCheckLottie}
+              width={220}
+              height={220}
+              loop={false}
+              ariaLabel="Document added to wallet"
+              fallback={
+                <div className="w-[220px] h-[220px] rounded-full border-4 border-emerald-400/70 flex items-center justify-center text-emerald-300 text-6xl">
+                  ✓
+                </div>
+              }
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="flex items-center gap-3 px-4 pt-6 pb-4">
         <button
           aria-label="Go back"

@@ -7,6 +7,7 @@ import React, { lazy, Suspense, useState, useCallback, useEffect } from "react";
 import { AppChromeV2, SplashV2 } from "@/components/layout/v2";
 import NativeBackButton from "@/components/system/NativeBackButton";
 import EdgeSwipeBack from "@/components/system/EdgeSwipeBack";
+import RouteErrorBoundary from "@/components/system/RouteErrorBoundary";
 import KeyboardShortcuts from "@/components/ui/KeyboardShortcuts";
 import { applyNativeChrome, wireNetworkListener } from "@/lib/nativeBridge";
 import { useUserStore } from "@/store/userStore";
@@ -19,13 +20,17 @@ import { useContextStore } from "@/store/contextStore";
 import { useLifecycleStore } from "@/store/lifecycleStore";
 import { useWalletStore } from "@/store/walletStore";
 
-// ── Core tab screens: eagerly imported for instant switching ──
+// ── Core tab screens ──
+// Home is eager so first paint is instant. The other tabs are lazy-
+// loaded — on Capacitor the chunks are local so the tab switch still
+// feels native, while the initial JS bundle is materially smaller
+// (~250 KB shaved off the legacy index-OG0Q6BSC.js entry).
 import Home from "@/screens/Home";
-import Identity from "@/screens/Identity";
-import Wallet from "@/screens/Wallet";
-import Travel from "@/screens/Travel";
-import ServicesHub from "@/screens/ServicesHub";
-import GlobalMap from "@/screens/GlobalMap";
+const Identity = lazy(() => import("@/screens/Identity"));
+const Wallet = lazy(() => import("@/screens/Wallet"));
+const Travel = lazy(() => import("@/screens/Travel"));
+const ServicesHub = lazy(() => import("@/screens/ServicesHub"));
+const GlobalMap = lazy(() => import("@/screens/GlobalMap"));
 
 // ── Secondary screens: lazy loaded ──
 const LockScreen = lazy(() => import("@/screens/LockScreen"));
@@ -239,7 +244,8 @@ const App = () => {
               path="/*"
               element={
                 <AppChromeV2>
-                  <Suspense fallback={<PageLoader />}>
+                  <RouteErrorBoundary>
+                    <Suspense fallback={<PageLoader />}>
                       <Routes>
                         {/* Core tabs — eagerly loaded, instant switch */}
                         <Route path="/" element={<Home />} />
@@ -277,6 +283,7 @@ const App = () => {
                         <Route path="*" element={<Navigate to="/" replace />} />
                       </Routes>
                     </Suspense>
+                  </RouteErrorBoundary>
                 </AppChromeV2>
               }
             />

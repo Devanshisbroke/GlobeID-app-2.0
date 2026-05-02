@@ -12,9 +12,9 @@
  * and restored on close. The brightness ramp is best-effort: any
  * import/permission failure is swallowed so web/dev still renders.
  */
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   X,
@@ -24,6 +24,11 @@ import {
   Copy,
   AlertTriangle,
   ExternalLink,
+  Info,
+  Phone,
+  ShieldCheck,
+  ArrowLeft,
+  RotateCcw,
 } from "lucide-react";
 import QRCode from "qrcode";
 import { Capacitor } from "@capacitor/core";
@@ -31,6 +36,7 @@ import { toast } from "sonner";
 import { PassCard } from "./PassStack";
 import { haptics } from "@/utils/haptics";
 import { describeExpiry } from "@/lib/documentExpiry";
+import { brandForBoardingPass } from "@/lib/airlineBrand";
 import type { TravelDocument } from "@/store/userStore";
 
 export interface PassDetailProps {
@@ -73,8 +79,10 @@ async function setBrightness(value: number | null): Promise<void> {
 const PassDetail: React.FC<PassDetailProps> = ({ doc, onClose }) => {
   const qrRef = useRef<HTMLCanvasElement | null>(null);
   const navigate = useNavigate();
+  const [flipped, setFlipped] = useState(false);
 
   const expiryInfo = useMemo(() => describeExpiry(doc.expiryDate), [doc.expiryDate]);
+  const brand = useMemo(() => brandForBoardingPass(doc), [doc]);
 
   useEffect(() => {
     if (!qrRef.current) return;
@@ -119,6 +127,11 @@ const PassDetail: React.FC<PassDetailProps> = ({ doc, onClose }) => {
     haptics.selection();
     onClose();
     navigate(`/trip/${target}`);
+  };
+
+  const handleFlip = () => {
+    haptics.selection();
+    setFlipped((f) => !f);
   };
 
   const overlay = (
@@ -181,61 +194,161 @@ const PassDetail: React.FC<PassDetailProps> = ({ doc, onClose }) => {
           </div>
         ) : null}
 
-        {/* QR */}
-        <div className="mx-auto mt-6 flex max-w-md flex-col items-center rounded-[22px] bg-white p-5 shadow-[0_14px_32px_-16px_rgba(0,0,0,0.3)]">
-          <canvas ref={qrRef} className="rounded-md" />
-          <p className="mt-2 text-[11px] uppercase tracking-widest text-slate-500">
-            Scan to verify
-          </p>
-        </div>
+        {/* Flip container — front/back swap with rotateY. perspective on
+            parent so the rotation reads as 3D rather than 2D scale. */}
+        <div
+          className="mx-auto mt-6 max-w-md"
+          style={{ perspective: 1200 }}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {!flipped ? (
+              <motion.div
+                key="front"
+                initial={{ rotateY: -90, opacity: 0 }}
+                animate={{ rotateY: 0, opacity: 1 }}
+                exit={{ rotateY: 90, opacity: 0 }}
+                transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                {/* QR */}
+                <div className="flex flex-col items-center rounded-[22px] bg-white p-5 shadow-[0_14px_32px_-16px_rgba(0,0,0,0.3)]">
+                  <canvas ref={qrRef} className="rounded-md" />
+                  <p className="mt-2 text-[11px] uppercase tracking-widest text-slate-500">
+                    Scan to verify
+                  </p>
+                </div>
 
-        {/* Action row */}
-        <div className="mx-auto mt-4 flex max-w-md flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={handleCopyCode}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-[12px] font-medium text-foreground min-h-[44px] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
-            aria-label="Copy document code"
-          >
-            <Copy className="w-3.5 h-3.5" />
-            Copy code
-          </button>
-          {doc.type === "boarding_pass" && (doc.tripId || doc.legId) ? (
-            <button
-              type="button"
-              onClick={handleViewTrip}
-              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-[12px] font-medium text-primary-foreground min-h-[44px] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
-              aria-label="View linked trip"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              View trip
-            </button>
-          ) : null}
-        </div>
+                {/* Action row */}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCopyCode}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-[12px] font-medium text-foreground min-h-[44px] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
+                    aria-label="Copy document code"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    Copy code
+                  </button>
+                  {doc.type === "boarding_pass" && (doc.tripId || doc.legId) ? (
+                    <button
+                      type="button"
+                      onClick={handleViewTrip}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-[12px] font-medium text-primary-foreground min-h-[44px] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
+                      aria-label="View linked trip"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      View trip
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={handleFlip}
+                    className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-[12px] font-medium text-foreground min-h-[44px] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
+                    aria-label="Show pass details"
+                  >
+                    <Info className="w-3.5 h-3.5" />
+                    Details
+                  </button>
+                </div>
 
-        {/* Details */}
-        <div className="mx-auto mt-6 max-w-md space-y-2">
-          <DetailRow icon={<Hash className="h-4 w-4" />} label="Number" value={doc.number} />
-          <DetailRow
-            icon={<Flag className="h-4 w-4" />}
-            label="Country"
-            value={`${doc.countryFlag} ${doc.country}`}
-          />
-          <DetailRow
-            icon={<Calendar className="h-4 w-4" />}
-            label="Issued"
-            value={doc.issueDate}
-          />
-          <DetailRow
-            icon={<Calendar className="h-4 w-4" />}
-            label="Expires"
-            value={doc.expiryDate}
-          />
-          <DetailRow
-            icon={<StatusDot status={doc.status} />}
-            label="Status"
-            value={doc.status}
-          />
+                {/* Details */}
+                <div className="mt-6 space-y-2">
+                  <DetailRow icon={<Hash className="h-4 w-4" />} label="Number" value={doc.number} />
+                  <DetailRow
+                    icon={<Flag className="h-4 w-4" />}
+                    label="Country"
+                    value={`${doc.countryFlag} ${doc.country}`}
+                  />
+                  <DetailRow
+                    icon={<Calendar className="h-4 w-4" />}
+                    label="Issued"
+                    value={doc.issueDate}
+                  />
+                  <DetailRow
+                    icon={<Calendar className="h-4 w-4" />}
+                    label="Expires"
+                    value={doc.expiryDate}
+                  />
+                  <DetailRow
+                    icon={<StatusDot status={doc.status} />}
+                    label="Status"
+                    value={doc.status}
+                  />
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="back"
+                initial={{ rotateY: 90, opacity: 0 }}
+                animate={{ rotateY: 0, opacity: 1 }}
+                exit={{ rotateY: -90, opacity: 0 }}
+                transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
+                style={{ transformStyle: "preserve-3d" }}
+                className="rounded-[22px] border border-border bg-card/80 p-5 backdrop-blur-md"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+                    Pass back
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleFlip}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] text-foreground min-h-[36px] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
+                    aria-label="Flip back to QR"
+                  >
+                    <ArrowLeft className="w-3 h-3" />
+                    Back
+                  </button>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  <DetailRow
+                    icon={<Hash className="h-4 w-4" />}
+                    label={doc.type === "boarding_pass" ? "Flight" : "Document"}
+                    value={doc.number}
+                  />
+                  <DetailRow
+                    icon={<ShieldCheck className="h-4 w-4" />}
+                    label="Carrier"
+                    value={brand.name}
+                  />
+                  <DetailRow
+                    icon={<Phone className="h-4 w-4" />}
+                    label="Carrier support"
+                    value="Open the official airline app or website"
+                  />
+                  <DetailRow
+                    icon={<Calendar className="h-4 w-4" />}
+                    label="Issued"
+                    value={doc.issueDate}
+                  />
+                  <DetailRow
+                    icon={<Calendar className="h-4 w-4" />}
+                    label="Expires"
+                    value={doc.expiryDate}
+                  />
+                </div>
+
+                <p className="mt-5 text-[11px] leading-snug text-muted-foreground">
+                  This pass is for personal travel use only. Always carry the
+                  original travel document with you. GlobeID does not issue
+                  travel documents and is not affiliated with any carrier.
+                </p>
+
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleFlip}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-[12px] font-medium text-primary-foreground min-h-[44px] active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
+                    aria-label="Done — flip back"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Done
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </motion.div>

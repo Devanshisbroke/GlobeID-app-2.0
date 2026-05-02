@@ -2,6 +2,7 @@ import React, { useRef, useMemo } from "react";
 import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { isMobileOrCapacitor } from "@/hooks/useMobileDetect";
+import { sunDirection } from "@/lib/sunPosition";
 
 const Globe: React.FC = () => {
 
@@ -32,12 +33,26 @@ const Globe: React.FC = () => {
     });
   }, [nightMap, bumpMap, waterMap]);
 
+  // Cache the last-applied sun direction so we only push to the GPU
+  // when it has materially shifted. Sun moves ~0.25°/min — a 1-min
+  // refresh is undetectable visually, ample for the terminator.
+  const lastSunUpdateRef = useRef<number>(0);
+
   useFrame(({ clock }) => {
 
     const t = clock.getElapsedTime();
 
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = t;
+
+      // Real-time sun direction → day/night terminator follows the
+      // actual sub-solar point. Refreshed at most every 60s.
+      if (t - lastSunUpdateRef.current > 60) {
+        lastSunUpdateRef.current = t;
+        const dir = sunDirection(new Date());
+        const v = materialRef.current.uniforms.uSunDir.value as THREE.Vector3;
+        v.set(dir[0], dir[1], dir[2]).normalize();
+      }
     }
 
     // Sub-perceptible "breathing" — skip the trig + matrix update on
@@ -71,7 +86,13 @@ const Globe: React.FC = () => {
         uWaterMap: { value: waterMap },
 
         uSunDir: {
-          value: new THREE.Vector3(1, 0.3, 0.8).normalize()
+          // Initialise with the *actual* sun direction so first render
+          // already shows the correct terminator. useFrame will keep it
+          // refreshed on a 60s cadence.
+          value: (() => {
+            const d = sunDirection(new Date());
+            return new THREE.Vector3(d[0], d[1], d[2]).normalize();
+          })()
         },
 
         // darker land

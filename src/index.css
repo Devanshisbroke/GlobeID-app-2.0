@@ -361,11 +361,15 @@
     -webkit-overflow-scrolling: touch;
     /* Phase 9-α: prevent any rogue full-bleed element (long unbroken IDs,
        a wide motion canvas, an SVG with absolute width) from forcing the
-       whole document into horizontal scroll on a 320 px iPhone SE. The
-       AppChrome already caps to `max-w-lg` and clips its own overflow,
-       but the body-level guard catches anything fixed/absolute that
-       escapes the container. */
-    overflow-x: hidden;
+       whole document into horizontal scroll on a 320 px iPhone SE.
+       `overflow-x: clip` is critical here: the older `overflow-x: hidden`
+       implicitly promotes `overflow-y: visible` → `overflow-y: auto` per
+       the CSS spec, which created a nested scroll container on body and
+       #root and broke vertical page scroll on touch devices (the
+       Wallet stack scroll bug). `clip` clips without forcing a scroll
+       context. */
+    overflow-x: clip;
+    overflow-y: visible;
   }
 
   html,
@@ -373,7 +377,8 @@
   #root {
     width: 100%;
     min-height: 100%;
-    overflow-x: hidden;
+    overflow-x: clip;
+    overflow-y: visible;
   }
 
   button,
@@ -901,5 +906,18 @@
     animation: none;
     background-image: none;
     background-color: hsl(var(--muted) / 0.5);
+  }
+}
+
+/* ── Touch device cursor scoping ──────────────────────────────────────────
+   `cursor: pointer` is misleading on touch-only devices: there is no
+   cursor to render and the visual contract — a "you can hover" hint —
+   doesn't apply. Worse, on Capacitor Android the `cursor` style still
+   triggers the WebView's hover detection in some versions, which can
+   force a 300 ms tap delay. Override every `.cursor-pointer` to default
+   when the primary input has no hover capability. */
+@media (hover: none) {
+  .cursor-pointer {
+    cursor: default !important;
   }
 }

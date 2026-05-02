@@ -23,8 +23,10 @@ import "./i18n";
 // on visibility + network so they don't burn CPU when the tab is hidden.
 import { startSyncEngine } from "@/lib/syncEngine";
 import { startContextLoop } from "@/core/contextBackgroundLoop";
+import { startScheduledJobs } from "@/core/scheduledJobs";
 startSyncEngine();
 startContextLoop();
+startScheduledJobs();
 
 /**
  * Phase 6 PR-α:

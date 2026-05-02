@@ -30,7 +30,16 @@ interface AppChromeProps {
 const AppChromeV2: React.FC<AppChromeProps> = ({ children }) => {
   return (
     <CommandPaletteProvider>
-      <div className="relative min-h-[100dvh] max-w-lg mx-auto overflow-x-hidden bg-surface-base text-ink-primary">
+      <div
+        className="relative min-h-[100dvh] max-w-lg mx-auto bg-surface-base text-ink-primary"
+        style={{
+          /* Use `overflow-x: clip` (not `hidden`) so we don't promote
+             overflow-y to auto and create a nested scroll container that
+             fights with the document scroll. See index.css for the
+             matching body/#root rule. */
+          overflowX: "clip",
+        }}
+      >
         {/* Single fixed mesh layer — replaces the body background-image so
             we avoid `background-attachment: fixed` repaints during scroll
             on mobile WebView. Kept from Phase 6 for visual continuity until
@@ -46,11 +55,11 @@ const AppChromeV2: React.FC<AppChromeProps> = ({ children }) => {
           <ThemeToggle />
         </div>
         <main
-          className="pb-nav-safe pt-safe gpu-layer"
+          className="pb-nav-safe pt-safe"
           style={{
+            /* `pan-y` allows vertical browser scroll while letting horizontal
+               gestures (carousels, swipe-to-cycle) be handled by JS. */
             touchAction: "pan-y",
-            WebkitOverflowScrolling: "touch",
-            overscrollBehavior: "contain",
           }}
         >
           <PageTransitionV2>{children}</PageTransitionV2>

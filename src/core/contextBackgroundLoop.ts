@@ -98,7 +98,10 @@ function runEvaluation(): void {
   void fresh; // silence TS6133 in strictest mode
 }
 
+let activeIntervalMs = DEFAULT_INTERVAL_MS;
+
 export function startContextLoop(intervalMs: number = DEFAULT_INTERVAL_MS): void {
+  activeIntervalMs = intervalMs;
   if (timer !== null) return;
   // Immediate first evaluation, then on the tick.
   runEvaluation();
@@ -119,7 +122,22 @@ export function stopContextLoop(): void {
 }
 
 function onVisibility(): void {
-  if (document.visibilityState === "visible") runEvaluation();
+  // Pause the timer when the WebView is backgrounded so we don't keep
+  // running the rule engine; restart it (with an immediate evaluation) on
+  // return to foreground.
+  if (document.visibilityState === "hidden") {
+    if (timer !== null) {
+      clearInterval(timer);
+      timer = null;
+    }
+    return;
+  }
+  if (timer === null) {
+    runEvaluation();
+    timer = setInterval(runEvaluation, activeIntervalMs);
+  } else {
+    runEvaluation();
+  }
 }
 
 /** Test-only helper. */

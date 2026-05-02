@@ -22,6 +22,8 @@ import type { TravelDocument } from "@/store/userStore";
 import { cn } from "@/lib/utils";
 import { haptics } from "@/utils/haptics";
 import { describeExpiry } from "@/lib/documentExpiry";
+import { brandForBoardingPass } from "@/lib/airlineBrand";
+import { EmptyExplore } from "@/components/animations";
 import PassDetail from "./PassDetail";
 
 export interface PassStackProps {
@@ -77,7 +79,13 @@ const PassStack: React.FC<PassStackProps> = ({ documents, className }) => {
   if (!ordered) {
     return (
       <div className="rounded-p7-surface border border-dashed border-border/60 p-8 text-center text-sm text-muted-foreground">
-        No travel documents yet
+        <div className="mx-auto mb-3 text-foreground/70">
+          <EmptyExplore size={72} />
+        </div>
+        <p className="font-medium text-foreground/80">No travel documents yet</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Scan a passport, visa, or boarding pass to populate your wallet.
+        </p>
       </div>
     );
   }
@@ -116,54 +124,72 @@ const PassStack: React.FC<PassStackProps> = ({ documents, className }) => {
               >
                 <PassCard doc={doc} />
               </motion.div>
-              <motion.button
+              <button
                 type="button"
                 aria-label={`Select ${doc.label}`}
                 onClick={() => handlePick(origIdx)}
-                className="absolute inset-x-0 rounded-b-[22px] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                className="absolute inset-x-0 rounded-b-[22px] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand bg-transparent"
                 style={{
                   top: 180 + (depth - 1) * PEEK_Y,
                   height: PEEK_Y,
                   zIndex: 30 - depth,
-                  // Allow vertical page scroll to win over button tap on
-                  // touch devices — taps are still recognised on click.
                   touchAction: "pan-y",
                 }}
-                whileTap={{ scale: 0.995 }}
               />
             </React.Fragment>
           );
         })}
 
-        {/* Active pass — top of stack. Tap to expand.
-            NOTE: framer-motion's `drag="y"` was capturing every vertical
-            pointer pan on the card and blocking page scroll on Wallet.
-            Page scroll is more important than drag-to-cycle here — users
-            can still cycle by tapping a peek card or a dot. The expand
-            interaction is via `onTap` which observes taps without
-            capturing the touch stream. */}
+        {/* Active pass — top of stack.
+            Architecture notes:
+              • `layoutId` is required so the card morphs into PassDetail
+                via shared layout transition.
+              • Drag is locked to the X axis with `dragDirectionLock` so
+                the user can horizontal-swipe to cycle through passes
+                (Apple Wallet style) AND vertical-scroll the page —
+                framer waits for the first axis the user moves on and
+                locks to it.
+              • Tap-to-expand lives on a child `<button>` overlay rather
+                than `onTap` so the page-scroll touch stream isn't
+                captured by framer's tap handler.
+              • `whileTap` removed for the same reason — its pointer
+                capture interfered with vertical pan on touch devices. */}
         <motion.div
           key={ordered.head.id}
-          role="button"
-          tabIndex={0}
-          aria-label={`Open ${ordered.head.label} pass`}
           layoutId={`pass-${ordered.head.id}`}
-          className="absolute inset-x-0 top-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-[22px]"
-          style={{ zIndex: 20, touchAction: "pan-y" }}
-          onTap={() => {
-            haptics.light();
-            setExpandedId(ordered.head.id);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              haptics.light();
-              setExpandedId(ordered.head.id);
+          className="absolute inset-x-0 top-0 rounded-[22px]"
+          style={{ zIndex: 20, touchAction: "pan-y", willChange: "transform" }}
+          drag="x"
+          dragDirectionLock
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.18}
+          onDragEnd={(_, info) => {
+            if (documents.length < 2) return;
+            const SWIPE_THRESHOLD = 60;
+            if (info.offset.x < -SWIPE_THRESHOLD) {
+              haptics.medium();
+              setActiveIdx((i) => (i + 1) % documents.length);
+            } else if (info.offset.x > SWIPE_THRESHOLD) {
+              haptics.medium();
+              setActiveIdx(
+                (i) => (i - 1 + documents.length) % documents.length,
+              );
             }
           }}
-          whileTap={{ scale: 0.985 }}
         >
           <PassCard doc={ordered.head} active />
+          {/* Tap-to-expand surface — its own focusable element, doesn't
+              capture pointer for movement so vertical scroll still wins. */}
+          <button
+            type="button"
+            aria-label={`Open ${ordered.head.label} pass`}
+            onClick={() => {
+              haptics.light();
+              setExpandedId(ordered.head.id);
+            }}
+            className="absolute inset-0 rounded-[22px] outline-none focus-visible:ring-2 focus-visible:ring-brand bg-transparent"
+            style={{ touchAction: "pan-y" }}
+          />
         </motion.div>
       </div>
 
@@ -191,12 +217,17 @@ export const PassCard: React.FC<PassCardProps> = ({ doc, active = false }) => {
   const meta = TYPE_META[doc.type];
   const Icon = meta.icon;
   const expiry = describeExpiry(doc.expiryDate);
+  // Boarding-pass cards adopt the carrier's brand gradient (real Apple
+  // / Google Wallet behaviour). Other doc types keep their semantic hue.
+  const brand = doc.type === "boarding_pass" ? brandForBoardingPass(doc) : null;
+  const hueClasses = brand?.gradient ?? meta.hue;
+  const accentClass = brand?.accent ?? meta.accent;
   return (
     <div
       className={cn(
         "relative w-full overflow-hidden rounded-[22px] p-5",
         "bg-gradient-to-br",
-        meta.hue,
+        hueClasses,
         "shadow-[0_18px_40px_-20px_rgba(0,0,0,0.45)]",
         active ? "ring-1 ring-white/10" : "ring-1 ring-white/5",
       )}
@@ -217,7 +248,7 @@ export const PassCard: React.FC<PassCardProps> = ({ doc, active = false }) => {
       ) : null}
       <div className="flex items-start justify-between text-white">
         <div>
-          <p className={cn("text-[10px] uppercase tracking-[0.24em]", meta.accent)}>
+          <p className={cn("text-[10px] uppercase tracking-[0.24em]", accentClass)}>
             {doc.label}
           </p>
           <p className="mt-1 text-lg font-medium leading-tight">{doc.country}</p>

@@ -1,5 +1,7 @@
-import React, { lazy, Suspense, useState } from "react";
-import { motion } from "motion/react";
+import React, { lazy, Suspense, useMemo, useState } from "react";
+import { orderPasses } from "@/lib/passOrdering";
+import { useVisibleClock } from "@/hooks/useVisibleClock";
+import { motion, useScroll, useTransform } from "motion/react";
 import {
   ArrowUpRight,
   ArrowDownLeft,
@@ -11,6 +13,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { Surface, Button, Pill, Tabs, Text, spring } from "@/components/ui/v2";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { useUserStore } from "@/store/userStore";
 import { useWalletStore } from "@/store/walletStore";
 import PassStack from "@/components/wallet/PassStack";
@@ -82,6 +85,13 @@ const countryCurrency: Record<string, string> = {
  */
 const Wallet: React.FC = () => {
   const { documents } = useUserStore();
+  // Re-evaluate auto-pin every minute so a pass that crosses the
+  // 24h-to-departure threshold bubbles to the top without a refresh.
+  const now = useVisibleClock(60_000);
+  const orderedDocuments = useMemo(
+    () => orderPasses(documents, now),
+    [documents, now],
+  );
   const { balances, transactions, defaultCurrency, activeCountry } =
     useWalletStore();
   const [walletTab, setWalletTab] = useState<WalletTab>("balance");
@@ -107,8 +117,25 @@ const Wallet: React.FC = () => {
     setActivePanel((current) => (current === panel ? null : panel));
   };
 
+  // Parallax: scroll position drives a subtle Y translation on a
+  // decorative atmosphere layer pinned behind the wallet content,
+  // so cards drift past a slower-moving background. GPU-only
+  // (transform), so 120Hz friendly. useScroll defaults to window
+  // scroll which is what AppChrome scrolls.
+  const { scrollY } = useScroll();
+  const atmoY = useTransform(scrollY, [0, 600], [0, -90]);
+
   return (
-    <div className="px-4 py-6 space-y-5">
+    <div className="relative px-4 py-6 space-y-5">
+      {/* Decorative atmosphere — drifts slower than the foreground.
+          Pointer-events none so it never intercepts taps. */}
+      <motion.div
+        aria-hidden
+        style={{ y: atmoY }}
+        className="pointer-events-none absolute inset-x-0 -top-24 h-[420px] -z-10
+          bg-[radial-gradient(ellipse_at_top,hsl(var(--brand)/0.18)_0%,transparent_60%)]
+          motion-reduce:hidden"
+      />
       <Tabs value={walletTab} onValueChange={handleTabChange}>
         <Tabs.List variant="segmented" className="w-full">
           <Tabs.Trigger value="balance" className="flex-1">
@@ -170,10 +197,13 @@ const Wallet: React.FC = () => {
               tone="primary"
               className="mt-1 tabular-nums"
             >
-              ${totalUSD.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              <AnimatedNumber
+                value={totalUSD}
+                decimals={2}
+                prefix="$"
+                duration={650}
+                ariaLabel={`Total balance ${totalUSD.toFixed(2)} US dollars`}
+              />
             </Text>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               <Button
@@ -260,7 +290,7 @@ const Wallet: React.FC = () => {
           >
             Travel Passes
           </Text>
-          <PassStack documents={documents} />
+          <PassStack documents={orderedDocuments} />
           <Text
             variant="caption-2"
             tone="tertiary"

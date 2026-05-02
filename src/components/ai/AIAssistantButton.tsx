@@ -11,8 +11,13 @@ const AIAssistantButton: React.FC = () => {
       <button
         aria-label="Open AI Assistant"
         onClick={() => setOpen(true)}
+        style={{
+          // Anchor above safe-area-inset-bottom so we don't sit under the
+          // Android gesture bar / iOS home indicator.
+          bottom: "calc(env(safe-area-inset-bottom, 0px) + 88px)",
+        }}
         className={cn(
-          "fixed z-40 left-4 bottom-[88px] w-12 h-12 rounded-full",
+          "fixed z-40 left-4 w-12 h-12 rounded-full",
           "glass border border-border",
           "flex items-center justify-center",
           "transition-transform duration-300 ease-out",

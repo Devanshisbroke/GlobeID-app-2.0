@@ -29,7 +29,13 @@ export const VoiceTranscriptOverlay: React.FC<OverlayProps> = ({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 16 }}
-          className="fixed left-1/2 -translate-x-1/2 bottom-[180px] z-[60] px-4 py-2 rounded-full bg-primary/95 text-primary-foreground text-xs font-semibold shadow-xl backdrop-blur-md"
+          style={{
+            // Anchor above the FAB and the safe-area-inset-bottom so the
+            // overlay clears the Android gesture bar at the same time as
+            // the FAB itself.
+            bottom: "calc(env(safe-area-inset-bottom, 0px) + 180px)",
+          }}
+          className="fixed left-1/2 -translate-x-1/2 z-[60] px-4 py-2 rounded-full bg-primary/95 text-primary-foreground text-xs font-semibold shadow-xl backdrop-blur-md"
           role="status"
           aria-live="polite"
         >
