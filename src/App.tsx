@@ -7,6 +7,7 @@ import React, { lazy, Suspense, useState, useCallback, useEffect } from "react";
 import { AppChromeV2, SplashV2 } from "@/components/layout/v2";
 import NativeBackButton from "@/components/system/NativeBackButton";
 import EdgeSwipeBack from "@/components/system/EdgeSwipeBack";
+import RouteErrorBoundary from "@/components/system/RouteErrorBoundary";
 import KeyboardShortcuts from "@/components/ui/KeyboardShortcuts";
 import { applyNativeChrome, wireNetworkListener } from "@/lib/nativeBridge";
 import { useUserStore } from "@/store/userStore";
@@ -239,7 +240,8 @@ const App = () => {
               path="/*"
               element={
                 <AppChromeV2>
-                  <Suspense fallback={<PageLoader />}>
+                  <RouteErrorBoundary>
+                    <Suspense fallback={<PageLoader />}>
                       <Routes>
                         {/* Core tabs — eagerly loaded, instant switch */}
                         <Route path="/" element={<Home />} />
@@ -277,6 +279,7 @@ const App = () => {
                         <Route path="*" element={<Navigate to="/" replace />} />
                       </Routes>
                     </Suspense>
+                  </RouteErrorBoundary>
                 </AppChromeV2>
               }
             />

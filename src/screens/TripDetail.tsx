@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
+import { useVisibleClock } from "@/hooks/useVisibleClock";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -29,14 +30,9 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function useTickingClock(intervalMs: number): number {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), intervalMs);
-    return () => window.clearInterval(id);
-  }, [intervalMs]);
-  return now;
-}
+// useTickingClock removed: callers now use `useVisibleClock`, which is
+// rAF-driven and pauses on Page Visibility hidden — same behaviour
+// without burning a 1Hz timer when the screen is off.
 
 const TripDetail: React.FC = () => {
   const { tripId } = useParams<{ tripId: string }>();
@@ -80,7 +76,7 @@ const TripDetail: React.FC = () => {
 
   // Tick once a minute pre-trip; the countdown component renders
   // nothing when there's no upcoming leg, so a passive tick is cheap.
-  const nowTick = useTickingClock(60_000);
+  const nowTick = useVisibleClock(60_000);
   const cd = useMemo(() => {
     if (!upcomingFirst) return null;
     return countdownTo(upcomingFirst.date, new Date(nowTick));

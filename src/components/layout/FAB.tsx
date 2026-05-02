@@ -91,7 +91,14 @@ const FAB: React.FC = () => {
       {/* Action buttons */}
       <AnimatePresence>
         {open && (
-          <div className="fixed z-50 right-4 bottom-[152px] flex flex-col-reverse gap-3 items-end">
+          <div
+            className="fixed z-50 right-4 flex flex-col-reverse gap-3 items-end"
+            style={{
+              // Anchor above the FAB; safe-area-inset-bottom keeps us
+              // clear of the Android gesture bar / iOS home indicator.
+              bottom: "calc(env(safe-area-inset-bottom, 0px) + 152px)",
+            }}
+          >
             {actions.map((action, i) => {
               const Icon = action.icon;
               return (
@@ -139,8 +146,13 @@ const FAB: React.FC = () => {
         animate={{ rotate: open ? 135 : 0 }}
         whileTap={{ scale: 0.94 }}
         transition={spring.fab}
+        style={{
+          // Anchor above safe-area-inset-bottom so the FAB sits clear of
+          // the Android gesture bar on devices with edge-to-edge layouts.
+          bottom: "calc(env(safe-area-inset-bottom, 0px) + 88px)",
+        }}
         className={cn(
-          "fixed z-50 right-4 bottom-[88px] w-14 h-14 rounded-full",
+          "fixed z-50 right-4 w-14 h-14 rounded-full",
           "flex items-center justify-center",
           "bg-gradient-brand shadow-glow-lg",
           "outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]",

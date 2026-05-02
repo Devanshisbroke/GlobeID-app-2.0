@@ -22,24 +22,39 @@ const PassportScanner: React.FC<PassportScannerProps> = ({ onComplete, className
     uiSound.click();
   }, []);
 
+  // rAF-driven progress so the bar fills at display refresh rate (60/120Hz)
+  // rather than a fixed 25fps `setInterval`. Also pauses when the document
+  // is hidden, so backgrounded scans don't keep spinning.
   useEffect(() => {
     if (phase !== "scanning") return;
-    const interval = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) {
-          clearInterval(interval);
-          setPhase("detected");
-          uiSound.confirm();
-          setTimeout(() => {
-            setPhase("verified");
-            onComplete?.();
-          }, 1200);
-          return 100;
-        }
-        return p + 2;
-      });
-    }, 40);
-    return () => clearInterval(interval);
+    let rafId = 0;
+    let cancelled = false;
+    const start = performance.now();
+    const DURATION_MS = 2000; // 0 → 100 over ~2s, matches the previous 40ms × 50 cadence
+    const step = (t: number) => {
+      if (cancelled) return;
+      const pct = Math.min(100, ((t - start) / DURATION_MS) * 100);
+      setProgress(pct);
+      if (pct >= 100) {
+        setPhase("detected");
+        uiSound.confirm();
+        const handoff = window.setTimeout(() => {
+          setPhase("verified");
+          onComplete?.();
+        }, 1200);
+        // Park the handoff timer so we can clear it on unmount.
+        cleanupTimers.add(handoff);
+        return;
+      }
+      rafId = requestAnimationFrame(step);
+    };
+    const cleanupTimers = new Set<number>();
+    rafId = requestAnimationFrame(step);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafId);
+      cleanupTimers.forEach((id) => window.clearTimeout(id));
+    };
   }, [phase, onComplete]);
 
   return (

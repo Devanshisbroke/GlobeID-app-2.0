@@ -908,3 +908,16 @@
     background-color: hsl(var(--muted) / 0.5);
   }
 }
+
+/* ── Touch device cursor scoping ──────────────────────────────────────────
+   `cursor: pointer` is misleading on touch-only devices: there is no
+   cursor to render and the visual contract — a "you can hover" hint —
+   doesn't apply. Worse, on Capacitor Android the `cursor` style still
+   triggers the WebView's hover detection in some versions, which can
+   force a 300 ms tap delay. Override every `.cursor-pointer` to default
+   when the primary input has no hover capability. */
+@media (hover: none) {
+  .cursor-pointer {
+    cursor: default !important;
+  }
+}

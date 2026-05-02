@@ -25,7 +25,7 @@ const SyncBadge: React.FC = () => {
   return (
     <div
       role="status"
-      className="fixed top-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 px-2.5 py-1 rounded-full glass border border-border/40 text-[10px] font-medium text-foreground/80"
+      className="fixed top-safe-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 px-2.5 py-1 rounded-full glass border border-border/40 text-[10px] font-medium text-foreground/80"
     >
       <Icon className="w-3 h-3" />
       <span>{label}</span>
