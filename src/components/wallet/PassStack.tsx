@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { haptics } from "@/utils/haptics";
 import { describeExpiry } from "@/lib/documentExpiry";
 import { brandForBoardingPass } from "@/lib/airlineBrand";
+import { EmptyExplore } from "@/components/animations";
 import PassDetail from "./PassDetail";
 
 export interface PassStackProps {
@@ -78,7 +79,13 @@ const PassStack: React.FC<PassStackProps> = ({ documents, className }) => {
   if (!ordered) {
     return (
       <div className="rounded-p7-surface border border-dashed border-border/60 p-8 text-center text-sm text-muted-foreground">
-        No travel documents yet
+        <div className="mx-auto mb-3 text-foreground/70">
+          <EmptyExplore size={72} />
+        </div>
+        <p className="font-medium text-foreground/80">No travel documents yet</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Scan a passport, visa, or boarding pass to populate your wallet.
+        </p>
       </div>
     );
   }

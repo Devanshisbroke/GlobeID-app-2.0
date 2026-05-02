@@ -24,20 +24,57 @@ export type SpringPhysics = {
 };
 
 /**
- * Spring catalog — 4 tokens, each tuned for a specific role.
+ * Spring catalog — per-surface presets.
  *
  *  - `snap`        Tap response, toggle, segmented control. Crisp.
  *  - `default`     Modal entry, sheet drag, page transition. Calm.
  *  - `soft`        Hover-pop, list-item enter. Easygoing.
  *  - `overshoot`   Hero entrance only. Slight bounce. Reserved.
+ *  - `fab`         Floating action button rotation + speed-dial reveal.
+ *  - `bounce`      Confetti / achievement / success burst. Playful.
+ *  - `card`        Card hover-lift, list-card enter. Subdued.
+ *  - `page`        Route transitions (alias to `default` until per-route
+ *                  tuning lands).
+ *  - `pass`        Wallet pass cycle, drag elastic, swipe spring.
+ *  - `sheet`       Bottom sheet open/close. Critically damped, no bounce.
+ *  - `nav`         Bottom nav active-pill morph. Slightly snappier than
+ *                  `snap` so the pill doesn't lag behind the touch.
  *
  * Use one of these; do NOT inline ad-hoc stiffness numbers in screen code.
+ *
+ * 120Hz tuning notes: spring stiffness × frame budget (8.3ms at 120Hz)
+ * dictates how many sub-frames the integrator can take. Stiffer presets
+ * (`snap`, `nav`) are tuned to settle in <250 ms so the user perceives
+ * crisp tap response on a 120Hz display; softer presets (`soft`, `card`)
+ * settle in 400-600 ms which reads as "elegant" rather than "sluggish".
  */
-export const spring: Readonly<Record<"snap" | "default" | "soft" | "overshoot", SpringPhysics>> = Object.freeze({
+export const spring: Readonly<
+  Record<
+    | "snap"
+    | "default"
+    | "soft"
+    | "overshoot"
+    | "fab"
+    | "bounce"
+    | "card"
+    | "page"
+    | "pass"
+    | "sheet"
+    | "nav",
+    SpringPhysics
+  >
+> = Object.freeze({
   snap:      { type: "spring", stiffness: 480, damping: 38, mass: 1 },
   default:   { type: "spring", stiffness: 320, damping: 32, mass: 1 },
   soft:      { type: "spring", stiffness: 220, damping: 28, mass: 1 },
   overshoot: { type: "spring", stiffness: 380, damping: 22, mass: 1 },
+  fab:       { type: "spring", stiffness: 540, damping: 32, mass: 0.9 },
+  bounce:    { type: "spring", stiffness: 360, damping: 14, mass: 1 },
+  card:      { type: "spring", stiffness: 260, damping: 30, mass: 1 },
+  page:      { type: "spring", stiffness: 320, damping: 32, mass: 1 },
+  pass:      { type: "spring", stiffness: 420, damping: 36, mass: 1 },
+  sheet:     { type: "spring", stiffness: 300, damping: 40, mass: 1 },
+  nav:       { type: "spring", stiffness: 560, damping: 40, mass: 0.9 },
 });
 
 /**

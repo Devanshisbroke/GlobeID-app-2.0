@@ -25,6 +25,7 @@ import { useUserStore, selectNextUpcoming, formatTripDate } from "@/store/userSt
 import { useWalletStore } from "@/store/walletStore";
 import { useAlertsStore } from "@/store/alertsStore";
 import { getAirport } from "@/lib/airports";
+import { computeSuggestions, type Suggestion } from "@/lib/smartSuggestions";
 import { cn } from "@/lib/utils";
 import { haptics } from "@/utils/haptics";
 import { uiSound } from "@/cinematic/uiSound";
@@ -95,9 +96,18 @@ const Home: React.FC = () => {
   );
 
   const travelHistory = useUserStore((s) => s.travelHistory);
+  const documents = useUserStore((s) => s.documents);
   const nextTrip = useMemo(
     () => selectNextUpcoming(travelHistory),
     [travelHistory],
+  );
+  const suggestions = useMemo(
+    () =>
+      computeSuggestions({
+        documents,
+        trips: travelHistory,
+      }),
+    [documents, travelHistory],
   );
   const fromAirport = nextTrip ? getAirport(nextTrip.from) : null;
   const toAirport = nextTrip ? getAirport(nextTrip.to) : null;
@@ -458,7 +468,15 @@ const Home: React.FC = () => {
             </Surface>
           </motion.div>
 
-          {/* 9. Travel Suggestions */}
+          {/* 9. Heads Up — deterministic actionable nudges */}
+          {suggestions.length > 0 && (
+            <motion.section variants={itemVariants} className="space-y-3">
+              <SectionHeading>Heads up</SectionHeading>
+              <SmartSuggestionsList items={suggestions} />
+            </motion.section>
+          )}
+
+          {/* 10. Travel Suggestions — destination recommendations */}
           <motion.section variants={itemVariants} className="space-y-3">
             <SectionHeading>Travel Suggestions</SectionHeading>
             <Suggestions />
@@ -485,6 +503,51 @@ const SectionHeading: React.FC<{ children: React.ReactNode }> = ({
     {children}
   </Text>
 );
+
+const SEVERITY_CLASS: Record<Suggestion["severity"], string> = {
+  high: "border-rose-400/50 bg-rose-500/10 text-rose-100",
+  medium: "border-amber-300/50 bg-amber-400/10 text-amber-100",
+  low: "border-sky-300/40 bg-sky-400/10 text-sky-100",
+};
+
+const SmartSuggestionsList: React.FC<{ items: Suggestion[] }> = ({ items }) => {
+  const navigate = useNavigate();
+  return (
+    <div className="space-y-2.5">
+      {items.slice(0, 3).map((s) => (
+        <motion.button
+          key={s.id}
+          type="button"
+          onClick={() => {
+            haptics.selection();
+            navigate(s.href);
+          }}
+          whileTap={{ scale: 0.985 }}
+          className={cn(
+            "w-full text-left rounded-2xl border p-3.5 backdrop-blur-md",
+            "min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60",
+            SEVERITY_CLASS[s.severity],
+          )}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <Text variant="callout" className="font-semibold text-ink-primary">
+                {s.title}
+              </Text>
+              <Text
+                variant="caption-1"
+                className="mt-0.5 text-ink-secondary line-clamp-2"
+              >
+                {s.body}
+              </Text>
+            </div>
+            <ChevronRight className="w-4 h-4 mt-1 text-ink-tertiary" />
+          </div>
+        </motion.button>
+      ))}
+    </div>
+  );
+};
 
 const BoardingDetail: React.FC<{
   label: string;
