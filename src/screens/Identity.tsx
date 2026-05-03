@@ -13,6 +13,7 @@ import WelcomeOverlay from "@/components/identity/WelcomeOverlay";
 import CredentialCard from "@/components/identity/CredentialCard";
 import SecurityStatus from "@/components/identity/SecurityStatus";
 import IdentityScoreCard from "@/components/identity/IdentityScoreCard";
+import DocExpiryChip from "@/components/identity/DocExpiryChip";
 import IdentityTimeline from "@/components/identity/IdentityTimeline";
 import IdentityMapLayer from "@/components/map/IdentityMapLayer";
 import PassDetail from "@/components/wallet/PassDetail";
@@ -132,6 +133,10 @@ const Identity: React.FC = () => {
 
       {/* Digital Passport Card */}
       <DigitalPassport />
+
+      {/* Doc expiry chip (E 60) — only renders when an active doc
+          will expire within the next year. */}
+      <DocExpiryChip />
 
       {/* Identity Score */}
       <IdentityScoreCard />

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ScanLine, CheckCircle2, Camera } from "lucide-react";
+import { ScanLine, CheckCircle2, Camera, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { cinematicEase } from "@/cinematic/motionEngine";
 import { uiSound } from "@/cinematic/uiSound";
+import LiveCameraScanner from "./LiveCameraScanner";
 
 type ScanPhase = "idle" | "scanning" | "detected" | "verified";
 
@@ -15,6 +16,7 @@ interface PassportScannerProps {
 const PassportScanner: React.FC<PassportScannerProps> = ({ onComplete, className }) => {
   const [phase, setPhase] = useState<ScanPhase>("idle");
   const [progress, setProgress] = useState(0);
+  const [liveMode, setLiveMode] = useState(false);
 
   const startScan = useCallback(() => {
     setPhase("scanning");
@@ -56,6 +58,24 @@ const PassportScanner: React.FC<PassportScannerProps> = ({ onComplete, className
       cleanupTimers.forEach((id) => window.clearTimeout(id));
     };
   }, [phase, onComplete]);
+
+  if (liveMode) {
+    return (
+      <div className={cn("relative", className)}>
+        <LiveCameraScanner
+          onCapture={() => {
+            setLiveMode(false);
+            setPhase("detected");
+            window.setTimeout(() => {
+              setPhase("verified");
+              onComplete?.();
+            }, 1000);
+          }}
+          onCancel={() => setLiveMode(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={cn("relative", className)}>
@@ -116,6 +136,17 @@ const PassportScanner: React.FC<PassportScannerProps> = ({ onComplete, className
           </div>
         )}
       </div>
+      {phase === "idle" ? (
+        <button
+          type="button"
+          onClick={() => setLiveMode(true)}
+          className="mt-3 mx-auto flex items-center gap-1.5 text-[12px] font-medium text-[hsl(var(--p7-brand))] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))] rounded-md px-2 py-1"
+          aria-label="Open live camera scanner"
+        >
+          <Eye className="w-3.5 h-3.5" />
+          Use real camera (edge detect + auto-capture)
+        </button>
+      ) : null}
     </div>
   );
 };
