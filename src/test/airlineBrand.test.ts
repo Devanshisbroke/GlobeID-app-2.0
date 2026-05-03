@@ -65,4 +65,21 @@ describe("brandForBoardingPass", () => {
     const doc = mkDoc("ZZ7777-FOO", "Lufthansa flight");
     expect(brandForBoardingPass(doc).name).toBe("Lufthansa");
   });
+
+  it("does not throw when doc.number is null/undefined (regression)", () => {
+    // Regression: Wallet was crashing with "Cannot read properties of
+    // null (reading 'match')" when a boarding pass was added from a
+    // trip leg whose flightNumber was null. The brand resolver now
+    // tolerates a missing number and falls back to the label.
+    const docNull = mkDoc("", "Lufthansa flight", {
+      number: null as unknown as string,
+    });
+    expect(() => brandForBoardingPass(docNull)).not.toThrow();
+    expect(brandForBoardingPass(docNull).name).toBe("Lufthansa");
+    const docUndefined = mkDoc("", "Singapore Airlines flight", {
+      number: undefined as unknown as string,
+    });
+    expect(() => brandForBoardingPass(docUndefined)).not.toThrow();
+    expect(brandForBoardingPass(docUndefined).name).toBe("Singapore Airlines");
+  });
 });

@@ -146,11 +146,17 @@ export function resolveAirlineBrand(input?: string | null): AirlineBrand {
  * is empty.
  */
 export function brandForBoardingPass(doc: TravelDocument): AirlineBrand {
-  const iataFromNumber = doc.number.match(/^([A-Z]{2})\d/)?.[1];
+  // Defensive: a freshly-saved boarding pass may carry an empty,
+  // null or undefined `number` if the upstream trip leg has no
+  // flight number yet. Guarding the regex avoids the
+  // "Cannot read properties of null" crash that surfaced when the
+  // user added such a pass to Wallet (regression).
+  const number = typeof doc.number === "string" ? doc.number : "";
+  const iataFromNumber = number.match(/^([A-Z]{2})\d/)?.[1];
   if (iataFromNumber && PALETTE[iataFromNumber.toUpperCase()]) {
     return PALETTE[iataFromNumber.toUpperCase()]!;
   }
   // Fall through to the label so a doc like number "ZZ7777-FOO" but
   // label "Lufthansa flight" still themes correctly.
-  return resolveAirlineBrand(doc.label ?? doc.number ?? "");
+  return resolveAirlineBrand(doc.label ?? number ?? "");
 }
