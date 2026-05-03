@@ -1,6 +1,9 @@
 import React, { Suspense, useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Stars, Sparkles } from "@react-three/drei";
+import { EffectComposer, Bloom, Vignette, ChromaticAberration } from "@react-three/postprocessing";
+import { BlendFunction } from "postprocessing";
+import { Vector2 } from "three";
 import Globe from "./Globe";
 import Starfield from "./Starfield";
 import FlightArcs from "./FlightArcs";
@@ -140,6 +143,34 @@ const GlobeScene: React.FC<GlobeSceneProps> = ({
 
         <AirportMarkers showAirports={showAirports} />
         <UserLocation lat={userLat} lng={userLng} />
+
+        {/* Cinematic deep-space dust + dense star backdrop. Only mounted
+            on non-mobile to keep the mobile fragment shader budget low. */}
+        {!mobile ? (
+          <>
+            <Stars radius={50} depth={20} count={2000} factor={3} saturation={0} fade speed={0.5} />
+            <Sparkles count={120} scale={6} size={1.5} speed={0.2} color="#9fc3ff" opacity={0.6} />
+          </>
+        ) : null}
+
+        {/* Bloom + vignette + tiny chromatic aberration. Disabled on
+            mobile to keep frame-time inside the 8.3ms 120Hz budget. */}
+        {!mobile ? (
+          <EffectComposer multisampling={0} disableNormalPass>
+            <Bloom
+              intensity={0.7}
+              luminanceThreshold={0.55}
+              luminanceSmoothing={0.4}
+              mipmapBlur
+            />
+            <ChromaticAberration
+              offset={new Vector2(0.0006, 0.0006)}
+              radialModulation={false}
+              modulationOffset={0}
+            />
+            <Vignette eskil={false} offset={0.18} darkness={0.55} blendFunction={BlendFunction.NORMAL} />
+          </EffectComposer>
+        ) : null}
 
         <OrbitControls
           enablePan={false}

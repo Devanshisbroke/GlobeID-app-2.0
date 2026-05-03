@@ -14,6 +14,14 @@ import {
   setQuietHours,
   type QuietHoursPrefs,
 } from "@/core/scheduledJobs";
+import {
+  CHANNEL_LABELS,
+  NOTIFICATION_CHANNELS,
+  getChannelPrefs,
+  setChannelPref,
+  type NotificationChannel,
+  type NotificationChannelPrefs,
+} from "@/lib/notificationChannels";
 import { haptics } from "@/utils/haptics";
 
 /**
@@ -43,6 +51,15 @@ const AppearanceSettings: React.FC = () => {
     () => getThemePrefs().autoTimeOfDay,
   );
   const [quiet, setLocalQuiet] = useState<QuietHoursPrefs>(getQuietHours);
+  const [channelPrefs, setChannelPrefsState] = useState<NotificationChannelPrefs>(
+    () => getChannelPrefs(),
+  );
+
+  const onToggleChannel = (channel: NotificationChannel, next: boolean) => {
+    const updated = setChannelPref(channel, next);
+    setChannelPrefsState(updated);
+    haptics.selection();
+  };
 
   const onToggleReduce = (next: boolean) => {
     setLocalReduceTransparency(next);
@@ -226,6 +243,41 @@ const AppearanceSettings: React.FC = () => {
             </label>
           </div>
         ) : null}
+      </Surface>
+
+      {/* Per-channel notification preferences (BACKLOG O 164). */}
+      <Surface variant="plain" className="px-4 py-4">
+        <Text variant="headline" tone="primary" className="font-semibold">
+          Notification channels
+        </Text>
+        <Text variant="caption-1" tone="tertiary" className="mt-1">
+          Pick which alerts the app may surface. Quiet hours still apply.
+        </Text>
+        <ul className="mt-3 divide-y divide-border/40">
+          {NOTIFICATION_CHANNELS.map((channel) => {
+            const meta = CHANNEL_LABELS[channel];
+            return (
+              <li
+                key={channel}
+                className="flex items-start justify-between gap-3 py-3"
+              >
+                <div className="flex-1 min-w-0">
+                  <Text variant="body-1" tone="primary" className="font-medium">
+                    {meta.title}
+                  </Text>
+                  <Text variant="caption-1" tone="tertiary" className="mt-0.5">
+                    {meta.description}
+                  </Text>
+                </div>
+                <Toggle
+                  checked={channelPrefs[channel]}
+                  onCheckedChange={(next) => onToggleChannel(channel, next)}
+                  aria-label={`Toggle ${meta.title}`}
+                />
+              </li>
+            );
+          })}
+        </ul>
       </Surface>
     </div>
   );
