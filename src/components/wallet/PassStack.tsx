@@ -15,8 +15,9 @@
  * so this stays unit-testable in isolation.
  */
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, Plane, ShieldCheck, CreditCard, AlertTriangle } from "lucide-react";
+import { FileText, Plane, ShieldCheck, CreditCard, AlertTriangle, ScanLine } from "lucide-react";
 import { spring } from "@/components/ui/v2";
 import type { TravelDocument } from "@/store/userStore";
 import { cn } from "@/lib/utils";
@@ -61,6 +62,7 @@ const PEEK_Y = 18;
 const PEEK_SCALE = 0.04;
 
 const PassStack: React.FC<PassStackProps> = ({ documents, className }) => {
+  const navigate = useNavigate();
   const [activeIdx, setActiveIdx] = useState(0);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -77,15 +79,34 @@ const PassStack: React.FC<PassStackProps> = ({ documents, className }) => {
   }, [documents, activeIdx]);
 
   if (!ordered) {
+    // Empty state: animation + concise copy + a single primary CTA.
+    // Bias toward action — Apple Wallet's empty state doesn't just
+    // describe the gap, it offers the next step inline.
     return (
       <div className="rounded-p7-surface border border-dashed border-border/60 p-8 text-center text-sm text-muted-foreground">
         <div className="mx-auto mb-3 text-foreground/70">
           <EmptyExplore size={72} />
         </div>
         <p className="font-medium text-foreground/80">No travel documents yet</p>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mt-1 mb-4 text-xs text-muted-foreground">
           Scan a passport, visa, or boarding pass to populate your wallet.
         </p>
+        <button
+          type="button"
+          onClick={() => {
+            haptics.tap();
+            navigate("/scan");
+          }}
+          className={cn(
+            "inline-flex items-center gap-2 rounded-p7-input bg-brand text-white",
+            "px-4 py-2 text-sm font-semibold shadow-depth-sm",
+            "transition-transform active:scale-95",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]",
+          )}
+        >
+          <ScanLine className="w-4 h-4" strokeWidth={2} />
+          Scan a document
+        </button>
       </div>
     );
   }

@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import PassStack from "@/components/wallet/PassStack";
 import type { TravelDocument } from "@/store/userStore";
+
+// PassStack uses useNavigate for the empty-state CTA — wrap every
+// render in a MemoryRouter so the hook resolves a real router context.
+const renderWithRouter = (ui: React.ReactNode) =>
+  render(<MemoryRouter>{ui}</MemoryRouter>);
 
 vi.mock("@/utils/haptics", () => ({
   haptics: {
@@ -47,17 +53,20 @@ describe("<PassStack>", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("renders the empty-state when no documents are provided", () => {
-    render(<PassStack documents={[]} />);
+    renderWithRouter(<PassStack documents={[]} />);
     expect(screen.getByText(/No travel documents yet/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Scan a document/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders the lead document's label when documents are present", () => {
-    render(<PassStack documents={[passport]} />);
+    renderWithRouter(<PassStack documents={[passport]} />);
     expect(screen.getByText(/US Passport/)).toBeInTheDocument();
   });
 
   it("renders multiple documents (lead + peeks)", () => {
-    render(<PassStack documents={[passport, boardingSQ]} />);
+    renderWithRouter(<PassStack documents={[passport, boardingSQ]} />);
     expect(screen.getByText(/US Passport/)).toBeInTheDocument();
     expect(screen.getByText(/SQ31 SFO→SIN/)).toBeInTheDocument();
   });
