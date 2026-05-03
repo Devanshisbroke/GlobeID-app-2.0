@@ -13,7 +13,8 @@ import { haptics } from "@/utils/haptics";
 const LockScreen: React.FC = () => {
   const navigate = useNavigate();
   const [showBiometric, setShowBiometric] = useState(false);
-  const [unlocking, setUnlocking] = useState(false);
+  /** "prompting" = OS sheet up, "verified" = passed → brief celebrate, then nav. */
+  const [phase, setPhase] = useState<"idle" | "prompting" | "verified">("idle");
   const [biometricSupported, setBiometricSupported] = useState<boolean | null>(null);
   const [showPin, setShowPin] = useState(false);
   const [pin, setPin] = useState("");
@@ -30,7 +31,7 @@ const LockScreen: React.FC = () => {
 
   const handleBiometric = async () => {
     setShowBiometric(true);
-    setUnlocking(true);
+    setPhase("prompting");
     haptics.selection();
     const result = await requestBiometricAuth(
       "Unlock GlobeID",
@@ -38,10 +39,13 @@ const LockScreen: React.FC = () => {
     );
     if (result.ok) {
       haptics.success();
-      navigate("/", { replace: true });
+      // Brief celebrate frame so the user sees confirmation rather
+      // than an instant route change. Tuned to the 240ms confirm cue.
+      setPhase("verified");
+      setTimeout(() => navigate("/", { replace: true }), 280);
       return;
     }
-    setUnlocking(false);
+    setPhase("idle");
     setShowBiometric(false);
     if (result.code === "cancelled") return;
     if (result.code === "unsupported") {
@@ -146,13 +150,15 @@ const LockScreen: React.FC = () => {
           onClick={handleBiometric}
           className="mt-2 flex flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors active:scale-95 min-h-[44px] justify-center"
         >
-          <Fingerprint className={cn("w-10 h-10", unlocking && "text-accent animate-glow-pulse")} />
+          <Fingerprint className={cn("w-10 h-10", phase !== "idle" && "text-accent animate-glow-pulse")} />
           <span className="text-xs">
-            {unlocking
+            {phase === "prompting"
               ? "Verifying…"
-              : biometricSupported === false
-                ? "Biometrics unavailable"
-                : "Use Biometrics"}
+              : phase === "verified"
+                ? "Verified"
+                : biometricSupported === false
+                  ? "Biometrics unavailable"
+                  : "Use Biometrics"}
           </span>
         </button>
 
@@ -203,20 +209,28 @@ const LockScreen: React.FC = () => {
         )}
       </div>
 
-      {/* Biometric overlay */}
+      {/* Biometric overlay — fades in while the OS biometric sheet is
+          summoned, then transitions to a confirmation frame on success.
+          Distinct phases prevent the previous regression where the
+          "Identity Confirmed" copy showed before the prompt resolved. */}
       {showBiometric && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/90 backdrop-blur-md animate-fade-in">
           <div className="flex flex-col items-center gap-4 animate-scale-in">
-            <Fingerprint className="w-20 h-20 text-accent animate-glow-pulse" />
+            <Fingerprint
+              className={cn(
+                "w-20 h-20 text-accent",
+                phase === "prompting" && "animate-glow-pulse",
+              )}
+            />
             <p className="text-foreground font-medium">
-              {unlocking ? "Identity Confirmed" : "Touch to Verify"}
+              {phase === "verified" ? "Identity Confirmed" : "Touch to Verify"}
             </p>
-            {unlocking && (
+            {phase === "verified" ? (
               <div className="flex items-center gap-2 text-accent text-sm animate-fade-in">
-                <span>✓</span>
+                <span aria-hidden>✓</span>
                 <span>Welcome back, {demoUser.name.split(" ")[0]}</span>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       )}
