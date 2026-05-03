@@ -43,6 +43,15 @@ export default defineConfig(({ mode }) => {
       manifest: false, // use public/manifest.json
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        // Heavy NASA/Earth textures are loaded on demand by the Globe
+        // scene and shouldn't bloat the precache manifest. Match them
+        // here and let the runtimeCaching rule below pull them in on
+        // first request and persist for offline reuse.
+        globIgnores: ["**/textures/earth-clouds*"],
+        // Default 2 MiB; bump to 6 MiB so the 4K diffuse texture
+        // (~1.4 MB) and bundled Tesseract eng pack (~2.3 MB) get
+        // precached for offline first-load.
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         navigateFallbackDenylist: [/^\/~oauth/],
         runtimeCaching: [
           {
@@ -51,6 +60,15 @@ export default defineConfig(({ mode }) => {
             options: {
               cacheName: "unsplash-images",
               expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 7 },
+            },
+          },
+          {
+            // Lazy-cache the 4.9 MB cloud layer on first request.
+            urlPattern: /\/textures\/earth-clouds.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "earth-textures",
+              expiration: { maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
         ],
