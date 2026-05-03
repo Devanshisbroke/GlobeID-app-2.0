@@ -31,6 +31,7 @@ import {
 } from "@/lib/imageVariance";
 import { haptics } from "@/utils/haptics";
 import { uiSound } from "@/cinematic/uiSound";
+import { audioCues } from "@/lib/audioCues";
 import { spring } from "@/lib/motion-tokens";
 import { cn } from "@/lib/utils";
 
@@ -140,6 +141,9 @@ const LiveCameraScanner: React.FC<Props> = ({
         const dataUrl = target.toDataURL("image/jpeg", 0.92);
         haptics.success();
         uiSound.confirm();
+        // Crisp single-tone shutter cue layered alongside uiSound for
+        // a fuller "snapped" feel.
+        void audioCues.scan();
         setState("captured");
         onCapture(blob, dataUrl);
       },

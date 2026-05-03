@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { getCountryTheme } from "@/lib/countryThemes";
 import { useMotion } from "@/hooks/useMotion";
 import { fireConfetti } from "@/lib/confetti";
+import { audioCues } from "@/lib/audioCues";
 
 interface WelcomeOverlayProps {
   countryCode: string;
@@ -27,6 +28,8 @@ const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ countryCode, onComplete
       setPhase("text");
       // Confetti at the moment the country welcome reveals (BACKLOG K 133).
       fireConfetti({ count: 90, originY: 0.45, duration: 1700 });
+      // Major-triad chime in sync with the reveal.
+      void audioCues.success();
     }, 550);
     setTimeout(() => setPhase("exit"), 2800);
     setTimeout(() => {

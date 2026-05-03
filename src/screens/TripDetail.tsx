@@ -17,6 +17,7 @@ import ItineraryView from "@/components/trip/ItineraryView";
 import QRBoardingPass from "@/components/trip/QRBoardingPass";
 import TripGlobePreview from "@/components/trip/TripGlobePreview";
 import TripIntelSection from "@/components/trip/TripIntelSection";
+import TripNotes from "@/components/trip/TripNotes";
 import LazyMount from "@/components/system/LazyMount";
 import { useLifecycleStore } from "@/store/lifecycleStore";
 import { useUserStore } from "@/store/userStore";
@@ -346,6 +347,11 @@ const TripDetail: React.FC = () => {
             today={today}
           />
         </section>
+
+        {/* Rich-text notes (BACKLOG D 45). Tiptap editor lazy-loaded. */}
+        <div className="mb-5">
+          <TripNotes tripId={tripId ?? "adhoc"} />
+        </div>
 
         {/* Reminders summary (if any not already day-tied) */}
         {trip.reminders.length > 0 ? (
