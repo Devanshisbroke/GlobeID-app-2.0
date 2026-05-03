@@ -1,55 +1,46 @@
 /**
- * Theme preferences — accent colour + reduce-transparency.
+ * Theme preferences — accent colour, reduce-transparency, density,
+ * high-contrast, and auto-by-time-of-day mode.
  *
  * Stored in `localStorage` under `globeid:themePrefs` so the choice
  * persists across launches. Applied at boot by `applyThemePrefs()`
- * (called from `main.tsx`) and re-applied by `setAccent` / `setReduceTransparency`.
+ * (called from `main.tsx`) and re-applied by individual setters.
  *
- * Implementation: we override the `--p7-brand` HSL token (defined in
- * `index.css`) on `document.documentElement.style` so every Tailwind
- * `brand` utility immediately rerenders with the new accent. Same
- * pattern Apple uses for Stage Manager / Mac OS accent picker.
- *
- * Reduce-transparency replaces glass surfaces with solid ones via a
- * single `data-reduce-transparency` attribute on `<html>`; CSS
- * already has the `[data-reduce-transparency='true'] .glass-*`
- * fallback rules.
+ * Implementation:
+ *  - accent → overrides `--p7-brand` HSL token on documentElement.
+ *  - reduceTransparency → `data-reduce-transparency` on <html>.
+ *  - density → `data-density` on <html>; CSS reads `[data-density='compact']`.
+ *  - highContrast → `data-high-contrast` on <html>; lifts border tier and
+ *    forces solid-on-solid text.
+ *  - autoTimeOfDay → enables a hourly tick that switches `theme` between
+ *    light/dark based on the device's local clock (sunrise/sunset
+ *    approximated as 06:00/19:00 — close enough for a UX hint).
  */
+import { ACCENTS, DEFAULT_ACCENT_ID } from "./themeAccents";
+export {
+  ACCENTS,
+  DEFAULT_ACCENT_ID,
+  type AccentOption,
+} from "./themeAccents";
 
-export interface AccentOption {
-  /** Stable id stored in prefs. */
-  id: string;
-  /** Display name. */
-  name: string;
-  /** HSL triple in token form: "H S% L%". */
-  hsl: string;
-  /** A hover/pressed strong variant. */
-  hslStrong: string;
-}
-
-export const ACCENTS: readonly AccentOption[] = [
-  // Apple-style picker: 8 well-distributed hues that all read in dark + light
-  { id: "azure",  name: "Azure",  hsl: "219 67% 54%", hslStrong: "219 72% 46%" }, // default
-  { id: "ocean",  name: "Ocean",  hsl: "200 80% 48%", hslStrong: "200 85% 40%" },
-  { id: "mint",   name: "Mint",   hsl: "168 65% 42%", hslStrong: "168 70% 36%" },
-  { id: "lime",   name: "Lime",   hsl: "100 60% 44%", hslStrong: "100 65% 38%" },
-  { id: "amber",  name: "Amber",  hsl: "38 92% 50%",  hslStrong: "38 95% 44%"  },
-  { id: "coral",  name: "Coral",  hsl: "12 86% 60%",  hslStrong: "12 90% 52%"  },
-  { id: "rose",   name: "Rose",   hsl: "340 78% 56%", hslStrong: "340 82% 48%" },
-  { id: "violet", name: "Violet", hsl: "266 78% 62%", hslStrong: "266 82% 54%" },
-] as const;
-
-export const DEFAULT_ACCENT_ID = "azure";
+export type Density = "compact" | "comfortable" | "spacious";
 
 export interface ThemePrefs {
   accentId: string;
   reduceTransparency: boolean;
+  density: Density;
+  highContrast: boolean;
+  /** When true, light/dark switches automatically by local time. */
+  autoTimeOfDay: boolean;
 }
 
 const STORAGE_KEY = "globeid:themePrefs";
 const DEFAULT_PREFS: ThemePrefs = {
   accentId: DEFAULT_ACCENT_ID,
   reduceTransparency: false,
+  density: "comfortable",
+  highContrast: false,
+  autoTimeOfDay: false,
 };
 
 function readPrefs(): ThemePrefs {
@@ -64,6 +55,13 @@ function readPrefs(): ThemePrefs {
           ? parsed.accentId
           : DEFAULT_ACCENT_ID,
       reduceTransparency: parsed.reduceTransparency === true,
+      density: ["compact", "comfortable", "spacious"].includes(
+        parsed.density as string,
+      )
+        ? (parsed.density as Density)
+        : "comfortable",
+      highContrast: parsed.highContrast === true,
+      autoTimeOfDay: parsed.autoTimeOfDay === true,
     };
   } catch {
     return { ...DEFAULT_PREFS };
@@ -82,12 +80,12 @@ export function getThemePrefs(): ThemePrefs {
   return readPrefs();
 }
 
-function applyAccent(accent: AccentOption): void {
+function applyAccent(id: string): void {
   if (typeof document === "undefined") return;
+  const accent = ACCENTS.find((a) => a.id === id) ?? ACCENTS[0]!;
   const root = document.documentElement;
   root.style.setProperty("--p7-brand", accent.hsl);
   root.style.setProperty("--p7-brand-strong", accent.hslStrong);
-  // Also feed the soft tint (used by halos / radial gradients).
   root.style.setProperty("--p7-brand-soft", `${accent.hsl} / 0.10`);
 }
 
@@ -96,12 +94,59 @@ function applyReduceTransparency(on: boolean): void {
   document.documentElement.dataset.reduceTransparency = on ? "true" : "false";
 }
 
+function applyDensity(d: Density): void {
+  if (typeof document === "undefined") return;
+  document.documentElement.dataset.density = d;
+}
+
+function applyHighContrast(on: boolean): void {
+  if (typeof document === "undefined") return;
+  document.documentElement.dataset.highContrast = on ? "true" : "false";
+}
+
+/** Apple-style: dark after sunset (~19:00), light after sunrise (~06:00).
+ *  Returns the theme that *should* be active right now. */
+export function themeForTimeOfDay(now: Date = new Date()): "light" | "dark" {
+  const h = now.getHours();
+  return h >= 6 && h < 19 ? "light" : "dark";
+}
+
+let autoTimer: ReturnType<typeof setInterval> | null = null;
+
+function applyAutoTimeOfDay(on: boolean): void {
+  if (typeof window === "undefined") return;
+  if (autoTimer !== null) {
+    clearInterval(autoTimer);
+    autoTimer = null;
+  }
+  if (!on) return;
+  // Capture next-themes' setter via DOM class, avoiding a hard dep here.
+  const tick = () => {
+    const root = document.documentElement;
+    const want = themeForTimeOfDay();
+    const isDark = root.classList.contains("dark");
+    if (want === "dark" && !isDark) {
+      root.classList.add("dark");
+      root.style.colorScheme = "dark";
+    } else if (want === "light" && isDark) {
+      root.classList.remove("dark");
+      root.style.colorScheme = "light";
+    }
+  };
+  tick();
+  // Recheck every 5 min — cheap and timezone-shifts (DST, traveling)
+  // get picked up without a new app launch.
+  autoTimer = setInterval(tick, 5 * 60_000);
+}
+
 /** Boot-time call from main.tsx — applies persisted prefs. */
 export function applyThemePrefs(): void {
   const prefs = readPrefs();
-  const accent = ACCENTS.find((a) => a.id === prefs.accentId) ?? ACCENTS[0]!;
-  applyAccent(accent);
+  applyAccent(prefs.accentId);
   applyReduceTransparency(prefs.reduceTransparency);
+  applyDensity(prefs.density);
+  applyHighContrast(prefs.highContrast);
+  applyAutoTimeOfDay(prefs.autoTimeOfDay);
 }
 
 export function setAccent(id: string): void {
@@ -109,7 +154,7 @@ export function setAccent(id: string): void {
   const prefs = readPrefs();
   prefs.accentId = accent.id;
   writePrefs(prefs);
-  applyAccent(accent);
+  applyAccent(prefs.accentId);
 }
 
 export function setReduceTransparency(on: boolean): void {
@@ -117,4 +162,25 @@ export function setReduceTransparency(on: boolean): void {
   prefs.reduceTransparency = on;
   writePrefs(prefs);
   applyReduceTransparency(on);
+}
+
+export function setDensity(d: Density): void {
+  const prefs = readPrefs();
+  prefs.density = d;
+  writePrefs(prefs);
+  applyDensity(d);
+}
+
+export function setHighContrast(on: boolean): void {
+  const prefs = readPrefs();
+  prefs.highContrast = on;
+  writePrefs(prefs);
+  applyHighContrast(on);
+}
+
+export function setAutoTimeOfDay(on: boolean): void {
+  const prefs = readPrefs();
+  prefs.autoTimeOfDay = on;
+  writePrefs(prefs);
+  applyAutoTimeOfDay(on);
 }

@@ -4,6 +4,10 @@ import { Surface, Text, Toggle } from "@/components/ui/v2";
 import {
   getThemePrefs,
   setReduceTransparency,
+  setDensity,
+  setHighContrast,
+  setAutoTimeOfDay,
+  type Density,
 } from "@/lib/themePrefs";
 import {
   getQuietHours,
@@ -29,11 +33,38 @@ const AppearanceSettings: React.FC = () => {
   const [reduceTransparency, setLocalReduceTransparency] = useState<boolean>(
     () => getThemePrefs().reduceTransparency,
   );
+  const [density, setLocalDensity] = useState<Density>(
+    () => getThemePrefs().density,
+  );
+  const [highContrast, setLocalHighContrast] = useState<boolean>(
+    () => getThemePrefs().highContrast,
+  );
+  const [autoTime, setLocalAutoTime] = useState<boolean>(
+    () => getThemePrefs().autoTimeOfDay,
+  );
   const [quiet, setLocalQuiet] = useState<QuietHoursPrefs>(getQuietHours);
 
   const onToggleReduce = (next: boolean) => {
     setLocalReduceTransparency(next);
     setReduceTransparency(next);
+    haptics.light();
+  };
+
+  const onChangeDensity = (next: Density) => {
+    setLocalDensity(next);
+    setDensity(next);
+    haptics.selection();
+  };
+
+  const onToggleHighContrast = (next: boolean) => {
+    setLocalHighContrast(next);
+    setHighContrast(next);
+    haptics.light();
+  };
+
+  const onToggleAutoTime = (next: boolean) => {
+    setLocalAutoTime(next);
+    setAutoTimeOfDay(next);
     haptics.light();
   };
 
@@ -54,6 +85,39 @@ const AppearanceSettings: React.FC = () => {
     <div className="space-y-3">
       <AccentPicker />
 
+      {/* Density — Apple-style segmented control. Gates layout-spacing
+          tokens via [data-density] CSS rules in index.css. */}
+      <Surface variant="plain" radius="surface" className="px-4 py-3">
+        <Text variant="body-em" tone="primary">
+          Density
+        </Text>
+        <Text variant="caption-1" tone="tertiary" className="mb-2">
+          Adjust UI spacing across every screen.
+        </Text>
+        <div
+          role="radiogroup"
+          aria-label="Density"
+          className="flex gap-1.5 p-1 rounded-xl bg-surface-overlay/50"
+        >
+          {(["compact", "comfortable", "spacious"] as const).map((d) => (
+            <button
+              key={d}
+              type="button"
+              role="radio"
+              aria-checked={density === d}
+              onClick={() => onChangeDensity(d)}
+              className={`flex-1 capitalize text-[12px] font-medium py-2 rounded-lg min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))] ${
+                density === d
+                  ? "bg-[hsl(var(--p7-brand))] text-white"
+                  : "text-foreground hover:bg-surface-elevated"
+              }`}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+      </Surface>
+
       <Surface variant="plain" radius="surface" className="px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
@@ -68,6 +132,42 @@ const AppearanceSettings: React.FC = () => {
             checked={reduceTransparency}
             onCheckedChange={onToggleReduce}
             aria-label="Toggle reduce transparency"
+          />
+        </div>
+      </Surface>
+
+      <Surface variant="plain" radius="surface" className="px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <Text variant="body-em" tone="primary">
+              High contrast
+            </Text>
+            <Text variant="caption-1" tone="tertiary">
+              Stronger borders, opaque text on every surface.
+            </Text>
+          </div>
+          <Toggle
+            checked={highContrast}
+            onCheckedChange={onToggleHighContrast}
+            aria-label="Toggle high contrast"
+          />
+        </div>
+      </Surface>
+
+      <Surface variant="plain" radius="surface" className="px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <Text variant="body-em" tone="primary">
+              Auto theme by time of day
+            </Text>
+            <Text variant="caption-1" tone="tertiary">
+              Light from 06:00, dark after 19:00 — follows your local clock.
+            </Text>
+          </div>
+          <Toggle
+            checked={autoTime}
+            onCheckedChange={onToggleAutoTime}
+            aria-label="Toggle auto theme by time of day"
           />
         </div>
       </Surface>

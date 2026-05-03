@@ -1,61 +1,95 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "motion/react";
 import { IdentityScore } from "@/components/ui/IdentityScore";
 import { Surface, Text, ease, duration } from "@/components/ui/v2";
 import { useUserStore } from "@/store/userStore";
 import { cn } from "@/lib/utils";
+import { haptics } from "@/utils/haptics";
+import ScoreFactorDrawer from "./ScoreFactorDrawer";
+import {
+  SCORE_FACTOR_META,
+  type ScoreFactorMeta,
+} from "./scoreFactorMeta";
 
-const factors = [
-  { label: "Documents Verified", value: 5, max: 5 },
-  { label: "Countries Visited", value: 12, max: 20 },
-  { label: "Travel Activity", value: 8, max: 10 },
-  { label: "Biometric Match", value: 1, max: 1 },
+interface FactorRow {
+  id: string;
+  label: string;
+  value: number;
+  max: number;
+}
+
+const factors: readonly FactorRow[] = [
+  { id: "documents-verified", label: "Documents Verified", value: 5, max: 5 },
+  { id: "countries-visited", label: "Countries Visited", value: 12, max: 20 },
+  { id: "travel-activity", label: "Travel Activity", value: 8, max: 10 },
+  { id: "biometric-match", label: "Biometric Match", value: 1, max: 1 },
 ];
 
 const IdentityScoreCard: React.FC<{ className?: string }> = ({ className }) => {
   const { profile } = useUserStore();
+  const [activeFactor, setActiveFactor] = useState<ScoreFactorMeta | null>(null);
+
+  const handleFactorTap = (id: string) => {
+    haptics.selection();
+    const meta = SCORE_FACTOR_META.find((m) => m.id === id);
+    if (meta) setActiveFactor(meta);
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: duration.hero, ease: ease.standard }}
-    >
-      <Surface
-        variant="elevated"
-        radius="surface"
-        className={cn("p-4", className)}
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: duration.hero, ease: ease.standard }}
       >
-        <div className="flex items-center gap-4">
-          <IdentityScore score={profile.identityScore} size={72} strokeWidth={5} />
-          <div className="flex-1 space-y-1.5">
-            <Text variant="caption-1" tone="tertiary" className="uppercase tracking-wider">
-              Identity Score
-            </Text>
-            {factors.map((f) => (
-              <div key={f.label} className="flex items-center gap-2">
-                <Text variant="caption-2" tone="secondary" className="flex-1">
-                  {f.label}
-                </Text>
-                <div className="w-16 h-1 rounded-full bg-surface-overlay overflow-hidden">
-                  <div
-                    className="h-full bg-state-accent rounded-full"
-                    style={{ width: `${(f.value / f.max) * 100}%` }}
-                  />
-                </div>
-                <Text
-                  variant="caption-2"
-                  tone="primary"
-                  className="font-mono w-7 text-right tabular-nums"
+        <Surface
+          variant="elevated"
+          radius="surface"
+          className={cn("p-4", className)}
+        >
+          <div className="flex items-center gap-4">
+            <IdentityScore score={profile.identityScore} size={72} strokeWidth={5} />
+            <div className="flex-1 space-y-1.5">
+              <Text variant="caption-1" tone="tertiary" className="uppercase tracking-wider">
+                Identity Score
+              </Text>
+              {factors.map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => handleFactorTap(f.id)}
+                  className="group w-full flex items-center gap-2 -mx-1 px-1 py-0.5 rounded-md text-left min-h-[28px] hover:bg-surface-overlay/40 active:bg-surface-overlay/60 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--p7-ring))]"
+                  aria-label={`Learn more about ${f.label}`}
                 >
-                  {f.value}/{f.max}
-                </Text>
-              </div>
-            ))}
+                  <Text variant="caption-2" tone="secondary" className="flex-1 group-hover:text-foreground transition-colors">
+                    {f.label}
+                  </Text>
+                  <div className="w-16 h-1 rounded-full bg-surface-overlay overflow-hidden">
+                    <motion.div
+                      className="h-full bg-state-accent rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(f.value / f.max) * 100}%` }}
+                      transition={{ duration: 0.6, ease: ease.standard, delay: 0.1 }}
+                    />
+                  </div>
+                  <Text
+                    variant="caption-2"
+                    tone="primary"
+                    className="font-mono w-7 text-right tabular-nums"
+                  >
+                    {f.value}/{f.max}
+                  </Text>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      </Surface>
-    </motion.div>
+        </Surface>
+      </motion.div>
+      <ScoreFactorDrawer
+        factor={activeFactor}
+        onClose={() => setActiveFactor(null)}
+      />
+    </>
   );
 };
 
