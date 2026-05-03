@@ -8,6 +8,7 @@ const Globe: React.FC = () => {
 
   const atmosphereRef = useRef<THREE.Mesh>(null);
   const outerGlowRef = useRef<THREE.Mesh>(null);
+  const cloudsRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
   const mobile = useMemo(() => isMobileOrCapacitor(), []);
@@ -17,21 +18,27 @@ const Globe: React.FC = () => {
   const atmoSegments = mobile ? 48 : 64;
   const glowSegments = mobile ? 32 : 48;
 
-  const [nightMap, bumpMap, waterMap] = useLoader(THREE.TextureLoader, [
-    "/textures/earth-night.jpg",
-    "/textures/earth-bump.png",
-    "/textures/earth-water.png",
-  ]);
+  const [dayMap, nightMap, bumpMap, waterMap, cloudMap] = useLoader(
+    THREE.TextureLoader,
+    [
+      "/textures/earth-day.jpg",
+      "/textures/earth-night.jpg",
+      "/textures/earth-bump.png",
+      "/textures/earth-water.png",
+      "/textures/earth-clouds.png",
+    ],
+  );
 
   useMemo(() => {
-    [nightMap, bumpMap, waterMap].forEach((tex) => {
+    [dayMap, nightMap, bumpMap, waterMap, cloudMap].forEach((tex) => {
       if (tex) {
         tex.minFilter = THREE.LinearMipMapLinearFilter;
         tex.magFilter = THREE.LinearFilter;
-        tex.anisotropy = 4;
+        tex.anisotropy = mobile ? 4 : 8;
+        tex.colorSpace = THREE.SRGBColorSpace;
       }
     });
-  }, [nightMap, bumpMap, waterMap]);
+  }, [dayMap, nightMap, bumpMap, waterMap, cloudMap, mobile]);
 
   // Cache the last-applied sun direction so we only push to the GPU
   // when it has materially shifted. Sun moves ~0.25°/min — a 1-min
@@ -71,6 +78,13 @@ const Globe: React.FC = () => {
       }
     }
 
+    // Drift the cloud sphere independently of the surface for a soft
+    // weather-system effect. ~1 full revolution / 12 minutes — matches
+    // Apple Maps' globe cloud parallax. Skipped on mobile to save GPU.
+    if (!mobile && cloudsRef.current) {
+      cloudsRef.current.rotation.y = t * 0.0087;
+    }
+
   });
 
   const globeMaterial = useMemo(() => {
@@ -81,6 +95,7 @@ const Globe: React.FC = () => {
 
         uTime: { value: 0 },
 
+        uDayMap: { value: dayMap },
         uNightMap: { value: nightMap },
         uBumpMap: { value: bumpMap },
         uWaterMap: { value: waterMap },
@@ -133,6 +148,7 @@ const Globe: React.FC = () => {
 
       fragmentShader: `
 
+        uniform sampler2D uDayMap;
         uniform sampler2D uNightMap;
         uniform sampler2D uBumpMap;
         uniform sampler2D uWaterMap;
@@ -152,6 +168,7 @@ const Globe: React.FC = () => {
           float water = texture2D(uWaterMap,vUv).r;
           float bump = texture2D(uBumpMap,vUv).r;
           float nightLum = texture2D(uNightMap,vUv).r;
+          vec3 dayColor = texture2D(uDayMap,vUv).rgb;
 
           float isLand = 1.0 - smoothstep(0.45,0.55,water);
 
@@ -160,7 +177,12 @@ const Globe: React.FC = () => {
 
           land += vec3(0.02,0.03,0.05) * bump;
 
+          // Blend the procedural land/ocean tint with the real NASA
+          // Earth diffuse so the photograph dominates while we still
+          // get that cinematic blue ocean tonality. 0.78 ratio favours
+          // the real photo for Apple/Google-class visual fidelity.
           vec3 surface = mix(ocean, land, isLand);
+          surface = mix(surface, dayColor, 0.78);
 
           float sunDot =
             dot(normalize(vNormal), normalize(uSunDir));
@@ -212,7 +234,7 @@ const Globe: React.FC = () => {
       `
     });
 
-  }, [nightMap, bumpMap, waterMap]);
+  }, [dayMap, nightMap, bumpMap, waterMap]);
 
   const atmosphereMaterial = useMemo(() => {
 
@@ -318,6 +340,22 @@ const Globe: React.FC = () => {
       >
         <sphereGeometry args={[1.055, atmoSegments, atmoSegments]} />
       </mesh>
+
+      {/* Cloud layer — real NASA cloud cover photo, transparent
+          where there's open sky. Drifts at a different rate than the
+          surface beneath for a parallax effect. Skipped on mobile to
+          keep the fragment shader budget lean. */}
+      {!mobile && cloudMap ? (
+        <mesh ref={cloudsRef}>
+          <sphereGeometry args={[1.012, sphereSegments, sphereSegments]} />
+          <meshPhongMaterial
+            map={cloudMap}
+            transparent
+            opacity={0.65}
+            depthWrite={false}
+          />
+        </mesh>
+      ) : null}
 
       <mesh
         ref={outerGlowRef}

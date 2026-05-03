@@ -399,6 +399,60 @@
     background-color: hsl(var(--p7-surface-elevated)) !important;
   }
 
+  /* High-contrast mode — accessibility. Lifts every border to a darker
+     tone and disables soft shadows so edges are unambiguous. Toggled
+     via `setHighContrast` in `lib/themePrefs.ts` which sets
+     `data-high-contrast="true"` on <html>. */
+  html[data-high-contrast="true"] {
+    --p7-border: 220 14% 25%;
+    --p7-border-strong: 220 14% 15%;
+    --p7-text-primary: 220 20% 8%;
+    --p7-text-secondary: 220 15% 22%;
+  }
+  html[data-high-contrast="true"].dark {
+    --p7-border: 220 14% 75%;
+    --p7-border-strong: 220 14% 90%;
+    --p7-text-primary: 220 20% 98%;
+    --p7-text-secondary: 220 15% 90%;
+  }
+  html[data-high-contrast="true"] [class*="shadow-"] {
+    box-shadow: none !important;
+  }
+
+  /* Density mode — Apple-style. Compact tightens vertical rhythm,
+     spacious loosens it. Tuned per-data-attribute via CSS variables
+     so individual components don't have to special-case. */
+  html[data-density="compact"] {
+    --p7-density-y: 0.85;
+    --p7-density-x: 0.9;
+  }
+  html[data-density="comfortable"] {
+    --p7-density-y: 1;
+    --p7-density-x: 1;
+  }
+  html[data-density="spacious"] {
+    --p7-density-y: 1.2;
+    --p7-density-x: 1.1;
+  }
+  html[data-density="compact"] .py-3 { padding-top: 0.65rem; padding-bottom: 0.65rem; }
+  html[data-density="compact"] .py-4 { padding-top: 0.85rem; padding-bottom: 0.85rem; }
+  html[data-density="compact"] .py-5 { padding-top: 1.05rem; padding-bottom: 1.05rem; }
+  html[data-density="compact"] .py-6 { padding-top: 1.25rem; padding-bottom: 1.25rem; }
+  html[data-density="compact"] .gap-3 { gap: 0.65rem; }
+  html[data-density="compact"] .gap-4 { gap: 0.85rem; }
+  html[data-density="compact"] .space-y-3 > * + * { margin-top: 0.65rem; }
+  html[data-density="compact"] .space-y-4 > * + * { margin-top: 0.85rem; }
+  html[data-density="compact"] .space-y-5 > * + * { margin-top: 1.05rem; }
+  html[data-density="spacious"] .py-3 { padding-top: 0.9rem; padding-bottom: 0.9rem; }
+  html[data-density="spacious"] .py-4 { padding-top: 1.2rem; padding-bottom: 1.2rem; }
+  html[data-density="spacious"] .py-5 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+  html[data-density="spacious"] .py-6 { padding-top: 1.8rem; padding-bottom: 1.8rem; }
+  html[data-density="spacious"] .gap-3 { gap: 0.9rem; }
+  html[data-density="spacious"] .gap-4 { gap: 1.2rem; }
+  html[data-density="spacious"] .space-y-3 > * + * { margin-top: 0.9rem; }
+  html[data-density="spacious"] .space-y-4 > * + * { margin-top: 1.2rem; }
+  html[data-density="spacious"] .space-y-5 > * + * { margin-top: 1.5rem; }
+
   button,
   input,
   select,

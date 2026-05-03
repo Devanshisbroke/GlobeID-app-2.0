@@ -3,11 +3,14 @@ import { Globe, Plane, Route, Map } from "lucide-react";
 import { Surface, Text } from "@/components/ui/v2";
 import { cn } from "@/lib/utils";
 import { useUserStore, selectVisitedCountries } from "@/store/userStore";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 
 interface StatDef {
   icon: typeof Globe;
   label: string;
-  getValue: (ctx: { tripCount: number; visitedCount: number }) => string;
+  /** Tuple shape: [numeric value, suffix]. Suffix is rendered after the
+   *  ticker so units (km / continents) animate cleanly. */
+  getValue: (ctx: { tripCount: number; visitedCount: number }) => readonly [number, string];
   halo: string;
 }
 
@@ -15,25 +18,25 @@ const statDefs: StatDef[] = [
   {
     icon: Globe,
     label: "Countries",
-    getValue: ({ visitedCount }) => visitedCount.toString(),
+    getValue: ({ visitedCount }) => [visitedCount, ""] as const,
     halo: "bg-brand-soft text-brand",
   },
   {
     icon: Plane,
     label: "Flights",
-    getValue: ({ tripCount }) => tripCount.toString(),
+    getValue: ({ tripCount }) => [tripCount, ""] as const,
     halo: "bg-state-accent-soft text-state-accent",
   },
   {
     icon: Route,
     label: "Distance",
-    getValue: () => "84,200 km",
+    getValue: () => [84200, " km"] as const,
     halo: "bg-[hsl(var(--p7-warning-soft))] text-[hsl(var(--p7-warning))]",
   },
   {
     icon: Map,
     label: "Continents",
-    getValue: () => "4",
+    getValue: () => [4, ""] as const,
     halo: "bg-state-accent-soft text-state-accent",
   },
 ];
@@ -49,7 +52,10 @@ const TravelStats: React.FC = () => {
     <div className="grid grid-cols-4 gap-2">
       {statDefs.map((stat) => {
         const Icon = stat.icon;
-        const value = stat.getValue({ tripCount: travelHistory.length, visitedCount });
+        const [num, suffix] = stat.getValue({
+          tripCount: travelHistory.length,
+          visitedCount,
+        });
         return (
           <Surface
             key={stat.label}
@@ -66,7 +72,12 @@ const TravelStats: React.FC = () => {
               <Icon className="w-4 h-4" strokeWidth={1.8} />
             </div>
             <Text variant="body-em" tone="primary" className="tabular-nums">
-              {value}
+              <AnimatedNumber
+                value={num}
+                suffix={suffix}
+                duration={650}
+                ariaLabel={`${stat.label} ${num}${suffix}`}
+              />
             </Text>
             <Text variant="caption-2" tone="tertiary" className="mt-0.5">
               {stat.label}

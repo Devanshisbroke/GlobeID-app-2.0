@@ -11,7 +11,13 @@ import { toast } from "sonner";
 export interface QRBoardingPassProps {
   passenger: string;
   passportNo: string | null;
-  flightNumber: string;
+  /**
+   * Flight number — `null` is permitted because upstream trip-leg
+   * data is sometimes incomplete (planner-built legs may not have
+   * a real number assigned yet). When null, the boarding pass still
+   * renders for tracking purposes but cannot be saved to Wallet.
+   */
+  flightNumber: string | null;
   airline: string;
   fromIata: string;
   toIata: string;
@@ -47,6 +53,13 @@ const QRBoardingPass: React.FC<QRBoardingPassProps> = ({
 
   const handleAddToWallet = () => {
     if (inWallet) return;
+    if (!flightNumber) {
+      // Refuse to save a half-built pass — Wallet's airline-brand
+      // theming + ID lookups assume a real flight number. Toast the
+      // user instead of silently saving a broken record.
+      toast.error("Flight number is missing — finish the trip leg first.");
+      return;
+    }
     const toAirport = getAirport(toIata);
     haptics.success();
     addDocument({
@@ -166,7 +179,7 @@ const QRBoardingPass: React.FC<QRBoardingPassProps> = ({
               <canvas
                 ref={canvasRef}
                 className="w-[180px] h-[180px]"
-                aria-label={`Demo boarding pass QR for ${flightNumber}`}
+                aria-label={`Demo boarding pass QR for ${flightNumber ?? "trip leg"}`}
               />
             )}
           </div>
@@ -200,7 +213,7 @@ const QRBoardingPass: React.FC<QRBoardingPassProps> = ({
                   Flight
                 </p>
                 <p className="font-mono font-semibold text-foreground">
-                  {flightNumber}
+                  {flightNumber ?? "TBD"}
                 </p>
                 <p className="text-[10.5px] text-muted-foreground">{airline}</p>
               </div>

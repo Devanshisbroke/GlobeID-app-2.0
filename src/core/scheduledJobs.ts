@@ -28,6 +28,7 @@ import { useUserStore } from "@/store/userStore";
 import { useAlertsStore } from "@/store/alertsStore";
 import { useWalletStore } from "@/store/walletStore";
 import { describeExpiry } from "@/lib/documentExpiry";
+import { isChannelEnabled } from "@/lib/notificationChannels";
 
 const STORAGE_KEY = "globeid:scheduledJobs";
 const PREFS_KEY = "globeid:scheduledJobs:prefs";
@@ -131,6 +132,8 @@ function startOfUtcDay(ts: number): number {
 /* ── Job 1: nightly doc expiry ──────────────────────────────────── */
 
 export function runNightlyDocExpiryCheck(now: number = Date.now()): void {
+  // Honour the user's per-channel preference (BACKLOG O 164).
+  if (!isChannelEnabled("docExpiry")) return;
   const docs = useUserStore.getState().documents;
   const alerts = useAlertsStore.getState();
 
@@ -163,6 +166,7 @@ export function runNightlyDocExpiryCheck(now: number = Date.now()): void {
 /* ── Job 2: weekly digest ───────────────────────────────────────── */
 
 export function runWeeklyDigest(now: number = Date.now()): void {
+  if (!isChannelEnabled("weeklyDigest")) return;
   const userState = useUserStore.getState();
   const wallet = useWalletStore.getState();
   const alerts = useAlertsStore.getState();

@@ -62,7 +62,12 @@ export type VerificationResult = VerificationOk | VerificationFailed;
 export interface IssueArgs {
   passenger: string;
   passportNo: string | null;
-  flightNumber: string;
+  /**
+   * Flight number — accepted as `string | null` for resilience with
+   * upstream trip data; null is normalised to "TBD" before signing
+   * so the HMAC payload remains a valid string.
+   */
+  flightNumber: string | null;
   airline: string;
   fromIata: string;
   toIata: string;
@@ -156,7 +161,7 @@ export async function issueBoardingPass(
     isDemoData: true,
     passenger: args.passenger,
     passportLast4,
-    flightNumber: args.flightNumber,
+    flightNumber: args.flightNumber ?? "TBD",
     airline: args.airline,
     fromIata: args.fromIata,
     toIata: args.toIata,

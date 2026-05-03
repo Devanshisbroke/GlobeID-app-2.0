@@ -16,6 +16,8 @@ import TripLifecycleBadge from "@/components/travel/TripLifecycleBadge";
 import ItineraryView from "@/components/trip/ItineraryView";
 import QRBoardingPass from "@/components/trip/QRBoardingPass";
 import TripGlobePreview from "@/components/trip/TripGlobePreview";
+import TripIntelSection from "@/components/trip/TripIntelSection";
+import TripNotes from "@/components/trip/TripNotes";
 import LazyMount from "@/components/system/LazyMount";
 import { useLifecycleStore } from "@/store/lifecycleStore";
 import { useUserStore } from "@/store/userStore";
@@ -310,6 +312,30 @@ const TripDetail: React.FC = () => {
           </div>
         ) : null}
 
+        {/* Destination intel — D 43, 44, 46, 49, 50.
+            Only render when there's an upcoming leg with a destination
+            we can resolve; otherwise the section has nothing to anchor to. */}
+        {upcomingFirst ? (
+          <div className="mb-5">
+            <TripIntelSection
+              destIata={upcomingFirst.toIata}
+              homeIata={upcomingFirst.fromIata}
+              departDate={upcomingFirst.date}
+              durationDays={Math.max(
+                1,
+                trip.legs.length > 0
+                  ? Math.ceil(
+                      (new Date(trip.legs[trip.legs.length - 1]!.date).getTime() -
+                        new Date(upcomingFirst.date).getTime()) /
+                        (1000 * 60 * 60 * 24),
+                    ) || 1
+                  : 1,
+              )}
+              storageKey={trip.tripId ?? upcomingFirst.id}
+            />
+          </div>
+        ) : null}
+
         {/* Itinerary */}
         <section className="mb-5">
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
@@ -321,6 +347,11 @@ const TripDetail: React.FC = () => {
             today={today}
           />
         </section>
+
+        {/* Rich-text notes (BACKLOG D 45). Tiptap editor lazy-loaded. */}
+        <div className="mb-5">
+          <TripNotes tripId={tripId ?? "adhoc"} />
+        </div>
 
         {/* Reminders summary (if any not already day-tied) */}
         {trip.reminders.length > 0 ? (

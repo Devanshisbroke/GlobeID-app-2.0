@@ -1,24 +1,25 @@
 /**
- * Keyboard shortcuts cheat-sheet — opens via "?" or Ctrl/Cmd+/.
+ * Keyboard shortcut layer + cheat-sheet overlay.
  *
  * Mounted once at the root (in `App.tsx`) so any screen can be
- * tab-driven without each having to re-implement listeners. Shortcuts
- * are limited to the routes the bottom navigation already exposes —
- * we don't try to invent a fictional command surface.
+ * keyboard-driven without re-implementing listeners. Notion-class
+ * chord support via `tinykeys` so multi-key sequences (e.g. `g w` →
+ * Wallet) feel native instead of single-letter shortcuts that
+ * collide with regular typing.
  *
  * Mobile: still mounted, but hidden behind `prefers-coarse-pointer`
- * detection so a touch-only device never sees a "press G to open the
- * globe" prompt that has no keyboard.
+ * detection so a touch-only device never sees a "press G W to open
+ * the wallet" prompt that has no keyboard.
  */
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Command } from "lucide-react";
+import { tinykeys } from "tinykeys";
 
 interface Shortcut {
   keys: string[];
   description: string;
-  run?: () => void;
 }
 
 const KeyboardShortcuts: React.FC = () => {
@@ -31,62 +32,45 @@ const KeyboardShortcuts: React.FC = () => {
     setCoarse(window.matchMedia("(pointer: coarse)").matches);
   }, []);
 
+  // Notion-class chord shortcuts via tinykeys. The library debounces
+  // the chord window automatically so "g" doesn't fire on its own.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const handler = (e: KeyboardEvent) => {
-      // Don't intercept while the user is typing in an input.
-      const target = e.target as HTMLElement | null;
-      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
-      if (target?.isContentEditable) return;
-
-      if (e.key === "?" || (e.key === "/" && (e.metaKey || e.ctrlKey))) {
+    const unsubscribe = tinykeys(window, {
+      "?": (e) => {
+        e.preventDefault();
+        setOpen(true);
+      },
+      "Shift+?": (e) => {
+        e.preventDefault();
+        setOpen(true);
+      },
+      "$mod+/": (e) => {
         e.preventDefault();
         setOpen((o) => !o);
-        return;
-      }
-      if (open && e.key === "Escape") {
-        setOpen(false);
-        return;
-      }
-      // Single-letter nav shortcuts only when overlay is closed.
-      if (open) return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      switch (e.key.toLowerCase()) {
-        case "h":
-          navigate("/");
-          break;
-        case "t":
-          navigate("/travel");
-          break;
-        case "w":
-          navigate("/wallet");
-          break;
-        case "s":
-          navigate("/scan");
-          break;
-        case "g":
-          navigate("/globe");
-          break;
-        case "p":
-          navigate("/profile");
-          break;
-        default:
-          break;
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [navigate, open]);
+      },
+      Escape: () => setOpen(false),
+      "g h": () => navigate("/"),
+      "g w": () => navigate("/wallet"),
+      "g t": () => navigate("/trips"),
+      "g i": () => navigate("/identity"),
+      "g m": () => navigate("/map"),
+      "g s": () => navigate("/scan"),
+      "g p": () => navigate("/profile"),
+    });
+    return () => unsubscribe();
+  }, [navigate]);
 
   if (coarse) return null;
 
   const shortcuts: Shortcut[] = [
-    { keys: ["H"], description: "Go to Home" },
-    { keys: ["T"], description: "Go to Travel" },
-    { keys: ["W"], description: "Go to Wallet" },
-    { keys: ["S"], description: "Open Scanner" },
-    { keys: ["G"], description: "Open Globe" },
-    { keys: ["P"], description: "Open Profile" },
+    { keys: ["G", "H"], description: "Go to Home" },
+    { keys: ["G", "T"], description: "Go to Trips" },
+    { keys: ["G", "W"], description: "Go to Wallet" },
+    { keys: ["G", "I"], description: "Go to Identity" },
+    { keys: ["G", "M"], description: "Open Globe / Map" },
+    { keys: ["G", "S"], description: "Open Scanner" },
+    { keys: ["G", "P"], description: "Open Profile" },
     { keys: ["?"], description: "Toggle this menu" },
     { keys: ["Esc"], description: "Close any sheet" },
   ];
@@ -137,7 +121,7 @@ const KeyboardShortcuts: React.FC = () => {
                     {s.keys.map((k) => (
                       <kbd
                         key={k}
-                        className="inline-block rounded-md border border-border bg-muted/40 px-2 py-0.5 text-[11px] font-mono text-muted-foreground"
+                        className="font-mono text-[11px] tracking-wide text-foreground bg-surface-elevated border border-border/60 rounded-md px-2 py-1 min-w-[24px] text-center"
                       >
                         {k}
                       </kbd>
@@ -146,8 +130,10 @@ const KeyboardShortcuts: React.FC = () => {
                 </li>
               ))}
             </ul>
-            <p className="mt-4 text-[10px] uppercase tracking-widest text-muted-foreground">
-              Press ? again or Esc to dismiss
+            <p className="mt-4 text-[11px] text-muted-foreground leading-relaxed">
+              Chord shortcuts (e.g. <kbd className="font-mono text-[10px] bg-surface-elevated border border-border/60 rounded px-1 py-0.5">G</kbd>{" "}
+              <kbd className="font-mono text-[10px] bg-surface-elevated border border-border/60 rounded px-1 py-0.5">W</kbd>)
+              are press-then-press. They never fire while you're typing in a text field.
             </p>
           </motion.div>
         </motion.div>
