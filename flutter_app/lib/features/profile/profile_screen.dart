@@ -9,6 +9,7 @@ import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/toast.dart';
 import '../settings/theme_prefs_provider.dart';
 import '../user/user_provider.dart';
 
@@ -125,8 +126,15 @@ class ProfileScreen extends ConsumerWidget {
                   const SizedBox(height: AppTokens.space2),
                   _AccentRow(
                     selected: prefs.accent,
-                    onPick: (a) =>
-                        ref.read(themePrefsProvider.notifier).setAccent(a),
+                    onPick: (a) {
+                      ref.read(themePrefsProvider.notifier).setAccent(a);
+                      AppToast.show(
+                        context,
+                        title: 'Accent updated',
+                        message: 'Theme refreshed across the app',
+                        tone: AppToastTone.info,
+                      );
+                    },
                   ),
                   const SizedBox(height: AppTokens.space5),
                   Text('Density',

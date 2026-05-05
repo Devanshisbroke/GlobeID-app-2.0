@@ -12,6 +12,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
+import '../../widgets/toast.dart';
 import '../wallet/wallet_provider.dart';
 
 /// Multi-currency v2 — animated balances, sparkline of FX rate,
@@ -44,9 +45,16 @@ class MultiCurrencyScreen extends ConsumerWidget {
                             wallet.defaultCurrency,
                         onSetDefault: () {
                           HapticFeedback.lightImpact();
+                          final code = wallet.balances[i].currency;
                           ref
                               .read(walletProvider.notifier)
-                              .setDefaultCurrency(wallet.balances[i].currency);
+                              .setDefaultCurrency(code);
+                          AppToast.show(
+                            context,
+                            title: 'Default set to $code',
+                            message: 'Future conversions will rebase here.',
+                            tone: AppToastTone.success,
+                          );
                         },
                       ),
                     ),

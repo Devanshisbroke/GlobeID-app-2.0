@@ -12,6 +12,7 @@ import '../../widgets/animated_appearance.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/scan_overlay.dart';
+import '../../widgets/toast.dart';
 
 /// Premium scanner — Google-Lens / Adobe-Scan inspired.
 /// Animated viewfinder, mode pill (QR ↔ Passport), result card with
@@ -408,6 +409,21 @@ class _ResultCard extends StatelessWidget {
                   icon: const Icon(Icons.replay_rounded),
                   label: const Text('Scan again'),
                 ),
+              ),
+              const SizedBox(width: AppTokens.space2),
+              IconButton(
+                tooltip: 'Copy',
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: result.raw));
+                  HapticFeedback.lightImpact();
+                  AppToast.show(
+                    context,
+                    title: 'Copied',
+                    message: 'Scanned payload on clipboard',
+                    tone: AppToastTone.success,
+                  );
+                },
+                icon: const Icon(Icons.copy_rounded, color: Colors.white),
               ),
               const SizedBox(width: AppTokens.space2),
               Expanded(
