@@ -19,6 +19,10 @@
 
 import type { TravelDocument, TravelRecord } from "@/store/userStore";
 import { describeExpiry } from "@/lib/documentExpiry";
+import {
+  detectFrequentRoutes,
+  computeTravelPattern,
+} from "@/lib/travelInsights";
 
 export type SuggestionSeverity = "high" | "medium" | "low";
 
@@ -27,7 +31,9 @@ export type SuggestionKind =
   | "imminent_departure"
   | "missing_insurance"
   | "fx_drop"
-  | "missing_booking";
+  | "missing_booking"
+  | "frequent_route"
+  | "travel_pattern";
 
 export interface Suggestion {
   id: string;
@@ -165,6 +171,39 @@ export function computeSuggestions({
         href: "/services",
       });
     }
+  }
+
+  // 6) Frequent route detector — surface once per most-frequent route
+  //    so the user can pin / save / convert to a recurring trip preset.
+  const freq = detectFrequentRoutes(trips, now, 3);
+  if (freq.length > 0) {
+    const top = freq[0]!;
+    out.push({
+      id: `freq-${top.fromIata}-${top.toIata}`,
+      kind: "frequent_route",
+      severity: "low",
+      title: `${top.fromIata}→${top.toIata} — ${top.count}× this year`,
+      body: `Looks like a recurring route. Pin it to your home for one-tap re-booking.`,
+      href: "/trip-planner",
+    });
+  }
+
+  // 7) Travel pattern — surface a single low-severity insight if the
+  //    user has a strong weekday preference (e.g. mostly weekend travel)
+  //    that the assistant can use when proposing trip dates.
+  const pattern = computeTravelPattern(trips, now);
+  if (pattern.preferredWeekday !== null && pattern.totalFlightsWindow >= 6) {
+    const wd = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
+      pattern.preferredWeekday
+    ];
+    out.push({
+      id: `pattern-weekday`,
+      kind: "travel_pattern",
+      severity: "low",
+      title: `${wd} traveler · ${pattern.totalFlightsWindow} flights / yr`,
+      body: `We'll prioritise ${wd} departures when proposing trips.`,
+      href: "/trip-planner",
+    });
   }
 
   // Severity sort: high → medium → low (stable within bucket).
