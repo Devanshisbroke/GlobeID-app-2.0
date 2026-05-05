@@ -1,7 +1,8 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import { generateQRSvg } from "@/lib/qrEncoder";
 import { useVisibleClock } from "@/hooks/useVisibleClock";
 import { cn } from "@/lib/utils";
+import { haptics } from "@/utils/haptics";
 
 interface QRDisplayProps {
   data: string;
@@ -35,6 +36,25 @@ const QRDisplay: React.FC<QRDisplayProps> = ({
 
   const isActive = status === "waiting" || status === "idle";
   const isExpired = status === "expired" || remaining <= 0;
+
+  // C 32 — subtle haptic pulse when the QR is being scanned. We treat
+  // the transition idle/waiting → processing as "the scanner just
+  // grabbed the code"; selection-strength haptic gives the user a
+  // tactile confirmation that their card was read.
+  const lastStatusRef = useRef(status);
+  useEffect(() => {
+    const prev = lastStatusRef.current;
+    if (prev !== status) {
+      if (status === "processing") {
+        haptics.selection();
+      } else if (status === "verified") {
+        haptics.success();
+      } else if (status === "failed") {
+        haptics.error();
+      }
+      lastStatusRef.current = status;
+    }
+  }, [status]);
 
   return (
     <div className={cn("flex flex-col items-center gap-4", className)}>

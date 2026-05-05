@@ -235,6 +235,119 @@ export async function notifyDelay(
   }
 }
 
+/**
+ * Schedule a "leave for the airport" alarm (BACKLOG O 167).
+ *
+ * Computes departure-time minus (commute + airport-arrival buffer) so
+ * the user is reminded with enough lead time to clear security. Idempotent
+ * by legId so re-running after a hydrate upserts rather than duplicates.
+ */
+export async function scheduleLeaveForAirport(
+  legId: string,
+  departureIso: string,
+  opts: {
+    commuteMinutes: number;
+    airportArrivalBufferMinutes?: number;
+    title?: string;
+    body?: string;
+  },
+): Promise<{ id: number; scheduledAt: number } | null> {
+  const ok = await ensurePermission();
+  if (!ok) return null;
+  const dep = new Date(departureIso).getTime();
+  if (!Number.isFinite(dep)) return null;
+  const buffer = opts.airportArrivalBufferMinutes ?? 90;
+  const fireAt = dep - (opts.commuteMinutes + buffer) * 60_000;
+  if (fireAt < Date.now() + 30_000) return null; // too late to be useful
+  const id = notifId("departure", `leave-${legId}`);
+  const title = opts.title ?? "Time to leave for the airport";
+  const body =
+    opts.body ??
+    `Allow ${opts.commuteMinutes} min for the commute and arrive ${buffer} min before departure.`;
+  if (isNative()) {
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id,
+          title,
+          body,
+          schedule: { at: new Date(fireAt) },
+          smallIcon: "ic_stat_icon_config_sample",
+        },
+      ],
+    });
+  }
+  return { id, scheduledAt: fireAt };
+}
+
+/**
+ * Schedule the daily travel digest at the user's preferred local hour
+ * (BACKLOG O 168). Uses Capacitor's recurring `every: "day"` schedule
+ * so the OS handles future repeats. Fires immediately if `hour` is in
+ * the past for today (next-day fire).
+ */
+export async function scheduleDailyDigest(args: {
+  hour: number; // 0-23 local
+  minute?: number;
+  title?: string;
+  body?: string;
+}): Promise<number | null> {
+  const ok = await ensurePermission();
+  if (!ok) return null;
+  const id = notifId("departure", "daily-digest");
+  const minute = args.minute ?? 0;
+  const next = new Date();
+  next.setHours(args.hour, minute, 0, 0);
+  if (next.getTime() <= Date.now()) {
+    next.setDate(next.getDate() + 1);
+  }
+  if (isNative()) {
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id,
+          title: args.title ?? "Your daily travel digest",
+          body:
+            args.body ??
+            "Check today's expiring documents, upcoming trips, and FX moves.",
+          schedule: { at: next, repeats: true, every: "day" },
+          smallIcon: "ic_stat_icon_config_sample",
+        },
+      ],
+    });
+  }
+  return id;
+}
+
+/**
+ * Snooze a pending notification by N minutes (BACKLOG O 169). Cancels
+ * the existing record and re-schedules at `now + minutes`. Returns the
+ * new scheduled timestamp, or null on failure.
+ */
+export async function snoozeNotification(
+  id: number,
+  minutes: number,
+  payload: { title: string; body: string },
+): Promise<number | null> {
+  if (!isNative()) return null;
+  const ok = await ensurePermission();
+  if (!ok) return null;
+  await LocalNotifications.cancel({ notifications: [{ id }] });
+  const fireAt = Date.now() + minutes * 60_000;
+  await LocalNotifications.schedule({
+    notifications: [
+      {
+        id,
+        title: payload.title,
+        body: payload.body,
+        schedule: { at: new Date(fireAt) },
+        smallIcon: "ic_stat_icon_config_sample",
+      },
+    ],
+  });
+  return fireAt;
+}
+
 /** Cancel every GlobeID-scheduled notification (on sign-out, for instance). */
 export async function clearAllScheduled(): Promise<void> {
   if (!isNative()) return;
