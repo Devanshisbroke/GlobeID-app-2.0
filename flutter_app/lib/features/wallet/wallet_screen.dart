@@ -554,40 +554,55 @@ class _TxRow extends StatelessWidget {
     final theme = Theme.of(context);
     final isCredit = tx.amount > 0;
     final color = isCredit ? Colors.green : theme.colorScheme.onSurface;
-    return GlassSurface(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppTokens.space4, vertical: AppTokens.space3),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+    return Pressable(
+      scale: 0.98,
+      onTap: () => _showSheet(context),
+      child: GlassSurface(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppTokens.space4, vertical: AppTokens.space3),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+              ),
+              child: Icon(_iconForCategory(tx.category),
+                  color: theme.colorScheme.primary),
             ),
-            child: Icon(_iconForCategory(tx.category),
-                color: theme.colorScheme.primary),
-          ),
-          const SizedBox(width: AppTokens.space3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(tx.description, style: theme.textTheme.titleSmall),
-                Text('${tx.merchant ?? tx.category} · ${tx.date}',
-                    style: theme.textTheme.bodySmall),
-              ],
+            const SizedBox(width: AppTokens.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(tx.description, style: theme.textTheme.titleSmall),
+                  Text('${tx.merchant ?? tx.category} · ${tx.date}',
+                      style: theme.textTheme.bodySmall),
+                ],
+              ),
             ),
-          ),
-          Text(
-              '${isCredit ? '+' : '−'}${tx.amount.abs().toStringAsFixed(2)} ${tx.currency}',
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
-              )),
-        ],
+            Text(
+                '${isCredit ? '+' : '−'}${tx.amount.abs().toStringAsFixed(2)} ${tx.currency}',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                )),
+          ],
+        ),
       ),
+    );
+  }
+
+  void _showSheet(BuildContext context) {
+    HapticFeedback.lightImpact();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _TxDetailSheet(tx: tx, iconFor: _iconForCategory),
     );
   }
 
@@ -610,5 +625,171 @@ class _TxRow extends StatelessWidget {
       default:
         return Icons.attach_money_rounded;
     }
+  }
+}
+
+class _TxDetailSheet extends StatelessWidget {
+  const _TxDetailSheet({required this.tx, required this.iconFor});
+  final WalletTransaction tx;
+  final IconData Function(String) iconFor;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isCredit = tx.amount > 0;
+    return Container(
+      margin: const EdgeInsets.all(AppTokens.space4),
+      padding: const EdgeInsets.all(AppTokens.space5),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+        border: Border.all(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.10)),
+        boxShadow: AppTokens.shadowLg(),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppTokens.space4),
+          Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary.withValues(alpha: 0.32),
+                      theme.colorScheme.primary.withValues(alpha: 0.12),
+                    ],
+                  ),
+                ),
+                child: Icon(iconFor(tx.category),
+                    color: theme.colorScheme.primary, size: 28),
+              ),
+              const SizedBox(width: AppTokens.space3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(tx.description,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        )),
+                    Text(tx.merchant ?? tx.category,
+                        style: theme.textTheme.bodySmall),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTokens.space5),
+          Center(
+            child: Text(
+              '${isCredit ? '+' : '−'}${tx.amount.abs().toStringAsFixed(2)} ${tx.currency}',
+              style: theme.textTheme.displaySmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: isCredit
+                    ? const Color(0xFF10B981)
+                    : theme.colorScheme.onSurface,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+          const SizedBox(height: AppTokens.space5),
+          _DetailRow(label: 'Category', value: tx.category),
+          _DetailRow(label: 'Date', value: tx.date),
+          _DetailRow(label: 'Currency', value: tx.currency),
+          if (tx.merchant != null)
+            _DetailRow(label: 'Merchant', value: tx.merchant!),
+          const SizedBox(height: AppTokens.space5),
+          Row(
+            children: [
+              Expanded(
+                child: Pressable(
+                  scale: 0.97,
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    height: 48,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.06),
+                    ),
+                    child: const Text('Close',
+                        style: TextStyle(fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppTokens.space2),
+              Expanded(
+                child: Pressable(
+                  scale: 0.97,
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    height: 48,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                      gradient: LinearGradient(
+                        colors: [
+                          theme.colorScheme.primary,
+                          theme.colorScheme.primary.withValues(alpha: 0.6),
+                        ],
+                      ),
+                      boxShadow:
+                          AppTokens.shadowMd(tint: theme.colorScheme.primary),
+                    ),
+                    child: const Text('Re-tag',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        )),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({required this.label, required this.value});
+  final String label;
+  final String value;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Text(label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              )),
+          const Spacer(),
+          Text(value,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              )),
+        ],
+      ),
+    );
   }
 }
