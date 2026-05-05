@@ -7,6 +7,7 @@ import '../../app/theme/app_tokens.dart';
 import '../../domain/identity_tier.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/sparkline.dart';
 import '../lifecycle/lifecycle_provider.dart';
 import '../score/score_provider.dart';
 import '../user/user_provider.dart';
@@ -281,6 +282,14 @@ class _IdentityCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppTokens.space3),
+          if (history.isNotEmpty) ...[
+            Sparkline(
+              values: history,
+              color: theme.colorScheme.primary,
+              height: 28,
+            ),
+            const SizedBox(height: AppTokens.space3),
+          ],
           Text('Identity score — verified factors compound over time',
               style: theme.textTheme.bodySmall),
         ],

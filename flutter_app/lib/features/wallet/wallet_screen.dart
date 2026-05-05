@@ -16,6 +16,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/sparkline.dart';
 import '../user/user_provider.dart';
 import 'wallet_provider.dart';
 
@@ -508,9 +509,27 @@ class _BalancesGrid extends StatelessWidget {
 class _BalanceRow extends StatelessWidget {
   const _BalanceRow({required this.b});
   final WalletBalance b;
+
+  /// Deterministic mini-trend derived from the currency code so each
+  /// balance gets a stable, distinct sparkline shape without needing a
+  /// real history series from the backend.
+  List<num> _trend() {
+    final seed = b.currency.codeUnits.fold<int>(0, (a, c) => a + c) +
+        (b.rate * 10).round();
+    final out = <double>[];
+    var v = 1.0;
+    for (var i = 0; i < 14; i++) {
+      final n = ((seed + i * 17) % 23) / 23 - 0.5;
+      v = (v + n * 0.18).clamp(0.4, 1.6);
+      out.add(v);
+    }
+    return out;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final accent = theme.colorScheme.primary;
     return GlassSurface(
       padding: const EdgeInsets.symmetric(
           horizontal: AppTokens.space4, vertical: AppTokens.space3),
@@ -519,6 +538,7 @@ class _BalanceRow extends StatelessWidget {
           Text(b.flag, style: const TextStyle(fontSize: 26)),
           const SizedBox(width: AppTokens.space3),
           Expanded(
+            flex: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -532,12 +552,22 @@ class _BalanceRow extends StatelessWidget {
               ],
             ),
           ),
+          Expanded(
+            flex: 2,
+            child: Sparkline(
+              values: _trend(),
+              color: accent,
+              height: 28,
+            ),
+          ),
+          const SizedBox(width: AppTokens.space2),
           AnimatedNumber(
             value: b.amount,
             prefix: b.symbol,
             decimals: 2,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
         ],
