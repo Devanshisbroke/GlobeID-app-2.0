@@ -30,6 +30,7 @@ import '../features/timeline/timeline_screen.dart';
 import '../features/travel/travel_screen.dart';
 import '../features/trip/trip_detail_screen.dart';
 import '../features/vault/vault_screen.dart';
+import '../features/wallet/pass_detail_screen.dart';
 import '../features/wallet/wallet_screen.dart';
 import 'app_shell.dart';
 
@@ -87,6 +88,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/trip/:tripId',
         builder: (_, state) =>
             TripDetailScreen(tripId: state.pathParameters['tripId']!),
+      ),
+      GoRoute(
+        path: '/pass/:passId',
+        pageBuilder: (_, state) => CustomTransitionPage(
+          key: state.pageKey,
+          opaque: false,
+          barrierColor: Colors.transparent,
+          transitionDuration: const Duration(milliseconds: 420),
+          reverseTransitionDuration: const Duration(milliseconds: 320),
+          transitionsBuilder: (_, anim, __, child) => FadeTransition(
+            opacity: anim,
+            child: child,
+          ),
+          child: PassDetailScreen(passId: state.pathParameters['passId']!),
+        ),
       ),
       // Services sub-routes
       GoRoute(

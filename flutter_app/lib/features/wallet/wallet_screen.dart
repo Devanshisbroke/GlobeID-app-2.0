@@ -11,8 +11,10 @@ import '../../app/theme/app_tokens.dart';
 import '../../data/models/travel_document.dart';
 import '../../data/models/wallet_models.dart';
 import '../../domain/airline_brand.dart';
+import '../../widgets/animated_number.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_surface.dart';
+import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
 import '../user/user_provider.dart';
 import 'wallet_provider.dart';
@@ -140,20 +142,67 @@ class _PassEmpty extends StatelessWidget {
   }
 }
 
-class _PassStack extends StatelessWidget {
+class _PassStack extends StatefulWidget {
   const _PassStack({required this.passes});
   final List<TravelDocument> passes;
   @override
+  State<_PassStack> createState() => _PassStackState();
+}
+
+class _PassStackState extends State<_PassStack> {
+  late final PageController _ctrl = PageController(viewportFraction: 0.88);
+  double _page = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl.addListener(() {
+      setState(() => _page = _ctrl.page ?? 0);
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 230,
+      height: 240,
       child: PageView.builder(
-        controller: PageController(viewportFraction: 0.92),
-        itemCount: passes.length,
-        itemBuilder: (_, i) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTokens.space2),
-          child: PassCard(pass: passes[i]),
-        ),
+        controller: _ctrl,
+        itemCount: widget.passes.length,
+        itemBuilder: (context, i) {
+          final delta = (_page - i).abs();
+          final scale = (1 - (delta * 0.08)).clamp(0.84, 1.0);
+          final opacity = (1 - (delta * 0.4)).clamp(0.4, 1.0);
+          return Transform.scale(
+            scale: scale,
+            child: Opacity(
+              opacity: opacity,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: AppTokens.space2),
+                child: Pressable(
+                  scale: 0.98,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    GoRouter.of(context).push('/pass/${widget.passes[i].id}');
+                  },
+                  child: Hero(
+                    tag: 'pass-${widget.passes[i].id}',
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: PassCard(pass: widget.passes[i]),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -483,10 +532,14 @@ class _BalanceRow extends StatelessWidget {
               ],
             ),
           ),
-          Text('${b.symbol}${b.amount.toStringAsFixed(2)}',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              )),
+          AnimatedNumber(
+            value: b.amount,
+            prefix: b.symbol,
+            decimals: 2,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );
