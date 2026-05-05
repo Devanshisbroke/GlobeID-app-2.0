@@ -18,6 +18,7 @@
  * Reduced-motion users see no tilt at all.
  */
 import { useCallback, useEffect, useState } from "react";
+import { useReducedMotionMatch } from "@/hooks/useReducedMotionMatch";
 
 interface TiltState {
   /** -1 (full left) to +1 (full right). */
@@ -100,17 +101,5 @@ export function useDeviceTilt(enabled: boolean = true): {
   return { tilt: { x: state.x, y: state.y }, enabled: state.enabled, requestPermission };
 }
 
-function useReducedMotionMatch(): boolean {
-  const [reduced, setReduced] = useState<boolean>(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return false;
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  });
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const listener = (e: MediaQueryListEvent) => setReduced(e.matches);
-    mq.addEventListener?.("change", listener);
-    return () => mq.removeEventListener?.("change", listener);
-  }, []);
-  return reduced;
-}
+// Re-export so existing imports keep working.
+export { useReducedMotionMatch };

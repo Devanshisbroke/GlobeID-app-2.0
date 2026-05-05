@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useCallback } from "react";
+import React, { useMemo, useRef, useCallback } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useNavigate } from "react-router-dom";
 import * as THREE from "three";
@@ -169,9 +169,15 @@ const FlightArc: React.FC<{
 const FlightArcs: React.FC<FlightArcsProps> = ({ showHistory }) => {
   const travelHistory = useUserStore((s) => s.travelHistory);
   const navigate = useNavigate();
-  const routes = showHistory
-    ? travelHistory
-    : travelHistory.filter(r => r.type === "upcoming" || r.type === "current");
+  // M 144 — memoise the filtered route list keyed by a content hash of
+  // the slice we actually care about. Adding/removing a single flight
+  // re-renders the parent but the arc list is only rebuilt when the
+  // hash actually changes, so React.memo can skip the bulk of arcs.
+  const routes = useMemo(() => {
+    return showHistory
+      ? travelHistory
+      : travelHistory.filter((r) => r.type === "upcoming" || r.type === "current");
+  }, [showHistory, travelHistory]);
 
   const handlePick = useCallback(
     (id: string) => {
@@ -185,7 +191,7 @@ const FlightArcs: React.FC<FlightArcsProps> = ({ showHistory }) => {
 
   return (
     <group>
-      {routes.map(route => (
+      {routes.map((route) => (
         <FlightArc key={route.id} route={route} radius={1} onPick={handlePick} />
       ))}
     </group>

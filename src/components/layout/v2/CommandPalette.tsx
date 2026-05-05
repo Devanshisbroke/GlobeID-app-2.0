@@ -26,6 +26,7 @@ import {
   CommandPaletteContext,
   type CommandPaletteCtx,
 } from "./use-command-palette";
+import { useCommandPaletteStore } from "@/store/commandPaletteStore";
 
 /**
  * CommandPalette — Phase 7 PR-γ.
@@ -146,9 +147,23 @@ const CommandPaletteProvider: React.FC<ProviderProps> = ({ children }) => {
     [open, toggle],
   );
 
+  const recents = useCommandPaletteStore((s) => s.recents);
+  const pushRecent = useCommandPaletteStore((s) => s.push);
+
+  // Build a flat lookup so the "Recent" section can rebuild rich entries
+  // from just the persisted IDs. Memoised since COMMANDS never changes.
+  const entryById = React.useMemo(() => {
+    const map = new Map<string, CommandEntry>();
+    for (const group of COMMANDS) {
+      for (const entry of group.entries) map.set(entry.id, entry);
+    }
+    return map;
+  }, []);
+
   const handleSelect = React.useCallback(
     (entry: CommandEntry) => {
       setOpen(false);
+      pushRecent(entry.id);
       // Defer the navigation by one tick so the close animation can start
       // before route change kicks off — prevents a perceptible jank on
       // slower Android WebViews.
@@ -160,13 +175,37 @@ const CommandPaletteProvider: React.FC<ProviderProps> = ({ children }) => {
         }
       }, 0);
     },
-    [navigate],
+    [navigate, pushRecent],
   );
+
+  const recentEntries = React.useMemo<CommandEntry[]>(() => {
+    return recents
+      .map((id) => entryById.get(id))
+      .filter((e): e is CommandEntry => Boolean(e));
+  }, [entryById, recents]);
 
   return (
     <CommandPaletteContext.Provider value={ctx}>
       {children}
       <CommandBar open={open} onOpenChange={setOpen}>
+        {recentEntries.length > 0 ? (
+          <CommandBar.Group heading="Recent">
+            {recentEntries.map((entry) => {
+              const Icon = entry.icon;
+              return (
+                <CommandBar.Item
+                  key={`recent-${entry.id}`}
+                  value={`recent ${entry.label} ${entry.keywords?.join(" ") ?? ""}`}
+                  icon={Icon ? <Icon /> : undefined}
+                  shortcut={entry.shortcut}
+                  onSelect={() => handleSelect(entry)}
+                >
+                  {entry.label}
+                </CommandBar.Item>
+              );
+            })}
+          </CommandBar.Group>
+        ) : null}
         {COMMANDS.map((group) => (
           <CommandBar.Group key={group.heading} heading={group.heading}>
             {group.entries.map((entry) => {
