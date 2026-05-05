@@ -39,6 +39,7 @@ import { describeExpiry } from "@/lib/documentExpiry";
 import { brandForBoardingPass } from "@/lib/airlineBrand";
 import { secureCopy } from "@/lib/secureClipboard";
 import type { TravelDocument } from "@/store/userStore";
+import { useDeviceTilt } from "@/hooks/useDeviceTilt";
 
 export interface PassDetailProps {
   doc: TravelDocument;
@@ -84,6 +85,19 @@ const PassDetail: React.FC<PassDetailProps> = ({ doc, onClose }) => {
 
   const expiryInfo = useMemo(() => describeExpiry(doc.expiryDate), [doc.expiryDate]);
   const brand = useMemo(() => brandForBoardingPass(doc), [doc]);
+
+  // C 25 — parallax tilt driven by deviceorientation. Caps at ±10°
+  // visible rotation so the card never inverts. Reduced-motion users
+  // and unsupported browsers get a flat card (zero tilt) automatically.
+  const { tilt } = useDeviceTilt(true);
+  const tiltStyle = useMemo(() => {
+    const rotY = tilt.x * 10;
+    const rotX = -tilt.y * 8;
+    return {
+      transform: `perspective(1200px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`,
+      transition: "transform 80ms ease-out",
+    };
+  }, [tilt.x, tilt.y]);
 
   useEffect(() => {
     if (!qrRef.current) return;
@@ -172,14 +186,19 @@ const PassDetail: React.FC<PassDetailProps> = ({ doc, onClose }) => {
         className="flex-1 overflow-y-auto px-5 pb-8"
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 2rem)" }}
       >
-        {/* Hero pass, morphed from the stack via layoutId. */}
-        <motion.div
-          layoutId={`pass-${doc.id}`}
-          className="mx-auto max-w-md"
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        >
-          <PassCard doc={doc} active />
-        </motion.div>
+        {/* Hero pass, morphed from the stack via layoutId. C 25 wraps
+            in a tilt-driven transform so the card responds to the
+            phone's accelerometer. The wrapping div is kept outside
+            the motion.div so the layout animation isn't interfered
+            with by the per-frame transform. */}
+        <div className="mx-auto max-w-md" style={tiltStyle}>
+          <motion.div
+            layoutId={`pass-${doc.id}`}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <PassCard doc={doc} active />
+          </motion.div>
+        </div>
 
         {/* Expiry chip — only when ≤30 days or already expired. */}
         {expiryInfo.severity !== "none" ? (

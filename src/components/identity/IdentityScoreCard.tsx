@@ -10,6 +10,15 @@ import {
   SCORE_FACTOR_META,
   type ScoreFactorMeta,
 } from "./scoreFactorMeta";
+import { progressToNextTier } from "@/lib/identityTier";
+import IdentityScoreSparkline from "./IdentityScoreSparkline";
+
+const TIER_TONE_CLASS: Record<string, string> = {
+  muted: "bg-slate-500/15 text-slate-200 ring-slate-400/20",
+  info: "bg-sky-500/15 text-sky-200 ring-sky-400/20",
+  success: "bg-emerald-500/15 text-emerald-200 ring-emerald-400/20",
+  premium: "bg-amber-500/15 text-amber-200 ring-amber-400/20",
+};
 
 interface FactorRow {
   id: string;
@@ -28,6 +37,7 @@ const factors: readonly FactorRow[] = [
 const IdentityScoreCard: React.FC<{ className?: string }> = ({ className }) => {
   const { profile } = useUserStore();
   const [activeFactor, setActiveFactor] = useState<ScoreFactorMeta | null>(null);
+  const tier = progressToNextTier(profile.identityScore);
 
   const handleFactorTap = (id: string) => {
     haptics.selection();
@@ -50,9 +60,35 @@ const IdentityScoreCard: React.FC<{ className?: string }> = ({ className }) => {
           <div className="flex items-center gap-4">
             <IdentityScore score={profile.identityScore} size={72} strokeWidth={5} />
             <div className="flex-1 space-y-1.5">
-              <Text variant="caption-1" tone="tertiary" className="uppercase tracking-wider">
-                Identity Score
-              </Text>
+              <div className="flex items-center justify-between gap-2">
+                <Text variant="caption-1" tone="tertiary" className="uppercase tracking-wider">
+                  Identity Score
+                </Text>
+                {/* E 58 — weekly trend sparkline */}
+                <IdentityScoreSparkline />
+              </div>
+              <div className="flex items-center justify-between gap-2 -mt-1">
+                <span className="text-[10px] text-muted-foreground">Tier</span>
+                {/* E 68 — tier badge */}
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full px-2 py-[2px] text-[9px] font-semibold uppercase tracking-wider ring-1",
+                    TIER_TONE_CLASS[tier.current.tone] ?? TIER_TONE_CLASS.muted,
+                  )}
+                  aria-label={tier.current.label}
+                >
+                  {tier.current.label.split("·")[1]?.trim() ?? "Tier"}
+                </span>
+              </div>
+              {tier.next ? (
+                <p className="text-[10px] text-muted-foreground">
+                  {tier.remaining} pts to {tier.next.label.split("·")[1]?.trim()} · {tier.current.unlocks}
+                </p>
+              ) : (
+                <p className="text-[10px] text-muted-foreground">
+                  {tier.current.unlocks}
+                </p>
+              )}
               {factors.map((f) => (
                 <button
                   key={f.id}

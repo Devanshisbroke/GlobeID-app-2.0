@@ -40,6 +40,7 @@ import {
   spendHeatmap,
 } from "@/lib/analytics";
 import CategoryHeatmap from "@/components/analytics/CategoryHeatmap";
+import CarbonFootprintChart from "@/components/dashboard/CarbonFootprintChart";
 
 const CATEGORY_COLORS: Record<string, string> = {
   transport: "#22d3ee",
@@ -247,6 +248,8 @@ const AnalyticsDashboard: React.FC = () => {
         </p>
         <CategoryHeatmap data={heatmapData} />
       </GlassCard>
+
+      <CarbonFootprintChart />
 
       <GlassCard className="p-4">
         <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
