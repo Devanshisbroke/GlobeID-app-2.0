@@ -9,6 +9,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
+import '../../widgets/toast.dart';
 import '../wallet/wallet_provider.dart';
 
 /// Receipt — premium scanned-transaction view. Hero amount with
@@ -139,6 +140,13 @@ class ReceiptScreen extends ConsumerWidget {
                           text:
                               '${last.merchant ?? last.description} ${last.amount} ${last.currency}'));
                       HapticFeedback.lightImpact();
+                      AppToast.show(
+                        context,
+                        title: 'Copied to clipboard',
+                        message:
+                            '${last.merchant ?? last.description} • ${last.amount} ${last.currency}',
+                        tone: AppToastTone.success,
+                      );
                     },
                   ),
                   const _ActionChip(icon: Icons.share_rounded, label: 'Share'),

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../app/theme/app_tokens.dart';
 
-/// Soft shimmer rectangle used across hydration screens.
+/// Premium shimmer rectangle. Sweeps a soft highlight gradient across
+/// the surface on a 1.5s loop. Used across hydration screens.
 class SkeletonBlock extends StatefulWidget {
   const SkeletonBlock({
     super.key,
@@ -22,8 +23,8 @@ class SkeletonBlock extends StatefulWidget {
 class _SkeletonBlockState extends State<SkeletonBlock>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 1100))
-    ..repeat(reverse: true);
+      vsync: this, duration: const Duration(milliseconds: 1500))
+    ..repeat();
 
   @override
   void dispose() {
@@ -35,21 +36,42 @@ class _SkeletonBlockState extends State<SkeletonBlock>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final base = isDark
-        ? Colors.white.withValues(alpha: 0.04)
+        ? Colors.white.withValues(alpha: 0.05)
         : Colors.black.withValues(alpha: 0.05);
     final highlight = isDark
-        ? Colors.white.withValues(alpha: 0.10)
-        : Colors.black.withValues(alpha: 0.10);
+        ? Colors.white.withValues(alpha: 0.14)
+        : Colors.white.withValues(alpha: 0.55);
 
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (_, __) {
-        return Container(
-          width: widget.width,
-          height: widget.height,
-          decoration: BoxDecoration(
-            color: Color.lerp(base, highlight, _ctrl.value),
-            borderRadius: BorderRadius.circular(widget.radius),
+        final t = _ctrl.value; // 0..1
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(widget.radius),
+          child: Container(
+            width: widget.width,
+            height: widget.height,
+            color: base,
+            child: FractionallySizedBox(
+              widthFactor: 1.5,
+              child: Transform.translate(
+                offset: Offset((t * 2 - 1.0) * (widget.width ?? 200) * 1.4, 0),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      stops: const [0, 0.5, 1],
+                      colors: [
+                        base.withValues(alpha: 0),
+                        highlight,
+                        base.withValues(alpha: 0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         );
       },
