@@ -21,6 +21,7 @@ import TripNotes from "@/components/trip/TripNotes";
 import LazyMount from "@/components/system/LazyMount";
 import { useLifecycleStore } from "@/store/lifecycleStore";
 import { useUserStore } from "@/store/userStore";
+import { isoForCountry } from "@/lib/visaRequirements";
 import { travelRecordToLifecycle } from "@/lib/tripLifecycle";
 import { countdownTo, formatCountdown } from "@/lib/countdown";
 import { tripToIcs } from "@/lib/ics";
@@ -332,6 +333,7 @@ const TripDetail: React.FC = () => {
                   : 1,
               )}
               storageKey={trip.tripId ?? upcomingFirst.id}
+              citizenIso={isoForCountry(profile.nationality) ?? undefined}
             />
           </div>
         ) : null}

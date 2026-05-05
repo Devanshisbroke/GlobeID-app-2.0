@@ -22,6 +22,8 @@ import {
   ChevronRight,
   ExternalLink,
   Check,
+  CloudSun,
+  Stamp,
 } from "lucide-react";
 import { useVisibleClock } from "@/hooks/useVisibleClock";
 import {
@@ -36,6 +38,14 @@ import {
 import { findAirport } from "@shared/data/airports";
 import { haptics } from "@/utils/haptics";
 import { cn } from "@/lib/utils";
+import { useWeatherForecast } from "@/hooks/useWeatherForecast";
+import { emojiForWeatherCode } from "@/lib/weatherForecast";
+import {
+  lookupVisaPolicy,
+  labelForBand,
+  toneForBand,
+  isoForCountry,
+} from "@/lib/visaRequirements";
 
 interface Props {
   /** IATA of the destination — passed in by parent. */
@@ -48,6 +58,8 @@ interface Props {
   durationDays: number;
   /** Storage key prefix so per-trip toggles persist. */
   storageKey: string;
+  /** ISO-3166-1 alpha-2 of the user's citizenship for visa lookup. */
+  citizenIso?: string;
 }
 
 const TripIntelSection: React.FC<Props> = ({
@@ -56,6 +68,7 @@ const TripIntelSection: React.FC<Props> = ({
   departDate,
   durationDays,
   storageKey,
+  citizenIso,
 }) => {
   const dest = findAirport(destIata);
   const home = findAirport(homeIata);
@@ -78,6 +91,25 @@ const TripIntelSection: React.FC<Props> = ({
   const transport = useMemo(() => groundTransportFor(destIata), [destIata]);
   const destCurrency = useMemo(() => currencyForAirport(destIata), [destIata]);
 
+  // D 42 — weather forecast around the arrival window.
+  const weather = useWeatherForecast({
+    destIata,
+    arrivalDate: departDate,
+    days: 3,
+  });
+
+  // D 45 — visa requirements for citizen → destination. Skipped when
+  // citizen ISO not provided or destination country has no ISO mapping.
+  const visaPolicy = useMemo(() => {
+    if (!citizenIso || !dest) return null;
+    const destIsoCode = isoForCountry(dest.country);
+    if (!destIsoCode) return null;
+    return {
+      destIso: destIsoCode,
+      policy: lookupVisaPolicy(citizenIso, destIsoCode),
+    };
+  }, [citizenIso, dest]);
+
   // Persist packing-list checks per trip
   const [checked, setChecked] = useState<Set<string>>(() => loadChecked(storageKey));
   const toggle = (id: string) => {
@@ -98,6 +130,76 @@ const TripIntelSection: React.FC<Props> = ({
       <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         Destination intel
       </h2>
+
+      {/* D 42 — Weather forecast */}
+      {weather.data && weather.data.daily.length > 0 ? (
+        <Card title="Weather" Icon={CloudSun}>
+          <ul className="divide-y divide-border/40">
+            {weather.data.daily.slice(0, 3).map((d) => (
+              <li
+                key={d.date}
+                className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0"
+              >
+                <span className="text-[13px] font-medium text-foreground">
+                  {new Date(`${d.date}T00:00:00Z`).toLocaleDateString(
+                    undefined,
+                    { weekday: "short", month: "short", day: "numeric" },
+                  )}
+                </span>
+                <span className="flex items-center gap-2 tabular-nums">
+                  <span aria-hidden className="text-base">
+                    {emojiForWeatherCode(d.weatherCode)}
+                  </span>
+                  <span className="text-[13px] text-foreground">
+                    {Math.round(d.tempMinC)}–{Math.round(d.tempMaxC)}°C
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-[10px] text-muted-foreground">
+            {weather.data.source === "cache" ? "Cached" : "Live"} · Open-Meteo
+          </p>
+        </Card>
+      ) : null}
+
+      {/* D 45 — Visa / entry requirements */}
+      {visaPolicy ? (
+        <Card title="Entry requirements" Icon={Stamp}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-[13px] font-medium text-foreground">
+                {labelForBand(visaPolicy.policy.band)}
+                {visaPolicy.policy.maxDays
+                  ? ` · up to ${visaPolicy.policy.maxDays} days`
+                  : ""}
+              </p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                {visaPolicy.policy.note ??
+                  `${visaPolicy.policy.passportValidityMonths} mo passport validity required`}
+              </p>
+            </div>
+            <span
+              className={cn(
+                "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider",
+                toneForBand(visaPolicy.policy.band) === "success" &&
+                  "bg-emerald-500/15 text-emerald-300",
+                toneForBand(visaPolicy.policy.band) === "info" &&
+                  "bg-sky-500/15 text-sky-300",
+                toneForBand(visaPolicy.policy.band) === "warning" &&
+                  "bg-amber-500/15 text-amber-300",
+                toneForBand(visaPolicy.policy.band) === "critical" &&
+                  "bg-rose-500/15 text-rose-300",
+              )}
+            >
+              {visaPolicy.policy.band.replace("_", " ")}
+            </span>
+          </div>
+          <p className="mt-2 text-[10px] italic text-muted-foreground">
+            Verify with the consulate — policies change without notice.
+          </p>
+        </Card>
+      ) : null}
 
       {/* D 43 — Local time + timezone delta */}
       <Card title="Local time" Icon={Clock} accent>
