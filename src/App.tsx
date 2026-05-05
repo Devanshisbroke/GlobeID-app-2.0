@@ -9,7 +9,13 @@ import NativeBackButton from "@/components/system/NativeBackButton";
 import EdgeSwipeBack from "@/components/system/EdgeSwipeBack";
 import RouteErrorBoundary from "@/components/system/RouteErrorBoundary";
 import KeyboardShortcuts from "@/components/ui/KeyboardShortcuts";
-import { applyNativeChrome, wireNetworkListener } from "@/lib/nativeBridge";
+import {
+  applyNativeChrome,
+  deepLinkToPath,
+  wireAppStateListener,
+  wireNetworkListener,
+  wireUrlOpenListener,
+} from "@/lib/nativeBridge";
 import { useUserStore } from "@/store/userStore";
 import { useAlertsStore } from "@/store/alertsStore";
 import { useInsightsStore } from "@/store/insightsStore";
@@ -196,6 +202,8 @@ const App = () => {
 
     let cancelled = false;
     let unsubscribe: (() => void) | null = null;
+    let unsubAppState: (() => void) | null = null;
+    let unsubUrlOpen: (() => void) | null = null;
     void wireNetworkListener((online) => {
       if (online) void hydrateAll();
     }).then((un) => {
@@ -205,9 +213,39 @@ const App = () => {
       }
       unsubscribe = un;
     });
+    // B 20 — re-hydrate stores when the app returns to foreground.
+    void wireAppStateListener(() => {
+      void hydrateAll();
+    }).then((un) => {
+      if (cancelled) {
+        un();
+        return;
+      }
+      unsubAppState = un;
+    });
+    // B 21 — handle deep links emitted by the OS when the user taps a
+    // `globeid://...` link or a universal-link banner.
+    void wireUrlOpenListener((url) => {
+      const target = deepLinkToPath(url);
+      if (target && typeof window !== "undefined") {
+        // Use the History API directly so we don't have to plumb the
+        // Router context up to App.tsx.
+        window.history.pushState({}, "", target);
+        // Fire popstate so React Router (in nested route) reacts.
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      }
+    }).then((un) => {
+      if (cancelled) {
+        un();
+        return;
+      }
+      unsubUrlOpen = un;
+    });
     return () => {
       cancelled = true;
       unsubscribe?.();
+      unsubAppState?.();
+      unsubUrlOpen?.();
     };
   }, []);
 
