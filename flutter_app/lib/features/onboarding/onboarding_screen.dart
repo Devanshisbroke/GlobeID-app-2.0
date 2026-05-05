@@ -1,132 +1,276 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../widgets/animated_appearance.dart';
+import '../../widgets/pressable.dart';
 
+/// Cinematic onboarding — full-bleed brand canvas, animated planet
+/// glyph that morphs per-page, deep accent gradients, glassy footer
+/// with morphing CTA.
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends State<OnboardingScreen>
+    with TickerProviderStateMixin {
   final _ctrl = PageController();
   int _i = 0;
 
-  static const _slides = [
+  late final _orbit = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 12000),
+  )..repeat();
+
+  static const _slides = <_Slide>[
     _Slide(
-        'Travel super-app',
-        'Wallet, identity, scanner, planner — one premium experience.',
-        Icons.public_rounded),
+      'Travel super-app',
+      'Wallet, identity, scanner, planner — one premium experience.',
+      Icons.public_rounded,
+      Color(0xFF7C3AED),
+      Color(0xFF06B6D4),
+    ),
     _Slide(
-        'Boarding-ready',
-        'Apple/Google-Wallet-grade boarding passes with real HMAC signing.',
-        Icons.confirmation_num_rounded),
+      'Boarding-ready',
+      'Apple/Google-Wallet-grade boarding passes with real HMAC signing.',
+      Icons.confirmation_num_rounded,
+      Color(0xFF06B6D4),
+      Color(0xFF10B981),
+    ),
     _Slide(
-        'Deterministic copilot',
-        'Local-first intelligence — never an LLM hallucination.',
-        Icons.smart_toy_rounded),
+      'Deterministic copilot',
+      'Local-first intelligence. No hallucinations.',
+      Icons.smart_toy_rounded,
+      Color(0xFF10B981),
+      Color(0xFFF59E0B),
+    ),
     _Slide(
-        'Yours, secured',
-        'Biometric vault, audit log, and reduce-transparency.',
-        Icons.shield_rounded),
+      'Yours, secured',
+      'Biometric vault, audit log, reduce-transparency.',
+      Icons.shield_rounded,
+      Color(0xFFF59E0B),
+      Color(0xFF7C3AED),
+    ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    _orbit.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = _slides[_i];
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _ctrl,
-                onPageChanged: (i) {
-                  HapticFeedback.selectionClick();
-                  setState(() => _i = i);
-                },
-                itemCount: _slides.length,
-                itemBuilder: (_, i) {
-                  final s = _slides[i];
-                  return Padding(
-                    padding: const EdgeInsets.all(AppTokens.space7),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(s.icon,
-                            size: 80, color: theme.colorScheme.primary),
-                        const SizedBox(height: AppTokens.space5),
-                        Text(s.title,
-                            style: theme.textTheme.displaySmall,
-                            textAlign: TextAlign.center),
-                        const SizedBox(height: AppTokens.space3),
-                        Text(s.message,
-                            style: theme.textTheme.bodyLarge,
-                            textAlign: TextAlign.center),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (var d = 0; d < _slides.length; d++)
-                  AnimatedContainer(
-                    duration: AppTokens.durationSm,
-                    width: d == _i ? 22 : 8,
-                    height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: d == _i
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.primary.withValues(alpha: 0.25),
-                    ),
-                  ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(AppTokens.space5),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => context.go('/'),
-                      child: const Text('Skip'),
-                    ),
-                  ),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: () {
-                        if (_i < _slides.length - 1) {
-                          _ctrl.nextPage(
-                              duration: AppTokens.durationMd,
-                              curve: AppTokens.easeStandard);
-                        } else {
-                          context.go('/');
-                        }
-                      },
-                      child: Text(
-                          _i < _slides.length - 1 ? 'Next' : 'Get started'),
-                    ),
-                  ),
+      body: Stack(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeOutCubic,
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment.topRight,
+                radius: 1.4,
+                colors: [
+                  s.start.withValues(alpha: 0.65),
+                  Colors.black,
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+          AnimatedBuilder(
+            animation: _orbit,
+            builder: (_, __) => Positioned(
+              top: 120,
+              left: 40 + 60 * math.sin(_orbit.value * 2 * math.pi),
+              child: Container(
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      s.end.withValues(alpha: 0.35),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: PageView.builder(
+                    controller: _ctrl,
+                    onPageChanged: (i) {
+                      HapticFeedback.selectionClick();
+                      setState(() => _i = i);
+                    },
+                    itemCount: _slides.length,
+                    itemBuilder: (_, i) {
+                      final slide = _slides[i];
+                      return Padding(
+                        padding: const EdgeInsets.all(AppTokens.space7),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            AnimatedAppearance(
+                              key: ValueKey('icon-$i'),
+                              child: Container(
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [slide.start, slide.end],
+                                  ),
+                                  boxShadow:
+                                      AppTokens.shadowLg(tint: slide.start),
+                                ),
+                                child: Icon(slide.icon,
+                                    size: 64, color: Colors.white),
+                              ),
+                            ),
+                            const SizedBox(height: AppTokens.space7),
+                            AnimatedAppearance(
+                              key: ValueKey('title-$i'),
+                              delay: const Duration(milliseconds: 120),
+                              child: Text(
+                                slide.title,
+                                style: theme.textTheme.displayMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            const SizedBox(height: AppTokens.space3),
+                            AnimatedAppearance(
+                              key: ValueKey('msg-$i'),
+                              delay: const Duration(milliseconds: 200),
+                              child: Text(
+                                slide.message,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (var d = 0; d < _slides.length; d++)
+                      AnimatedContainer(
+                        duration: AppTokens.durationSm,
+                        width: d == _i ? 26 : 8,
+                        height: 8,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: d == _i
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.3),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: AppTokens.space5),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTokens.space5,
+                    0,
+                    AppTokens.space5,
+                    AppTokens.space5,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => context.go('/'),
+                          style: TextButton.styleFrom(
+                            foregroundColor:
+                                Colors.white.withValues(alpha: 0.7),
+                          ),
+                          child: const Text('Skip'),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Pressable(
+                          scale: 0.96,
+                          onTap: () {
+                            if (_i < _slides.length - 1) {
+                              _ctrl.nextPage(
+                                duration: AppTokens.durationLg,
+                                curve: AppTokens.easeOutSoft,
+                              );
+                            } else {
+                              context.go('/');
+                            }
+                          },
+                          child: Container(
+                            height: 56,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.circular(AppTokens.radiusFull),
+                              gradient: LinearGradient(
+                                colors: [s.start, s.end],
+                              ),
+                              boxShadow: AppTokens.shadowLg(tint: s.start),
+                            ),
+                            child: Text(
+                              _i < _slides.length - 1
+                                  ? 'Continue'
+                                  : 'Get started',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
 class _Slide {
-  const _Slide(this.title, this.message, this.icon);
+  const _Slide(this.title, this.message, this.icon, this.start, this.end);
   final String title;
   final String message;
   final IconData icon;
+  final Color start;
+  final Color end;
 }

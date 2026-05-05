@@ -1,36 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../widgets/animated_appearance.dart';
+import '../../widgets/premium_card.dart';
+import '../../widgets/pressable.dart';
+import '../../widgets/section_header.dart';
 
+/// Unified services hub. Sectioned by intent (Travel essentials, Money,
+/// Identity, Tools), each tile is a premium pressable card with hero
+/// gradient, label and short description, no duplication. All paths
+/// resolve to existing screens, so flows stay functional.
 class ServicesHubScreen extends ConsumerWidget {
   const ServicesHubScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final services = [
-      _Svc('Hotels', '/services/hotels', Icons.hotel_rounded,
-          const Color(0xFF7E22CE)),
-      _Svc('Rides', '/services/rides', Icons.directions_car_rounded,
-          const Color(0xFFEA580C)),
-      _Svc('Food', '/services/food', Icons.restaurant_rounded,
-          const Color(0xFFE11D48)),
-      _Svc('Activities', '/services/activities', Icons.local_activity_rounded,
-          const Color(0xFF059669)),
-      _Svc('Transport', '/services/transport', Icons.train_rounded,
-          const Color(0xFF1D4ED8)),
-      _Svc('Vault', '/vault', Icons.shield_moon_rounded,
-          const Color(0xFFD97706)),
-      _Svc('Receipt', '/receipt', Icons.receipt_long_rounded,
-          const Color(0xFF06B6D4)),
-      _Svc('Loyalty', '/passport-book', Icons.workspace_premium_rounded,
-          const Color(0xFFA855F7)),
-    ];
 
     return ListView(
+      physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.fromLTRB(
         AppTokens.space5,
         MediaQuery.of(context).padding.top + AppTokens.space5,
@@ -38,84 +29,313 @@ class ServicesHubScreen extends ConsumerWidget {
         AppTokens.space9 + 16,
       ),
       children: [
-        Text('Services', style: theme.textTheme.headlineLarge),
-        Text('Everything you need on the road',
-            style: theme.textTheme.bodyMedium),
-        const SizedBox(height: AppTokens.space5),
-        GridView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: AppTokens.space3,
-            crossAxisSpacing: AppTokens.space3,
-            childAspectRatio: 1.05,
+        AnimatedAppearance(
+          child: Text('Services', style: theme.textTheme.headlineLarge),
+        ),
+        AnimatedAppearance(
+          delay: const Duration(milliseconds: 60),
+          child: Text(
+            'Everything you need on the road, all in one place.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+            ),
           ),
-          itemCount: services.length,
-          itemBuilder: (_, i) => _ServiceTile(svc: services[i])
-              .animate()
-              .fadeIn(delay: Duration(milliseconds: 30 * i))
-              .slideY(begin: 0.06, end: 0),
+        ),
+        const SizedBox(height: AppTokens.space5),
+        const SectionHeader(title: 'Travel essentials', dense: true),
+        _ServicesGrid(
+          startDelayMs: 80,
+          tiles: const [
+            _ServiceItem(
+              name: 'Hotels',
+              path: '/services/hotels',
+              icon: Icons.hotel_rounded,
+              accent: AccentName.violet,
+              description: 'Find a room near your itinerary',
+            ),
+            _ServiceItem(
+              name: 'Rides',
+              path: '/services/rides',
+              icon: Icons.directions_car_rounded,
+              accent: AccentName.amber,
+              description: 'Airport transfers + city rides',
+            ),
+            _ServiceItem(
+              name: 'Food',
+              path: '/services/food',
+              icon: Icons.restaurant_rounded,
+              accent: AccentName.rose,
+              description: 'Local restaurants + delivery',
+            ),
+            _ServiceItem(
+              name: 'Activities',
+              path: '/services/activities',
+              icon: Icons.local_activity_rounded,
+              accent: AccentName.emerald,
+              description: 'Tours and tickets',
+            ),
+            _ServiceItem(
+              name: 'Transport',
+              path: '/services/transport',
+              icon: Icons.train_rounded,
+              accent: AccentName.sky,
+              description: 'Trains, buses, ferries',
+            ),
+          ],
+        ),
+        const SizedBox(height: AppTokens.space5),
+        const SectionHeader(title: 'Money', dense: true),
+        _ServicesGrid(
+          startDelayMs: 200,
+          tiles: const [
+            _ServiceItem(
+              name: 'Wallet',
+              path: '/wallet',
+              icon: Icons.account_balance_wallet_rounded,
+              accent: AccentName.cyan,
+              description: 'Balances + recent transactions',
+            ),
+            _ServiceItem(
+              name: 'Multi-currency',
+              path: '/multi-currency',
+              icon: Icons.currency_exchange_rounded,
+              accent: AccentName.emerald,
+              description: 'Convert + transfer',
+            ),
+            _ServiceItem(
+              name: 'Receipts',
+              path: '/receipt',
+              icon: Icons.receipt_long_rounded,
+              accent: AccentName.amber,
+              description: 'Scan + categorise spend',
+            ),
+            _ServiceItem(
+              name: 'Analytics',
+              path: '/analytics',
+              icon: Icons.insights_rounded,
+              accent: AccentName.indigo,
+              description: 'Where your money flows',
+            ),
+          ],
+        ),
+        const SizedBox(height: AppTokens.space5),
+        const SectionHeader(title: 'Identity', dense: true),
+        _ServicesGrid(
+          startDelayMs: 320,
+          tiles: const [
+            _ServiceItem(
+              name: 'Vault',
+              path: '/vault',
+              icon: Icons.shield_moon_rounded,
+              accent: AccentName.amber,
+              description: 'Documents + secure storage',
+            ),
+            _ServiceItem(
+              name: 'Identity',
+              path: '/identity',
+              icon: Icons.verified_user_rounded,
+              accent: AccentName.violet,
+              description: 'Score + verified factors',
+            ),
+            _ServiceItem(
+              name: 'Loyalty',
+              path: '/passport-book',
+              icon: Icons.workspace_premium_rounded,
+              accent: AccentName.fuchsia,
+              description: 'Stamp book + status tier',
+            ),
+            _ServiceItem(
+              name: 'Kiosk simulator',
+              path: '/kiosk-sim',
+              icon: Icons.qr_code_scanner_rounded,
+              accent: AccentName.sky,
+              description: 'Test how a gate sees your pass',
+            ),
+          ],
+        ),
+        const SizedBox(height: AppTokens.space5),
+        const SectionHeader(title: 'Tools', dense: true),
+        _ServicesGrid(
+          startDelayMs: 440,
+          tiles: const [
+            _ServiceItem(
+              name: 'Plan trip',
+              path: '/planner',
+              icon: Icons.flight_takeoff_rounded,
+              accent: AccentName.violet,
+              description: 'Multi-leg itineraries',
+            ),
+            _ServiceItem(
+              name: 'Copilot',
+              path: '/copilot',
+              icon: Icons.smart_toy_rounded,
+              accent: AccentName.emerald,
+              description: 'Ask anything about your trip',
+            ),
+            _ServiceItem(
+              name: 'Explore',
+              path: '/explore',
+              icon: Icons.travel_explore_rounded,
+              accent: AccentName.cyan,
+              description: 'Cities + visa-free destinations',
+            ),
+            _ServiceItem(
+              name: 'Timeline',
+              path: '/timeline',
+              icon: Icons.timeline_rounded,
+              accent: AccentName.indigo,
+              description: 'All travel events in one feed',
+            ),
+            _ServiceItem(
+              name: 'Social',
+              path: '/social',
+              icon: Icons.people_alt_rounded,
+              accent: AccentName.rose,
+              description: 'Travelers near you',
+            ),
+            _ServiceItem(
+              name: 'Feed',
+              path: '/feed',
+              icon: Icons.dynamic_feed_rounded,
+              accent: AccentName.amber,
+              description: 'Updates + community posts',
+            ),
+          ],
         ),
       ],
     );
   }
 }
 
-class _Svc {
-  const _Svc(this.name, this.path, this.icon, this.tone);
+enum AccentName { violet, amber, rose, emerald, sky, cyan, indigo, fuchsia }
+
+class _ServiceItem {
+  const _ServiceItem({
+    required this.name,
+    required this.path,
+    required this.icon,
+    required this.accent,
+    required this.description,
+  });
   final String name;
   final String path;
   final IconData icon;
-  final Color tone;
+  final AccentName accent;
+  final String description;
+}
+
+class _ServicesGrid extends StatelessWidget {
+  const _ServicesGrid({required this.tiles, this.startDelayMs = 0});
+  final List<_ServiceItem> tiles;
+  final int startDelayMs;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: AppTokens.space3,
+        crossAxisSpacing: AppTokens.space3,
+        childAspectRatio: 1.05,
+      ),
+      itemCount: tiles.length,
+      itemBuilder: (_, i) => AnimatedAppearance(
+        delay: Duration(milliseconds: startDelayMs + i * 50),
+        child: _ServiceTile(svc: tiles[i]),
+      ),
+    );
+  }
 }
 
 class _ServiceTile extends StatelessWidget {
   const _ServiceTile({required this.svc});
-  final _Svc svc;
+  final _ServiceItem svc;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => context.push(svc.path),
-        borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-        child: Container(
-          padding: const EdgeInsets.all(AppTokens.space5),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-            border: Border.all(color: svc.tone.withValues(alpha: 0.30)),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                svc.tone.withValues(alpha: 0.18),
-                svc.tone.withValues(alpha: 0.05),
+    final accent = _resolveAccent(theme, svc.accent);
+    return Pressable(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        GoRouter.of(context).push(svc.path);
+      },
+      child: PremiumCard(
+        radius: AppTokens.radius2xl,
+        glass: false,
+        elevation: PremiumElevation.sm,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            accent.withValues(alpha: 0.22),
+            accent.withValues(alpha: 0.06),
+          ],
+        ),
+        borderColor: accent.withValues(alpha: 0.30),
+        padding: const EdgeInsets.all(AppTokens.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.22),
+                borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+                boxShadow: AppTokens.shadowSm(tint: accent),
+              ),
+              child: Icon(svc.icon, color: accent, size: 22),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  svc.name,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  svc.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
+                  ),
+                ),
               ],
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: svc.tone.withValues(alpha: 0.22),
-                  borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-                ),
-                child: Icon(svc.icon, color: svc.tone, size: 26),
-              ),
-              Text(svc.name,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  )),
-            ],
-          ),
+          ],
         ),
       ),
     );
+  }
+
+  Color _resolveAccent(ThemeData theme, AccentName a) {
+    switch (a) {
+      case AccentName.violet:
+        return const Color(0xFF7C3AED);
+      case AccentName.amber:
+        return const Color(0xFFF59E0B);
+      case AccentName.rose:
+        return const Color(0xFFE11D48);
+      case AccentName.emerald:
+        return const Color(0xFF10B981);
+      case AccentName.sky:
+        return const Color(0xFF0EA5E9);
+      case AccentName.cyan:
+        return const Color(0xFF06B6D4);
+      case AccentName.indigo:
+        return const Color(0xFF4F46E5);
+      case AccentName.fuchsia:
+        return const Color(0xFFD946EF);
+    }
   }
 }

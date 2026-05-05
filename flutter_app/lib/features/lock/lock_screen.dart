@@ -1,66 +1,234 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../widgets/animated_appearance.dart';
+import '../../widgets/pressable.dart';
 
+/// Lock screen — cinematic biometric ring with rotating orbital sweep,
+/// glow pulse on tap, gentle backdrop bloom.
 class LockScreen extends StatefulWidget {
   const LockScreen({super.key});
   @override
   State<LockScreen> createState() => _LockScreenState();
 }
 
-class _LockScreenState extends State<LockScreen> {
+class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
   final _auth = LocalAuthentication();
   String? _error;
+  bool _busy = false;
+
+  late final _orbit = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 4200),
+  )..repeat();
+
+  late final _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1800),
+  )..repeat();
 
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
     WidgetsBinding.instance.addPostFrameCallback((_) => _unlock());
   }
 
+  @override
+  void dispose() {
+    _orbit.dispose();
+    _pulse.dispose();
+    super.dispose();
+  }
+
   Future<void> _unlock() async {
+    if (_busy) return;
+    setState(() => _busy = true);
     try {
       final ok = await _auth.authenticate(
         localizedReason: 'Unlock GlobeID',
       );
-      if (ok && mounted) context.go('/');
+      if (ok && mounted) {
+        HapticFeedback.mediumImpact();
+        context.go('/');
+      }
     } catch (e) {
       setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final accent = theme.colorScheme.primary;
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppTokens.space7),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.lock_rounded,
-                  size: 56, color: theme.colorScheme.primary),
-              const SizedBox(height: AppTokens.space5),
-              Text('GlobeID', style: theme.textTheme.headlineLarge),
-              if (_error != null) ...[
-                const SizedBox(height: AppTokens.space3),
-                Text(_error!,
-                    style: theme.textTheme.bodySmall,
-                    textAlign: TextAlign.center),
-              ],
-              const SizedBox(height: AppTokens.space7),
-              FilledButton.icon(
-                onPressed: _unlock,
-                icon: const Icon(Icons.fingerprint_rounded),
-                label: const Text('Unlock'),
+      backgroundColor: const Color(0xFF05060A),
+      body: Stack(
+        children: [
+          // Soft radial bloom backdrop.
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.topCenter,
+                  radius: 1.4,
+                  colors: [
+                    accent.withValues(alpha: 0.32),
+                    Colors.transparent,
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
-        ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(AppTokens.space7),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedAppearance(
+                    child: Text(
+                      'GlobeID',
+                      style: theme.textTheme.displayMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  AnimatedAppearance(
+                    delay: const Duration(milliseconds: 80),
+                    child: Text(
+                      'Touch to unlock',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppTokens.space9),
+                  AnimatedAppearance(
+                    delay: const Duration(milliseconds: 200),
+                    child: Pressable(
+                      scale: 0.96,
+                      onTap: _unlock,
+                      child: AnimatedBuilder(
+                        animation: Listenable.merge([_orbit, _pulse]),
+                        builder: (_, __) => SizedBox(
+                          width: 220,
+                          height: 220,
+                          child: CustomPaint(
+                            painter: _BiometricRing(
+                              orbit: _orbit.value,
+                              pulse: _pulse.value,
+                              color: accent,
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.fingerprint_rounded,
+                                color: Colors.white,
+                                size: 64,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: AppTokens.space5),
+                    Text(_error!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: const Color(0xFFEF4444),
+                        ),
+                        textAlign: TextAlign.center),
+                  ],
+                  const SizedBox(height: AppTokens.space9),
+                  AnimatedAppearance(
+                    delay: const Duration(milliseconds: 280),
+                    child: TextButton(
+                      onPressed: _unlock,
+                      child: Text(
+                        _busy ? 'Authenticating…' : 'Try again',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+}
+
+class _BiometricRing extends CustomPainter {
+  _BiometricRing({
+    required this.orbit,
+    required this.pulse,
+    required this.color,
+  });
+  final double orbit;
+  final double pulse;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = Offset(size.width / 2, size.height / 2);
+    final r = math.min(size.width, size.height) / 2 - 12;
+    // Outer pulse halo.
+    final haloR = r + 14 + 6 * math.sin(pulse * 2 * math.pi);
+    final halo = Paint()
+      ..color = color.withValues(alpha: 0.10)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(c, haloR, halo);
+    // Track.
+    final track = Paint()
+      ..color = color.withValues(alpha: 0.18)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawCircle(c, r, track);
+    // Inner pulse ring.
+    final inner = Paint()
+      ..color = color.withValues(alpha: 0.32)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4;
+    canvas.drawCircle(c, r - 12, inner);
+    // Orbital sweep arc.
+    final sweep = Paint()
+      ..shader = SweepGradient(
+        colors: [
+          color.withValues(alpha: 0.0),
+          color,
+        ],
+        startAngle: 0,
+        endAngle: math.pi * 2,
+        transform: GradientRotation(orbit * 2 * math.pi),
+      ).createShader(Rect.fromCircle(center: c, radius: r))
+      ..strokeWidth = 4
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromCircle(center: c, radius: r),
+      orbit * 2 * math.pi,
+      math.pi * 0.7,
+      false,
+      sweep,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _BiometricRing old) =>
+      old.orbit != orbit || old.pulse != pulse || old.color != color;
 }

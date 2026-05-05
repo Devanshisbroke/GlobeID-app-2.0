@@ -11,8 +11,9 @@ import '../features/wallet/wallet_provider.dart';
 import 'theme/app_theme.dart';
 import 'theme/app_tokens.dart';
 
-/// Premium app shell: edge-to-edge, frosted bottom nav, animated FAB,
-/// scoped status-bar tint that follows the active tab.
+/// Premium app shell. Edge-to-edge, frosted bottom nav with a
+/// morphing pill indicator, animated FAB with pulse-glow, scoped
+/// status-bar tint that follows brightness, atmosphere backdrop.
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key, required this.child});
 
@@ -123,22 +124,67 @@ class _Backdrop extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = Theme.of(context).colorScheme.primary;
     return IgnorePointer(
-      child: Container(
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? const [
+                          AppTokens.canvasDark,
+                          Color(0xFF080B15),
+                          Color(0xFF03050B),
+                        ]
+                      : const [
+                          AppTokens.canvasLight,
+                          Color(0xFFEFF3FA),
+                          Color(0xFFE5ECF6),
+                        ],
+                ),
+              ),
+            ),
+          ),
+          // Hero radial bloom — accent-tinted, fades into the canvas.
+          Positioned(
+            top: -120,
+            right: -80,
+            child: _Bloom(
+              size: 360,
+              color: accent.withValues(alpha: isDark ? 0.16 : 0.10),
+            ),
+          ),
+          Positioned(
+            bottom: -160,
+            left: -100,
+            child: _Bloom(
+              size: 420,
+              color: accent.withValues(alpha: isDark ? 0.10 : 0.06),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Bloom extends StatelessWidget {
+  const _Bloom({required this.size, required this.color});
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDark
-                ? [
-                    const Color(0xFF0B0F1A),
-                    accent.withValues(alpha: 0.10),
-                    const Color(0xFF050810),
-                  ]
-                : [
-                    const Color(0xFFFFFFFF),
-                    accent.withValues(alpha: 0.06),
-                    const Color(0xFFEFF3FA),
-                  ],
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [color, color.withValues(alpha: 0)],
           ),
         ),
       ),
@@ -171,22 +217,64 @@ class _FrostedNav extends StatelessWidget {
       top: false,
       child: SizedBox(
         height: 72,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(tabs.length + 1, (i) {
-            // Insert spacer in middle (index 2) to clear FAB.
-            if (i == 2) return const SizedBox(width: 56);
-            final tabIndex = i > 2 ? i - 1 : i;
-            final tab = tabs[tabIndex];
-            final selected = activeIndex == tabIndex;
-            return _NavItem(
-              tab: tab,
-              selected: selected,
-              accent: accent,
-              onTap: () => onTap(tabIndex),
-            );
-          }),
-        ),
+        child: LayoutBuilder(builder: (_, c) {
+          final fabGap = 64.0;
+          final usable = c.maxWidth - fabGap;
+          final slot = usable / tabs.length;
+          // Compute active pill x.
+          final visualIndex =
+              activeIndex < 2 ? activeIndex : activeIndex + 1; // skip FAB slot
+          final slotForPill = (c.maxWidth) / (tabs.length + 1);
+          final pillX = slotForPill * visualIndex;
+          return Stack(
+            children: [
+              // Morphing pill indicator.
+              AnimatedPositioned(
+                duration: AppTokens.durationMd,
+                curve: AppTokens.easeOutSoft,
+                left: pillX + slotForPill * 0.18,
+                top: 14,
+                child: Container(
+                  width: slotForPill * 0.64,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        accent.withValues(alpha: 0.22),
+                        accent.withValues(alpha: 0.08),
+                      ],
+                    ),
+                    border: Border.all(
+                      color: accent.withValues(alpha: 0.35),
+                      width: 0.6,
+                    ),
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(tabs.length + 1, (i) {
+                  if (i == 2) return SizedBox(width: fabGap);
+                  final tabIndex = i > 2 ? i - 1 : i;
+                  final tab = tabs[tabIndex];
+                  final selected = activeIndex == tabIndex;
+                  return SizedBox(
+                    width: slot,
+                    child: _NavItem(
+                      tab: tab,
+                      selected: selected,
+                      accent: accent,
+                      onTap: () => onTap(tabIndex),
+                    ),
+                  );
+                }),
+              ),
+            ],
+          );
+        }),
       ),
     );
 
@@ -209,7 +297,7 @@ class _FrostedNav extends StatelessWidget {
     if (reduce) return body;
     return ClipRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
         child: body,
       ),
     );
@@ -233,17 +321,15 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = selected
         ? accent
-        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.62);
+        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-      child: AnimatedContainer(
-        duration: AppTokens.durationSm,
-        curve: AppTokens.easeStandard,
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppTokens.space3, vertical: 6),
+      child: SizedBox(
+        height: 72,
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedSwitcher(
               duration: AppTokens.durationXs,
@@ -252,15 +338,15 @@ class _NavItem extends StatelessWidget {
                 selected ? tab.activeIcon : tab.icon,
                 key: ValueKey(selected),
                 color: color,
-                size: 26,
+                size: 24,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             Text(
               tab.label,
               style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
+                fontSize: 10.5,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 color: color,
                 letterSpacing: 0.3,
               ),
@@ -272,46 +358,76 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-class _ScanFab extends StatelessWidget {
+class _ScanFab extends StatefulWidget {
   const _ScanFab({required this.onPressed});
   final VoidCallback onPressed;
 
   @override
+  State<_ScanFab> createState() => _ScanFabState();
+}
+
+class _ScanFabState extends State<_ScanFab>
+    with SingleTickerProviderStateMixin {
+  late final _glow = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2400),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _glow.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
-    return SizedBox(
-      width: 64,
-      height: 64,
-      child: Material(
-        elevation: 0,
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.mediumImpact();
-            onPressed();
-          },
-          customBorder: const CircleBorder(),
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [accent, accent.withValues(alpha: 0.7)],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: accent.withValues(alpha: 0.45),
-                  blurRadius: 22,
-                  offset: const Offset(0, 8),
+    return AnimatedBuilder(
+      animation: _glow,
+      builder: (_, __) {
+        final t = Curves.easeInOut.transform(_glow.value);
+        return SizedBox(
+          width: 70,
+          height: 70,
+          child: Material(
+            elevation: 0,
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                HapticFeedback.mediumImpact();
+                widget.onPressed();
+              },
+              customBorder: const CircleBorder(),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [accent, accent.withValues(alpha: 0.72)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.30 + 0.20 * t),
+                      blurRadius: 24 + 12 * t,
+                      spreadRadius: 1 + 2 * t,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    width: 1,
+                  ),
                 ),
-              ],
+                child: const Center(
+                  child: Icon(Icons.qr_code_scanner_rounded,
+                      size: 30, color: Colors.white),
+                ),
+              ),
             ),
-            child: const Icon(Icons.qr_code_scanner_rounded,
-                size: 30, color: Colors.white),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

@@ -29,10 +29,10 @@ class AppTheme {
     );
 
     final isDark = brightness == Brightness.dark;
-    final surface = isDark ? const Color(0xFF0B0F1A) : const Color(0xFFF8FAFC);
+    final surface = isDark ? AppTokens.canvasDark : AppTokens.canvasLight;
     final card = isDark
-        ? const Color(0xFF111827).withValues(alpha: 0.72)
-        : Colors.white.withValues(alpha: 0.78);
+        ? AppTokens.cardDark.withValues(alpha: 0.74)
+        : AppTokens.cardLight.withValues(alpha: 0.82);
 
     final density = prefs.density;
     final base = density.scale;

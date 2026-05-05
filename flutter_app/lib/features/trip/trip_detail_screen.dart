@@ -4,15 +4,21 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../data/models/lifecycle.dart';
+import '../../domain/airline_brand.dart';
 import '../../domain/airports.dart';
 import '../../domain/connection_detector.dart';
 import '../../domain/packing_list.dart';
 import '../../domain/predictive_departure.dart';
+import '../../widgets/animated_appearance.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_surface.dart';
+import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
 import '../lifecycle/lifecycle_provider.dart';
 
+/// Immersive trip detail. Hero brand-tinted backdrop, animated leg
+/// timeline (IATA → IATA with airplane), per-leg pass card, location +
+/// timezone strip, predictive departure card, packing list.
 class TripDetailScreen extends ConsumerWidget {
   const TripDetailScreen({super.key, required this.tripId});
   final String tripId;
@@ -47,58 +53,94 @@ class TripDetailScreen extends ConsumerWidget {
     final from = trip.legs.isNotEmpty ? trip.legs.first.from : null;
     final to = trip.legs.isNotEmpty ? trip.legs.last.to : null;
 
+    final brand = trip.legs.isNotEmpty
+        ? resolveAirlineBrand(trip.legs.first.flightNumber)
+        : resolveAirlineBrand('GID');
+
     return Scaffold(
       body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
         slivers: [
           SliverAppBar.large(
             leading: BackButton(onPressed: () => context.pop()),
             stretch: true,
-            expandedHeight: 220,
+            expandedHeight: 240,
             backgroundColor: theme.colorScheme.surface,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(trip.name,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  )),
+              title: Text(
+                trip.name,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               background: Hero(
                 tag: 'trip-${trip.id}',
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        theme.colorScheme.primary.withValues(alpha: 0.45),
-                        theme.colorScheme.primary.withValues(alpha: 0.18),
-                        Colors.black.withValues(alpha: 0.25),
-                      ],
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    DecoratedBox(
+                      decoration: BoxDecoration(gradient: brand.gradient()),
                     ),
-                  ),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.45),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.all(AppTokens.space5),
+            padding: const EdgeInsets.fromLTRB(AppTokens.space5,
+                AppTokens.space3, AppTokens.space5, AppTokens.space9),
             sliver: SliverList.list(
               children: [
-                Row(children: [
-                  PillChip(
-                      label: trip.stage.toUpperCase(),
-                      icon: Icons.flight_rounded),
-                  const SizedBox(width: AppTokens.space2),
-                  if (from != null && to != null)
-                    PillChip(label: '$from → $to', icon: Icons.route_rounded),
-                ]),
+                AnimatedAppearance(
+                  child: Row(
+                    children: [
+                      PillChip(
+                          label: trip.stage.toUpperCase(),
+                          icon: Icons.flight_rounded),
+                      const SizedBox(width: AppTokens.space2),
+                      if (from != null && to != null)
+                        PillChip(
+                            label: '$from → $to', icon: Icons.route_rounded),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: AppTokens.space5),
+                if (from != null && to != null)
+                  AnimatedAppearance(
+                    delay: const Duration(milliseconds: 80),
+                    child: _RouteHero(from: from, to: to),
+                  ),
+                const SizedBox(height: AppTokens.space5),
+                AnimatedAppearance(
+                  delay: const Duration(milliseconds: 160),
+                  child: const SectionHeader(title: 'Itinerary', dense: true),
+                ),
                 _LegList(legs: trip.legs, tightLegIds: tightLegIds),
                 if (trip.legs.isNotEmpty) ...[
                   const SectionHeader(
                       title: 'Predictive departure', dense: true),
-                  _DepartureCard(leg: trip.legs.first),
+                  AnimatedAppearance(
+                    delay: const Duration(milliseconds: 240),
+                    child: _DepartureCard(leg: trip.legs.first),
+                  ),
                 ],
                 const SectionHeader(title: 'Packing list', dense: true),
-                _PackingCard(trip: trip),
+                AnimatedAppearance(
+                  delay: const Duration(milliseconds: 320),
+                  child: _PackingCard(trip: trip),
+                ),
               ],
             ),
           ),
@@ -106,6 +148,152 @@ class TripDetailScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Big horizontal IATA → IATA strip with an airplane traversing.
+class _RouteHero extends StatefulWidget {
+  const _RouteHero({required this.from, required this.to});
+  final String from;
+  final String to;
+
+  @override
+  State<_RouteHero> createState() => _RouteHeroState();
+}
+
+class _RouteHeroState extends State<_RouteHero>
+    with SingleTickerProviderStateMixin {
+  late final _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2400),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final accent = theme.colorScheme.primary;
+    final fromAirport = getAirport(widget.from);
+    final toAirport = getAirport(widget.to);
+    return PremiumCard(
+      padding: const EdgeInsets.all(AppTokens.space5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _IataBlock(
+                code: widget.from,
+                city: fromAirport?.city ?? 'Origin',
+              ),
+              Expanded(
+                child: SizedBox(
+                  height: 56,
+                  child: AnimatedBuilder(
+                    animation: _ctrl,
+                    builder: (_, __) => CustomPaint(
+                      painter: _RouteArc(
+                        progress: _ctrl.value,
+                        color: accent,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              _IataBlock(
+                code: widget.to,
+                city: toAirport?.city ?? 'Destination',
+                end: true,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _IataBlock extends StatelessWidget {
+  const _IataBlock({required this.code, required this.city, this.end = false});
+  final String code;
+  final String city;
+  final bool end;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment:
+          end ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Text(
+          code.toUpperCase(),
+          style: theme.textTheme.displaySmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.0,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          city,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RouteArc extends CustomPainter {
+  _RouteArc({required this.progress, required this.color});
+  final double progress;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final mid = Offset(size.width / 2, size.height / 2);
+    final left = Offset(0, mid.dy);
+    final right = Offset(size.width, mid.dy);
+    // Dashed line with accent.
+    final line = Paint()
+      ..color = color.withValues(alpha: 0.32)
+      ..strokeWidth = 1.4;
+    const dash = 5.0, gap = 4.0;
+    var x = left.dx;
+    while (x < right.dx) {
+      canvas.drawLine(Offset(x, mid.dy), Offset(x + dash, mid.dy), line);
+      x += dash + gap;
+    }
+    // Solid accent endpoints.
+    final dot = Paint()..color = color;
+    canvas.drawCircle(left.translate(2, 0), 3.5, dot);
+    canvas.drawCircle(right.translate(-2, 0), 3.5, dot);
+    // Plane glyph.
+    final px = left.dx + (right.dx - left.dx) * progress;
+    final plane = Paint()..color = color;
+    final p = Path()
+      ..moveTo(px - 8, mid.dy - 5)
+      ..lineTo(px + 6, mid.dy)
+      ..lineTo(px - 8, mid.dy + 5)
+      ..close();
+    canvas.drawPath(p, plane);
+    // Glow trail.
+    final trail = Paint()
+      ..color = color.withValues(alpha: 0.22)
+      ..strokeWidth = 2.4;
+    canvas.drawLine(Offset(left.dx, mid.dy), Offset(px - 10, mid.dy), trail);
+  }
+
+  @override
+  bool shouldRepaint(covariant _RouteArc old) =>
+      old.progress != progress || old.color != color;
 }
 
 class _LegList extends StatelessWidget {
@@ -117,54 +305,61 @@ class _LegList extends StatelessWidget {
     final theme = Theme.of(context);
     return Column(
       children: [
-        for (final l in legs)
+        for (var i = 0; i < legs.length; i++)
           Padding(
             padding: const EdgeInsets.only(bottom: AppTokens.space3),
-            child: GlassSurface(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text('${l.from} → ${l.to}',
-                          style: theme.textTheme.titleLarge),
-                      const Spacer(),
-                      Text(l.flightNumber,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            letterSpacing: 1.4,
-                          )),
-                    ],
-                  ),
-                  const SizedBox(height: AppTokens.space2),
-                  Wrap(
-                    spacing: AppTokens.space2,
-                    runSpacing: AppTokens.space2,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Row(mainAxisSize: MainAxisSize.min, children: [
-                        Icon(Icons.access_time_rounded,
-                            size: 14, color: theme.textTheme.bodySmall?.color),
-                        const SizedBox(width: 4),
-                        Text(l.scheduled, style: theme.textTheme.bodySmall),
-                      ]),
-                      if (l.gate != null) PillChip(label: 'Gate ${l.gate}'),
-                      if (l.seat != null) PillChip(label: 'Seat ${l.seat}'),
-                      if (tightLegIds.contains(l.id))
-                        const PillChip(
-                          label: 'Tight conn',
-                          icon: Icons.warning_amber_rounded,
-                          tone: Color(0xFFD97706),
-                        ),
-                    ],
-                  ),
-                  if (getAirport(l.from) != null) ...[
-                    const SizedBox(height: AppTokens.space2),
-                    Text(
-                      '${getAirport(l.from)!.city} → ${getAirport(l.to)?.city ?? l.to}',
-                      style: theme.textTheme.bodySmall,
+            child: AnimatedAppearance(
+              delay: Duration(milliseconds: 200 + i * 60),
+              child: GlassSurface(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text('${legs[i].from} → ${legs[i].to}',
+                            style: theme.textTheme.titleLarge),
+                        const Spacer(),
+                        Text(legs[i].flightNumber,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              letterSpacing: 1.4,
+                            )),
+                      ],
                     ),
+                    const SizedBox(height: AppTokens.space2),
+                    Wrap(
+                      spacing: AppTokens.space2,
+                      runSpacing: AppTokens.space2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Row(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(Icons.access_time_rounded,
+                              size: 14,
+                              color: theme.textTheme.bodySmall?.color),
+                          const SizedBox(width: 4),
+                          Text(legs[i].scheduled,
+                              style: theme.textTheme.bodySmall),
+                        ]),
+                        if (legs[i].gate != null)
+                          PillChip(label: 'Gate ${legs[i].gate}'),
+                        if (legs[i].seat != null)
+                          PillChip(label: 'Seat ${legs[i].seat}'),
+                        if (tightLegIds.contains(legs[i].id))
+                          const PillChip(
+                            label: 'Tight conn',
+                            icon: Icons.warning_amber_rounded,
+                            tone: Color(0xFFD97706),
+                          ),
+                      ],
+                    ),
+                    if (getAirport(legs[i].from) != null) ...[
+                      const SizedBox(height: AppTokens.space2),
+                      Text(
+                        '${getAirport(legs[i].from)!.city} → ${getAirport(legs[i].to)?.city ?? legs[i].to}',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
