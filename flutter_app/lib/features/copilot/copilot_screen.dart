@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../data/api/api_provider.dart';
-import '../../widgets/glass_surface.dart';
+import '../../widgets/animated_appearance.dart';
 import '../../widgets/page_scaffold.dart';
+import '../../widgets/pressable.dart';
 
+/// Copilot v2 — premium chat. Suggestion chips, bubble tails, typing
+/// indicator, pressable send button, soft keyboard polish.
 class CopilotScreen extends ConsumerStatefulWidget {
   const CopilotScreen({super.key});
   @override
@@ -14,55 +18,110 @@ class CopilotScreen extends ConsumerStatefulWidget {
 
 class _CopilotScreenState extends ConsumerState<CopilotScreen> {
   final _ctrl = TextEditingController();
+  final _scroll = ScrollController();
   final _msgs = <_CopilotMsg>[];
   bool _busy = false;
+
+  static const _suggestions = [
+    'When does my next trip leave?',
+    'Top spend categories this month',
+    'Any visa expiring soon?',
+    'Best route from JFK to LHR',
+  ];
 
   @override
   void dispose() {
     _ctrl.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
-  Future<void> _send() async {
-    final prompt = _ctrl.text.trim();
+  Future<void> _send([String? prefilled]) async {
+    final prompt = (prefilled ?? _ctrl.text).trim();
     if (prompt.isEmpty) return;
+    HapticFeedback.lightImpact();
     setState(() {
       _msgs.add(_CopilotMsg(text: prompt, fromUser: true));
       _busy = true;
       _ctrl.clear();
     });
+    _scrollToBottom();
     try {
       final res = await ref.read(globeIdApiProvider).copilotRespond(prompt);
       final reply = (res['reply'] as String?) ?? 'No response';
       setState(() => _msgs.add(_CopilotMsg(text: reply, fromUser: false)));
-    } catch (e) {
-      setState(() => _msgs.add(_CopilotMsg(
-          text: 'Offline. The copilot needs the server to respond.',
-          fromUser: false)));
+    } catch (_) {
+      setState(() => _msgs.add(const _CopilotMsg(
+            text: 'Offline. The copilot needs the server to respond.',
+            fromUser: false,
+          )));
     } finally {
       setState(() => _busy = false);
+      _scrollToBottom();
     }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scroll.hasClients) return;
+      _scroll.animateTo(
+        _scroll.position.maxScrollExtent,
+        duration: AppTokens.durationMd,
+        curve: AppTokens.easeOutSoft,
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return PageScaffold(
       title: 'Copilot',
       subtitle: 'Deterministic travel intelligence',
       body: Column(
         children: [
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: AppTokens.space3),
-              itemCount: _msgs.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: AppTokens.space2),
-              itemBuilder: (_, i) => _Bubble(msg: _msgs[i]),
-            ),
+            child: _msgs.isEmpty
+                ? _EmptyState(
+                    onPick: (q) => _send(q),
+                    suggestions: _suggestions,
+                  )
+                : ListView(
+                    controller: _scroll,
+                    physics: const BouncingScrollPhysics(),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: AppTokens.space3),
+                    children: [
+                      for (var i = 0; i < _msgs.length; i++)
+                        AnimatedAppearance(
+                          key: ValueKey(i),
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.only(bottom: AppTokens.space2),
+                            child: _Bubble(msg: _msgs[i]),
+                          ),
+                        ),
+                      if (_busy)
+                        const Padding(
+                          padding:
+                              EdgeInsets.only(left: 4, top: AppTokens.space2),
+                          child: _TypingIndicator(),
+                        ),
+                    ],
+                  ),
           ),
-          GlassSurface(
+          Container(
+            margin: const EdgeInsets.only(bottom: AppTokens.space5),
             padding: const EdgeInsets.symmetric(
                 horizontal: AppTokens.space3, vertical: AppTokens.space2),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+              border: Border.all(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.10),
+              ),
+              boxShadow: AppTokens.shadowSm(),
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -75,14 +134,30 @@ class _CopilotScreenState extends ConsumerState<CopilotScreen> {
                     onSubmitted: (_) => _send(),
                   ),
                 ),
-                IconButton.filled(
-                  onPressed: _busy ? null : _send,
-                  icon: const Icon(Icons.send_rounded),
+                Pressable(
+                  scale: 0.92,
+                  onTap: _busy ? () {} : () => _send(),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          theme.colorScheme.primary,
+                          theme.colorScheme.primary.withValues(alpha: 0.6),
+                        ],
+                      ),
+                      boxShadow:
+                          AppTokens.shadowMd(tint: theme.colorScheme.primary),
+                    ),
+                    child: const Icon(Icons.send_rounded,
+                        color: Colors.white, size: 18),
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: AppTokens.space5),
         ],
       ),
     );
@@ -90,9 +165,98 @@ class _CopilotScreenState extends ConsumerState<CopilotScreen> {
 }
 
 class _CopilotMsg {
-  _CopilotMsg({required this.text, required this.fromUser});
+  const _CopilotMsg({required this.text, required this.fromUser});
   final String text;
   final bool fromUser;
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.onPick, required this.suggestions});
+  final ValueChanged<String> onPick;
+  final List<String> suggestions;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(AppTokens.space5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AnimatedAppearance(
+            child: Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    theme.colorScheme.primary,
+                    theme.colorScheme.primary.withValues(alpha: 0.4),
+                  ],
+                ),
+                boxShadow: AppTokens.shadowMd(tint: theme.colorScheme.primary),
+              ),
+              child: const Icon(Icons.smart_toy_rounded,
+                  color: Colors.white, size: 28),
+            ),
+          ),
+          const SizedBox(height: AppTokens.space4),
+          AnimatedAppearance(
+            delay: const Duration(milliseconds: 80),
+            child: Text(
+              'Ask Copilot anything',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          AnimatedAppearance(
+            delay: const Duration(milliseconds: 140),
+            child: Text(
+              'Local-first, deterministic. No hallucinations.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppTokens.space5),
+          AnimatedAppearance(
+            delay: const Duration(milliseconds: 200),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final s in suggestions)
+                  Pressable(
+                    scale: 0.97,
+                    onTap: () => onPick(s),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.radiusFull),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.04),
+                        border: Border.all(
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.10),
+                        ),
+                      ),
+                      child: Text(s,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          )),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _Bubble extends StatelessWidget {
@@ -109,25 +273,93 @@ class _Bubble extends StatelessWidget {
         constraints:
             BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
         decoration: BoxDecoration(
+          gradient: msg.fromUser
+              ? LinearGradient(colors: [
+                  theme.colorScheme.primary,
+                  theme.colorScheme.primary.withValues(alpha: 0.78),
+                ])
+              : null,
           color: msg.fromUser
-              ? theme.colorScheme.primary
-              : theme.colorScheme.surfaceContainerHighest,
+              ? null
+              : theme.colorScheme.onSurface.withValues(alpha: 0.06),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(AppTokens.radiusXl),
             topRight: const Radius.circular(AppTokens.radiusXl),
             bottomLeft: msg.fromUser
                 ? const Radius.circular(AppTokens.radiusXl)
-                : const Radius.circular(4),
+                : const Radius.circular(6),
             bottomRight: msg.fromUser
-                ? const Radius.circular(4)
+                ? const Radius.circular(6)
                 : const Radius.circular(AppTokens.radiusXl),
           ),
+          boxShadow: msg.fromUser
+              ? AppTokens.shadowSm(tint: theme.colorScheme.primary)
+              : null,
         ),
         child: Text(
           msg.text,
           style: TextStyle(
             color: msg.fromUser ? Colors.white : theme.colorScheme.onSurface,
+            height: 1.4,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TypingIndicator extends StatefulWidget {
+  const _TypingIndicator();
+  @override
+  State<_TypingIndicator> createState() => _TypingIndicatorState();
+}
+
+class _TypingIndicatorState extends State<_TypingIndicator>
+    with SingleTickerProviderStateMixin {
+  late final _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  )..repeat();
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(AppTokens.radiusXl),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < 3; i++)
+              AnimatedBuilder(
+                animation: _ctrl,
+                builder: (_, __) {
+                  final t = ((_ctrl.value - i / 3) % 1.0).clamp(0.0, 1.0);
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Container(
+                      width: 6,
+                      height: 6 + 4 * t,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary
+                            .withValues(alpha: 0.4 + 0.6 * t),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  );
+                },
+              ),
+          ],
         ),
       ),
     );
