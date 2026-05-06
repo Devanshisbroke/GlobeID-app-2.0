@@ -36,6 +36,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       Icons.public_rounded,
       Color(0xFF7C3AED),
       Color(0xFF06B6D4),
+      [
+        ('Globe', Icons.public_rounded),
+        ('Wallet', Icons.account_balance_wallet_rounded),
+        ('Identity', Icons.fingerprint_rounded),
+        ('Travel', Icons.flight_takeoff_rounded),
+      ],
     ),
     _Slide(
       'Boarding-ready',
@@ -43,6 +49,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       Icons.confirmation_num_rounded,
       Color(0xFF06B6D4),
       Color(0xFF10B981),
+      [
+        ('Stack peek', Icons.layers_rounded),
+        ('Brightness ramp', Icons.brightness_high_rounded),
+        ('Live MRZ scan', Icons.qr_code_scanner_rounded),
+        ('HMAC verify', Icons.lock_rounded),
+      ],
     ),
     _Slide(
       'Deterministic copilot',
@@ -50,6 +62,25 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       Icons.smart_toy_rounded,
       Color(0xFF10B981),
       Color(0xFFF59E0B),
+      [
+        ('Streamed replies', Icons.bolt_rounded),
+        ('Travel intel', Icons.flight_rounded),
+        ('Wallet intel', Icons.attach_money_rounded),
+        ('Identity intel', Icons.verified_user_rounded),
+      ],
+    ),
+    _Slide(
+      'Worldwide wallet',
+      'Hold balances in any currency. Auto-FX. Spend caps. Real receipts.',
+      Icons.account_balance_wallet_rounded,
+      Color(0xFFEC4899),
+      Color(0xFF7C3AED),
+      [
+        ('Multi-currency', Icons.currency_exchange_rounded),
+        ('Spend caps', Icons.shield_rounded),
+        ('Receipts', Icons.receipt_long_rounded),
+        ('Insights', Icons.insights_rounded),
+      ],
     ),
     _Slide(
       'Yours, secured',
@@ -57,6 +88,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       Icons.shield_rounded,
       Color(0xFFF59E0B),
       Color(0xFF7C3AED),
+      [
+        ('Biometric lock', Icons.fingerprint_rounded),
+        ('Audit log', Icons.history_rounded),
+        ('Reduced motion', Icons.accessibility_new_rounded),
+        ('Local-first', Icons.cloud_off_rounded),
+      ],
     ),
   ];
 
@@ -180,6 +217,57 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                                 textAlign: TextAlign.center,
                               ),
                             ),
+                            const SizedBox(height: AppTokens.space5),
+                            AnimatedAppearance(
+                              key: ValueKey('feat-$i'),
+                              delay: const Duration(milliseconds: 280),
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                alignment: WrapAlignment.center,
+                                children: [
+                                  for (final f in slide.features)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(
+                                          AppTokens.radiusFull,
+                                        ),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.10,
+                                        ),
+                                        border: Border.all(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.18,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            f.$2,
+                                            size: 14,
+                                            color: Colors.white,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            f.$1,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       );
@@ -275,10 +363,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 }
 
 class _Slide {
-  const _Slide(this.title, this.message, this.icon, this.start, this.end);
+  const _Slide(
+    this.title,
+    this.message,
+    this.icon,
+    this.start,
+    this.end,
+    this.features,
+  );
   final String title;
   final String message;
   final IconData icon;
   final Color start;
   final Color end;
+  final List<(String, IconData)> features;
 }
