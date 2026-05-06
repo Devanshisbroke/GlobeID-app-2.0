@@ -127,7 +127,11 @@ class TripDetailScreen extends ConsumerWidget {
                   delay: const Duration(milliseconds: 160),
                   child: const SectionHeader(title: 'Itinerary', dense: true),
                 ),
-                _LegList(legs: trip.legs, tightLegIds: tightLegIds),
+                _LegList(
+                  tripId: trip.id,
+                  legs: trip.legs,
+                  tightLegIds: tightLegIds,
+                ),
                 if (trip.legs.isNotEmpty) ...[
                   const SectionHeader(
                       title: 'Predictive departure', dense: true),
@@ -310,7 +314,12 @@ class _RouteArc extends CustomPainter {
 }
 
 class _LegList extends StatelessWidget {
-  const _LegList({required this.legs, required this.tightLegIds});
+  const _LegList({
+    required this.tripId,
+    required this.legs,
+    required this.tightLegIds,
+  });
+  final String tripId;
   final List<FlightLeg> legs;
   final Set<String> tightLegIds;
   @override
@@ -323,8 +332,11 @@ class _LegList extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: AppTokens.space3),
             child: AnimatedAppearance(
               delay: Duration(milliseconds: 200 + i * 60),
-              child: GlassSurface(
-                child: Column(
+              child: InkWell(
+                onTap: () => context.push('/boarding/$tripId/${legs[i].id}'),
+                borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+                child: GlassSurface(
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
@@ -371,11 +383,37 @@ class _LegList extends StatelessWidget {
                         style: theme.textTheme.bodySmall,
                       ),
                     ],
+                    const SizedBox(height: AppTokens.space2),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.airplane_ticket_outlined,
+                          size: 16,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Open boarding pass',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                        const Spacer(),
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 12,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ),
           ),
+          )
       ],
     );
   }

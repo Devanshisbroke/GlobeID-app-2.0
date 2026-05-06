@@ -15,7 +15,9 @@ import '../features/map/map_screen.dart';
 import '../features/multi_currency/multi_currency_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/onboarding/onboarding_provider.dart';
+import '../features/boarding_pass/boarding_pass_live_screen.dart';
 import '../features/passport_book/passport_book_screen.dart';
+import '../features/passport_book/passport_live_screen.dart';
 import '../features/planner/planner_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/receipt/receipt_screen.dart';
@@ -34,27 +36,17 @@ import '../features/trip/trip_detail_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../features/wallet/wallet_screen.dart';
+import '../motion/motion.dart';
 import 'app_shell.dart';
 
-/// Premium slide-up + fade transition used for secondary routes.
+/// Premium slide-up + scale + blur transition used for secondary
+/// routes. See `motion/motion.dart` for the easing + blur curve.
 CustomTransitionPage<void> _slideFade(LocalKey key, Widget child) {
   return CustomTransitionPage<void>(
     key: key,
-    transitionDuration: const Duration(milliseconds: 360),
-    reverseTransitionDuration: const Duration(milliseconds: 260),
-    transitionsBuilder: (_, anim, __, c) {
-      final t = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
-      return FadeTransition(
-        opacity: t,
-        child: SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 0.04),
-            end: Offset.zero,
-          ).animate(t),
-          child: c,
-        ),
-      );
-    },
+    transitionDuration: const Duration(milliseconds: 420),
+    reverseTransitionDuration: const Duration(milliseconds: 300),
+    transitionsBuilder: premiumSlideTransition,
     child: child,
   );
 }
@@ -129,6 +121,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/social', (_, __) => const SocialScreen()),
       _route('/explore', (_, __) => const ExploreScreen()),
       _route('/passport-book', (_, __) => const PassportBookScreen()),
+      _route('/passport-live', (_, __) => const PassportLiveScreen()),
+      _route(
+        '/boarding/:tripId/:legId',
+        (_, state) => BoardingPassLiveScreen(
+          tripId: state.pathParameters['tripId']!,
+          legId: state.pathParameters['legId']!,
+        ),
+      ),
       _route('/intelligence', (_, __) => const IntelligenceScreen()),
       _route('/explorer', (_, __) => const ExploreScreen()),
       _route('/vault', (_, __) => const VaultScreen()),
