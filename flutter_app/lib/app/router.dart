@@ -15,6 +15,7 @@ import '../features/map/map_screen.dart';
 import '../features/multi_currency/multi_currency_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/onboarding/onboarding_provider.dart';
+import '../features/boarding_pass/boarding_pass_live_screen.dart';
 import '../features/passport_book/passport_book_screen.dart';
 import '../features/passport_book/passport_live_screen.dart';
 import '../features/planner/planner_screen.dart';
@@ -131,6 +132,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/explore', (_, __) => const ExploreScreen()),
       _route('/passport-book', (_, __) => const PassportBookScreen()),
       _route('/passport-live', (_, __) => const PassportLiveScreen()),
+      _route(
+        '/boarding/:tripId/:legId',
+        (_, state) => BoardingPassLiveScreen(
+          tripId: state.pathParameters['tripId']!,
+          legId: state.pathParameters['legId']!,
+        ),
+      ),
       _route('/intelligence', (_, __) => const IntelligenceScreen()),
       _route('/explorer', (_, __) => const ExploreScreen()),
       _route('/vault', (_, __) => const VaultScreen()),
