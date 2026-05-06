@@ -48,10 +48,12 @@ class WalletScreen extends ConsumerWidget {
         ),
         slivers: [
           SliverPadding(
+            // 48px right padding leaves room for the floating top-right
+            // theme chrome rendered by AppShell.
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + AppTokens.space5,
               left: AppTokens.space5,
-              right: AppTokens.space5,
+              right: AppTokens.space5 + 48,
             ),
             sliver: SliverToBoxAdapter(
               child: Row(
@@ -170,41 +172,80 @@ class _PassStackState extends State<_PassStack> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 240,
-      child: PageView.builder(
-        controller: _ctrl,
-        itemCount: widget.passes.length,
-        itemBuilder: (context, i) {
-          final delta = (_page - i).abs();
-          final scale = (1 - (delta * 0.08)).clamp(0.84, 1.0);
-          final opacity = (1 - (delta * 0.4)).clamp(0.4, 1.0);
-          return Transform.scale(
-            scale: scale,
-            child: Opacity(
-              opacity: opacity,
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppTokens.space2),
-                child: Pressable(
-                  scale: 0.98,
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    GoRouter.of(context).push('/pass/${widget.passes[i].id}');
-                  },
-                  child: Hero(
-                    tag: 'pass-${widget.passes[i].id}',
-                    child: Material(
-                      type: MaterialType.transparency,
-                      child: PassCard(pass: widget.passes[i]),
+    return Column(
+      children: [
+        SizedBox(
+          height: 240,
+          child: PageView.builder(
+            controller: _ctrl,
+            itemCount: widget.passes.length,
+            itemBuilder: (context, i) {
+              final delta = (_page - i).abs();
+              final scale = (1 - (delta * 0.08)).clamp(0.84, 1.0);
+              final opacity = (1 - (delta * 0.4)).clamp(0.4, 1.0);
+              return Transform.scale(
+                scale: scale,
+                child: Opacity(
+                  opacity: opacity,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppTokens.space2),
+                    child: Pressable(
+                      scale: 0.98,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        GoRouter.of(context)
+                            .push('/pass/${widget.passes[i].id}');
+                      },
+                      child: Hero(
+                        tag: 'pass-${widget.passes[i].id}',
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: PassCard(pass: widget.passes[i]),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
-          );
-        },
-      ),
+              );
+            },
+          ),
+        ),
+        // Page indicator dots — Apple Wallet style.
+        if (widget.passes.length > 1) ...[
+          const SizedBox(height: AppTokens.space2),
+          _PageDots(count: widget.passes.length, page: _page),
+        ],
+      ],
+    );
+  }
+}
+
+class _PageDots extends StatelessWidget {
+  const _PageDots({required this.count, required this.page});
+  final int count;
+  final double page;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.primary;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(count, (i) {
+        final dist = (page - i).abs().clamp(0.0, 1.0);
+        final size = 6.0 + (1 - dist) * 4.0;
+        final opacity = 0.30 + (1 - dist) * 0.70;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          width: size,
+          height: 6,
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: opacity),
+            borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+          ),
+        );
+      }),
     );
   }
 }

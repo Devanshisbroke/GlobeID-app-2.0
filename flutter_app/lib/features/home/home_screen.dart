@@ -41,10 +41,12 @@ class HomeScreen extends ConsumerWidget {
         ),
         slivers: [
           SliverPadding(
+            // 60px right padding leaves room for the floating theme-mode
+            // chrome anchored top-right by AppShell.
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + AppTokens.space5,
               left: AppTokens.space5,
-              right: AppTokens.space5,
+              right: AppTokens.space5 + 48,
               bottom: AppTokens.space3,
             ),
             sliver: SliverToBoxAdapter(

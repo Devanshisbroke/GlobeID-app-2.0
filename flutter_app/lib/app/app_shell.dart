@@ -6,8 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/lifecycle/lifecycle_provider.dart';
+import '../features/settings/theme_prefs_provider.dart';
 import '../features/user/user_provider.dart';
 import '../features/wallet/wallet_provider.dart';
+import '../widgets/atmosphere_layer.dart';
 import 'theme/app_theme.dart';
 import 'theme/app_tokens.dart';
 
@@ -76,8 +78,14 @@ class _AppShellState extends ConsumerState<AppShell>
         extendBody: true,
         body: Stack(
           children: [
-            const _Backdrop(),
+            const Positioned.fill(child: AtmosphereLayer()),
             Positioned.fill(child: widget.child),
+            // Top-right floating chrome — theme cycle + accent picker.
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 8,
+              right: 12,
+              child: const _TopChrome(),
+            ),
           ],
         ),
         floatingActionButton: _ScanFab(
@@ -117,75 +125,231 @@ class _Tab {
   final String label;
 }
 
-class _Backdrop extends StatelessWidget {
-  const _Backdrop();
+/// Top-right chrome — theme-mode cycler + accent quick-picker.
+///
+/// Single tap cycles the [ThemeMode] (system → light → dark → system).
+/// Long-press opens an accent picker bottom sheet so the brand colour
+/// can be swapped without leaving the current screen.
+class _TopChrome extends ConsumerWidget {
+  const _TopChrome();
 
   @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = Theme.of(context).colorScheme.primary;
-    return IgnorePointer(
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: isDark
-                      ? const [
-                          AppTokens.canvasDark,
-                          Color(0xFF080B15),
-                          Color(0xFF03050B),
-                        ]
-                      : const [
-                          AppTokens.canvasLight,
-                          Color(0xFFEFF3FA),
-                          Color(0xFFE5ECF6),
-                        ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final prefs = ref.watch(themePrefsProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final glass = theme.extension<GlassExtension>()!;
+
+    final modeIcon = switch (prefs.themeMode) {
+      ThemeMode.system => Icons.contrast_rounded,
+      ThemeMode.light => Icons.wb_sunny_rounded,
+      ThemeMode.dark => Icons.nightlight_round,
+    };
+
+    final tooltip = switch (prefs.themeMode) {
+      ThemeMode.system => 'Auto theme · tap to switch · hold for accent',
+      ThemeMode.light => 'Light mode · tap to switch · hold for accent',
+      ThemeMode.dark => 'Dark mode · tap to switch · hold for accent',
+    };
+
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            final next = switch (prefs.themeMode) {
+              ThemeMode.system => ThemeMode.light,
+              ThemeMode.light => ThemeMode.dark,
+              ThemeMode.dark => ThemeMode.system,
+            };
+            ref.read(themePrefsProvider.notifier).setThemeMode(next);
+          },
+          onLongPress: () {
+            HapticFeedback.mediumImpact();
+            _showAccentPicker(context, ref);
+          },
+          child: ClipOval(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: glass.reduceTransparency
+                      ? glass.surface.withValues(alpha: 0.94)
+                      : (isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.white.withValues(alpha: 0.55)),
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.30),
+                    width: 0.6,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                          alpha: isDark ? 0.32 : 0.10),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: AnimatedSwitcher(
+                  duration: AppTokens.durationSm,
+                  switchInCurve: AppTokens.easeOutSoft,
+                  child: Icon(
+                    modeIcon,
+                    key: ValueKey(prefs.themeMode),
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
               ),
             ),
           ),
-          // Hero radial bloom — accent-tinted, fades into the canvas.
-          Positioned(
-            top: -120,
-            right: -80,
-            child: _Bloom(
-              size: 360,
-              color: accent.withValues(alpha: isDark ? 0.16 : 0.10),
-            ),
-          ),
-          Positioned(
-            bottom: -160,
-            left: -100,
-            child: _Bloom(
-              size: 420,
-              color: accent.withValues(alpha: isDark ? 0.10 : 0.06),
-            ),
-          ),
-        ],
+        ),
       ),
+    );
+  }
+
+  static void _showAccentPicker(BuildContext context, WidgetRef ref) {
+    final prefs = ref.read(themePrefsProvider);
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.45),
+      builder: (sheetCtx) {
+        return _AccentPickerSheet(
+          current: prefs.accent,
+          onPick: (name) {
+            HapticFeedback.selectionClick();
+            ref.read(themePrefsProvider.notifier).setAccent(name);
+          },
+        );
+      },
     );
   }
 }
 
-class _Bloom extends StatelessWidget {
-  const _Bloom({required this.size, required this.color});
-  final double size;
-  final Color color;
+class _AccentPickerSheet extends StatelessWidget {
+  const _AccentPickerSheet({
+    required this.current,
+    required this.onPick,
+  });
+  final String current;
+  final ValueChanged<String> onPick;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [color, color.withValues(alpha: 0)],
+    final theme = Theme.of(context);
+    final glass = theme.extension<GlassExtension>()!;
+    return SafeArea(
+      top: false,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTokens.radius2xl)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
+          child: Container(
+            decoration: BoxDecoration(
+              color: glass.surface.withValues(alpha: 0.92),
+              border: Border(
+                top: BorderSide(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.18),
+                  width: 0.6,
+                ),
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(AppTokens.space5,
+                AppTokens.space4, AppTokens.space5, AppTokens.space6),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: AppTokens.space4),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                  ),
+                ),
+                Text('Accent',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    )),
+                const SizedBox(height: 4),
+                Text('Tap to set the brand colour app-wide',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface
+                          .withValues(alpha: 0.62),
+                    )),
+                const SizedBox(height: AppTokens.space4),
+                Wrap(
+                  spacing: AppTokens.space3,
+                  runSpacing: AppTokens.space3,
+                  children: AppTokens.accents.map((a) {
+                    final selected = a.name == current;
+                    return GestureDetector(
+                      onTap: () {
+                        onPick(a.name);
+                        Navigator.of(context).maybePop();
+                      },
+                      child: AnimatedContainer(
+                        duration: AppTokens.durationSm,
+                        curve: AppTokens.easeOutSoft,
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: a.heroGradient,
+                          border: Border.all(
+                            color: selected
+                                ? Colors.white
+                                : Colors.white.withValues(alpha: 0.30),
+                            width: selected ? 2.4 : 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: a.primary.withValues(alpha: 0.36),
+                              blurRadius: selected ? 14 : 6,
+                              spreadRadius: selected ? 1 : 0,
+                            ),
+                          ],
+                        ),
+                        child: selected
+                            ? const Icon(Icons.check_rounded,
+                                color: Colors.white, size: 20)
+                            : null,
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: AppTokens.space4),
+                Row(
+                  children: [
+                    Text('More options in Settings',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.50),
+                        )),
+                    const Spacer(),
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).maybePop();
+                        // Settings lives at /profile.
+                      },
+                      icon: const Icon(Icons.tune_rounded, size: 16),
+                      label: const Text('Theme settings'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

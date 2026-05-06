@@ -32,7 +32,9 @@ class IdentityScreen extends ConsumerWidget {
       padding: EdgeInsets.fromLTRB(
         AppTokens.space5,
         MediaQuery.of(context).padding.top + AppTokens.space5,
-        AppTokens.space5,
+        // Right padding leaves room for the floating top-right theme
+        // chrome rendered by AppShell.
+        AppTokens.space5 + 48,
         AppTokens.space9 + 16,
       ),
       children: [
