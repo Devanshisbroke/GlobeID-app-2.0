@@ -32,8 +32,9 @@ class WalletScreen extends ConsumerWidget {
     final user = ref.watch(userProvider);
     final wallet = ref.watch(walletProvider);
     final theme = Theme.of(context);
-    final passes =
-        user.documents.where((d) => d.type == 'boarding_pass').toList();
+    final passes = user.documents
+        .where((d) => d.type == 'boarding_pass')
+        .toList();
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -73,7 +74,9 @@ class WalletScreen extends ConsumerWidget {
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(
-                horizontal: AppTokens.space5, vertical: AppTokens.space2),
+              horizontal: AppTokens.space5,
+              vertical: AppTokens.space2,
+            ),
             sliver: SliverToBoxAdapter(
               child: passes.isEmpty
                   ? const _PassEmpty()
@@ -91,7 +94,8 @@ class WalletScreen extends ConsumerWidget {
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
             sliver: SliverToBoxAdapter(
-                child: _BalancesGrid(balances: wallet.balances)),
+              child: _BalancesGrid(balances: wallet.balances),
+            ),
           ),
           SliverToBoxAdapter(
             child: const SectionHeader(title: 'Recent transactions'),
@@ -108,7 +112,11 @@ class WalletScreen extends ConsumerWidget {
           else
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(
-                  AppTokens.space5, 0, AppTokens.space5, AppTokens.space9 + 16),
+                AppTokens.space5,
+                0,
+                AppTokens.space5,
+                AppTokens.space9 + 16,
+              ),
               sliver: SliverList.separated(
                 itemCount: wallet.transactions.length,
                 separatorBuilder: (_, __) =>
@@ -130,8 +138,10 @@ class _PassEmpty extends StatelessWidget {
       padding: const EdgeInsets.all(AppTokens.space6),
       child: Row(
         children: [
-          Icon(Icons.confirmation_number_outlined,
-              color: Theme.of(context).colorScheme.primary),
+          Icon(
+            Icons.confirmation_number_outlined,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           const SizedBox(width: AppTokens.space3),
           Expanded(
             child: Text(
@@ -153,14 +163,15 @@ class _PassStack extends StatefulWidget {
 }
 
 class _PassStackState extends State<_PassStack> {
-  late final PageController _ctrl = PageController(viewportFraction: 0.88);
+  late final PageController _ctrl = PageController(viewportFraction: 0.90);
   double _page = 0;
 
   @override
   void initState() {
     super.initState();
     _ctrl.addListener(() {
-      setState(() => _page = _ctrl.page ?? 0);
+      if (!mounted) return;
+      setState(() => _page = _ctrl.page ?? _page);
     });
   }
 
@@ -172,51 +183,110 @@ class _PassStackState extends State<_PassStack> {
 
   @override
   Widget build(BuildContext context) {
+    final current = _page.round().clamp(0, widget.passes.length - 1);
     return Column(
       children: [
         SizedBox(
-          height: 240,
-          child: PageView.builder(
-            controller: _ctrl,
-            itemCount: widget.passes.length,
-            itemBuilder: (context, i) {
-              final delta = (_page - i).abs();
-              final scale = (1 - (delta * 0.08)).clamp(0.84, 1.0);
-              final opacity = (1 - (delta * 0.4)).clamp(0.4, 1.0);
-              return Transform.scale(
-                scale: scale,
-                child: Opacity(
-                  opacity: opacity,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppTokens.space2),
-                    child: Pressable(
-                      scale: 0.98,
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        GoRouter.of(context)
-                            .push('/pass/${widget.passes[i].id}');
-                      },
-                      child: Hero(
-                        tag: 'pass-${widget.passes[i].id}',
-                        child: Material(
-                          type: MaterialType.transparency,
-                          child: PassCard(pass: widget.passes[i]),
-                        ),
+          height: 292,
+          child: LayoutBuilder(
+            builder: (context, c) {
+              return Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  for (var depth = 2; depth >= 1; depth--)
+                    if (current + depth < widget.passes.length)
+                      _PeekPassLayer(
+                        pass: widget.passes[current + depth],
+                        depth: depth,
+                        width: c.maxWidth,
                       ),
+                  Positioned.fill(
+                    top: 0,
+                    child: PageView.builder(
+                      controller: _ctrl,
+                      clipBehavior: Clip.none,
+                      itemCount: widget.passes.length,
+                      itemBuilder: (context, i) {
+                        final delta = (_page - i).abs();
+                        final scale = (1 - (delta * 0.065)).clamp(0.86, 1.0);
+                        final opacity = (1 - (delta * 0.34)).clamp(0.42, 1.0);
+                        final y = (delta * 12).clamp(0.0, 22.0);
+                        return Transform.translate(
+                          offset: Offset(0, y),
+                          child: Transform.scale(
+                            scale: scale,
+                            alignment: Alignment.topCenter,
+                            child: Opacity(
+                              opacity: opacity,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppTokens.space2,
+                                ),
+                                child: Pressable(
+                                  scale: 0.985,
+                                  onTap: () {
+                                    HapticFeedback.lightImpact();
+                                    GoRouter.of(
+                                      context,
+                                    ).push('/pass/${widget.passes[i].id}');
+                                  },
+                                  child: Hero(
+                                    tag: 'pass-${widget.passes[i].id}',
+                                    child: Material(
+                                      type: MaterialType.transparency,
+                                      child: PassCard(pass: widget.passes[i]),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                ),
+                ],
               );
             },
           ),
         ),
-        // Page indicator dots — Apple Wallet style.
         if (widget.passes.length > 1) ...[
-          const SizedBox(height: AppTokens.space2),
+          const SizedBox(height: AppTokens.space1),
           _PageDots(count: widget.passes.length, page: _page),
         ],
       ],
+    );
+  }
+}
+
+class _PeekPassLayer extends StatelessWidget {
+  const _PeekPassLayer({
+    required this.pass,
+    required this.depth,
+    required this.width,
+  });
+
+  final TravelDocument pass;
+  final int depth;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = 1 - depth * 0.045;
+    final top = 24.0 + depth * 22.0;
+    return Positioned(
+      top: top,
+      width: width * 0.86,
+      child: IgnorePointer(
+        child: Transform.scale(
+          scale: scale,
+          alignment: Alignment.topCenter,
+          child: Opacity(
+            opacity: 0.30 - depth * 0.07,
+            child: PassCard(pass: pass),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -382,12 +452,14 @@ class _PassFront extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(pass.label,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.4,
-                          )),
+                      Text(
+                        pass.label,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
                       const Spacer(),
                       const Icon(Icons.flight, color: Colors.white70),
                     ],
@@ -401,11 +473,15 @@ class _PassFront extends StatelessWidget {
                             : 'GID',
                       ),
                       const Spacer(),
-                      Icon(Icons.flight,
-                          color: Colors.white.withValues(alpha: 0.85)),
+                      Icon(
+                        Icons.flight,
+                        color: Colors.white.withValues(alpha: 0.85),
+                      ),
                       const Spacer(),
-                      Text(pass.countryFlag,
-                          style: const TextStyle(fontSize: 32)),
+                      Text(
+                        pass.countryFlag,
+                        style: const TextStyle(fontSize: 32),
+                      ),
                     ],
                   ),
                   Row(
@@ -423,10 +499,7 @@ class _PassFront extends StatelessWidget {
                         ),
                       ),
                       Expanded(
-                        child: _PassMeta(
-                          label: 'Status',
-                          value: pass.status,
-                        ),
+                        child: _PassMeta(label: 'Status', value: pass.status),
                       ),
                     ],
                   ),
@@ -481,13 +554,15 @@ class _PassIata extends StatelessWidget {
   final String code;
   @override
   Widget build(BuildContext context) {
-    return Text(code,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 36,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1.6,
-        ));
+    return Text(
+      code,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 36,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 1.6,
+      ),
+    );
   }
 }
 
@@ -500,22 +575,26 @@ class _PassMeta extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label.toUpperCase(),
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.0,
-              color: Colors.white.withValues(alpha: 0.6),
-            )),
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.0,
+            color: Colors.white.withValues(alpha: 0.6),
+          ),
+        ),
         const SizedBox(height: 2),
-        Text(value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
       ],
     );
   }
@@ -533,8 +612,10 @@ class _BalancesGrid extends StatelessWidget {
             Icon(Icons.account_balance_wallet_rounded),
             SizedBox(width: AppTokens.space3),
             Expanded(
-                child: Text(
-                    'No balances yet — convert from your default currency to begin.')),
+              child: Text(
+                'No balances yet — convert from your default currency to begin.',
+              ),
+            ),
           ],
         ),
       );
@@ -559,7 +640,8 @@ class _BalanceRow extends StatelessWidget {
   /// balance gets a stable, distinct sparkline shape without needing a
   /// real history series from the backend.
   List<num> _trend() {
-    final seed = b.currency.codeUnits.fold<int>(0, (a, c) => a + c) +
+    final seed =
+        b.currency.codeUnits.fold<int>(0, (a, c) => a + c) +
         (b.rate * 10).round();
     final out = <double>[];
     var v = 1.0;
@@ -577,7 +659,9 @@ class _BalanceRow extends StatelessWidget {
     final accent = theme.colorScheme.primary;
     return GlassSurface(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppTokens.space4, vertical: AppTokens.space3),
+        horizontal: AppTokens.space4,
+        vertical: AppTokens.space3,
+      ),
       child: Row(
         children: [
           Text(b.flag, style: const TextStyle(fontSize: 26)),
@@ -587,23 +671,23 @@ class _BalanceRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(b.currency,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                    )),
-                Text('Rate ${b.rate.toStringAsFixed(2)}',
-                    style: theme.textTheme.bodySmall),
+                Text(
+                  b.currency,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                Text(
+                  'Rate ${b.rate.toStringAsFixed(2)}',
+                  style: theme.textTheme.bodySmall,
+                ),
               ],
             ),
           ),
           Expanded(
             flex: 2,
-            child: Sparkline(
-              values: _trend(),
-              color: accent,
-              height: 28,
-            ),
+            child: Sparkline(values: _trend(), color: accent, height: 28),
           ),
           const SizedBox(width: AppTokens.space2),
           AnimatedNumber(
@@ -634,7 +718,9 @@ class _TxRow extends StatelessWidget {
       onTap: () => _showSheet(context),
       child: GlassSurface(
         padding: const EdgeInsets.symmetric(
-            horizontal: AppTokens.space4, vertical: AppTokens.space3),
+          horizontal: AppTokens.space4,
+          vertical: AppTokens.space3,
+        ),
         child: Row(
           children: [
             Container(
@@ -644,8 +730,10 @@ class _TxRow extends StatelessWidget {
                 color: theme.colorScheme.primary.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(AppTokens.radiusLg),
               ),
-              child: Icon(_iconForCategory(tx.category),
-                  color: theme.colorScheme.primary),
+              child: Icon(
+                _iconForCategory(tx.category),
+                color: theme.colorScheme.primary,
+              ),
             ),
             const SizedBox(width: AppTokens.space3),
             Expanded(
@@ -653,18 +741,21 @@ class _TxRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(tx.description, style: theme.textTheme.titleSmall),
-                  Text('${tx.merchant ?? tx.category} · ${tx.date}',
-                      style: theme.textTheme.bodySmall),
+                  Text(
+                    '${tx.merchant ?? tx.category} · ${tx.date}',
+                    style: theme.textTheme.bodySmall,
+                  ),
                 ],
               ),
             ),
             Text(
-                '${isCredit ? '+' : '−'}${tx.amount.abs().toStringAsFixed(2)} ${tx.currency}',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                )),
+              '${isCredit ? '+' : '−'}${tx.amount.abs().toStringAsFixed(2)} ${tx.currency}',
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w700,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
           ],
         ),
       ),
@@ -718,7 +809,8 @@ class _TxDetailSheet extends StatelessWidget {
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppTokens.radius2xl),
         border: Border.all(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.10)),
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.10),
+        ),
         boxShadow: AppTokens.shadowLg(),
       ),
       child: Column(
@@ -750,20 +842,27 @@ class _TxDetailSheet extends StatelessWidget {
                     ],
                   ),
                 ),
-                child: Icon(iconFor(tx.category),
-                    color: theme.colorScheme.primary, size: 28),
+                child: Icon(
+                  iconFor(tx.category),
+                  color: theme.colorScheme.primary,
+                  size: 28,
+                ),
               ),
               const SizedBox(width: AppTokens.space3),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(tx.description,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        )),
-                    Text(tx.merchant ?? tx.category,
-                        style: theme.textTheme.bodySmall),
+                    Text(
+                      tx.description,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      tx.merchant ?? tx.category,
+                      style: theme.textTheme.bodySmall,
+                    ),
                   ],
                 ),
               ),
@@ -800,11 +899,14 @@ class _TxDetailSheet extends StatelessWidget {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.06),
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.06,
+                      ),
                     ),
-                    child: const Text('Close',
-                        style: TextStyle(fontWeight: FontWeight.w700)),
+                    child: const Text(
+                      'Close',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
               ),
@@ -824,14 +926,17 @@ class _TxDetailSheet extends StatelessWidget {
                           theme.colorScheme.primary.withValues(alpha: 0.6),
                         ],
                       ),
-                      boxShadow:
-                          AppTokens.shadowMd(tint: theme.colorScheme.primary),
+                      boxShadow: AppTokens.shadowMd(
+                        tint: theme.colorScheme.primary,
+                      ),
                     ),
-                    child: const Text('Re-tag',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        )),
+                    child: const Text(
+                      'Re-tag',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -854,15 +959,19 @@ class _DetailRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Text(label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-              )),
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
           const Spacer(),
-          Text(value,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              )),
+          Text(
+            value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );

@@ -55,12 +55,30 @@ class _AppShellState extends ConsumerState<AppShell>
 
   static const _tabs = [
     _Tab('/', Icons.cottage_outlined, Icons.cottage_rounded, 'Home'),
-    _Tab('/wallet', Icons.account_balance_wallet_outlined,
-        Icons.account_balance_wallet_rounded, 'Wallet'),
-    _Tab('/travel', Icons.flight_takeoff_outlined, Icons.flight_takeoff_rounded,
-        'Travel'),
-    _Tab('/services', Icons.dashboard_outlined, Icons.dashboard_rounded,
-        'Services'),
+    _Tab(
+      '/identity',
+      Icons.verified_user_outlined,
+      Icons.verified_user_rounded,
+      'Identity',
+    ),
+    _Tab(
+      '/wallet',
+      Icons.account_balance_wallet_outlined,
+      Icons.account_balance_wallet_rounded,
+      'Wallet',
+    ),
+    _Tab(
+      '/travel',
+      Icons.flight_takeoff_outlined,
+      Icons.flight_takeoff_rounded,
+      'Travel',
+    ),
+    _Tab(
+      '/services',
+      Icons.dashboard_outlined,
+      Icons.dashboard_rounded,
+      'Services',
+    ),
     _Tab('/map', Icons.public_outlined, Icons.public_rounded, 'Globe'),
   ];
 
@@ -191,7 +209,8 @@ class _TopChrome extends ConsumerWidget {
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(
-                          alpha: isDark ? 0.32 : 0.10),
+                        alpha: isDark ? 0.32 : 0.10,
+                      ),
                       blurRadius: 14,
                       offset: const Offset(0, 6),
                     ),
@@ -235,10 +254,7 @@ class _TopChrome extends ConsumerWidget {
 }
 
 class _AccentPickerSheet extends StatelessWidget {
-  const _AccentPickerSheet({
-    required this.current,
-    required this.onPick,
-  });
+  const _AccentPickerSheet({required this.current, required this.onPick});
   final String current;
   final ValueChanged<String> onPick;
 
@@ -250,7 +266,8 @@ class _AccentPickerSheet extends StatelessWidget {
       top: false,
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(AppTokens.radius2xl)),
+          top: Radius.circular(AppTokens.radius2xl),
+        ),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
           child: Container(
@@ -263,8 +280,12 @@ class _AccentPickerSheet extends StatelessWidget {
                 ),
               ),
             ),
-            padding: const EdgeInsets.fromLTRB(AppTokens.space5,
-                AppTokens.space4, AppTokens.space5, AppTokens.space6),
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.space5,
+              AppTokens.space4,
+              AppTokens.space5,
+              AppTokens.space6,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,16 +299,19 @@ class _AccentPickerSheet extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                   ),
                 ),
-                Text('Accent',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    )),
+                Text(
+                  'Accent',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text('Tap to set the brand colour app-wide',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.62),
-                    )),
+                Text(
+                  'Tap to set the brand colour app-wide',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
+                  ),
+                ),
                 const SizedBox(height: AppTokens.space4),
                 Wrap(
                   spacing: AppTokens.space3,
@@ -322,8 +346,11 @@ class _AccentPickerSheet extends StatelessWidget {
                           ],
                         ),
                         child: selected
-                            ? const Icon(Icons.check_rounded,
-                                color: Colors.white, size: 20)
+                            ? const Icon(
+                                Icons.check_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              )
                             : null,
                       ),
                     );
@@ -332,11 +359,14 @@ class _AccentPickerSheet extends StatelessWidget {
                 const SizedBox(height: AppTokens.space4),
                 Row(
                   children: [
-                    Text('More options in Settings',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.50),
-                        )),
+                    Text(
+                      'More options in Settings',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.50,
+                        ),
+                      ),
+                    ),
                     const Spacer(),
                     TextButton.icon(
                       onPressed: () {
@@ -382,68 +412,73 @@ class _FrostedNav extends StatelessWidget {
       top: false,
       child: SizedBox(
         height: 72,
-        child: LayoutBuilder(builder: (_, c) {
-          // Clamp every responsive calc — on extreme widths (e.g. 0
-          // during initial layout, or split-screen ≪ 64 px) negative
-          // BoxConstraints would surface as a red runtime crash.
-          const fabGap = 64.0;
-          final maxWidth = c.maxWidth.isFinite ? c.maxWidth : 0.0;
-          final usable = (maxWidth - fabGap).clamp(0.0, double.infinity);
-          final slot = tabs.isEmpty ? 0.0 : usable / tabs.length;
-          // Compute active pill x.
-          final visualIndex =
-              activeIndex < 2 ? activeIndex : activeIndex + 1; // skip FAB slot
-          final slotForPill = maxWidth / (tabs.length + 1);
-          final pillX = slotForPill * visualIndex;
-          return Stack(
-            children: [
-              // Morphing pill indicator.
-              AnimatedPositioned(
-                duration: AppTokens.durationMd,
-                curve: AppTokens.easeOutSoft,
-                left: pillX + slotForPill * 0.18,
-                top: 14,
-                child: Container(
-                  width: slotForPill * 0.64,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        accent.withValues(alpha: 0.22),
-                        accent.withValues(alpha: 0.08),
-                      ],
-                    ),
-                    border: Border.all(
-                      color: accent.withValues(alpha: 0.35),
-                      width: 0.6,
+        child: LayoutBuilder(
+          builder: (_, c) {
+            // Clamp every responsive calc — on extreme widths (e.g. 0
+            // during initial layout, or split-screen ≪ 64 px) negative
+            // BoxConstraints would surface as a red runtime crash.
+            const fabGap = 68.0;
+            final maxWidth = c.maxWidth.isFinite ? c.maxWidth : 0.0;
+            final centerSlot = tabs.length ~/ 2;
+            final slot = tabs.isEmpty
+                ? 0.0
+                : ((maxWidth - fabGap).clamp(0.0, double.infinity) /
+                    tabs.length);
+            final pillWidth = (slot * 0.56).clamp(42.0, 68.0);
+            final activeBase = activeIndex < centerSlot
+                ? activeIndex * slot
+                : activeIndex * slot + fabGap;
+            return Stack(
+              children: [
+                // Morphing pill indicator.
+                AnimatedPositioned(
+                  duration: AppTokens.durationLg,
+                  curve: AppTokens.easeOutSoft,
+                  left: activeBase + (slot - pillWidth) / 2,
+                  top: 14,
+                  child: Container(
+                    width: pillWidth,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          accent.withValues(alpha: 0.22),
+                          accent.withValues(alpha: 0.08),
+                        ],
+                      ),
+                      border: Border.all(
+                        color: accent.withValues(alpha: 0.35),
+                        width: 0.6,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(tabs.length + 1, (i) {
-                  if (i == 2) return SizedBox(width: fabGap);
-                  final tabIndex = i > 2 ? i - 1 : i;
-                  final tab = tabs[tabIndex];
-                  final selected = activeIndex == tabIndex;
-                  return SizedBox(
-                    width: slot,
-                    child: _NavItem(
-                      tab: tab,
-                      selected: selected,
-                      accent: accent,
-                      onTap: () => onTap(tabIndex),
-                    ),
-                  );
-                }),
-              ),
-            ],
-          );
-        }),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: List.generate(tabs.length + 1, (i) {
+                    if (i == centerSlot) return const SizedBox(width: fabGap);
+                    final tabIndex = i > centerSlot ? i - 1 : i;
+                    final tab = tabs[tabIndex];
+                    final selected = activeIndex == tabIndex;
+                    return SizedBox(
+                      width: slot,
+                      child: _NavItem(
+                        tab: tab,
+                        selected: selected,
+                        accent: accent,
+                        compact: slot < 58,
+                        onTap: () => onTap(tabIndex),
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
 
@@ -455,9 +490,7 @@ class _FrostedNav extends StatelessWidget {
                 ? Colors.black.withValues(alpha: 0.42)
                 : Colors.white.withValues(alpha: 0.62)),
         border: Border(
-          top: BorderSide(
-            color: Colors.white.withValues(alpha: 0.06),
-          ),
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
         ),
       ),
       child: navContent,
@@ -478,12 +511,14 @@ class _NavItem extends StatelessWidget {
     required this.tab,
     required this.selected,
     required this.accent,
+    required this.compact,
     required this.onTap,
   });
 
   final _Tab tab;
   final bool selected;
   final Color accent;
+  final bool compact;
   final VoidCallback onTap;
 
   @override
@@ -507,14 +542,17 @@ class _NavItem extends StatelessWidget {
                 selected ? tab.activeIcon : tab.icon,
                 key: ValueKey(selected),
                 color: color,
-                size: 24,
+                size: compact ? 21 : 23,
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: compact ? 3 : 4),
             Text(
               tab.label,
+              maxLines: 1,
+              overflow: TextOverflow.fade,
+              softWrap: false,
               style: TextStyle(
-                fontSize: 10.5,
+                fontSize: compact ? 9.2 : 10.2,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 color: color,
                 letterSpacing: 0.3,
@@ -594,8 +632,11 @@ class _ScanFabState extends State<_ScanFab>
                   ),
                 ),
                 child: const Center(
-                  child: Icon(Icons.qr_code_scanner_rounded,
-                      size: 30, color: Colors.white),
+                  child: Icon(
+                    Icons.qr_code_scanner_rounded,
+                    size: 30,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -637,42 +678,114 @@ class _CommandPaletteState extends State<_CommandPalette> {
   String _q = '';
 
   static const _all = <_CommandItem>[
-    _CommandItem('Scan QR / boarding pass', '/scan',
-        Icons.qr_code_scanner_rounded, Color(0xFF06B6D4)),
-    _CommandItem('Wallet', '/wallet', Icons.account_balance_wallet_rounded,
-        Color(0xFF7C3AED)),
-    _CommandItem('Multi-currency', '/multi-currency',
-        Icons.currency_exchange_rounded, Color(0xFF10B981)),
     _CommandItem(
-        'Travel', '/travel', Icons.flight_takeoff_rounded, Color(0xFFEA580C)),
+      'Scan QR / boarding pass',
+      '/scan',
+      Icons.qr_code_scanner_rounded,
+      Color(0xFF06B6D4),
+    ),
     _CommandItem(
-        'Map / Globe', '/map', Icons.public_rounded, Color(0xFF3B82F6)),
-    _CommandItem('Identity', '/identity', Icons.verified_user_rounded,
-        Color(0xFFF59E0B)),
+      'Wallet',
+      '/wallet',
+      Icons.account_balance_wallet_rounded,
+      Color(0xFF7C3AED),
+    ),
     _CommandItem(
-        'Vault', '/vault', Icons.shield_moon_rounded, Color(0xFFEA580C)),
+      'Multi-currency',
+      '/multi-currency',
+      Icons.currency_exchange_rounded,
+      Color(0xFF10B981),
+    ),
     _CommandItem(
-        'Copilot', '/copilot', Icons.smart_toy_rounded, Color(0xFF059669)),
+      'Travel',
+      '/travel',
+      Icons.flight_takeoff_rounded,
+      Color(0xFFEA580C),
+    ),
     _CommandItem(
-        'Planner', '/planner', Icons.event_note_rounded, Color(0xFF7C3AED)),
+      'Map / Globe',
+      '/map',
+      Icons.public_rounded,
+      Color(0xFF3B82F6),
+    ),
     _CommandItem(
-        'Receipt', '/receipt', Icons.receipt_long_rounded, Color(0xFFE11D48)),
+      'Identity',
+      '/identity',
+      Icons.verified_user_rounded,
+      Color(0xFFF59E0B),
+    ),
     _CommandItem(
-        'Analytics', '/analytics', Icons.insights_rounded, Color(0xFF1D4ED8)),
-    _CommandItem('Activity feed', '/feed', Icons.dynamic_feed_rounded,
-        Color(0xFF06B6D4)),
+      'Vault',
+      '/vault',
+      Icons.shield_moon_rounded,
+      Color(0xFFEA580C),
+    ),
     _CommandItem(
-        'Timeline', '/timeline', Icons.timeline_rounded, Color(0xFF10B981)),
-    _CommandItem('Passport book', '/passport-book', Icons.menu_book_rounded,
-        Color(0xFFF59E0B)),
-    _CommandItem('Kiosk simulator', '/kiosk-sim',
-        Icons.face_retouching_natural_rounded, Color(0xFF7C3AED)),
+      'Copilot',
+      '/copilot',
+      Icons.smart_toy_rounded,
+      Color(0xFF059669),
+    ),
     _CommandItem(
-        'Profile', '/profile', Icons.person_rounded, Color(0xFF06B6D4)),
+      'Planner',
+      '/planner',
+      Icons.event_note_rounded,
+      Color(0xFF7C3AED),
+    ),
     _CommandItem(
-        'Intelligence', '/intelligence', Icons.bolt_rounded, Color(0xFFEAB308)),
+      'Receipt',
+      '/receipt',
+      Icons.receipt_long_rounded,
+      Color(0xFFE11D48),
+    ),
     _CommandItem(
-        'Explore', '/explore', Icons.travel_explore_rounded, Color(0xFF3B82F6)),
+      'Analytics',
+      '/analytics',
+      Icons.insights_rounded,
+      Color(0xFF1D4ED8),
+    ),
+    _CommandItem(
+      'Activity feed',
+      '/feed',
+      Icons.dynamic_feed_rounded,
+      Color(0xFF06B6D4),
+    ),
+    _CommandItem(
+      'Timeline',
+      '/timeline',
+      Icons.timeline_rounded,
+      Color(0xFF10B981),
+    ),
+    _CommandItem(
+      'Passport book',
+      '/passport-book',
+      Icons.menu_book_rounded,
+      Color(0xFFF59E0B),
+    ),
+    _CommandItem(
+      'Kiosk simulator',
+      '/kiosk-sim',
+      Icons.face_retouching_natural_rounded,
+      Color(0xFF7C3AED),
+    ),
+    _CommandItem(
+      'Profile',
+      '/profile',
+      Icons.person_rounded,
+      Color(0xFF06B6D4),
+    ),
+    _CommandItem(
+      'Intelligence',
+      '/intelligence',
+      Icons.bolt_rounded,
+      Color(0xFFEAB308),
+    ),
+    _CommandItem(
+      'Explore',
+      '/explore',
+      Icons.travel_explore_rounded,
+      Color(0xFF3B82F6),
+    ),
   ];
 
   List<_CommandItem> get _filtered {
@@ -742,10 +855,13 @@ class _CommandPaletteState extends State<_CommandPalette> {
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor:
-                      theme.colorScheme.onSurface.withValues(alpha: 0.06),
+                  fillColor: theme.colorScheme.onSurface.withValues(
+                    alpha: 0.06,
+                  ),
                   contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppTokens.space4, vertical: 14),
+                    horizontal: AppTokens.space4,
+                    vertical: 14,
+                  ),
                 ),
               ),
               const SizedBox(height: AppTokens.space3),
@@ -770,37 +886,47 @@ class _CommandPaletteState extends State<_CommandPalette> {
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 10),
-                          child: Row(children: [
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                borderRadius:
-                                    BorderRadius.circular(AppTokens.radiusLg),
-                                gradient: LinearGradient(
-                                  colors: [
-                                    c.tone.withValues(alpha: 0.32),
-                                    c.tone.withValues(alpha: 0.10),
-                                  ],
+                            horizontal: 8,
+                            vertical: 10,
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(
+                                    AppTokens.radiusLg,
+                                  ),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      c.tone.withValues(alpha: 0.32),
+                                      c.tone.withValues(alpha: 0.10),
+                                    ],
+                                  ),
                                 ),
+                                child: Icon(c.icon, color: c.tone, size: 18),
                               ),
-                              child: Icon(c.icon, color: c.tone, size: 18),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(c.label,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  c.label,
                                   style: theme.textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.w600,
-                                  )),
-                            ),
-                            Text(c.path,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                c.path,
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.5),
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.5,
+                                  ),
                                   fontFamily: 'monospace',
-                                )),
-                          ]),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );

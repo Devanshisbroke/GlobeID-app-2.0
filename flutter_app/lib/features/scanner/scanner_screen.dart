@@ -36,8 +36,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
     ],
   );
 
-  final TextRecognizer _ocr =
-      TextRecognizer(script: TextRecognitionScript.latin);
+  final TextRecognizer _ocr = TextRecognizer(
+    script: TextRecognitionScript.latin,
+  );
 
   _ScanResult? _result;
   _ScanMode _mode = _ScanMode.qr;
@@ -182,7 +183,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 fit: BoxFit.cover,
               )
             else
-              const ColoredBox(color: Colors.black),
+              const _ScannerBackdrop(),
             if (_mode == _ScanMode.mrz)
               Center(
                 child: Padding(
@@ -222,8 +223,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             onPressed: _ocrBusy
                                 ? null
                                 : () => _captureAndOcr(ImageSource.gallery),
-                            icon:
-                                const Icon(Icons.photo_library_outlined),
+                            icon: const Icon(Icons.photo_library_outlined),
                             label: const Text('From library'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.white,
@@ -256,12 +256,24 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   ),
                 ),
               ),
-            // Animated viewfinder.
+            const _LensDimmer(),
             Positioned.fill(
               child: ScanOverlay(
                 aspectRatio: _mode == _ScanMode.qr ? 1.0 : 1.5,
                 tone: accent,
                 label: _mode == _ScanMode.qr ? 'Scan QR or barcode' : 'MRZ',
+              ),
+            ),
+            Positioned(
+              left: AppTokens.space4,
+              right: AppTokens.space4,
+              bottom: _result == null
+                  ? AppTokens.space7
+                  : AppTokens.space10 + 138,
+              child: _ScanConfidenceRail(
+                mode: _mode,
+                hasResult: _result != null,
+                busy: _ocrBusy,
               ),
             ),
             // Top bar.
@@ -287,6 +299,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 ),
               ),
             ),
+            Positioned(
+              left: AppTokens.space4,
+              right: AppTokens.space4,
+              top: MediaQuery.of(context).padding.top + 86,
+              child: _ScannerHint(mode: _mode),
+            ),
             // Result card.
             if (_result != null)
               Positioned(
@@ -304,6 +322,163 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScannerBackdrop extends StatelessWidget {
+  const _ScannerBackdrop();
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.primary;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          center: const Alignment(0, -0.22),
+          radius: 1.1,
+          colors: [
+            accent.withValues(alpha: 0.24),
+            const Color(0xFF07101E),
+            Colors.black,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LensDimmer extends StatelessWidget {
+  const _LensDimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.black.withValues(alpha: 0.52),
+              Colors.black.withValues(alpha: 0.06),
+              Colors.black.withValues(alpha: 0.64),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ScannerHint extends StatelessWidget {
+  const _ScannerHint({required this.mode});
+
+  final _ScanMode mode;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = mode == _ScanMode.qr
+        ? 'Live classifier: QR · PDF417 · boarding pass · URL · vCard'
+        : 'Passport OCR: frame the MRZ band, then capture or import';
+    return IgnorePointer(
+      child: AnimatedSwitcher(
+        duration: AppTokens.durationMd,
+        child: Text(
+          text,
+          key: ValueKey(mode),
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: Colors.white.withValues(alpha: 0.72),
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ScanConfidenceRail extends StatelessWidget {
+  const _ScanConfidenceRail({
+    required this.mode,
+    required this.hasResult,
+    required this.busy,
+  });
+
+  final _ScanMode mode;
+  final bool hasResult;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.primary;
+    final chips = mode == _ScanMode.qr
+        ? const ['QR', 'Boarding', 'Wallet', 'Identity']
+        : const ['MRZ', 'Passport', 'OCR', 'Vault'];
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTokens.space3,
+            vertical: AppTokens.space2,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.34),
+            borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                hasResult
+                    ? Icons.verified_rounded
+                    : busy
+                    ? Icons.auto_awesome_rounded
+                    : Icons.center_focus_strong_rounded,
+                color: hasResult ? Colors.greenAccent : accent,
+                size: 18,
+              ),
+              const SizedBox(width: AppTokens.space2),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: [
+                      for (final chip in chips) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: accent.withValues(alpha: 0.16),
+                            borderRadius: BorderRadius.circular(
+                              AppTokens.radiusFull,
+                            ),
+                          ),
+                          child: Text(
+                            chip,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -333,13 +508,13 @@ class _TopBar extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
         child: Container(
           padding: const EdgeInsets.symmetric(
-              horizontal: AppTokens.space3, vertical: AppTokens.space2),
+            horizontal: AppTokens.space3,
+            vertical: AppTokens.space2,
+          ),
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.42),
             borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.08),
-            ),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
           child: Row(
             children: [
@@ -424,7 +599,9 @@ class _PillSegment extends StatelessWidget {
         duration: AppTokens.durationSm,
         curve: AppTokens.easeOutSoft,
         padding: const EdgeInsets.symmetric(
-            horizontal: AppTokens.space3, vertical: 6),
+          horizontal: AppTokens.space3,
+          vertical: 6,
+        ),
         decoration: BoxDecoration(
           color: selected
               ? Colors.white.withValues(alpha: 0.18)
@@ -475,8 +652,11 @@ class _ResultCard extends StatelessWidget {
                   color: theme.colorScheme.primary.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(AppTokens.radiusLg),
                 ),
-                child: Icon(_iconFor(result.kind),
-                    color: theme.colorScheme.primary, size: 20),
+                child: Icon(
+                  _iconFor(result.kind),
+                  color: theme.colorScheme.primary,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: AppTokens.space3),
               Expanded(
