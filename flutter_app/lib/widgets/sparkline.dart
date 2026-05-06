@@ -92,14 +92,20 @@ class _SparkPainter extends CustomPainter {
     if (values.length < 2) return;
     final w = size.width;
     final h = size.height;
-    final minV = values.reduce((a, b) => a < b ? a : b).toDouble();
-    final maxV = values.reduce((a, b) => a > b ? a : b).toDouble();
+    // Normalise to a typed `List<double>` so `reduce` always receives a
+    // `(double, double) => double` combiner regardless of whether the
+    // caller passed `List<int>` or `List<double>`. Without this, dart2js
+    // throws `type '(num, num) => num' is not a subtype of type '(int,
+    // int) => int'` on web because the iterable's reified type wins.
+    final dvals = values.map((v) => v.toDouble()).toList(growable: false);
+    final minV = dvals.reduce((a, b) => a < b ? a : b);
+    final maxV = dvals.reduce((a, b) => a > b ? a : b);
     final range = (maxV - minV).abs() < 0.0001 ? 1.0 : (maxV - minV);
 
-    final dx = w / (values.length - 1);
+    final dx = w / (dvals.length - 1);
     final pts = <Offset>[];
-    for (var i = 0; i < values.length; i++) {
-      final v = (values[i].toDouble() - minV) / range;
+    for (var i = 0; i < dvals.length; i++) {
+      final v = (dvals[i] - minV) / range;
       pts.add(Offset(i * dx, h - v * (h - 4) - 2));
     }
 

@@ -307,14 +307,17 @@ class _TripGlance extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final firstLeg = (trip.legs as List).isNotEmpty ? trip.legs.first : null;
-    return Hero(
-      tag: 'trip-${trip.id}',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-          child: GlassSurface(
+    // No Hero here — Travel page owns `trip-${id}` as the source for the
+    // shared-element transition into TripDetail. If Home also had a Hero
+    // with the same tag, switching tabs Home ↔ Travel would briefly stage
+    // two heroes with identical tags and trip the framework's
+    // "dependent is not a descendant" assertion during the transition.
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+        child: GlassSurface(
             radius: AppTokens.radius2xl,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,7 +334,12 @@ class _TripGlance extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppTokens.space3),
-                Text(trip.name as String, style: theme.textTheme.headlineSmall),
+                Text(
+                  trip.name as String,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.headlineSmall,
+                ),
                 if (firstLeg != null) ...[
                   const SizedBox(height: AppTokens.space2),
                   Row(
@@ -351,7 +359,6 @@ class _TripGlance extends StatelessWidget {
                 ],
               ],
             ),
-          ),
         ),
       ),
     );
@@ -499,10 +506,14 @@ class _QuickAction extends StatelessWidget {
                 child: Icon(icon, color: tone),
               ),
               const SizedBox(width: AppTokens.space3),
-              Text(label,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  )),
+              Expanded(
+                child: Text(label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    )),
+              ),
             ],
           ),
         ),

@@ -5,11 +5,20 @@ import '../../widgets/animated_appearance.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
+import '../../widgets/toast.dart';
 
-/// Social v2 — placeholder that still feels premium. Hero card with
-/// gradient bloom, follow-suggestion list, soft locked state.
-class SocialScreen extends StatelessWidget {
+/// Social v2 — premium pre-launch screen. Hero card with gradient
+/// bloom, suggested-traveller list (each row with a working Follow
+/// button that toggles state + fires a toast).
+class SocialScreen extends StatefulWidget {
   const SocialScreen({super.key});
+  @override
+  State<SocialScreen> createState() => _SocialScreenState();
+}
+
+class _SocialScreenState extends State<SocialScreen> {
+  final Set<int> _following = <int>{};
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -110,24 +119,50 @@ class SocialScreen extends StatelessWidget {
                       ),
                       Pressable(
                         scale: 0.96,
-                        onTap: () {},
-                        child: Container(
+                        onTap: () {
+                          final wasFollowing = _following.contains(i);
+                          setState(() {
+                            if (wasFollowing) {
+                              _following.remove(i);
+                            } else {
+                              _following.add(i);
+                            }
+                          });
+                          AppToast.show(
+                            context,
+                            title: wasFollowing
+                                ? 'Unfollowed ${suggestions[i].$1}'
+                                : 'Following ${suggestions[i].$1}',
+                            tone: wasFollowing
+                                ? AppToastTone.neutral
+                                : AppToastTone.success,
+                          );
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOutCubic,
                           padding: const EdgeInsets.symmetric(
                               horizontal: 14, vertical: 8),
                           decoration: BoxDecoration(
                             borderRadius:
                                 BorderRadius.circular(AppTokens.radiusFull),
-                            color: theme.colorScheme.primary
-                                .withValues(alpha: 0.12),
+                            color: _following.contains(i)
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.primary
+                                    .withValues(alpha: 0.12),
                             border: Border.all(
                                 color: theme.colorScheme.primary
                                     .withValues(alpha: 0.32)),
                           ),
-                          child: Text('Follow',
-                              style: TextStyle(
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.w700,
-                              )),
+                          child: Text(
+                            _following.contains(i) ? 'Following' : 'Follow',
+                            style: TextStyle(
+                              color: _following.contains(i)
+                                  ? Colors.white
+                                  : theme.colorScheme.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ),
                       ),
                     ],
