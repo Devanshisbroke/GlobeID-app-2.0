@@ -219,13 +219,17 @@ class _FrostedNav extends StatelessWidget {
       child: SizedBox(
         height: 72,
         child: LayoutBuilder(builder: (_, c) {
-          final fabGap = 64.0;
-          final usable = c.maxWidth - fabGap;
-          final slot = usable / tabs.length;
+          // Clamp every responsive calc — on extreme widths (e.g. 0
+          // during initial layout, or split-screen ≪ 64 px) negative
+          // BoxConstraints would surface as a red runtime crash.
+          const fabGap = 64.0;
+          final maxWidth = c.maxWidth.isFinite ? c.maxWidth : 0.0;
+          final usable = (maxWidth - fabGap).clamp(0.0, double.infinity);
+          final slot = tabs.isEmpty ? 0.0 : usable / tabs.length;
           // Compute active pill x.
           final visualIndex =
               activeIndex < 2 ? activeIndex : activeIndex + 1; // skip FAB slot
-          final slotForPill = (c.maxWidth) / (tabs.length + 1);
+          final slotForPill = maxWidth / (tabs.length + 1);
           final pillX = slotForPill * visualIndex;
           return Stack(
             children: [

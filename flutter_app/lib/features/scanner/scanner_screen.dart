@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../app/theme/app_tokens.dart';
@@ -41,6 +42,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
   _ScanResult? _result;
   _ScanMode _mode = _ScanMode.qr;
   bool _torch = false;
+  bool _ocrBusy = false;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
@@ -59,6 +62,53 @@ class _ScannerScreenState extends State<ScannerScreen> {
     HapticFeedback.mediumImpact();
     final raw = code.rawValue!;
     setState(() => _result = _classify(raw));
+  }
+
+  Future<void> _captureAndOcr(ImageSource source) async {
+    setState(() => _ocrBusy = true);
+    try {
+      final picked = await _picker.pickImage(
+        source: source,
+        imageQuality: 85,
+        maxWidth: 1920,
+      );
+      if (picked == null) {
+        if (mounted) setState(() => _ocrBusy = false);
+        return;
+      }
+      final input = InputImage.fromFilePath(picked.path);
+      final recognized = await _ocr.processImage(input);
+      final raw = recognized.text;
+      final mrz = parseMrz(raw);
+      if (!mounted) return;
+      final fields = mrz.fields;
+      final isPassport = mrz.ok && fields != null;
+      setState(() {
+        _ocrBusy = false;
+        _result = _ScanResult(
+          kind: _ScanKind.passport,
+          title: isPassport ? 'Passport recognised' : 'Text recognised',
+          body: isPassport
+              ? '${fields.givenNames} ${fields.surname}'.trim()
+              : (raw.isEmpty ? 'No text detected' : raw),
+          meta: isPassport
+              ? '${fields.documentNumber} · ${fields.nationality}'
+              : 'Plain OCR',
+          ok: isPassport,
+          raw: raw,
+        );
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _ocrBusy = false);
+        AppToast.show(
+          context,
+          title: 'OCR failed',
+          message: e.toString(),
+          tone: AppToastTone.danger,
+        );
+      }
+    }
   }
 
   _ScanResult _classify(String raw) {
@@ -137,12 +187,72 @@ class _ScannerScreenState extends State<ScannerScreen> {
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(AppTokens.space6),
-                  child: Text(
-                    "Point at the passport's bottom MRZ band.\nFile-pick OCR runs on still capture.",
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.7),
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Point at the passport's bottom MRZ band",
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: AppTokens.space2),
+                      Text(
+                        'Capture a passport photo and OCR will extract the MRZ.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.65),
+                        ),
+                      ),
+                      const SizedBox(height: AppTokens.space5),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FilledButton.icon(
+                            onPressed: _ocrBusy
+                                ? null
+                                : () => _captureAndOcr(ImageSource.camera),
+                            icon: const Icon(Icons.camera_alt_rounded),
+                            label: const Text('Capture'),
+                          ),
+                          const SizedBox(width: AppTokens.space2),
+                          OutlinedButton.icon(
+                            onPressed: _ocrBusy
+                                ? null
+                                : () => _captureAndOcr(ImageSource.gallery),
+                            icon:
+                                const Icon(Icons.photo_library_outlined),
+                            label: const Text('From library'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.4),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (_ocrBusy) ...[
+                        const SizedBox(height: AppTokens.space5),
+                        const SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: AppTokens.space2),
+                        Text(
+                          'Recognising text…',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
@@ -451,11 +561,13 @@ class _ResultCard extends StatelessWidget {
         return Icons.person_rounded;
       case _ScanKind.text:
         return Icons.text_snippet_rounded;
+      case _ScanKind.passport:
+        return Icons.badge_outlined;
     }
   }
 }
 
-enum _ScanKind { boardingPass, url, wifi, contact, text }
+enum _ScanKind { boardingPass, url, wifi, contact, text, passport }
 
 class _ScanResult {
   _ScanResult({

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../data/api/demo_data.dart';
 import '../storage/preferences.dart';
 
 /// Dart port of `src/lib/apiClient.ts`.
@@ -11,12 +12,17 @@ import '../storage/preferences.dart';
 ///   SharedPreferences under `globe-auth.token` (matches localStorage key).
 /// - Unwraps the `{ ok, data | error }` envelope and throws [ApiError]
 ///   on failure.
+/// - When the network is unavailable (Dio timeouts, DNS failures, 5xx,
+///   missing host) and demo data is available for the requested path,
+///   transparently falls back to [DemoData.respond] so the app remains
+///   fully usable offline. This is the difference between an empty
+///   error-screen UX and a fully populated, alive demo.
 class ApiClient {
   ApiClient({String? baseUrl}) : baseUrl = baseUrl ?? _defaultBase {
     _dio = Dio(BaseOptions(
       baseUrl: this.baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 15),
+      connectTimeout: const Duration(seconds: 4),
+      receiveTimeout: const Duration(seconds: 6),
       headers: {'Content-Type': 'application/json'},
     ));
     _dio.interceptors.add(_AuthInterceptor(this));
@@ -38,36 +44,58 @@ class ApiClient {
       Preferences.instance.writeString(_tokenKey, t);
 
   Future<String> bootstrapToken() async {
-    final res = await _dio.post('/auth/demo');
-    final json = res.data as Map<String, dynamic>;
-    if (json['ok'] != true) {
-      throw _toApiError(json, res.statusCode ?? 500);
+    try {
+      final res = await _dio.post('/auth/demo');
+      final json = res.data as Map<String, dynamic>;
+      if (json['ok'] != true) {
+        throw _toApiError(json, res.statusCode ?? 500);
+      }
+      final data = json['data'] as Map<String, dynamic>;
+      final t = data['token'] as String;
+      await setToken(t);
+      return t;
+    } on DioException {
+      // Offline fallback — synthesize a demo token so we can satisfy the
+      // Authorization header and continue running fully on demo data.
+      const t = 'demo-offline-token';
+      await setToken(t);
+      return t;
     }
-    final data = json['data'] as Map<String, dynamic>;
-    final t = data['token'] as String;
-    await setToken(t);
-    return t;
   }
 
-  Future<T> get<T>(String path) => _request<T>(() => _dio.get<dynamic>(path));
+  Future<T> get<T>(String path) =>
+      _request<T>('GET', path, () => _dio.get<dynamic>(path));
 
   Future<T> post<T>(String path, {Object? body}) =>
-      _request<T>(() => _dio.post<dynamic>(path, data: body));
+      _request<T>('POST', path, () => _dio.post<dynamic>(path, data: body));
 
   Future<T> patch<T>(String path, {Object? body}) =>
-      _request<T>(() => _dio.patch<dynamic>(path, data: body));
+      _request<T>('PATCH', path, () => _dio.patch<dynamic>(path, data: body));
 
   Future<T> put<T>(String path, {Object? body}) =>
-      _request<T>(() => _dio.put<dynamic>(path, data: body));
+      _request<T>('PUT', path, () => _dio.put<dynamic>(path, data: body));
 
   Future<T> delete<T>(String path, {Object? body}) =>
-      _request<T>(() => _dio.delete<dynamic>(path, data: body));
+      _request<T>(
+          'DELETE', path, () => _dio.delete<dynamic>(path, data: body));
 
-  Future<T> _request<T>(Future<Response<dynamic>> Function() run) async {
+  Future<T> _request<T>(
+    String method,
+    String path,
+    Future<Response<dynamic>> Function() run,
+  ) async {
     try {
       final res = await run();
       return _unwrap<T>(res);
     } on DioException catch (e) {
+      // Network-level failure — try the offline demo fallback before
+      // surfacing an error to the UI.
+      if (_isNetworkFailure(e)) {
+        final demo = DemoData.respond(method, path);
+        if (demo != null) {
+          return demo as T;
+        }
+      }
       throw _toApiError(
         e.response?.data is Map<String, dynamic>
             ? e.response!.data as Map<String, dynamic>
@@ -80,6 +108,12 @@ class ApiClient {
         e.response?.statusCode ?? 500,
       );
     }
+  }
+
+  bool _isNetworkFailure(DioException e) {
+    if (e.response == null) return true;
+    final code = e.response!.statusCode ?? 0;
+    return code == 0 || code >= 500;
   }
 
   T _unwrap<T>(Response<dynamic> res) {
