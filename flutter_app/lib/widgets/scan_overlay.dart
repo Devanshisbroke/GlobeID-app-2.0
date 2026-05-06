@@ -51,9 +51,16 @@ class _ScanOverlayState extends State<ScanOverlay>
     final tone = widget.tone ?? theme.colorScheme.primary;
 
     return LayoutBuilder(builder: (_, c) {
-      final size = c.biggest.shortestSide * 0.78;
+      // Defensive — when ScanOverlay is hosted in an unbounded
+      // constraint (rare, but possible during transitions or when
+      // wrapped by a misbehaving parent) `biggest` can be infinite,
+      // which would crash CustomPaint. Clamp to a sane window.
+      final maxW = c.maxWidth.isFinite ? c.maxWidth : 360.0;
+      final maxH = c.maxHeight.isFinite ? c.maxHeight : 480.0;
+      final shortest = (maxW < maxH ? maxW : maxH).clamp(120.0, 1200.0);
+      final size = shortest * 0.78;
       final w = size;
-      final h = size / widget.aspectRatio;
+      final h = (size / widget.aspectRatio).clamp(80.0, maxH);
 
       return Stack(
         alignment: Alignment.center,
