@@ -19,19 +19,21 @@ class SessionLockState {
   final Duration timeout;
   final String? reason;
 
+  static const Object _unset = Object();
+
   SessionLockState copyWith({
     bool? locked,
     bool? enabled,
     DateTime? lastActiveAt,
     Duration? timeout,
-    String? reason,
+    Object? reason = _unset,
   }) =>
       SessionLockState(
         locked: locked ?? this.locked,
         enabled: enabled ?? this.enabled,
         lastActiveAt: lastActiveAt ?? this.lastActiveAt,
         timeout: timeout ?? this.timeout,
-        reason: reason,
+        reason: identical(reason, _unset) ? this.reason : reason as String?,
       );
 
   Map<String, dynamic> toJson() => {

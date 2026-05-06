@@ -13,6 +13,7 @@ class ActivitiesScreen extends ConsumerWidget {
       title: 'Activities',
       icon: Icons.local_activity_rounded,
       tone: const Color(0xFF059669),
+      heroLabel: 'Experiences matched to your trip',
       fetcher: () async {
         final data = await api.localServices({'city': 'San Francisco'});
         return ((data['items'] as List?) ?? const [])
