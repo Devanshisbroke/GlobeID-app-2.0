@@ -166,6 +166,11 @@ class _GlobePainter extends CustomPainter {
       rotationX: pitch,
     );
 
+    // Twinkling starfield occupies the *full* canvas, painted before
+    // we translate to the globe center. This makes deep space feel
+    // alive even when the globe is small.
+    _paintStars(canvas, size);
+
     canvas.save();
     canvas.translate(cx, cy);
 
@@ -174,11 +179,73 @@ class _GlobePainter extends CustomPainter {
     _paintGrid(canvas, cam, radius);
     _paintLand(canvas, cam, radius);
     _paintTerminator(canvas, cam, radius);
+    _paintCityLights(canvas, cam, radius);
     _paintRoutes(canvas, cam, radius);
     if (showHubs) _paintHubs(canvas, cam, radius);
     _paintRim(canvas, radius);
 
     canvas.restore();
+  }
+
+  void _paintStars(Canvas canvas, Size size) {
+    // Deterministic stars seeded from screen geometry; twinkle phase
+    // driven by pulseT.
+    final rng = math.Random(73);
+    for (var i = 0; i < 120; i++) {
+      final x = rng.nextDouble() * size.width;
+      final y = rng.nextDouble() * size.height;
+      final base = 0.2 + rng.nextDouble() * 0.6;
+      final phase = rng.nextDouble() * 2 * math.pi;
+      final tw = (math.sin(pulseT * 2 * math.pi + phase) + 1) / 2;
+      final radius = 0.4 + rng.nextDouble() * 1.4;
+      canvas.drawCircle(
+        Offset(x, y),
+        radius,
+        Paint()
+          ..color = Colors.white.withValues(alpha: base * (0.5 + 0.5 * tw)),
+      );
+    }
+    // A handful of brighter "anchor" stars with a soft halo.
+    final rng2 = math.Random(37);
+    for (var i = 0; i < 12; i++) {
+      final x = rng2.nextDouble() * size.width;
+      final y = rng2.nextDouble() * size.height;
+      final phase = rng2.nextDouble() * 2 * math.pi;
+      final tw = (math.sin(pulseT * 2 * math.pi + phase) + 1) / 2;
+      canvas.drawCircle(
+        Offset(x, y),
+        2.2 + tw * 1.4,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.30 + 0.40 * tw)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.4),
+      );
+    }
+  }
+
+  void _paintCityLights(Canvas canvas, GlobeCamera cam, double r) {
+    // Tiny warm glints clustered along the night side of major hubs.
+    final sunYaw = -yaw * 0.5 + math.pi * 0.2;
+    final sun = Vector3(math.cos(sunYaw), 0.25, math.sin(sunYaw))
+      ..normalize();
+    for (final h in WorldOutlines.hubs) {
+      final v = GreatCircle.toCartesian(h.lat, h.lng);
+      final rotated = cam.apply(v);
+      if (rotated.z < 0) continue;
+      // Compute night-ness: dot with sun direction. If on day side,
+      // skip; if on night side, render warm glints.
+      final dotSun = v.dot(sun);
+      if (dotSun > 0.05) continue;
+      final off = _project(rotated, r);
+      final flicker = (math.sin(pulseT * 6 * math.pi + h.lat * 0.3) + 1) / 2;
+      canvas.drawCircle(
+        off,
+        1.6 + flicker * 1.0,
+        Paint()
+          ..color = const Color(0xFFFFD27D)
+              .withValues(alpha: 0.6 + 0.3 * flicker)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.6),
+      );
+    }
   }
 
   // ── Layers ────────────────────────────────────────────────────────
@@ -433,12 +500,18 @@ class _GlobePainter extends CustomPainter {
   void _drawDashedPath(Canvas canvas, Path src, Paint paint) {
     const dashLen = 6.0;
     const gapLen = 4.0;
+    const period = dashLen + gapLen;
+    // Animate the dash phase so the arc 'flows' along its direction.
+    final phase = (pulseT * period * 2) % period;
     for (final metric in src.computeMetrics()) {
-      var dist = 0.0;
+      var dist = -phase;
       while (dist < metric.length) {
+        final start = dist.clamp(0.0, metric.length);
         final next = (dist + dashLen).clamp(0.0, metric.length);
-        canvas.drawPath(metric.extractPath(dist, next), paint);
-        dist = next + gapLen;
+        if (next > start) {
+          canvas.drawPath(metric.extractPath(start, next), paint);
+        }
+        dist = dist + period;
       }
     }
   }
