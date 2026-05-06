@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -6,11 +7,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/lifecycle/lifecycle_provider.dart';
+import '../features/score/score_provider.dart';
 import '../features/security/session_lock_provider.dart';
 import '../features/settings/theme_prefs_provider.dart';
 import '../features/user/user_provider.dart';
 import '../features/wallet/wallet_provider.dart';
 import '../widgets/atmosphere_layer.dart';
+import '../widgets/aurora_layer.dart';
 import 'theme/app_theme.dart';
 import 'theme/app_tokens.dart';
 
@@ -118,12 +121,22 @@ class _AppShellState extends ConsumerState<AppShell>
         body: Stack(
           children: [
             const Positioned.fill(child: AtmosphereLayer()),
+            // Aurora colour-field layer adds cinematic depth without
+            // taxing the GPU — single ticker, blendMode plus.
+            Positioned.fill(
+              child: IgnorePointer(
+                child: AuroraLayer(
+                  intensity: glass.reduceTransparency ? 0.0 : 0.85,
+                ),
+              ),
+            ),
             Positioned.fill(child: widget.child),
-            // Top-right floating chrome — theme cycle + accent picker.
+            // Top-right floating chrome — identity quick-pill +
+            // theme cycler. Each pill is independently interactive.
             Positioned(
               top: MediaQuery.of(context).padding.top + 8,
               right: 12,
-              child: const _TopChrome(),
+              child: const _TopChromeRow(),
             ),
           ],
         ),
@@ -164,11 +177,167 @@ class _Tab {
   final String label;
 }
 
-/// Top-right chrome — theme-mode cycler + accent quick-picker.
+/// Paired top-right chrome — identity tier glance + theme cycler.
 ///
-/// Single tap cycles the [ThemeMode] (system → light → dark → system).
-/// Long-press opens an accent picker bottom sheet so the brand colour
-/// can be swapped without leaving the current screen.
+/// The identity pill is the primary affordance and surfaces the live
+/// score / tier so the user knows their identity strength at a
+/// glance from anywhere in the app. The smaller adjacent pill cycles
+/// theme mode and exposes the accent picker on long-press.
+class _TopChromeRow extends ConsumerWidget {
+  const _TopChromeRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final loc = GoRouterState.of(context).uri.toString();
+    final onIdentity = loc == '/identity';
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (!onIdentity) ...[
+          const _IdentityQuickPill(),
+          const SizedBox(width: 8),
+        ],
+        const _TopChrome(),
+      ],
+    );
+  }
+}
+
+/// Live identity score + tier chip. Tap → /identity. Long-press →
+/// /passport-book. Pulses softly when score crosses a tier
+/// boundary or when biometric vault is unlocked.
+class _IdentityQuickPill extends ConsumerWidget {
+  const _IdentityQuickPill();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final glass = theme.extension<GlassExtension>()!;
+    final scoreAsync = ref.watch(scoreProvider);
+
+    final score = scoreAsync.maybeWhen(
+      data: (s) => s.score,
+      orElse: () => null,
+    );
+    final tier = scoreAsync.maybeWhen(
+      data: (s) => s.tier,
+      orElse: () => 0,
+    );
+
+    final tierColor = switch (tier) {
+      >= 3 => const Color(0xFFD4AF37), // Elite gold
+      2 => const Color(0xFF8B5CF6), // Plus violet
+      1 => theme.colorScheme.primary, // Standard accent
+      _ => theme.colorScheme.onSurface.withValues(alpha: 0.45),
+    };
+    final tierLabel = switch (tier) {
+      >= 3 => 'Elite',
+      2 => 'Plus',
+      1 => 'Std',
+      _ => '—',
+    };
+
+    return Tooltip(
+      message:
+          'Identity ${score ?? '—'} · $tierLabel · tap for vault, hold for stamps',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            context.push('/identity');
+          },
+          onLongPress: () {
+            HapticFeedback.mediumImpact();
+            context.push('/passport-book');
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                  color: glass.reduceTransparency
+                      ? glass.surface.withValues(alpha: 0.94)
+                      : (isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.white.withValues(alpha: 0.55)),
+                  border: Border.all(
+                    color: tierColor.withValues(alpha: 0.40),
+                    width: 0.6,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.32 : 0.10,
+                      ),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            tierColor,
+                            tierColor.withValues(alpha: 0.65),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: tierColor.withValues(alpha: 0.40),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.fingerprint_rounded,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      score?.toString() ?? '—',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      tierLabel,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.6,
+                        color: tierColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _TopChrome extends ConsumerWidget {
   const _TopChrome();
 
@@ -438,47 +607,61 @@ class _FrostedNav extends StatelessWidget {
             // Clamp every responsive calc — on extreme widths (e.g. 0
             // during initial layout, or split-screen ≪ 64 px) negative
             // BoxConstraints would surface as a red runtime crash.
-            const fabGap = 78.0;
-            const sidePad = 8.0;
+            const fabGap = 84.0;
+            const sidePad = 6.0;
             final maxWidth = c.maxWidth.isFinite ? c.maxWidth : 0.0;
-            final centerSlot = tabs.length ~/ 2;
+            // Symmetric split: half the tabs on each side of the FAB.
+            // For an even count this gives a perfect 3-FAB-3 layout.
+            final tabCount = tabs.length;
+            final centerSlot = tabCount ~/ 2;
             final usable =
                 (maxWidth - fabGap - sidePad * 2).clamp(0.0, double.infinity);
-            final slot = tabs.isEmpty ? 0.0 : usable / tabs.length;
-            final pillWidth = (slot * 0.7).clamp(48.0, 72.0);
+            final slot = tabCount == 0 ? 0.0 : usable / tabCount;
+            // Pill must never exceed the slot it lives in or it spills
+            // over the neighbours and looks broken on narrow phones.
+            final pillWidth = math.max(
+              28.0,
+              math.min(slot - 4.0, slot * 0.78),
+            );
+            final pillHeight = slot < 56 ? 44.0 : 48.0;
+            final pillTop = (76 - pillHeight) / 2;
+            final compact = slot < 56;
             final activeBase = sidePad +
                 (activeIndex < centerSlot
                     ? activeIndex * slot
                     : activeIndex * slot + fabGap);
             return Stack(
               children: [
-                // Morphing pill indicator.
+                // Morphing pill indicator — gradient + glow with
+                // brand-tinted ring; clamped to its slot so it never
+                // straddles a neighbour.
                 AnimatedPositioned(
                   duration: AppTokens.durationLg,
                   curve: AppTokens.easeOutSoft,
                   left: activeBase + (slot - pillWidth) / 2,
-                  top: 14,
+                  top: pillTop,
                   child: Container(
                     width: pillWidth,
-                    height: 48,
+                    height: pillHeight,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          accent.withValues(alpha: 0.26),
+                          accent.withValues(alpha: 0.30),
                           accent.withValues(alpha: 0.10),
                         ],
                       ),
                       border: Border.all(
-                        color: accent.withValues(alpha: 0.40),
+                        color: accent.withValues(alpha: 0.42),
                         width: 0.7,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: accent.withValues(alpha: 0.14),
-                          blurRadius: 18,
+                          color: accent.withValues(alpha: 0.18),
+                          blurRadius: 20,
+                          spreadRadius: 0.5,
                           offset: const Offset(0, 6),
                         ),
                       ],
@@ -489,7 +672,7 @@ class _FrostedNav extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: sidePad),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
-                    children: List.generate(tabs.length + 1, (i) {
+                    children: List.generate(tabCount + 1, (i) {
                       if (i == centerSlot) {
                         return const SizedBox(width: fabGap);
                       }
@@ -502,7 +685,7 @@ class _FrostedNav extends StatelessWidget {
                           tab: tab,
                           selected: selected,
                           accent: accent,
-                          compact: slot < 60,
+                          compact: compact,
                           onTap: () => onTap(tabIndex),
                         ),
                       );
