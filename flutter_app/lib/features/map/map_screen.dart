@@ -7,8 +7,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/globe_renderer.dart' as cg;
 import '../../domain/airports.dart';
 import '../../widgets/animated_appearance.dart';
+import '../../widgets/starfield.dart';
 import '../lifecycle/lifecycle_provider.dart';
 
 /// Map v2 — hybrid globe stage with animated great-circle routes,
@@ -306,240 +308,97 @@ class _GlobeStage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = Theme.of(context).colorScheme.primary;
+    final theme = Theme.of(context);
+    final accent = theme.colorScheme.primary;
+    final globeRoutes = <cg.GlobeRoute>[];
+    for (final r in routes) {
+      Color tone;
+      switch (r.stage) {
+        case 'active':
+          tone = theme.colorScheme.primary;
+          break;
+        case 'past':
+          tone = Colors.white.withValues(alpha: 0.55);
+          break;
+        default:
+          tone = theme.colorScheme.tertiary;
+      }
+      globeRoutes.add(
+        cg.GlobeRoute(
+          fromLat: r.from.lat,
+          fromLng: r.from.lng,
+          toLat: r.to.lat,
+          toLng: r.to.lng,
+          color: tone,
+          label: r.flightNumber,
+          dashed: r.stage == 'planned',
+        ),
+      );
+    }
+
     return Container(
-      color: const Color(0xFF02040A),
-      child: AnimatedBuilder(
-        animation: animation,
-        builder: (_, __) {
-          return CustomPaint(
-            painter: _GlobePainter(
-              t: animation.value,
-              routes: routes,
-              accent: accent,
-              showTraffic: showTraffic,
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          center: const Alignment(0, -0.18),
+          colors: [
+            accent.withValues(alpha: 0.22),
+            const Color(0xFF050912),
+            const Color(0xFF02040A),
+          ],
+          stops: const [0.0, 0.55, 1.0],
+        ),
+      ),
+      child: Stack(
+        children: [
+          const Positioned.fill(child: Starfield(density: 0.8)),
+          if (showTraffic)
+            Positioned.fill(
+              child: AnimatedBuilder(
+                animation: animation,
+                builder: (_, __) => CustomPaint(
+                  painter: _GlobeOrbitPainter(
+                    t: animation.value,
+                    accent: accent,
+                  ),
+                ),
+              ),
             ),
-            child: const SizedBox.expand(),
-          );
-        },
+          Positioned.fill(
+            child: cg.CinematicGlobe(
+              routes: globeRoutes,
+              autoRotate: true,
+              showHubs: true,
+              showLabels: false,
+              glowColor: accent,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _GlobePainter extends CustomPainter {
-  const _GlobePainter({
-    required this.t,
-    required this.routes,
-    required this.accent,
-    required this.showTraffic,
-  });
-
+class _GlobeOrbitPainter extends CustomPainter {
+  const _GlobeOrbitPainter({required this.t, required this.accent});
   final double t;
-  final List<_GlobeRoute> routes;
   final Color accent;
-  final bool showTraffic;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height * 0.47);
-    final radius = math.min(size.width, size.height) * 0.37;
-
-    final bg = Paint()
-      ..shader = RadialGradient(
-        center: const Alignment(0, -0.18),
-        colors: [
-          accent.withValues(alpha: 0.20),
-          const Color(0xFF07101E),
-          const Color(0xFF02040A),
-        ],
-      ).createShader(Offset.zero & size);
-    canvas.drawRect(Offset.zero & size, bg);
-
-    for (var i = 0; i < 120; i++) {
-      final r = math.Random(i * 17);
-      final p = Offset(
-        r.nextDouble() * size.width,
-        r.nextDouble() * size.height,
-      );
-      final twinkle = 0.35 + 0.45 * math.sin((t * math.pi * 2) + i);
-      canvas.drawCircle(
-        p,
-        0.5 + r.nextDouble() * 1.2,
-        Paint()..color = Colors.white.withValues(alpha: 0.08 * twinkle),
-      );
-    }
-
-    canvas.drawCircle(
-      center,
-      radius * 1.14,
-      Paint()
-        ..shader = RadialGradient(
-          colors: [accent.withValues(alpha: 0.22), Colors.transparent],
-        ).createShader(Rect.fromCircle(center: center, radius: radius * 1.22)),
-    );
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..shader = const RadialGradient(
-          center: Alignment(-0.34, -0.42),
-          colors: [Color(0xFF1EBAE8), Color(0xFF115AA8), Color(0xFF061226)],
-          stops: [0.0, 0.42, 1.0],
-        ).createShader(Rect.fromCircle(center: center, radius: radius)),
-    );
-
-    final clip = ui.Path()
-      ..addOval(Rect.fromCircle(center: center, radius: radius));
-    canvas.save();
-    canvas.clipPath(clip);
-    _drawTerminator(canvas, center, radius);
-    _drawContinents(canvas, center, radius);
-    _drawGrid(canvas, center, radius);
-    canvas.restore();
-
-    final halo = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..color = Colors.white.withValues(alpha: 0.34)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-    canvas.drawCircle(center, radius, halo);
-
-    for (final route in routes.take(28)) {
-      _drawRoute(canvas, center, radius, route);
-    }
-
-    if (showTraffic) _drawTraffic(canvas, center, radius);
-  }
-
-  void _drawTerminator(Canvas canvas, Offset center, double radius) {
-    final offset = math.sin(t * math.pi * 2) * radius * 0.34;
-    final rect = Rect.fromCenter(
-      center: center.translate(offset, 0),
-      width: radius * 1.75,
-      height: radius * 2.28,
-    );
-    canvas.drawOval(
-      rect,
-      Paint()
-        ..shader = LinearGradient(
-          colors: [
-            Colors.black.withValues(alpha: 0.0),
-            Colors.black.withValues(alpha: 0.52),
-          ],
-        ).createShader(rect),
-    );
-  }
-
-  void _drawContinents(Canvas canvas, Offset center, double radius) {
-    final paint = Paint()
-      ..color = const Color(0xFF22C55E).withValues(alpha: 0.28)
-      ..style = PaintingStyle.fill;
-    for (final spec in const [
-      (-0.55, -0.18, 0.34, 0.18, -0.25),
-      (-0.24, 0.24, 0.18, 0.34, 0.24),
-      (0.22, -0.08, 0.44, 0.22, 0.08),
-      (0.46, 0.28, 0.20, 0.15, -0.2),
-      (-0.12, -0.48, 0.16, 0.10, 0.1),
-    ]) {
-      final (x, y, w, h, rot) = spec;
-      canvas.save();
-      canvas.translate(center.dx + x * radius, center.dy + y * radius);
-      canvas.rotate(rot);
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: Offset.zero,
-          width: w * radius,
-          height: h * radius,
-        ),
-        paint,
-      );
-      canvas.restore();
-    }
-  }
-
-  void _drawGrid(Canvas canvas, Offset center, double radius) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.7
-      ..color = Colors.white.withValues(alpha: 0.08);
-    for (var i = -2; i <= 2; i++) {
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: center,
-          width: radius * 2,
-          height: radius * (0.28 + (2 - i.abs()) * 0.24),
-        ),
-        paint,
-      );
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: center,
-          width: radius * (0.34 + (2 - i.abs()) * 0.28),
-          height: radius * 2,
-        ),
-        paint,
-      );
-    }
-  }
-
-  void _drawRoute(
-    Canvas canvas,
-    Offset center,
-    double radius,
-    _GlobeRoute route,
-  ) {
-    final a = _project(route.from.lat, route.from.lng, center, radius);
-    final b = _project(route.to.lat, route.to.lng, center, radius);
-    final mid = Offset((a.dx + b.dx) / 2, (a.dy + b.dy) / 2);
-    final lift = (a - b).distance * 0.22 + 28;
-    final control = Offset(mid.dx, mid.dy - lift);
-    final path = ui.Path()
-      ..moveTo(a.dx, a.dy)
-      ..quadraticBezierTo(control.dx, control.dy, b.dx, b.dy);
-    final color = route.stage == 'past' ? Colors.white54 : accent;
-    canvas.drawPath(
-      path,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = route.stage == 'active' ? 2.2 : 1.4
-        ..color = color.withValues(alpha: route.stage == 'past' ? 0.26 : 0.78)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
-    );
-    final seed = (route.flightNumber.hashCode % 17) / 17.0;
-    final p = _quadratic(a, control, b, (t + seed) % 1);
-    canvas.drawCircle(p, 3.2, Paint()..color = Colors.white);
-    canvas.drawCircle(p, 6.5, Paint()..color = color.withValues(alpha: 0.18));
-  }
-
-  void _drawTraffic(Canvas canvas, Offset center, double radius) {
-    final paint = Paint()..color = accent.withValues(alpha: 0.22);
-    for (var i = 0; i < 32; i++) {
-      final angle = (t * math.pi * 2) + i * 0.64;
-      final band = radius * (0.72 + (i % 5) * 0.055);
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = math.min(size.width, size.height) / 2;
+    final paint = Paint()..color = accent.withValues(alpha: 0.18);
+    for (var i = 0; i < 24; i++) {
+      final angle = t * math.pi * 2 + i * 0.65;
+      final band = radius * (0.78 + (i % 5) * 0.06);
       final p = center +
-          Offset(math.cos(angle) * band, math.sin(angle * 0.72) * band * 0.42);
-      canvas.drawCircle(p, 1.4 + (i % 3) * 0.5, paint);
+          Offset(math.cos(angle) * band, math.sin(angle * 0.7) * band * 0.42);
+      canvas.drawCircle(p, 1.0 + (i % 3) * 0.4, paint);
     }
-  }
-
-  Offset _project(double lat, double lng, Offset center, double radius) {
-    final spin = (t - 0.18) * 360;
-    final lambda = (lng + spin) * math.pi / 180;
-    final phi = lat * math.pi / 180;
-    return center +
-        Offset(math.cos(phi) * math.sin(lambda), -math.sin(phi)) * radius;
-  }
-
-  Offset _quadratic(Offset a, Offset c, Offset b, double p) {
-    final q = 1 - p;
-    return a * (q * q) + c * (2 * q * p) + b * (p * p);
   }
 
   @override
-  bool shouldRepaint(covariant _GlobePainter oldDelegate) =>
-      oldDelegate.t != t ||
-      oldDelegate.routes != routes ||
-      oldDelegate.accent != accent ||
-      oldDelegate.showTraffic != showTraffic;
+  bool shouldRepaint(covariant _GlobeOrbitPainter old) =>
+      old.t != t || old.accent != accent;
 }
+
