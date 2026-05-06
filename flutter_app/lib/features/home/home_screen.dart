@@ -307,14 +307,17 @@ class _TripGlance extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final firstLeg = (trip.legs as List).isNotEmpty ? trip.legs.first : null;
-    return Hero(
-      tag: 'trip-${trip.id}',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-          child: GlassSurface(
+    // No Hero here — Travel page owns `trip-${id}` as the source for the
+    // shared-element transition into TripDetail. If Home also had a Hero
+    // with the same tag, switching tabs Home ↔ Travel would briefly stage
+    // two heroes with identical tags and trip the framework's
+    // "dependent is not a descendant" assertion during the transition.
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+        child: GlassSurface(
             radius: AppTokens.radius2xl,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -356,7 +359,6 @@ class _TripGlance extends StatelessWidget {
                 ],
               ],
             ),
-          ),
         ),
       ),
     );
