@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/lifecycle/lifecycle_provider.dart';
+import '../features/security/session_lock_provider.dart';
 import '../features/settings/theme_prefs_provider.dart';
 import '../features/user/user_provider.dart';
 import '../features/wallet/wallet_provider.dart';
@@ -27,6 +28,8 @@ class AppShell extends ConsumerStatefulWidget {
 
 class _AppShellState extends ConsumerState<AppShell>
     with WidgetsBindingObserver {
+  bool _autoLockNavigating = false;
+
   @override
   void initState() {
     super.initState();
@@ -42,8 +45,16 @@ class _AppShellState extends ConsumerState<AppShell>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    final lock = ref.read(sessionLockProvider.notifier);
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.hidden) {
+      lock.markInactive();
+    }
     if (state == AppLifecycleState.resumed) {
       _hydrate();
+      _evaluateAutoLock();
     }
   }
 
@@ -51,6 +62,16 @@ class _AppShellState extends ConsumerState<AppShell>
     ref.read(userProvider.notifier).hydrate();
     ref.read(walletProvider.notifier).hydrate();
     ref.read(lifecycleProvider.notifier).hydrate();
+  }
+
+  Future<void> _evaluateAutoLock() async {
+    await ref.read(sessionLockProvider.notifier).evaluateResume();
+    final locked = ref.read(sessionLockProvider).locked;
+    if (!mounted || !locked || _autoLockNavigating) return;
+    _autoLockNavigating = true;
+    HapticFeedback.mediumImpact();
+    context.go('/lock');
+    _autoLockNavigating = false;
   }
 
   static const _tabs = [

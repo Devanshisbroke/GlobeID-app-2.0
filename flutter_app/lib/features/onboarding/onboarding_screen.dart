@@ -2,22 +2,24 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/pressable.dart';
+import 'onboarding_provider.dart';
 
 /// Cinematic onboarding — full-bleed brand canvas, animated planet
 /// glyph that morphs per-page, deep accent gradients, glassy footer
 /// with morphing CTA.
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen>
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     with TickerProviderStateMixin {
   final _ctrl = PageController();
   int _i = 0;
@@ -69,6 +71,12 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     _ctrl.dispose();
     _orbit.dispose();
     super.dispose();
+  }
+
+  Future<void> _finish() async {
+    HapticFeedback.mediumImpact();
+    await ref.read(onboardingProvider.notifier).complete();
+    if (mounted) context.go('/');
   }
 
   @override
@@ -208,7 +216,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     children: [
                       Expanded(
                         child: TextButton(
-                          onPressed: () => context.go('/'),
+                          onPressed: _finish,
                           style: TextButton.styleFrom(
                             foregroundColor:
                                 Colors.white.withValues(alpha: 0.7),
@@ -227,7 +235,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                 curve: AppTokens.easeOutSoft,
                               );
                             } else {
-                              context.go('/');
+                              _finish();
                             }
                           },
                           child: Container(
