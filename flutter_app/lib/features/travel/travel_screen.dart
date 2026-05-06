@@ -36,10 +36,12 @@ class _TravelScreenState extends ConsumerState<TravelScreen> {
     return RefreshIndicator(
       onRefresh: () => ref.read(lifecycleProvider.notifier).hydrate(),
       child: ListView(
+        // Right padding leaves room for the floating top-right theme
+        // chrome rendered by AppShell.
         padding: EdgeInsets.fromLTRB(
           AppTokens.space5,
           MediaQuery.of(context).padding.top + AppTokens.space5,
-          AppTokens.space5,
+          AppTokens.space5 + 48,
           AppTokens.space9 + 16,
         ),
         physics: const BouncingScrollPhysics(),
