@@ -14,6 +14,7 @@ import '../features/lock/lock_screen.dart';
 import '../features/map/map_screen.dart';
 import '../features/multi_currency/multi_currency_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
+import '../features/onboarding/onboarding_provider.dart';
 import '../features/passport_book/passport_book_screen.dart';
 import '../features/planner/planner_screen.dart';
 import '../features/profile/profile_screen.dart';
@@ -25,6 +26,7 @@ import '../features/services/hotels_screen.dart';
 import '../features/services/rides_screen.dart';
 import '../features/services/services_hub_screen.dart';
 import '../features/services/transport_screen.dart';
+import '../features/security/session_lock_provider.dart';
 import '../features/social/social_screen.dart';
 import '../features/timeline/timeline_screen.dart';
 import '../features/travel/travel_screen.dart';
@@ -71,6 +73,32 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
     debugLogDiagnostics: false,
+    redirect: (context, state) {
+      final path = state.uri.path;
+      final onboarding = ref.read(onboardingProvider);
+      final sessionLock = ref.read(sessionLockProvider);
+
+      if (!onboarding.completed && path != '/onboarding') {
+        return '/onboarding';
+      }
+
+      if (onboarding.completed &&
+          sessionLock.locked &&
+          path != '/lock' &&
+          path != '/onboarding') {
+        return '/lock';
+      }
+
+      if (onboarding.completed && path == '/onboarding') {
+        return '/';
+      }
+
+      if (!sessionLock.locked && path == '/lock') {
+        return '/';
+      }
+
+      return null;
+    },
     routes: [
       // Gate routes (full-screen, no shell)
       _route('/lock', (_, __) => const LockScreen()),

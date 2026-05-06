@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:toastification/toastification.dart';
 
 import 'app/app_boot.dart';
+import 'app/deep_link_controller.dart';
 import 'app/router.dart';
 import 'app/theme/app_theme.dart';
 import 'features/settings/theme_prefs_provider.dart';
@@ -31,14 +32,17 @@ class GlobeIdApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final prefs = ref.watch(themePrefsProvider);
     final router = ref.watch(routerProvider);
-    return ToastificationWrapper(
-      child: MaterialApp.router(
-        title: 'GlobeID',
-        debugShowCheckedModeBanner: false,
-        themeMode: prefs.themeMode,
-        theme: AppTheme.light(prefs),
-        darkTheme: AppTheme.dark(prefs),
-        routerConfig: router,
+    return DeepLinkController(
+      router: router,
+      child: ToastificationWrapper(
+        child: MaterialApp.router(
+          title: 'GlobeID',
+          debugShowCheckedModeBanner: false,
+          themeMode: prefs.themeMode,
+          theme: AppTheme.light(prefs),
+          darkTheme: AppTheme.dark(prefs),
+          routerConfig: router,
+        ),
       ),
     );
   }

@@ -80,18 +80,20 @@ class _MapScreenState extends ConsumerState<MapScreen>
                   showTraffic: _showTraffic,
                 ),
         ),
-        IgnorePointer(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: const Alignment(0.1, -0.08),
-                radius: 1.22,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withValues(alpha: 0.36),
-                  Colors.black.withValues(alpha: 0.70),
-                ],
-                stops: const [0.0, 0.72, 1.0],
+        Positioned.fill(
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(0.1, -0.08),
+                  radius: 1.22,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.36),
+                    Colors.black.withValues(alpha: 0.70),
+                  ],
+                  stops: const [0.0, 0.72, 1.0],
+                ),
               ),
             ),
           ),

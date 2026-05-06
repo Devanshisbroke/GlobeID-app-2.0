@@ -2,22 +2,25 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/pressable.dart';
+import '../security/session_lock_provider.dart';
 
 /// Lock screen — cinematic biometric ring with rotating orbital sweep,
 /// glow pulse on tap, gentle backdrop bloom.
-class LockScreen extends StatefulWidget {
+class LockScreen extends ConsumerStatefulWidget {
   const LockScreen({super.key});
   @override
-  State<LockScreen> createState() => _LockScreenState();
+  ConsumerState<LockScreen> createState() => _LockScreenState();
 }
 
-class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
+class _LockScreenState extends ConsumerState<LockScreen>
+    with TickerProviderStateMixin {
   final _auth = LocalAuthentication();
   String? _error;
   bool _busy = false;
@@ -55,6 +58,8 @@ class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
       );
       if (ok && mounted) {
         HapticFeedback.mediumImpact();
+        await ref.read(sessionLockProvider.notifier).unlock();
+        if (!mounted) return;
         context.go('/');
       }
     } catch (e) {
