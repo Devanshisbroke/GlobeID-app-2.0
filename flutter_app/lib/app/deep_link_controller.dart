@@ -49,11 +49,11 @@ class _DeepLinkControllerState extends ConsumerState<DeepLinkController> {
       if (uri.host.isNotEmpty) uri.host,
       ...uri.pathSegments,
     ];
-    if (segments.length < 2) return null;
-    final id = Uri.encodeComponent(segments[1]);
+    if (segments.isEmpty) return null;
+    final id = segments.length > 1 ? Uri.encodeComponent(segments[1]) : null;
     return switch (segments.first) {
-      'trip' => '/trip/$id',
-      'pass' => '/pass/$id',
+      'trip' when id != null => '/trip/$id',
+      'pass' when id != null => '/pass/$id',
       'scan' => '/scan',
       'wallet' => '/wallet',
       _ => null,
