@@ -35,13 +35,16 @@ class ServiceListScreen extends StatefulWidget {
 
 class _ServiceListScreenState extends State<ServiceListScreen> {
   late Future<List<Map<String, dynamic>>> _future = widget.fetcher();
-  final Set<int> _saved = <int>{};
-  int? _confirmedIndex;
+  final Set<String> _saved = <String>{};
+  String? _confirmedItemId;
 
   Future<void> _refresh() async {
     HapticFeedback.lightImpact();
+    final nextFuture = widget.fetcher();
     setState(() {
-      _future = widget.fetcher();
+      _future = nextFuture;
+      _saved.clear();
+      _confirmedItemId = null;
     });
     await _future;
   }
@@ -121,38 +124,49 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
                 ),
                 const SizedBox(height: AppTokens.space3),
                 for (var i = 0; i < items.length; i++)
-                  AnimatedAppearance(
-                    delay: Duration(milliseconds: 60 * i),
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: AppTokens.space3),
-                      child: _ServiceRow(
-                        index: i,
-                        data: items[i],
-                        icon: widget.icon,
-                        tone: tone,
-                        saved: _saved.contains(i),
-                        confirmed: _confirmedIndex == i,
-                        onSave: () {
-                          HapticFeedback.selectionClick();
-                          setState(() {
-                            _saved.contains(i)
-                                ? _saved.remove(i)
-                                : _saved.add(i);
-                          });
-                        },
-                        onConfirm: () {
-                          HapticFeedback.mediumImpact();
-                          setState(() => _confirmedIndex = i);
-                        },
+                  Builder(builder: (context) {
+                    final itemId = _itemIdFor(items[i]);
+                    return AnimatedAppearance(
+                      delay: Duration(milliseconds: 60 * i),
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: AppTokens.space3),
+                        child: _ServiceRow(
+                          index: i,
+                          data: items[i],
+                          icon: widget.icon,
+                          tone: tone,
+                          saved: _saved.contains(itemId),
+                          confirmed: _confirmedItemId == itemId,
+                          onSave: () {
+                            HapticFeedback.selectionClick();
+                            setState(() {
+                              _saved.contains(itemId)
+                                  ? _saved.remove(itemId)
+                                  : _saved.add(itemId);
+                            });
+                          },
+                          onConfirm: () {
+                            HapticFeedback.mediumImpact();
+                            setState(() => _confirmedItemId = itemId);
+                          },
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
               ],
             );
           },
         ),
       ),
     );
+  }
+
+  String _itemIdFor(Map<String, dynamic> item) {
+    final title = item['title']?.toString() ?? '';
+    final subtitle = item['subtitle']?.toString() ?? '';
+    final price = item['price']?.toString() ?? '';
+    return '$title|$subtitle|$price';
   }
 }
 
