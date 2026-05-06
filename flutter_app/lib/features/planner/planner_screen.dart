@@ -11,6 +11,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
+import '../../widgets/skeletons.dart';
 import '../../widgets/toast.dart';
 
 final plannerListProvider = FutureProvider<List<dynamic>>((ref) {
@@ -41,7 +42,7 @@ class PlannerScreen extends ConsumerWidget {
         ),
       ],
       body: asyncTrips.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const SkeletonList(count: 4, itemHeight: 96),
         error: (e, _) => EmptyState(
           title: 'Planner unavailable',
           message: e.toString(),

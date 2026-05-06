@@ -8,6 +8,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
+import '../../widgets/skeletons.dart';
 import '../insights/insights_provider.dart';
 
 /// Activity feed v3 — premium event timeline.
@@ -66,7 +67,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           await Future.delayed(const Duration(milliseconds: 600));
         },
         child: activity.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const SkeletonList(count: 6, itemHeight: 76),
           error: (e, _) => ListView(
             physics: const AlwaysScrollableScrollPhysics(
               parent: BouncingScrollPhysics(),
