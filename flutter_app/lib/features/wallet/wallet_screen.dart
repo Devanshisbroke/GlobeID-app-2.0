@@ -221,8 +221,12 @@ class PassCard extends StatefulWidget {
 class _PassCardState extends State<PassCard> {
   double _tiltX = 0, _tiltY = 0;
   bool _flipped = false;
+  // Wrapped in `handleError` so platforms without an accelerometer
+  // (desktop, web, some emulators) silently fall back to flat instead
+  // of spamming uncaught errors.
   late final Stream<AccelerometerEvent> _stream = accelerometerEventStream(
-      samplingPeriod: const Duration(milliseconds: 50));
+    samplingPeriod: const Duration(milliseconds: 50),
+  ).handleError((_) {});
 
   @override
   Widget build(BuildContext context) {

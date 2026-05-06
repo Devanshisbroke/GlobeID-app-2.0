@@ -9,6 +9,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
+import '../../widgets/toast.dart';
 import '../insights/insights_provider.dart';
 
 /// Passport book v2 — premium stamp grid with subtle tilt on press,
@@ -124,7 +125,17 @@ class _StampTileState extends State<_StampTile> {
     final theme = Theme.of(context);
     return Pressable(
       scale: 0.96,
-      onTap: () {},
+      onTap: () {
+        final title = widget.data['title']?.toString() ?? 'Stamp';
+        final flag = widget.data['flag']?.toString() ?? '🌍';
+        final issued = widget.data['issuedAt']?.toString() ?? '';
+        AppToast.show(
+          context,
+          title: '$flag  $title',
+          message: issued.isEmpty ? null : 'Visited $issued',
+          tone: AppToastTone.info,
+        );
+      },
       child: AnimatedContainer(
         duration: AppTokens.durationMd,
         curve: AppTokens.easeOutSoft,

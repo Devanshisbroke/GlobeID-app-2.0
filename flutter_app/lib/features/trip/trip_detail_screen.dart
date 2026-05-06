@@ -188,11 +188,15 @@ class _RouteHeroState extends State<_RouteHero>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _IataBlock(
-                code: widget.from,
-                city: fromAirport?.city ?? 'Origin',
+              Flexible(
+                flex: 3,
+                child: _IataBlock(
+                  code: widget.from,
+                  city: fromAirport?.city ?? 'Origin',
+                ),
               ),
               Expanded(
+                flex: 4,
                 child: SizedBox(
                   height: 56,
                   child: AnimatedBuilder(
@@ -206,10 +210,13 @@ class _RouteHeroState extends State<_RouteHero>
                   ),
                 ),
               ),
-              _IataBlock(
-                code: widget.to,
-                city: toAirport?.city ?? 'Destination',
-                end: true,
+              Flexible(
+                flex: 3,
+                child: _IataBlock(
+                  code: widget.to,
+                  city: toAirport?.city ?? 'Destination',
+                  end: true,
+                ),
               ),
             ],
           ),
@@ -231,9 +238,12 @@ class _IataBlock extends StatelessWidget {
     return Column(
       crossAxisAlignment:
           end ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           code.toUpperCase(),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: theme.textTheme.displaySmall?.copyWith(
             fontWeight: FontWeight.w800,
             letterSpacing: 1.0,
@@ -242,6 +252,9 @@ class _IataBlock extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           city,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: end ? TextAlign.end : TextAlign.start,
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
           ),

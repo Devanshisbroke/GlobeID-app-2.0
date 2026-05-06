@@ -331,7 +331,12 @@ class _TripGlance extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppTokens.space3),
-                Text(trip.name as String, style: theme.textTheme.headlineSmall),
+                Text(
+                  trip.name as String,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.headlineSmall,
+                ),
                 if (firstLeg != null) ...[
                   const SizedBox(height: AppTokens.space2),
                   Row(
@@ -499,10 +504,14 @@ class _QuickAction extends StatelessWidget {
                 child: Icon(icon, color: tone),
               ),
               const SizedBox(width: AppTokens.space3),
-              Text(label,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  )),
+              Expanded(
+                child: Text(label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    )),
+              ),
             ],
           ),
         ),

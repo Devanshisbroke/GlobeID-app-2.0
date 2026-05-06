@@ -28,9 +28,12 @@ class _PassDetailScreenState extends ConsumerState<PassDetailScreen> {
   double _drag = 0;
   double _tiltX = 0, _tiltY = 0;
 
+  // Wrapped in `handleError` so platforms without an accelerometer
+  // (desktop, web, some emulators) silently fall back to flat instead
+  // of spamming uncaught errors.
   late final Stream<AccelerometerEvent> _accel = accelerometerEventStream(
     samplingPeriod: const Duration(milliseconds: 50),
-  );
+  ).handleError((_) {});
 
   @override
   void initState() {
