@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -162,9 +163,18 @@ class _PassStack extends StatefulWidget {
   State<_PassStack> createState() => _PassStackState();
 }
 
-class _PassStackState extends State<_PassStack> {
+class _PassStackState extends State<_PassStack>
+    with SingleTickerProviderStateMixin {
   late final PageController _ctrl = PageController(viewportFraction: 0.90);
   double _page = 0;
+  bool _fanOpen = false;
+  late final AnimationController _fan = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 540),
+  );
+  StreamSubscription<AccelerometerEvent>? _accelSub;
+  double _tiltX = 0;
+  double _tiltY = 0;
 
   @override
   void initState() {
@@ -173,88 +183,282 @@ class _PassStackState extends State<_PassStack> {
       if (!mounted) return;
       setState(() => _page = _ctrl.page ?? _page);
     });
+    _accelSub = accelerometerEventStream(
+      samplingPeriod: SensorInterval.uiInterval,
+    ).listen((e) {
+      if (!mounted) return;
+      final tx = (e.y.clamp(-3, 3) / 3) * (math.pi / 36);
+      final ty = (e.x.clamp(-3, 3) / 3) * (math.pi / 36);
+      setState(() {
+        _tiltX = _tiltX * 0.78 + tx * 0.22;
+        _tiltY = _tiltY * 0.78 + ty * 0.22;
+      });
+    });
   }
 
   @override
   void dispose() {
     _ctrl.dispose();
+    _fan.dispose();
+    _accelSub?.cancel();
     super.dispose();
+  }
+
+  void _toggleFan() {
+    HapticFeedback.mediumImpact();
+    if (_fanOpen) {
+      _fan.reverse();
+    } else {
+      _fan.forward();
+    }
+    setState(() => _fanOpen = !_fanOpen);
   }
 
   @override
   Widget build(BuildContext context) {
     final current = _page.round().clamp(0, widget.passes.length - 1);
+    final accent = Theme.of(context).colorScheme.primary;
     return Column(
       children: [
-        SizedBox(
-          height: 292,
-          child: LayoutBuilder(
-            builder: (context, c) {
-              return Stack(
-                alignment: Alignment.topCenter,
-                children: [
-                  for (var depth = 2; depth >= 1; depth--)
-                    if (current + depth < widget.passes.length)
-                      _PeekPassLayer(
-                        pass: widget.passes[current + depth],
-                        depth: depth,
-                        width: c.maxWidth,
-                      ),
-                  Positioned.fill(
-                    top: 0,
-                    child: PageView.builder(
-                      controller: _ctrl,
-                      clipBehavior: Clip.none,
-                      itemCount: widget.passes.length,
-                      itemBuilder: (context, i) {
-                        final delta = (_page - i).abs();
-                        final scale = (1 - (delta * 0.065)).clamp(0.86, 1.0);
-                        final opacity = (1 - (delta * 0.34)).clamp(0.42, 1.0);
-                        final y = (delta * 12).clamp(0.0, 22.0);
-                        return Transform.translate(
-                          offset: Offset(0, y),
-                          child: Transform.scale(
-                            scale: scale,
-                            alignment: Alignment.topCenter,
-                            child: Opacity(
-                              opacity: opacity,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppTokens.space2,
-                                ),
-                                child: Pressable(
-                                  scale: 0.985,
-                                  onTap: () {
-                                    HapticFeedback.lightImpact();
-                                    GoRouter.of(
-                                      context,
-                                    ).push('/pass/${widget.passes[i].id}');
-                                  },
-                                  child: Hero(
-                                    tag: 'pass-${widget.passes[i].id}',
-                                    child: Material(
-                                      type: MaterialType.transparency,
-                                      child: PassCard(pass: widget.passes[i]),
+        GestureDetector(
+          onLongPress: _toggleFan,
+          child: SizedBox(
+            height: 292,
+            child: LayoutBuilder(
+              builder: (context, c) {
+                return AnimatedBuilder(
+                  animation: _fan,
+                  builder: (_, __) {
+                    final f = Curves.easeOutCubic.transform(_fan.value);
+                    return Stack(
+                      alignment: Alignment.topCenter,
+                      children: [
+                        if (f > 0.001)
+                          for (var i = 0; i < widget.passes.length; i++)
+                            _FanLayer(
+                              pass: widget.passes[i],
+                              indexFromActive: i - current,
+                              fan: f,
+                              width: c.maxWidth,
+                              tiltX: _tiltX,
+                              tiltY: _tiltY,
+                            ),
+                        Opacity(
+                          opacity: 1 - f,
+                          child: IgnorePointer(
+                            ignoring: _fanOpen,
+                            child: Stack(
+                              alignment: Alignment.topCenter,
+                              children: [
+                                for (var depth = 2; depth >= 1; depth--)
+                                  if (current + depth <
+                                      widget.passes.length)
+                                    _PeekPassLayer(
+                                      pass: widget.passes[current + depth],
+                                      depth: depth,
+                                      width: c.maxWidth,
                                     ),
+                                Positioned.fill(
+                                  top: 0,
+                                  child: PageView.builder(
+                                    controller: _ctrl,
+                                    clipBehavior: Clip.none,
+                                    itemCount: widget.passes.length,
+                                    itemBuilder: (context, i) {
+                                      final delta = (_page - i).abs();
+                                      final scale = (1 - (delta * 0.065))
+                                          .clamp(0.86, 1.0);
+                                      final opacity = (1 - (delta * 0.34))
+                                          .clamp(0.42, 1.0);
+                                      final y =
+                                          (delta * 12).clamp(0.0, 22.0);
+                                      final isActive = delta < 0.5;
+                                      return Transform.translate(
+                                        offset: Offset(0, y),
+                                        child: Transform.scale(
+                                          scale: scale,
+                                          alignment: Alignment.topCenter,
+                                          child: Opacity(
+                                            opacity: opacity,
+                                            child: Padding(
+                                              padding: const EdgeInsets
+                                                  .symmetric(
+                                                horizontal:
+                                                    AppTokens.space2,
+                                              ),
+                                              child: Pressable(
+                                                scale: 0.985,
+                                                onTap: () {
+                                                  HapticFeedback
+                                                      .lightImpact();
+                                                  GoRouter.of(context).push(
+                                                    '/pass/${widget.passes[i].id}',
+                                                  );
+                                                },
+                                                child: Transform(
+                                                  alignment:
+                                                      Alignment.center,
+                                                  transform:
+                                                      Matrix4.identity()
+                                                        ..setEntry(
+                                                            3, 2, 0.0014)
+                                                        ..rotateX(
+                                                          isActive
+                                                              ? _tiltX
+                                                              : 0,
+                                                        )
+                                                        ..rotateY(
+                                                          isActive
+                                                              ? _tiltY
+                                                              : 0,
+                                                        ),
+                                                  child: Hero(
+                                                    tag:
+                                                        'pass-${widget.passes[i].id}',
+                                                    child: Material(
+                                                      type: MaterialType
+                                                          .transparency,
+                                                      child: PassCard(
+                                                        pass: widget
+                                                            .passes[i],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              );
-            },
+                        ),
+                        if (_fanOpen)
+                          Positioned.fill(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.translucent,
+                              onTap: _toggleFan,
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ),
         if (widget.passes.length > 1) ...[
           const SizedBox(height: AppTokens.space1),
-          _PageDots(count: widget.passes.length, page: _page),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _PageDots(count: widget.passes.length, page: _page),
+              const SizedBox(width: AppTokens.space3),
+              GestureDetector(
+                onTap: _toggleFan,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: accent.withValues(alpha: 0.32),
+                    ),
+                    borderRadius:
+                        BorderRadius.circular(AppTokens.radiusFull),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _fanOpen
+                            ? Icons.layers_clear_rounded
+                            : Icons.style_rounded,
+                        size: 14,
+                        color: accent,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _fanOpen ? 'Stack' : 'Fan',
+                        style: TextStyle(
+                          color: accent,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ],
+    );
+  }
+}
+
+/// Single layer in fan-out mode. Position + rotation interpolated by
+/// the parent's `fan` controller (0 = stacked center, 1 = fully fanned).
+class _FanLayer extends StatelessWidget {
+  const _FanLayer({
+    required this.pass,
+    required this.indexFromActive,
+    required this.fan,
+    required this.width,
+    required this.tiltX,
+    required this.tiltY,
+  });
+  final TravelDocument pass;
+  final int indexFromActive;
+  final double fan;
+  final double width;
+  final double tiltX;
+  final double tiltY;
+
+  @override
+  Widget build(BuildContext context) {
+    final angle = (indexFromActive * 12 * math.pi / 180) * fan;
+    final dx = indexFromActive * (width * 0.22) * fan;
+    final dy = (indexFromActive.abs() * 14.0) * fan;
+    final cardWidth = width * 0.86;
+    return Positioned(
+      top: 0,
+      width: cardWidth,
+      child: IgnorePointer(
+        ignoring: fan < 0.5,
+        child: Transform.translate(
+          offset: Offset(dx, dy),
+          child: Transform.rotate(
+            angle: angle,
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.0014)
+                ..rotateX(tiltX)
+                ..rotateY(tiltY),
+              child: Pressable(
+                scale: 0.97,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  GoRouter.of(context).push('/pass/${pass.id}');
+                },
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: PassCard(pass: pass),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
