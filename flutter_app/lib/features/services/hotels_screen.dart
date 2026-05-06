@@ -13,6 +13,7 @@ class HotelsScreen extends ConsumerWidget {
       title: 'Hotels',
       icon: Icons.hotel_rounded,
       tone: const Color(0xFF7E22CE),
+      heroLabel: 'Tokyo stay intelligence',
       fetcher: () async {
         final data = await api.hotelsSearch({'city': 'San Francisco'});
         return ((data['items'] as List?) ?? const [])

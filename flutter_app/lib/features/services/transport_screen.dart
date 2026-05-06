@@ -13,6 +13,7 @@ class TransportScreen extends ConsumerWidget {
       title: 'Transport',
       icon: Icons.train_rounded,
       tone: const Color(0xFF1D4ED8),
+      heroLabel: 'City mobility command center',
       fetcher: () async {
         final data = await api
             .localServices({'city': 'San Francisco', 'kind': 'transport'});

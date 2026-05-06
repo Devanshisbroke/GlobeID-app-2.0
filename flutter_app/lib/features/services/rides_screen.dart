@@ -13,6 +13,7 @@ class RidesScreen extends ConsumerWidget {
       title: 'Rides',
       icon: Icons.directions_car_rounded,
       tone: const Color(0xFFEA580C),
+      heroLabel: 'Airport transfer planner',
       fetcher: () async {
         final data = await api.ridesSearch({'city': 'San Francisco'});
         return ((data['items'] as List?) ?? const [])

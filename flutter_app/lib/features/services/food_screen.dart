@@ -13,6 +13,7 @@ class FoodScreen extends ConsumerWidget {
       title: 'Food',
       icon: Icons.restaurant_rounded,
       tone: const Color(0xFFE11D48),
+      heroLabel: 'Local dining concierge',
       fetcher: () async {
         final data = await api.foodSearch({'city': 'San Francisco'});
         return ((data['items'] as List?) ?? const [])
