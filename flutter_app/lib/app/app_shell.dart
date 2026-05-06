@@ -432,23 +432,24 @@ class _FrostedNav extends StatelessWidget {
     final navContent = SafeArea(
       top: false,
       child: SizedBox(
-        height: 72,
+        height: 76,
         child: LayoutBuilder(
           builder: (_, c) {
             // Clamp every responsive calc — on extreme widths (e.g. 0
             // during initial layout, or split-screen ≪ 64 px) negative
             // BoxConstraints would surface as a red runtime crash.
-            const fabGap = 68.0;
+            const fabGap = 78.0;
+            const sidePad = 8.0;
             final maxWidth = c.maxWidth.isFinite ? c.maxWidth : 0.0;
             final centerSlot = tabs.length ~/ 2;
-            final slot = tabs.isEmpty
-                ? 0.0
-                : ((maxWidth - fabGap).clamp(0.0, double.infinity) /
-                    tabs.length);
-            final pillWidth = (slot * 0.56).clamp(42.0, 68.0);
-            final activeBase = activeIndex < centerSlot
-                ? activeIndex * slot
-                : activeIndex * slot + fabGap;
+            final usable =
+                (maxWidth - fabGap - sidePad * 2).clamp(0.0, double.infinity);
+            final slot = tabs.isEmpty ? 0.0 : usable / tabs.length;
+            final pillWidth = (slot * 0.7).clamp(48.0, 72.0);
+            final activeBase = sidePad +
+                (activeIndex < centerSlot
+                    ? activeIndex * slot
+                    : activeIndex * slot + fabGap);
             return Stack(
               children: [
                 // Morphing pill indicator.
@@ -459,42 +460,54 @@ class _FrostedNav extends StatelessWidget {
                   top: 14,
                   child: Container(
                     width: pillWidth,
-                    height: 44,
+                    height: 48,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          accent.withValues(alpha: 0.22),
-                          accent.withValues(alpha: 0.08),
+                          accent.withValues(alpha: 0.26),
+                          accent.withValues(alpha: 0.10),
                         ],
                       ),
                       border: Border.all(
-                        color: accent.withValues(alpha: 0.35),
-                        width: 0.6,
+                        color: accent.withValues(alpha: 0.40),
+                        width: 0.7,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: accent.withValues(alpha: 0.14),
+                          blurRadius: 18,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: List.generate(tabs.length + 1, (i) {
-                    if (i == centerSlot) return const SizedBox(width: fabGap);
-                    final tabIndex = i > centerSlot ? i - 1 : i;
-                    final tab = tabs[tabIndex];
-                    final selected = activeIndex == tabIndex;
-                    return SizedBox(
-                      width: slot,
-                      child: _NavItem(
-                        tab: tab,
-                        selected: selected,
-                        accent: accent,
-                        compact: slot < 58,
-                        onTap: () => onTap(tabIndex),
-                      ),
-                    );
-                  }),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: sidePad),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: List.generate(tabs.length + 1, (i) {
+                      if (i == centerSlot) {
+                        return const SizedBox(width: fabGap);
+                      }
+                      final tabIndex = i > centerSlot ? i - 1 : i;
+                      final tab = tabs[tabIndex];
+                      final selected = activeIndex == tabIndex;
+                      return SizedBox(
+                        width: slot,
+                        child: _NavItem(
+                          tab: tab,
+                          selected: selected,
+                          accent: accent,
+                          compact: slot < 60,
+                          onTap: () => onTap(tabIndex),
+                        ),
+                      );
+                    }),
+                  ),
                 ),
               ],
             );
@@ -551,32 +564,42 @@ class _NavItem extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppTokens.radiusFull),
       child: SizedBox(
-        height: 72,
+        height: 76,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedSwitcher(
-              duration: AppTokens.durationXs,
-              transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
+              duration: AppTokens.durationSm,
+              transitionBuilder: (c, a) => FadeTransition(
+                opacity: a,
+                child: ScaleTransition(
+                  scale: Tween<double>(begin: 0.86, end: 1.0).animate(a),
+                  child: c,
+                ),
+              ),
               child: Icon(
                 selected ? tab.activeIcon : tab.icon,
                 key: ValueKey(selected),
                 color: color,
-                size: compact ? 21 : 23,
+                size: compact ? 22 : 24,
               ),
             ),
             SizedBox(height: compact ? 3 : 4),
-            Text(
-              tab.label,
-              maxLines: 1,
-              overflow: TextOverflow.fade,
-              softWrap: false,
+            AnimatedDefaultTextStyle(
+              duration: AppTokens.durationSm,
+              curve: AppTokens.easeOutSoft,
               style: TextStyle(
-                fontSize: compact ? 9.2 : 10.2,
+                fontSize: compact ? 9.4 : 10.4,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 color: color,
                 letterSpacing: 0.3,
+              ),
+              child: Text(
+                tab.label,
+                maxLines: 1,
+                overflow: TextOverflow.fade,
+                softWrap: false,
               ),
             ),
           ],

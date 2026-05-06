@@ -67,6 +67,7 @@ dependencies:
   decimal: ^3.0.2
   collection: ^1.18.0
   uuid: ^4.5.1
+  vector_math: ^2.1.4
 
   # PDF
   pdf: ^3.11.1

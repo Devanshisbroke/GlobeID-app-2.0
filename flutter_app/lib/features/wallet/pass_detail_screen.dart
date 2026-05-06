@@ -27,6 +27,7 @@ class PassDetailScreen extends ConsumerStatefulWidget {
 class _PassDetailScreenState extends ConsumerState<PassDetailScreen> {
   double _drag = 0;
   double _tiltX = 0, _tiltY = 0;
+  bool _qrBoost = false;
 
   // Wrapped in `handleError` so platforms without an accelerometer
   // (desktop, web, some emulators) silently fall back to flat instead
@@ -106,6 +107,104 @@ class _PassDetailScreenState extends ConsumerState<PassDetailScreen> {
                 child: const _NoiseField(),
               ),
             ),
+            // QR boost veil — simulates Apple Wallet's brightness boost
+            // when the QR is presented for scanning.
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 360),
+              curve: Curves.easeOutCubic,
+              opacity: _qrBoost ? 1 : 0,
+              child: IgnorePointer(
+                ignoring: !_qrBoost,
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    setState(() => _qrBoost = false);
+                  },
+                  child: Container(color: Colors.white),
+                ),
+              ),
+            ),
+            // Giant boost-mode QR overlay (above the white veil).
+            if (_qrBoost)
+              Positioned.fill(
+                child: SafeArea(
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        setState(() => _qrBoost = false);
+                      },
+                      child: TweenAnimationBuilder<double>(
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeOutCubic,
+                        tween: Tween(begin: 0, end: 1),
+                        builder: (_, v, child) => Opacity(
+                          opacity: v,
+                          child: Transform.scale(
+                            scale: 0.92 + 0.08 * v,
+                            child: child,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius:
+                                    BorderRadius.circular(AppTokens.radius2xl),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: brand.primary
+                                        .withValues(alpha: 0.18),
+                                    blurRadius: 30,
+                                    offset: const Offset(0, 12),
+                                  ),
+                                ],
+                              ),
+                              child: QrImageView(
+                                data: pass.number,
+                                size: 280,
+                                backgroundColor: Colors.white,
+                                eyeStyle: QrEyeStyle(
+                                  eyeShape: QrEyeShape.square,
+                                  color: brand.primary,
+                                ),
+                                dataModuleStyle: QrDataModuleStyle(
+                                  dataModuleShape:
+                                      QrDataModuleShape.square,
+                                  color: brand.primary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: AppTokens.space4),
+                            Text(
+                              pass.number,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                            const SizedBox(height: AppTokens.space2),
+                            Text(
+                              'Tap anywhere to dim',
+                              style: TextStyle(
+                                color: Colors.black.withValues(alpha: 0.55),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -115,6 +214,10 @@ class _PassDetailScreenState extends ConsumerState<PassDetailScreen> {
                     _Header(
                       onClose: () => Navigator.of(context).maybePop(),
                       title: pass.label,
+                      onBoost: () {
+                        HapticFeedback.mediumImpact();
+                        setState(() => _qrBoost = true);
+                      },
                     ),
                     const Spacer(),
                     StreamBuilder<AccelerometerEvent>(
@@ -140,6 +243,10 @@ class _PassDetailScreenState extends ConsumerState<PassDetailScreen> {
                                 child: _ImmersivePass(
                                   pass: pass,
                                   brand: brand,
+                                  onQrTap: () {
+                                    HapticFeedback.mediumImpact();
+                                    setState(() => _qrBoost = true);
+                                  },
                                 ),
                               ),
                             ),
@@ -156,7 +263,7 @@ class _PassDetailScreenState extends ConsumerState<PassDetailScreen> {
                     AnimatedAppearance(
                       delay: const Duration(milliseconds: 240),
                       child: Text(
-                        'Pull down to close',
+                        'Pull down to close · tap QR to boost',
                         style: Theme.of(context)
                             .textTheme
                             .labelMedium
@@ -183,9 +290,34 @@ class _PassDetailScreenState extends ConsumerState<PassDetailScreen> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.onClose, required this.title});
+  const _Header({
+    required this.onClose,
+    required this.title,
+    required this.onBoost,
+  });
   final VoidCallback onClose;
+  final VoidCallback onBoost;
   final String title;
+
+  Widget _chromeButton(IconData icon, VoidCallback onTap) {
+    return Pressable(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            padding: const EdgeInsets.all(AppTokens.space2),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+            ),
+            child: Icon(icon, color: Colors.white, size: 22),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -193,24 +325,7 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppTokens.space3),
       child: Row(
         children: [
-          Pressable(
-            onTap: onClose,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                child: Container(
-                  padding: const EdgeInsets.all(AppTokens.space2),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                  ),
-                  child: const Icon(Icons.close_rounded,
-                      color: Colors.white, size: 22),
-                ),
-              ),
-            ),
-          ),
+          _chromeButton(Icons.close_rounded, onClose),
           const SizedBox(width: AppTokens.space3),
           Expanded(
             child: Text(
@@ -223,24 +338,10 @@ class _Header extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          Pressable(
-            onTap: () => HapticFeedback.lightImpact(),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                child: Container(
-                  padding: const EdgeInsets.all(AppTokens.space2),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                  ),
-                  child: const Icon(Icons.share_rounded,
-                      color: Colors.white, size: 22),
-                ),
-              ),
-            ),
-          ),
+          _chromeButton(Icons.brightness_high_rounded, onBoost),
+          const SizedBox(width: AppTokens.space2),
+          _chromeButton(
+              Icons.share_rounded, () => HapticFeedback.lightImpact()),
         ],
       ),
     );
@@ -248,9 +349,14 @@ class _Header extends StatelessWidget {
 }
 
 class _ImmersivePass extends StatelessWidget {
-  const _ImmersivePass({required this.pass, required this.brand});
+  const _ImmersivePass({
+    required this.pass,
+    required this.brand,
+    this.onQrTap,
+  });
   final TravelDocument pass;
   final AirlineBrand brand;
+  final VoidCallback? onQrTap;
 
   @override
   Widget build(BuildContext context) {
@@ -300,23 +406,34 @@ class _ImmersivePass extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppTokens.space5),
-            Container(
-              padding: const EdgeInsets.all(AppTokens.space3),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppTokens.radiusXl),
-              ),
-              child: QrImageView(
-                data: pass.number,
-                size: 200,
-                backgroundColor: Colors.white,
-                eyeStyle: QrEyeStyle(
-                  eyeShape: QrEyeShape.square,
-                  color: brand.primary,
+            Pressable(
+              scale: 0.97,
+              onTap: onQrTap,
+              child: Container(
+                padding: const EdgeInsets.all(AppTokens.space3),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(AppTokens.radiusXl),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.18),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-                dataModuleStyle: QrDataModuleStyle(
-                  dataModuleShape: QrDataModuleShape.square,
-                  color: brand.primary,
+                child: QrImageView(
+                  data: pass.number,
+                  size: 200,
+                  backgroundColor: Colors.white,
+                  eyeStyle: QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: brand.primary,
+                  ),
+                  dataModuleStyle: QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: brand.primary,
+                  ),
                 ),
               ),
             ),
