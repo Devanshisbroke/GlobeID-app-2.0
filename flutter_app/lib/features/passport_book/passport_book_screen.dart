@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
@@ -37,6 +38,16 @@ class _PassportBookScreenState extends ConsumerState<PassportBookScreen> {
     return PageScaffold(
       title: 'Loyalty',
       subtitle: 'Stamps, tiers, and milestones',
+      actions: [
+        IconButton(
+          tooltip: 'Open passport book',
+          icon: const Icon(Icons.menu_book_rounded),
+          onPressed: () {
+            HapticFeedback.mediumImpact();
+            context.push('/passport-live');
+          },
+        ),
+      ],
       body: loyalty.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => EmptyState(

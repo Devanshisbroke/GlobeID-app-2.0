@@ -16,6 +16,7 @@ import '../features/multi_currency/multi_currency_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/onboarding/onboarding_provider.dart';
 import '../features/passport_book/passport_book_screen.dart';
+import '../features/passport_book/passport_live_screen.dart';
 import '../features/planner/planner_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/receipt/receipt_screen.dart';
@@ -129,6 +130,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/social', (_, __) => const SocialScreen()),
       _route('/explore', (_, __) => const ExploreScreen()),
       _route('/passport-book', (_, __) => const PassportBookScreen()),
+      _route('/passport-live', (_, __) => const PassportLiveScreen()),
       _route('/intelligence', (_, __) => const IntelligenceScreen()),
       _route('/explorer', (_, __) => const ExploreScreen()),
       _route('/vault', (_, __) => const VaultScreen()),
