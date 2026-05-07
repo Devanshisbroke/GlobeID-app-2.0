@@ -95,13 +95,20 @@ class _CinematicGlobeState extends State<CinematicGlobe>
             final autoYaw = widget.autoRotate && !reduce
                 ? _spin.value * 2 * math.pi
                 : 0.0;
+            // Cinematic camera — gentle dual-axis ease so the planet
+            // feels like a slow-tracking shot, not a flat rotation.
+            // Amplitude clipped to a couple of degrees so it never
+            // disorients a user who is dragging.
+            final cinematicPitch = widget.autoRotate && !reduce
+                ? math.sin(_spin.value * 2 * math.pi) * 0.045
+                : 0.0;
             return CustomPaint(
               size: Size.infinite,
               isComplex: true,
               willChange: true,
               painter: _GlobePainter(
                 yaw: autoYaw + _userYaw,
-                pitch: _userPitch,
+                pitch: _userPitch + cinematicPitch,
                 pulseT: reduce ? 0 : _pulse.value,
                 routes: widget.routes,
                 glowColor: glow,
@@ -185,48 +192,160 @@ class _GlobePainter extends CustomPainter {
     _paintSphere(canvas, radius);
     _paintGrid(canvas, cam, radius);
     _paintLand(canvas, cam, radius);
+    _paintCloudBand(canvas, cam, radius);
     _paintTerminator(canvas, cam, radius);
     _paintCityLights(canvas, cam, radius);
     _paintRoutes(canvas, cam, radius);
     if (showHubs) _paintHubs(canvas, cam, radius);
     _paintRim(canvas, radius);
+    _paintLensFlare(canvas, radius);
 
     canvas.restore();
   }
 
+  // Cloud band — drifting wispy ring at ~10° latitude on the day side
+  // gives the planet weather + a sense of depth. Cheap: handful of soft
+  // arcs at varying alphas, animated by [pulseT].
+  void _paintCloudBand(Canvas canvas, GlobeCamera cam, double r) {
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    for (var band = 0; band < 3; band++) {
+      final lat = -8.0 + band * 12;
+      final phase = pulseT * 2 * math.pi * (1 + band * 0.4);
+      final p = Path();
+      var first = true;
+      for (var lng = -180.0; lng <= 180.0; lng += 10) {
+        // Add a sinusoid so the band looks like swirling weather.
+        final wob = math.sin((lng / 30.0) + phase) * 4;
+        final v = GreatCircle.toCartesian(lat + wob, lng);
+        final rotated = cam.apply(v);
+        if (rotated.z < 0.05) {
+          if (!first) {
+            paint
+              ..color = Colors.white.withValues(alpha: 0.08 + band * 0.02)
+              ..strokeWidth = 5 - band * 0.6;
+            canvas.drawPath(p, paint);
+          }
+          p.reset();
+          first = true;
+          continue;
+        }
+        final off = _project(rotated, r * 1.005);
+        if (first) {
+          p.moveTo(off.dx, off.dy);
+          first = false;
+        } else {
+          p.lineTo(off.dx, off.dy);
+        }
+      }
+      if (!first) {
+        paint
+          ..color = Colors.white.withValues(alpha: 0.08 + band * 0.02)
+          ..strokeWidth = 5 - band * 0.6;
+        canvas.drawPath(p, paint);
+      }
+    }
+  }
+
+  // Subtle lens flare — single off-axis bright dot + gentle ray glow.
+  // Cheap and gives the feeling of a sun catching the camera.
+  void _paintLensFlare(Canvas canvas, double r) {
+    final flarePos = Offset(-r * 0.55, -r * 0.6);
+    final core = Paint()
+      ..color = Colors.white.withValues(alpha: 0.32)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
+    canvas.drawCircle(flarePos, r * 0.18, core);
+    final hot = Paint()
+      ..color = Colors.white.withValues(alpha: 0.90)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawCircle(flarePos, r * 0.04, hot);
+    // Subtle echo across the diagonal — classic anamorphic ghost.
+    final echo = Paint()
+      ..color = glowColor.withValues(alpha: 0.18)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14);
+    canvas.drawCircle(Offset(r * 0.30, r * 0.34), r * 0.10, echo);
+    canvas.drawCircle(Offset(r * 0.55, r * 0.55), r * 0.06, echo);
+  }
+
   void _paintStars(Canvas canvas, Size size) {
-    // Deterministic stars seeded from screen geometry; twinkle phase
-    // driven by pulseT.
-    final rng = math.Random(73);
-    for (var i = 0; i < 120; i++) {
-      final x = rng.nextDouble() * size.width;
-      final y = rng.nextDouble() * size.height;
-      final base = 0.2 + rng.nextDouble() * 0.6;
-      final phase = rng.nextDouble() * 2 * math.pi;
-      final tw = (math.sin(pulseT * 2 * math.pi + phase) + 1) / 2;
-      final radius = 0.4 + rng.nextDouble() * 1.4;
-      canvas.drawCircle(
-        Offset(x, y),
-        radius,
-        Paint()
-          ..color = Colors.white.withValues(alpha: base * (0.5 + 0.5 * tw)),
-      );
+    // Three depth layers — far / mid / near — each with parallax tied
+    // to yaw so the user spinning the globe feels the cosmos shift.
+    // Deterministic seeds keep frame-to-frame coherence stable.
+    final layers = <(int, double, double, int, double)>[
+      // (seed, parallax, twinkleScale, count, alphaScale)
+      (73, 0.02, 1.0, 180, 0.55),
+      (149, 0.06, 1.4, 90, 0.70),
+      (211, 0.12, 1.8, 36, 0.85),
+    ];
+    for (final layer in layers) {
+      final rng = math.Random(layer.$1);
+      final parallax = yaw * layer.$2 * size.width;
+      for (var i = 0; i < layer.$4; i++) {
+        var x = (rng.nextDouble() * size.width - parallax) % size.width;
+        if (x < 0) x += size.width;
+        final y = rng.nextDouble() * size.height;
+        final base = 0.18 + rng.nextDouble() * layer.$5;
+        final phase = rng.nextDouble() * 2 * math.pi;
+        final tw = (math.sin(pulseT * 2 * math.pi + phase) + 1) / 2;
+        final radius = (0.4 + rng.nextDouble() * 1.4) * layer.$3;
+        canvas.drawCircle(
+          Offset(x, y),
+          radius,
+          Paint()
+            ..color =
+                Colors.white.withValues(alpha: base * (0.45 + 0.55 * tw)),
+        );
+      }
     }
     // A handful of brighter "anchor" stars with a soft halo.
     final rng2 = math.Random(37);
-    for (var i = 0; i < 12; i++) {
+    for (var i = 0; i < 14; i++) {
       final x = rng2.nextDouble() * size.width;
       final y = rng2.nextDouble() * size.height;
       final phase = rng2.nextDouble() * 2 * math.pi;
       final tw = (math.sin(pulseT * 2 * math.pi + phase) + 1) / 2;
       canvas.drawCircle(
         Offset(x, y),
-        2.2 + tw * 1.4,
+        2.4 + tw * 1.4,
         Paint()
           ..color = Colors.white.withValues(alpha: 0.30 + 0.40 * tw)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.4),
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.6),
       );
+      // Tiny diffraction cross on brightest anchors.
+      if (i.isEven) {
+        final cross = Paint()
+          ..color = glowColor.withValues(alpha: 0.18 + 0.30 * tw)
+          ..strokeWidth = 0.6
+          ..strokeCap = StrokeCap.round;
+        canvas.drawLine(
+          Offset(x - 5 - tw * 3, y),
+          Offset(x + 5 + tw * 3, y),
+          cross,
+        );
+        canvas.drawLine(
+          Offset(x, y - 5 - tw * 3),
+          Offset(x, y + 5 + tw * 3),
+          cross,
+        );
+      }
     }
+    // Two distant nebula whisps for depth — large soft tinted blobs.
+    canvas.drawCircle(
+      Offset(size.width * 0.18, size.height * 0.22),
+      size.width * 0.35,
+      Paint()
+        ..color = glowColor.withValues(alpha: 0.05)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 60),
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.86, size.height * 0.78),
+      size.width * 0.30,
+      Paint()
+        ..color = const Color(0xFFEC4899).withValues(alpha: 0.04)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 60),
+    );
   }
 
   void _paintCityLights(Canvas canvas, GlobeCamera cam, double r) {
@@ -450,18 +569,31 @@ class _GlobePainter extends CustomPainter {
         _drawArcPath(canvas, visiblePts, route, r);
       }
 
-      // Bead — a glowing dot that travels along the arc.
-      final bead = (pulseT * samples.length).floor()
-          .clamp(0, samples.length - 1);
-      final v = samples[bead];
-      final rotated = cam.apply(v);
-      if (rotated.z >= 0) {
+      // Traveler particles — a comet trail of glowing dots flowing
+      // along the arc, evenly spaced with decreasing alpha. Far more
+      // immersive than a single bead.
+      const particleCount = 5;
+      for (var i = 0; i < particleCount; i++) {
+        final phaseOffset = i / particleCount;
+        final t = (pulseT + phaseOffset) % 1.0;
+        final idx = (t * samples.length).floor()
+            .clamp(0, samples.length - 1);
+        final v = samples[idx];
+        final rotated = cam.apply(v);
+        if (rotated.z < 0) continue;
         final off = _project(rotated, r * 1.0);
-        final paint = Paint()
-          ..color = route.color
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-        canvas.drawCircle(off, 5.5, paint);
-        canvas.drawCircle(off, 2.2, Paint()..color = Colors.white);
+        final lead = i == 0;
+        final fade = (1.0 - i / particleCount).clamp(0.0, 1.0);
+        canvas.drawCircle(
+          off,
+          (lead ? 5.5 : 3.6) * fade,
+          Paint()
+            ..color = route.color.withValues(alpha: 0.55 + 0.45 * fade)
+            ..maskFilter = MaskFilter.blur(BlurStyle.normal, lead ? 4 : 2),
+        );
+        if (lead) {
+          canvas.drawCircle(off, 2.2, Paint()..color = Colors.white);
+        }
       }
 
       // Endpoint markers.
