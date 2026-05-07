@@ -26,10 +26,14 @@ import '../features/scanner/scanner_screen.dart';
 import '../features/airport/airport_screen.dart';
 import '../features/arrival/arrival_welcome_screen.dart';
 import '../features/connectivity/esim_screen.dart';
+import '../features/country/country_profile_screen.dart';
+import '../features/customs/customs_declaration_screen.dart';
 import '../features/emergency/emergency_screen.dart';
 import '../features/globe/cinematic_globe_screen.dart';
 import '../features/itinerary/itinerary_builder_screen.dart';
+import '../features/journal/trip_journal_screen.dart';
 import '../features/lounge/lounge_screen.dart';
+import '../features/packing/packing_checklist_screen.dart';
 import '../features/phrasebook/phrasebook_screen.dart';
 import '../features/sensors/sensors_lab_screen.dart';
 import '../features/services/activities_screen.dart';
@@ -206,6 +210,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/phrasebook', (_, __) => const PhrasebookScreen()),
       _route('/emergency', (_, __) => const EmergencySosScreen()),
       _route('/itinerary', (_, __) => const ItineraryBuilderScreen()),
+      _route('/country', (_, __) => const CountryProfileScreen()),
+      _route('/packing', (_, __) => const PackingChecklistScreen()),
+      _route('/customs', (_, __) => const CustomsDeclarationScreen()),
+      _route('/journal', (_, __) => const TripJournalScreen()),
       _route(
         '/wallet/send',
         (_, __) => const WalletFlowScreen(flow: WalletFlow.send),
