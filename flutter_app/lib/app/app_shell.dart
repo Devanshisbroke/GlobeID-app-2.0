@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/inbox/inbox_provider.dart';
 import '../features/lifecycle/lifecycle_provider.dart';
 import '../features/score/score_provider.dart';
 import '../features/security/session_lock_provider.dart';
@@ -14,6 +15,7 @@ import '../features/user/user_provider.dart';
 import '../features/wallet/wallet_provider.dart';
 import '../widgets/atmosphere_layer.dart';
 import '../widgets/aurora_layer.dart';
+import '../widgets/pressable.dart';
 import 'theme/app_theme.dart';
 import 'theme/app_tokens.dart';
 
@@ -197,8 +199,71 @@ class _TopChromeRow extends ConsumerWidget {
           const _IdentityQuickPill(),
           const SizedBox(width: 8),
         ],
+        const _InboxBell(),
+        const SizedBox(width: 8),
         const _TopChrome(),
       ],
+    );
+  }
+}
+
+/// Notification bell with unread count badge. Tap → /inbox.
+class _InboxBell extends ConsumerWidget {
+  const _InboxBell();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final glass = theme.extension<GlassExtension>()!;
+    final unread = ref.watch(inboxUnreadProvider);
+
+    return Pressable(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        GoRouter.of(context).push('/inbox');
+      },
+      child: Container(
+        height: 32,
+        width: 32,
+        decoration: BoxDecoration(
+          color: isDark
+              ? glass.surface.withValues(alpha: 0.55)
+              : Colors.white.withValues(alpha: 0.78),
+          borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+          border: Border.all(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.10),
+          ),
+          boxShadow: AppTokens.shadowSm(),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(
+              Icons.notifications_rounded,
+              size: 16,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
+            ),
+            if (unread > 0)
+              Positioned(
+                top: 5,
+                right: 5,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE11D48),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: theme.colorScheme.surface,
+                      width: 1.2,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1042,6 +1107,12 @@ class _CommandPaletteState extends State<_CommandPalette> {
       '/onboarding',
       Icons.auto_awesome_rounded,
       Color(0xFF10B981),
+    ),
+    _CommandItem(
+      'Inbox',
+      '/inbox',
+      Icons.notifications_rounded,
+      Color(0xFFE11D48),
     ),
   ];
 

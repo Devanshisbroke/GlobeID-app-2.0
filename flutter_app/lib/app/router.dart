@@ -8,6 +8,7 @@ import '../features/explore/explore_screen.dart';
 import '../features/feed/feed_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/identity/identity_screen.dart';
+import '../features/inbox/inbox_screen.dart';
 import '../features/intelligence/intelligence_screen.dart';
 import '../features/kiosk/kiosk_screen.dart';
 import '../features/lock/lock_screen.dart';
@@ -138,6 +139,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/scan', (_, __) => const ScannerScreen()),
       _route('/analytics', (_, __) => const AnalyticsScreen()),
       _route('/audit-log', (_, __) => const AuditLogScreen()),
+      _route('/inbox', (_, __) => const InboxScreen()),
       _route(
         '/trip/:tripId',
         (_, state) => TripDetailScreen(tripId: state.pathParameters['tripId']!),
