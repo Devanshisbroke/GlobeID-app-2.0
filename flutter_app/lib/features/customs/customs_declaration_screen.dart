@@ -40,6 +40,17 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
       TextEditingController(text: 'Aman Tokyo · 1-5-6 Otemachi');
   final TextEditingController _stay = TextEditingController(text: '9 days');
 
+  void _onTextChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _addr.addListener(_onTextChanged);
+    _stay.addListener(_onTextChanged);
+  }
+
   static const _questions = <(IconData, String, String)>[
     (Icons.local_pharmacy_rounded, 'Carrying medicines?',
         'Includes prescriptions, narcotics or restricted substances.'),
@@ -55,8 +66,12 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
 
   @override
   void dispose() {
-    _addr.dispose();
-    _stay.dispose();
+    _addr
+      ..removeListener(_onTextChanged)
+      ..dispose();
+    _stay
+      ..removeListener(_onTextChanged)
+      ..dispose();
     super.dispose();
   }
 
