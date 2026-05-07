@@ -66,16 +66,18 @@ class _ArrivalWelcomeScreenState extends State<ArrivalWelcomeScreen>
           AnimatedAppearance(
             child: AspectRatio(
               aspectRatio: 1.45,
-              child: AnimatedBuilder(
-                animation: _ctrl,
-                builder: (_, __) => ClipRRect(
-                  borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-                  child: CustomPaint(
-                    painter: _ArrivalPainter(
-                      tone: widget.tone,
-                      progress: _ctrl.value,
-                      flag: widget.flag,
-                      city: widget.city,
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _ctrl,
+                  builder: (_, __) => ClipRRect(
+                    borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+                    child: CustomPaint(
+                      painter: _ArrivalPainter(
+                        tone: widget.tone,
+                        progress: _ctrl.value,
+                        flag: widget.flag,
+                        city: widget.city,
+                      ),
                     ),
                   ),
                 ),

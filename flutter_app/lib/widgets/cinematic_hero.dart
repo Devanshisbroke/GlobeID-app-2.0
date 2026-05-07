@@ -104,18 +104,22 @@ class _CinematicHeroState extends State<CinematicHero>
             DecoratedBox(decoration: BoxDecoration(gradient: gradient)),
 
             // Aurora wash — slow drifting radial gradients
-            AnimatedBuilder(
-              animation: _aurora,
-              builder: (_, __) => CustomPaint(
-                painter: _AuroraPainter(
-                  t: _aurora.value,
-                  tone: tone,
+            RepaintBoundary(
+              child: AnimatedBuilder(
+                animation: _aurora,
+                builder: (_, __) => CustomPaint(
+                  painter: _AuroraPainter(
+                    t: _aurora.value,
+                    tone: tone,
+                  ),
                 ),
               ),
             ),
 
             // Star dust scatter (cheap, deterministic)
-            CustomPaint(painter: const _StarDustPainter()),
+            const RepaintBoundary(
+              child: CustomPaint(painter: _StarDustPainter()),
+            ),
 
             // Parallax glyph
             if (widget.icon != null)

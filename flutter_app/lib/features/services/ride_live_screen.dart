@@ -141,13 +141,15 @@ class _RideLiveScreenState extends State<RideLiveScreen>
               borderRadius: BorderRadius.circular(AppTokens.radius2xl),
               child: SizedBox(
                 height: 240,
-                child: AnimatedBuilder(
-                  animation: _ctrl,
-                  builder: (_, __) => CustomPaint(
-                    painter: _RideMapPainter(
-                      tone: widget.tone,
-                      progress: _ctrl.value,
-                      stage: _stage,
+                child: RepaintBoundary(
+                  child: AnimatedBuilder(
+                    animation: _ctrl,
+                    builder: (_, __) => CustomPaint(
+                      painter: _RideMapPainter(
+                        tone: widget.tone,
+                        progress: _ctrl.value,
+                        stage: _stage,
+                      ),
                     ),
                   ),
                 ),

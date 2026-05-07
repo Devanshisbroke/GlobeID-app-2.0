@@ -83,15 +83,17 @@ class _CinematicGlobeScreenState extends State<CinematicGlobeScreen>
           AnimatedAppearance(
             child: AspectRatio(
               aspectRatio: 0.96,
-              child: AnimatedBuilder(
-                animation: _ctrl,
-                builder: (_, __) => ClipRRect(
-                  borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-                  child: CustomPaint(
-                    painter: _CinematicGlobePainter(
-                      progress: _ctrl.value,
-                      destinations: _destinations,
-                      selected: _selected,
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _ctrl,
+                  builder: (_, __) => ClipRRect(
+                    borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+                    child: CustomPaint(
+                      painter: _CinematicGlobePainter(
+                        progress: _ctrl.value,
+                        destinations: _destinations,
+                        selected: _selected,
+                      ),
                     ),
                   ),
                 ),
