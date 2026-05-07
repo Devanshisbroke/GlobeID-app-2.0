@@ -95,6 +95,71 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
         ('Local-first', Icons.cloud_off_rounded),
       ],
     ),
+    _Slide(
+      'Passport ingest',
+      'Snap your passport. We extract MRZ on-device, never on a server.',
+      Icons.qr_code_scanner_rounded,
+      Color(0xFF06B6D4),
+      Color(0xFF7C3AED),
+      [
+        ('On-device OCR', Icons.remove_red_eye_rounded),
+        ('MRZ verify', Icons.verified_rounded),
+        ('Holographic foil', Icons.auto_awesome_rounded),
+        ('Tier upgrade', Icons.workspace_premium_rounded),
+      ],
+    ),
+    _Slide(
+      'Biometric verify',
+      'Face + fingerprint binding. Hardware-backed where available.',
+      Icons.fingerprint_rounded,
+      Color(0xFFD4AF37),
+      Color(0xFFEA580C),
+      [
+        ('Face ID / Touch ID', Icons.face_rounded),
+        ('Hardware keystore', Icons.memory_rounded),
+        ('Liveness check', Icons.visibility_rounded),
+        ('Recovery codes', Icons.vpn_key_rounded),
+      ],
+    ),
+    _Slide(
+      'Vault setup',
+      'A private, end-to-end-encrypted home for documents and credentials.',
+      Icons.lock_rounded,
+      Color(0xFF7C3AED),
+      Color(0xFF06B6D4),
+      [
+        ('E2E encryption', Icons.shield_moon_rounded),
+        ('Auto-organize', Icons.folder_special_rounded),
+        ('Cross-device sync', Icons.devices_rounded),
+        ('Selective share', Icons.share_rounded),
+      ],
+    ),
+    _Slide(
+      'Payment method',
+      'Add a card to unlock concierge bookings, lounge access, eSIM data.',
+      Icons.credit_card_rounded,
+      Color(0xFF10B981),
+      Color(0xFF06B6D4),
+      [
+        ('Apple Pay / Google Pay', Icons.payment_rounded),
+        ('Multi-currency wallet', Icons.currency_exchange_rounded),
+        ('Spend caps', Icons.shield_rounded),
+        ('Receipts auto-saved', Icons.receipt_long_rounded),
+      ],
+    ),
+    _Slide(
+      'Network verification',
+      'Cross-check your identity against trusted issuers worldwide.',
+      Icons.hub_rounded,
+      Color(0xFF3B82F6),
+      Color(0xFF7C3AED),
+      [
+        ('Issuer network', Icons.public_rounded),
+        ('Score boost', Icons.trending_up_rounded),
+        ('Anti-fraud', Icons.security_rounded),
+        ('Tier unlocks', Icons.star_rounded),
+      ],
+    ),
   ];
 
   @override
