@@ -350,15 +350,21 @@ class _GlobeStage extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          const Positioned.fill(child: Starfield(density: 0.8)),
+          const Positioned.fill(
+            child: RepaintBoundary(child: Starfield(density: 0.8)),
+          ),
           if (showTraffic)
             Positioned.fill(
-              child: AnimatedBuilder(
-                animation: animation,
-                builder: (_, __) => CustomPaint(
-                  painter: _GlobeOrbitPainter(
-                    t: animation.value,
-                    accent: accent,
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: animation,
+                  builder: (_, __) => CustomPaint(
+                    isComplex: true,
+                    willChange: true,
+                    painter: _GlobeOrbitPainter(
+                      t: animation.value,
+                      accent: accent,
+                    ),
                   ),
                 ),
               ),

@@ -244,17 +244,21 @@ class _ScoreRing extends StatelessWidget {
       duration: AppTokens.durationXl,
       curve: AppTokens.easeOutSoft,
       builder: (_, v, __) {
-        return SizedBox(
-          width: 96,
-          height: 96,
-          child: CustomPaint(
-            painter: _RingPainter(progress: v, color: accent),
-            child: Center(
-              child: Text(
-                score.toString(),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 22,
+        return RepaintBoundary(
+          child: SizedBox(
+            width: 96,
+            height: 96,
+            child: CustomPaint(
+              isComplex: true,
+              willChange: true,
+              painter: _RingPainter(progress: v, color: accent),
+              child: Center(
+                child: Text(
+                  score.toString(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 22,
+                  ),
                 ),
               ),
             ),

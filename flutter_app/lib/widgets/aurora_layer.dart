@@ -49,15 +49,22 @@ class _AuroraLayerState extends State<AuroraLayer>
         ];
 
     return IgnorePointer(
-      child: AnimatedBuilder(
-        animation: _ctrl,
-        builder: (_, __) => CustomPaint(
-          size: Size.infinite,
-          painter: _AuroraPainter(
-            t: reduce ? 0.0 : _ctrl.value,
-            colors: palette,
-            isDark: isDark,
-            intensity: widget.intensity,
+      // Aurora is a full-screen, every-frame painter behind every
+      // route. Isolating its layer prevents page content from being
+      // re-rasterised when the colour fields drift.
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _ctrl,
+          builder: (_, __) => CustomPaint(
+            size: Size.infinite,
+            isComplex: true,
+            willChange: true,
+            painter: _AuroraPainter(
+              t: reduce ? 0.0 : _ctrl.value,
+              colors: palette,
+              isDark: isDark,
+              intensity: widget.intensity,
+            ),
           ),
         ),
       ),

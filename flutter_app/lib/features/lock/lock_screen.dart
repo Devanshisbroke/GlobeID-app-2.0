@@ -123,22 +123,26 @@ class _LockScreenState extends ConsumerState<LockScreen>
                     child: Pressable(
                       scale: 0.96,
                       onTap: _unlock,
-                      child: AnimatedBuilder(
-                        animation: Listenable.merge([_orbit, _pulse]),
-                        builder: (_, __) => SizedBox(
-                          width: 220,
-                          height: 220,
-                          child: CustomPaint(
-                            painter: _BiometricRing(
-                              orbit: _orbit.value,
-                              pulse: _pulse.value,
-                              color: accent,
-                            ),
-                            child: Center(
-                              child: Icon(
-                                Icons.fingerprint_rounded,
-                                color: Colors.white,
-                                size: 64,
+                      child: RepaintBoundary(
+                        child: AnimatedBuilder(
+                          animation: Listenable.merge([_orbit, _pulse]),
+                          builder: (_, __) => SizedBox(
+                            width: 220,
+                            height: 220,
+                            child: CustomPaint(
+                              isComplex: true,
+                              willChange: true,
+                              painter: _BiometricRing(
+                                orbit: _orbit.value,
+                                pulse: _pulse.value,
+                                color: accent,
+                              ),
+                              child: const Center(
+                                child: Icon(
+                                  Icons.fingerprint_rounded,
+                                  color: Colors.white,
+                                  size: 64,
+                                ),
                               ),
                             ),
                           ),

@@ -637,10 +637,13 @@ class _PredictiveNextTripCard extends StatelessWidget {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: CustomPaint(
-                        size: const Size(double.infinity, 24),
-                        painter: _ArcPainter(
-                          color: Colors.white.withValues(alpha: 0.95),
+                      child: RepaintBoundary(
+                        child: CustomPaint(
+                          isComplex: true,
+                          size: const Size(double.infinity, 24),
+                          painter: _ArcPainter(
+                            color: Colors.white.withValues(alpha: 0.95),
+                          ),
                         ),
                       ),
                     ),

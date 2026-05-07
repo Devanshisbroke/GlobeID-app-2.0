@@ -85,27 +85,34 @@ class _CinematicGlobeState extends State<CinematicGlobe>
               (_userPitch - d.delta.dy * 0.005).clamp(-1.1, 1.1);
         });
       },
-      child: AnimatedBuilder(
-        animation: Listenable.merge([_spin, _pulse]),
-        builder: (_, __) {
-          final autoYaw = widget.autoRotate && !reduce
-              ? _spin.value * 2 * math.pi
-              : 0.0;
-          return CustomPaint(
-            size: Size.infinite,
-            painter: _GlobePainter(
-              yaw: autoYaw + _userYaw,
-              pitch: _userPitch,
-              pulseT: reduce ? 0 : _pulse.value,
-              routes: widget.routes,
-              glowColor: glow,
-              landColor: land,
-              showHubs: widget.showHubs,
-              showLabels: widget.showLabels,
-              padding: widget.padding,
-            ),
-          );
-        },
+      // Isolated repaint layer keeps the heavy globe painter off the
+      // main scaffold's compositor pass — surrounding chrome stays
+      // smooth while the globe ticks every frame.
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: Listenable.merge([_spin, _pulse]),
+          builder: (_, __) {
+            final autoYaw = widget.autoRotate && !reduce
+                ? _spin.value * 2 * math.pi
+                : 0.0;
+            return CustomPaint(
+              size: Size.infinite,
+              isComplex: true,
+              willChange: true,
+              painter: _GlobePainter(
+                yaw: autoYaw + _userYaw,
+                pitch: _userPitch,
+                pulseT: reduce ? 0 : _pulse.value,
+                routes: widget.routes,
+                glowColor: glow,
+                landColor: land,
+                showHubs: widget.showHubs,
+                showLabels: widget.showLabels,
+                padding: widget.padding,
+              ),
+            );
+          },
+        ),
       ),
     );
   }

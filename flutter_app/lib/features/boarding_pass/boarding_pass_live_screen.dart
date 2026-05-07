@@ -170,10 +170,15 @@ class _BoardingPassLiveScreenState
             ),
             // ── Drifting cloud silhouettes ──────────────────────────
             Positioned.fill(
-              child: AnimatedBuilder(
-                animation: _airplane,
-                builder: (_, __) =>
-                    CustomPaint(painter: _CloudsPainter(t: _airplane.value)),
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _airplane,
+                  builder: (_, __) => CustomPaint(
+                    isComplex: true,
+                    willChange: true,
+                    painter: _CloudsPainter(t: _airplane.value),
+                  ),
+                ),
               ),
             ),
 
@@ -496,12 +501,16 @@ class _FrontFace extends StatelessWidget {
                   SizedBox(
                     width: 120,
                     height: 60,
-                    child: AnimatedBuilder(
-                      animation: airplane,
-                      builder: (_, __) => CustomPaint(
-                        painter: _ArcAirplanePainter(
-                          progress: airplane.value,
-                          color: brand.primary,
+                    child: RepaintBoundary(
+                      child: AnimatedBuilder(
+                        animation: airplane,
+                        builder: (_, __) => CustomPaint(
+                          isComplex: true,
+                          willChange: true,
+                          painter: _ArcAirplanePainter(
+                            progress: airplane.value,
+                            color: brand.primary,
+                          ),
                         ),
                       ),
                     ),
@@ -610,21 +619,29 @@ class _FrontFace extends StatelessWidget {
               ),
             ),
             // ── Perforation tear strip ───────────────────────────
-            CustomPaint(
-              size: const Size(double.infinity, 14),
-              painter: _PerforationPainter(),
+            RepaintBoundary(
+              child: CustomPaint(
+                isComplex: true,
+                size: const Size(double.infinity, 14),
+                painter: _PerforationPainter(),
+              ),
             ),
             // ── PDF417 barcode ───────────────────────────────────
+            // Static painter — wrap so the barcode is rasterised once
+            // and then composited as a layer.
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
               child: SizedBox(
                 height: 56,
-                child: CustomPaint(
-                  painter: _Pdf417Painter(
-                    seed: '${leg.flightNumber}|${leg.from}|${leg.to}',
-                    color: Colors.black87,
+                child: RepaintBoundary(
+                  child: CustomPaint(
+                    isComplex: true,
+                    painter: _Pdf417Painter(
+                      seed: '${leg.flightNumber}|${leg.from}|${leg.to}',
+                      color: Colors.black87,
+                    ),
+                    size: const Size(double.infinity, 56),
                   ),
-                  size: const Size(double.infinity, 56),
                 ),
               ),
             ),
