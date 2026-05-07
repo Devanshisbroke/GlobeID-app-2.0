@@ -26,8 +26,11 @@ import '../features/scanner/scanner_screen.dart';
 import '../features/airport/airport_screen.dart';
 import '../features/arrival/arrival_welcome_screen.dart';
 import '../features/connectivity/esim_screen.dart';
+import '../features/emergency/emergency_screen.dart';
 import '../features/globe/cinematic_globe_screen.dart';
+import '../features/itinerary/itinerary_builder_screen.dart';
 import '../features/lounge/lounge_screen.dart';
+import '../features/phrasebook/phrasebook_screen.dart';
 import '../features/sensors/sensors_lab_screen.dart';
 import '../features/services/activities_screen.dart';
 import '../features/services/flights_screen.dart';
@@ -200,6 +203,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/globe-cinematic', (_, __) => const CinematicGlobeScreen()),
       _route('/lounge', (_, __) => const LoungeScreen()),
       _route('/esim', (_, __) => const EsimScreen()),
+      _route('/phrasebook', (_, __) => const PhrasebookScreen()),
+      _route('/emergency', (_, __) => const EmergencySosScreen()),
+      _route('/itinerary', (_, __) => const ItineraryBuilderScreen()),
       _route(
         '/wallet/send',
         (_, __) => const WalletFlowScreen(flow: WalletFlow.send),
