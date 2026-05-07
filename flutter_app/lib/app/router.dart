@@ -23,12 +23,17 @@ import '../features/planner/planner_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/receipt/receipt_screen.dart';
 import '../features/scanner/scanner_screen.dart';
+import '../features/airport/airport_screen.dart';
 import '../features/services/activities_screen.dart';
+import '../features/services/flights_screen.dart';
 import '../features/services/food_screen.dart';
 import '../features/services/hotels_screen.dart';
+import '../features/services/ride_live_screen.dart';
 import '../features/services/rides_screen.dart';
 import '../features/services/services_hub_screen.dart';
 import '../features/services/transport_screen.dart';
+import '../features/travel_os/travel_os_screen.dart';
+import '../features/wallet/wallet_flows_screen.dart';
 import '../features/discover/discover_screen.dart';
 import '../features/security/audit_log_screen.dart';
 import '../features/security/session_lock_provider.dart';
@@ -178,9 +183,29 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Services sub-routes
       _route('/services/hotels', (_, __) => const HotelsScreen()),
       _route('/services/rides', (_, __) => const RidesScreen()),
+      _route('/services/rides/live', (_, __) => const RideLiveScreen()),
       _route('/services/food', (_, __) => const FoodScreen()),
+      _route('/services/flights', (_, __) => const FlightsScreen()),
       _route('/services/activities', (_, __) => const ActivitiesScreen()),
       _route('/services/transport', (_, __) => const TransportScreen()),
+      _route('/airport', (_, __) => const AirportScreen()),
+      _route('/travel-os', (_, __) => const TravelOSScreen()),
+      _route(
+        '/wallet/send',
+        (_, __) => const WalletFlowScreen(flow: WalletFlow.send),
+      ),
+      _route(
+        '/wallet/receive',
+        (_, __) => const WalletFlowScreen(flow: WalletFlow.receive),
+      ),
+      _route(
+        '/wallet/scan',
+        (_, __) => const WalletFlowScreen(flow: WalletFlow.scanPay),
+      ),
+      _route(
+        '/wallet/exchange',
+        (_, __) => const WalletFlowScreen(flow: WalletFlow.exchange),
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Not found')),
