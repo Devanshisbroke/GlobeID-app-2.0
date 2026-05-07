@@ -269,6 +269,27 @@ class _ServicesHubScreenState extends ConsumerState<ServicesHubScreen>
               description: 'Airport lounge access',
             ),
             _ServiceItem(
+              name: 'Phrasebook',
+              path: '/phrasebook',
+              icon: Icons.translate_rounded,
+              accent: AccentName.rose,
+              description: 'Adapted to your destination',
+            ),
+            _ServiceItem(
+              name: 'Itinerary',
+              path: '/itinerary',
+              icon: Icons.event_note_rounded,
+              accent: AccentName.indigo,
+              description: 'Drag · drop · smart-fill',
+            ),
+            _ServiceItem(
+              name: 'Emergency',
+              path: '/emergency',
+              icon: Icons.shield_rounded,
+              accent: AccentName.rose,
+              description: 'SOS · embassy · hotlines',
+            ),
+            _ServiceItem(
               name: 'Insurance',
               path: '/identity',
               icon: Icons.health_and_safety_rounded,
