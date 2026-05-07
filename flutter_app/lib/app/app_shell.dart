@@ -1013,6 +1013,36 @@ class _CommandPaletteState extends State<_CommandPalette> {
       Icons.travel_explore_rounded,
       Color(0xFF3B82F6),
     ),
+    _CommandItem(
+      'Live passport',
+      '/passport-live',
+      Icons.book_rounded,
+      Color(0xFF7C3AED),
+    ),
+    _CommandItem(
+      'Audit log',
+      '/audit-log',
+      Icons.fact_check_rounded,
+      Color(0xFFEA580C),
+    ),
+    _CommandItem(
+      'Social',
+      '/social',
+      Icons.people_alt_rounded,
+      Color(0xFFE11D48),
+    ),
+    _CommandItem(
+      'Services hub',
+      '/services',
+      Icons.apps_rounded,
+      Color(0xFF06B6D4),
+    ),
+    _CommandItem(
+      'Onboarding',
+      '/onboarding',
+      Icons.auto_awesome_rounded,
+      Color(0xFF10B981),
+    ),
   ];
 
   List<_CommandItem> get _filtered {
