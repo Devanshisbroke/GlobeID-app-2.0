@@ -186,6 +186,20 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
           ),
+          // Drill into the full settings ecosystem.
+          AnimatedAppearance(
+            delay: const Duration(milliseconds: 240),
+            child: PremiumCard(
+              padding: const EdgeInsets.symmetric(
+                  vertical: AppTokens.space2, horizontal: AppTokens.space4),
+              child: _NavRow(
+                icon: Icons.tune_rounded,
+                label: 'Settings',
+                sub: 'Appearance · Notifications · Security · Privacy · Travel · Accessibility · Lab · About',
+                onTap: () => context.push('/settings'),
+              ),
+            ),
+          ),
           const SectionHeader(title: 'Account', dense: true),
           AnimatedAppearance(
             delay: const Duration(milliseconds: 280),

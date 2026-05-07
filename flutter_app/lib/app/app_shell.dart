@@ -1114,6 +1114,12 @@ class _CommandPaletteState extends State<_CommandPalette> {
       Icons.notifications_rounded,
       Color(0xFFE11D48),
     ),
+    _CommandItem(
+      'Settings',
+      '/settings',
+      Icons.tune_rounded,
+      Color(0xFF6366F1),
+    ),
   ];
 
   List<_CommandItem> get _filtered {
