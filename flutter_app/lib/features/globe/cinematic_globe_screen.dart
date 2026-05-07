@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/agentic_chip.dart';
@@ -231,7 +232,7 @@ class _CinematicGlobeScreenState extends State<CinematicGlobeScreen>
             ),
             onPressed: () {
               HapticFeedback.heavyImpact();
-              Navigator.of(context).pushNamed('/travel-os');
+              GoRouter.of(context).push('/travel-os');
             },
           ),
           const SizedBox(height: AppTokens.space9),

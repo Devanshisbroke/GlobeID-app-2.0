@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/agentic_chip.dart';
@@ -305,7 +306,7 @@ class _AirportScreenState extends State<AirportScreen> {
               ),
               onPressed: () {
                 HapticFeedback.heavyImpact();
-                Navigator.of(context).pushNamed(
+                GoRouter.of(context).push(
                   '/boarding/trp-001/leg-ua837',
                 );
               },
