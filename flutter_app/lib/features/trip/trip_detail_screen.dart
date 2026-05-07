@@ -145,8 +145,543 @@ class TripDetailScreen extends ConsumerWidget {
                   delay: const Duration(milliseconds: 320),
                   child: _PackingCard(trip: trip),
                 ),
+
+                // ── Destination intel cluster ──────────────────
+                const SectionHeader(
+                    title: 'Destination intel', dense: true),
+                AnimatedAppearance(
+                  delay: const Duration(milliseconds: 360),
+                  child: _AnchorStrip(anchors: const [
+                    'Weather',
+                    'Visa',
+                    'Currency',
+                    'Time',
+                    'Health',
+                  ]),
+                ),
+                const SizedBox(height: AppTokens.space3),
+                AnimatedAppearance(
+                  delay: const Duration(milliseconds: 380),
+                  child: _WeatherCard(to: to),
+                ),
+                const SizedBox(height: AppTokens.space3),
+                AnimatedAppearance(
+                  delay: const Duration(milliseconds: 400),
+                  child: const _VisaCard(),
+                ),
+                const SizedBox(height: AppTokens.space3),
+                AnimatedAppearance(
+                  delay: const Duration(milliseconds: 420),
+                  child: const _CurrencyCard(),
+                ),
+
+                // ── Ground operations ──────────────────────────
+                const SectionHeader(
+                    title: 'On the ground', dense: true),
+                AnimatedAppearance(
+                  delay: const Duration(milliseconds: 460),
+                  child: const _TransportCard(),
+                ),
+                const SizedBox(height: AppTokens.space3),
+                AnimatedAppearance(
+                  delay: const Duration(milliseconds: 480),
+                  child: const _LoungeCard(),
+                ),
+                const SizedBox(height: AppTokens.space3),
+                AnimatedAppearance(
+                  delay: const Duration(milliseconds: 500),
+                  child: const _EsimCard(),
+                ),
+                const SizedBox(height: AppTokens.space3),
+                AnimatedAppearance(
+                  delay: const Duration(milliseconds: 520),
+                  child: const _InsuranceCard(),
+                ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Anchor strip ──────────────────────────────────────────────
+class _AnchorStrip extends StatelessWidget {
+  const _AnchorStrip({required this.anchors});
+  final List<String> anchors;
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return SizedBox(
+      height: 36,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: anchors.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 6),
+        itemBuilder: (_, i) => Container(
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppTokens.space3, vertical: 6),
+          decoration: BoxDecoration(
+            color: t.colorScheme.onSurface.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+            border: Border.all(
+                color: t.colorScheme.onSurface.withValues(alpha: 0.10)),
+          ),
+          child: Center(
+            child: Text(
+              anchors[i],
+              style: t.textTheme.labelMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Weather card ──────────────────────────────────────────────
+class _WeatherCard extends StatelessWidget {
+  const _WeatherCard({required this.to});
+  final String? to;
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return PremiumCard(
+      padding: const EdgeInsets.all(AppTokens.space4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.cloud_rounded,
+                color: Color(0xFF06B6D4), size: 18),
+            const SizedBox(width: 6),
+            Text('Weather · ${to ?? 'Destination'}',
+                style: t.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w800)),
+          ]),
+          const SizedBox(height: AppTokens.space3),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text('21°',
+                  style: t.textTheme.displaySmall
+                      ?.copyWith(fontWeight: FontWeight.w900)),
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text('Mostly cloudy · feels 19°',
+                    style: t.textTheme.bodySmall?.copyWith(
+                        color: t.colorScheme.onSurface
+                            .withValues(alpha: 0.65))),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTokens.space3),
+          Row(
+            children: const [
+              _ForecastTile(time: 'Now', temp: '21°', icon: Icons.cloud_rounded),
+              _ForecastTile(time: '12:00', temp: '22°', icon: Icons.wb_sunny_rounded),
+              _ForecastTile(time: '15:00', temp: '23°', icon: Icons.wb_sunny_rounded),
+              _ForecastTile(time: '18:00', temp: '20°', icon: Icons.cloud_queue_rounded),
+              _ForecastTile(time: '21:00', temp: '17°', icon: Icons.nights_stay_rounded),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ForecastTile extends StatelessWidget {
+  const _ForecastTile(
+      {required this.time, required this.temp, required this.icon});
+  final String time;
+  final String temp;
+  final IconData icon;
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return Expanded(
+      child: Column(
+        children: [
+          Text(time,
+              style: t.textTheme.labelSmall?.copyWith(
+                  color: t.colorScheme.onSurface.withValues(alpha: 0.55))),
+          const SizedBox(height: 4),
+          Icon(icon,
+              size: 18,
+              color: t.colorScheme.onSurface.withValues(alpha: 0.78)),
+          const SizedBox(height: 4),
+          Text(temp,
+              style: t.textTheme.labelLarge
+                  ?.copyWith(fontWeight: FontWeight.w800)),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Visa card ─────────────────────────────────────────────────
+class _VisaCard extends StatelessWidget {
+  const _VisaCard();
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return PremiumCard(
+      padding: const EdgeInsets.all(AppTokens.space4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.assignment_ind_rounded,
+                color: Color(0xFF7C3AED), size: 18),
+            const SizedBox(width: 6),
+            Text('Visa & entry',
+                style: t.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w800)),
+            const Spacer(),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+              ),
+              child: const Text('VISA-FREE',
+                  style: TextStyle(
+                      color: Color(0xFF10B981),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.6)),
+            ),
+          ]),
+          const SizedBox(height: AppTokens.space3),
+          _MetaRow(label: 'Stay allowed', value: '90 days within 180-day window'),
+          _MetaRow(label: 'Passport validity', value: '6 months beyond entry'),
+          _MetaRow(label: 'Onward ticket', value: 'Required'),
+          _MetaRow(label: 'Customs', value: 'Declare > €10,000'),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Currency card ─────────────────────────────────────────────
+class _CurrencyCard extends StatelessWidget {
+  const _CurrencyCard();
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return PremiumCard(
+      padding: const EdgeInsets.all(AppTokens.space4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.currency_exchange_rounded,
+                color: Color(0xFF10B981), size: 18),
+            const SizedBox(width: 6),
+            Text('Currency',
+                style: t.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w800)),
+          ]),
+          const SizedBox(height: AppTokens.space3),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('1.00 EUR',
+                  style: t.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w800)),
+              const Icon(Icons.arrow_forward_rounded, size: 16),
+              Text('1.0863 USD',
+                  style: t.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w800)),
+            ],
+          ),
+          const SizedBox(height: AppTokens.space2),
+          Text('Live mid-market · updated 4m ago',
+              style: t.textTheme.bodySmall?.copyWith(
+                  color: t.colorScheme.onSurface.withValues(alpha: 0.55))),
+          const SizedBox(height: AppTokens.space3),
+          Row(children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {},
+                icon: const Icon(Icons.swap_vert_rounded, size: 18),
+                label: const Text('Convert'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {},
+                icon: const Icon(Icons.show_chart_rounded, size: 18),
+                label: const Text('Watchlist'),
+              ),
+            ),
+          ]),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Transport ─────────────────────────────────────────────────
+class _TransportCard extends StatelessWidget {
+  const _TransportCard();
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return PremiumCard(
+      padding: const EdgeInsets.all(AppTokens.space4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.alt_route_rounded,
+                color: Color(0xFFEA580C), size: 18),
+            const SizedBox(width: 6),
+            Text('Transport',
+                style: t.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w800)),
+          ]),
+          const SizedBox(height: AppTokens.space3),
+          for (final r in const [
+            (Icons.train_rounded, 'Express train',
+                '€11.40 · 28 min · every 15 min'),
+            (Icons.local_taxi_rounded, 'Premium ride',
+                '€44 · 22–35 min · 4.9★ avg'),
+            (Icons.airport_shuttle_rounded, 'Airport shuttle',
+                '€8 · 38 min · departs xx:05 + xx:35'),
+            (Icons.directions_subway_rounded, 'Metro + bus',
+                '€3.20 · 47 min'),
+          ])
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(children: [
+                Icon(r.$1,
+                    size: 18,
+                    color: t.colorScheme.onSurface.withValues(alpha: 0.78)),
+                const SizedBox(width: AppTokens.space3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(r.$2,
+                          style: t.textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w700)),
+                      Text(r.$3,
+                          style: t.textTheme.bodySmall?.copyWith(
+                              color: t.colorScheme.onSurface
+                                  .withValues(alpha: 0.60))),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded,
+                    color:
+                        t.colorScheme.onSurface.withValues(alpha: 0.32)),
+              ]),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Lounge ────────────────────────────────────────────────────
+class _LoungeCard extends StatelessWidget {
+  const _LoungeCard();
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return PremiumCard(
+      padding: const EdgeInsets.all(AppTokens.space4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.weekend_rounded,
+                color: Color(0xFFD4AF37), size: 18),
+            const SizedBox(width: 6),
+            Text('Lounge access',
+                style: t.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w800)),
+            const Spacer(),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD4AF37).withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+              ),
+              child: const Text('PRIORITY PASS',
+                  style: TextStyle(
+                      color: Color(0xFFD4AF37),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.6)),
+            ),
+          ]),
+          const SizedBox(height: AppTokens.space3),
+          _MetaRow(
+              label: 'Closest lounge',
+              value: 'Senator Lounge · A22 · 4 min walk'),
+          _MetaRow(label: 'Open', value: 'Now · until 23:30'),
+          _MetaRow(label: 'Capacity', value: 'Light · 32%'),
+          _MetaRow(label: 'Showers', value: '4 available'),
+        ],
+      ),
+    );
+  }
+}
+
+// ── eSIM ──────────────────────────────────────────────────────
+class _EsimCard extends StatelessWidget {
+  const _EsimCard();
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return PremiumCard(
+      padding: const EdgeInsets.all(AppTokens.space4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.sim_card_rounded,
+                color: Color(0xFF06B6D4), size: 18),
+            const SizedBox(width: 6),
+            Text('eSIM',
+                style: t.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w800)),
+          ]),
+          const SizedBox(height: AppTokens.space3),
+          Text('Stay connected on arrival',
+              style: t.textTheme.bodyMedium?.copyWith(
+                  color: t.colorScheme.onSurface.withValues(alpha: 0.78))),
+          const SizedBox(height: AppTokens.space3),
+          Row(children: const [
+            Expanded(
+                child: _EsimPlanTile(
+                    label: '1 GB · 7 days', price: '€4.50')),
+            SizedBox(width: 8),
+            Expanded(
+                child: _EsimPlanTile(
+                    label: '5 GB · 30 days', price: '€11.90')),
+            SizedBox(width: 8),
+            Expanded(
+                child: _EsimPlanTile(
+                    label: 'Unlimited · 30d', price: '€34')),
+          ]),
+        ],
+      ),
+    );
+  }
+}
+
+class _EsimPlanTile extends StatelessWidget {
+  const _EsimPlanTile({required this.label, required this.price});
+  final String label;
+  final String price;
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          vertical: AppTokens.space3, horizontal: 8),
+      decoration: BoxDecoration(
+        color: t.colorScheme.onSurface.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+        border: Border.all(
+            color: t.colorScheme.onSurface.withValues(alpha: 0.10)),
+      ),
+      child: Column(children: [
+        Text(label,
+            textAlign: TextAlign.center,
+            style: t.textTheme.labelSmall?.copyWith(
+                color: t.colorScheme.onSurface.withValues(alpha: 0.65))),
+        const SizedBox(height: 4),
+        Text(price,
+            style: t.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w900)),
+      ]),
+    );
+  }
+}
+
+// ── Insurance ─────────────────────────────────────────────────
+class _InsuranceCard extends StatelessWidget {
+  const _InsuranceCard();
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return PremiumCard(
+      padding: const EdgeInsets.all(AppTokens.space4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.health_and_safety_rounded,
+                color: Color(0xFFE11D48), size: 18),
+            const SizedBox(width: 6),
+            Text('Travel insurance',
+                style: t.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w800)),
+            const Spacer(),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+              ),
+              child: const Text('COVERED',
+                  style: TextStyle(
+                      color: Color(0xFF10B981),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.6)),
+            ),
+          ]),
+          const SizedBox(height: AppTokens.space3),
+          _MetaRow(label: 'Provider', value: 'AXA Worldwide Premium'),
+          _MetaRow(label: 'Medical', value: 'Up to €1,000,000'),
+          _MetaRow(label: 'Trip cancel', value: 'Up to €5,000'),
+          _MetaRow(label: 'Baggage', value: 'Up to €2,500'),
+          _MetaRow(label: 'Emergency hotline', value: '+44 20 7173 7000'),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Shared meta row ───────────────────────────────────────────
+class _MetaRow extends StatelessWidget {
+  const _MetaRow({required this.label, required this.value});
+  final String label;
+  final String value;
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Text(label,
+                style: t.textTheme.bodySmall?.copyWith(
+                    color: t.colorScheme.onSurface
+                        .withValues(alpha: 0.60))),
+          ),
+          const SizedBox(width: AppTokens.space3),
+          Flexible(
+            child: Text(value,
+                textAlign: TextAlign.right,
+                style: t.textTheme.bodySmall
+                    ?.copyWith(fontWeight: FontWeight.w700)),
           ),
         ],
       ),

@@ -8,6 +8,7 @@ import '../features/explore/explore_screen.dart';
 import '../features/feed/feed_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/identity/identity_screen.dart';
+import '../features/inbox/inbox_screen.dart';
 import '../features/intelligence/intelligence_screen.dart';
 import '../features/kiosk/kiosk_screen.dart';
 import '../features/lock/lock_screen.dart';
@@ -28,8 +29,11 @@ import '../features/services/hotels_screen.dart';
 import '../features/services/rides_screen.dart';
 import '../features/services/services_hub_screen.dart';
 import '../features/services/transport_screen.dart';
+import '../features/discover/discover_screen.dart';
 import '../features/security/audit_log_screen.dart';
 import '../features/security/session_lock_provider.dart';
+import '../features/settings/settings_screen.dart';
+import '../features/settings/settings_subscreens.dart';
 import '../features/social/social_screen.dart';
 import '../features/timeline/timeline_screen.dart';
 import '../features/travel/travel_screen.dart';
@@ -138,6 +142,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/scan', (_, __) => const ScannerScreen()),
       _route('/analytics', (_, __) => const AnalyticsScreen()),
       _route('/audit-log', (_, __) => const AuditLogScreen()),
+      _route('/inbox', (_, __) => const InboxScreen()),
+      _route('/discover', (_, __) => const DiscoverScreen()),
+      _route('/settings', (_, __) => const SettingsScreen()),
+      _route(
+          '/settings/appearance', (_, __) => const AppearanceSettingsScreen()),
+      _route('/settings/notifications',
+          (_, __) => const NotificationsSettingsScreen()),
+      _route('/settings/security', (_, __) => const SecuritySettingsScreen()),
+      _route('/settings/privacy', (_, __) => const PrivacySettingsScreen()),
+      _route('/settings/travel', (_, __) => const TravelPrefsScreen()),
+      _route('/settings/accessibility',
+          (_, __) => const AccessibilitySettingsScreen()),
+      _route('/settings/lab', (_, __) => const LabSettingsScreen()),
+      _route('/settings/about', (_, __) => const AboutSettingsScreen()),
       _route(
         '/trip/:tripId',
         (_, state) => TripDetailScreen(tripId: state.pathParameters['tripId']!),

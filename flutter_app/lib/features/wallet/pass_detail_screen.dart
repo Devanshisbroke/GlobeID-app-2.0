@@ -206,7 +206,8 @@ class _PassDetailScreenState extends ConsumerState<PassDetailScreen> {
                 ),
               ),
             SafeArea(
-              child: Padding(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(
                     AppTokens.space5, 0, AppTokens.space5, AppTokens.space7),
                 child: Column(
@@ -219,7 +220,7 @@ class _PassDetailScreenState extends ConsumerState<PassDetailScreen> {
                         setState(() => _qrBoost = true);
                       },
                     ),
-                    const Spacer(),
+                    const SizedBox(height: AppTokens.space6),
                     StreamBuilder<AccelerometerEvent>(
                       stream: _accel,
                       builder: (_, snap) {
@@ -259,7 +260,17 @@ class _PassDetailScreenState extends ConsumerState<PassDetailScreen> {
                       delay: const Duration(milliseconds: 100),
                       child: _SupportPanel(pass: pass, brand: brand),
                     ),
-                    const Spacer(),
+                    const SizedBox(height: AppTokens.space4),
+                    AnimatedAppearance(
+                      delay: const Duration(milliseconds: 160),
+                      child: _ActionsRow(brand: brand),
+                    ),
+                    const SizedBox(height: AppTokens.space4),
+                    AnimatedAppearance(
+                      delay: const Duration(milliseconds: 200),
+                      child: _ActivityCard(brand: brand),
+                    ),
+                    const SizedBox(height: AppTokens.space4),
                     AnimatedAppearance(
                       delay: const Duration(milliseconds: 240),
                       child: Text(
@@ -614,6 +625,165 @@ class _PanelItem extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Wallet-style action row: Add to wallet · Share · Boarding lookup ·
+/// Get directions. Each tile is a frosted square with brand-tint
+/// glyph + label.
+class _ActionsRow extends StatelessWidget {
+  const _ActionsRow({required this.brand});
+  final AirlineBrand brand;
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (final a in const [
+          (Icons.wallet_rounded, 'Add to Wallet'),
+          (Icons.ios_share_rounded, 'Share'),
+          (Icons.alt_route_rounded, 'Lookup'),
+          (Icons.directions_rounded, 'Directions'),
+        ])
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Pressable(
+                onTap: () => HapticFeedback.lightImpact(),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppTokens.radiusXl),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                    child: Container(
+                      padding:
+                          const EdgeInsets.symmetric(vertical: AppTokens.space3),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.10),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.radiusXl),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.12),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(a.$1,
+                              color: Colors.white.withValues(alpha: 0.92),
+                              size: 22),
+                          const SizedBox(height: 6),
+                          Text(
+                            a.$2,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Recent activity feed for the pass — last few touches at airports,
+/// boarding events, scan attempts. Designed to feel like Apple
+/// Wallet's transaction list under a credit card.
+class _ActivityCard extends StatelessWidget {
+  const _ActivityCard({required this.brand});
+  final AirlineBrand brand;
+  @override
+  Widget build(BuildContext context) {
+    final entries = const [
+      (Icons.qr_code_scanner_rounded, 'Boarding scanned',
+          'Gate A22 · Frankfurt · 14 Mar 09:42'),
+      (Icons.flight_takeoff_rounded, 'Flight pushed back',
+          'FRA → JFK · 14 Mar 10:18'),
+      (Icons.flight_land_rounded, 'Wheels down',
+          'JFK · 14 Mar 17:54 local'),
+      (Icons.update_rounded, 'Auto-updated from airline',
+          'Seat reassigned 11A → 11K · 13 Mar 21:01'),
+    ];
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Container(
+          padding: const EdgeInsets.all(AppTokens.space4),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.07),
+            borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+            border:
+                Border.all(color: Colors.white.withValues(alpha: 0.10)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.timeline_rounded,
+                      color: brand.primary.withValues(alpha: 0.9),
+                      size: 16),
+                  const SizedBox(width: 6),
+                  const Text('RECENT ACTIVITY',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2)),
+                ],
+              ),
+              const SizedBox(height: AppTokens.space3),
+              for (final e in entries)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: brand.primary.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(e.$1,
+                            color: Colors.white.withValues(alpha: 0.92),
+                            size: 14),
+                      ),
+                      const SizedBox(width: AppTokens.space3),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(e.$2,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13)),
+                            Text(e.$3,
+                                style: TextStyle(
+                                    color:
+                                        Colors.white.withValues(alpha: 0.55),
+                                    fontSize: 11)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -26,6 +26,28 @@ class _MapScreenState extends ConsumerState<MapScreen>
   bool _show2d = false;
   bool _showTraffic = true;
 
+  // HUD layer toggles.
+  bool _layerArcs = true;
+  bool _layerHubs = true;
+  bool _layerClouds = true;
+  bool _layerStars = true;
+  bool _layerTerminator = false;
+
+  // Time-of-day (0 = midnight, 1 = next midnight). Shifts globe
+  // lighting + day/night atmosphere — kept cosmetic for now and
+  // wired into the renderer in a follow-up.
+  double _timeOfDay = 0.42;
+
+  // Active region focus filter (null = all routes).
+  String? _regionFilter;
+  static const _regions = <String, ({double lat, double lng})>{
+    'Europe': (lat: 50.0, lng: 10.0),
+    'Americas': (lat: 30.0, lng: -90.0),
+    'Asia': (lat: 30.0, lng: 105.0),
+    'Africa': (lat: 0.0, lng: 20.0),
+    'Oceania': (lat: -25.0, lng: 135.0),
+  };
+
   late final _pulse = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 2400),
@@ -155,6 +177,47 @@ class _MapScreenState extends ConsumerState<MapScreen>
                   ),
                 ),
               ),
+            ),
+          ),
+        ),
+
+        // Right-side cinematic layer rail.
+        Positioned(
+          right: AppTokens.space3,
+          top: MediaQuery.of(context).padding.top + 80,
+          child: AnimatedAppearance(
+            delay: const Duration(milliseconds: 120),
+            child: _LayerRail(
+              layerArcs: _layerArcs,
+              layerHubs: _layerHubs,
+              layerClouds: _layerClouds,
+              layerStars: _layerStars,
+              layerTerminator: _layerTerminator,
+              onArcs: () => setState(() => _layerArcs = !_layerArcs),
+              onHubs: () => setState(() => _layerHubs = !_layerHubs),
+              onClouds: () => setState(() => _layerClouds = !_layerClouds),
+              onStars: () => setState(() => _layerStars = !_layerStars),
+              onTerminator: () =>
+                  setState(() => _layerTerminator = !_layerTerminator),
+            ),
+          ),
+        ),
+
+        // Bottom HUD panel — region filter, time-of-day, route stats.
+        Positioned(
+          left: AppTokens.space5,
+          right: AppTokens.space5,
+          bottom: MediaQuery.of(context).padding.bottom + 100,
+          child: AnimatedAppearance(
+            delay: const Duration(milliseconds: 160),
+            child: _GlobeHudPanel(
+              regions: _regions.keys.toList(),
+              activeRegion: _regionFilter,
+              onPickRegion: (r) =>
+                  setState(() => _regionFilter = _regionFilter == r ? null : r),
+              timeOfDay: _timeOfDay,
+              onTimeOfDay: (v) => setState(() => _timeOfDay = v),
+              routeCount: arcs.length,
             ),
           ),
         ),
@@ -408,3 +471,275 @@ class _GlobeOrbitPainter extends CustomPainter {
       old.t != t || old.accent != accent;
 }
 
+
+// ── Cinematic HUD overlays (Map v3 density pass) ──────────────
+
+/// Vertical layer rail anchored to the right edge. Each pill is a
+/// frosted square with a glyph + accent dot when active.
+class _LayerRail extends StatelessWidget {
+  const _LayerRail({
+    required this.layerArcs,
+    required this.layerHubs,
+    required this.layerClouds,
+    required this.layerStars,
+    required this.layerTerminator,
+    required this.onArcs,
+    required this.onHubs,
+    required this.onClouds,
+    required this.onStars,
+    required this.onTerminator,
+  });
+  final bool layerArcs, layerHubs, layerClouds, layerStars, layerTerminator;
+  final VoidCallback onArcs, onHubs, onClouds, onStars, onTerminator;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+              vertical: AppTokens.space2, horizontal: 6),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.32),
+            borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.08),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _LayerPill(
+                  icon: Icons.timeline_rounded,
+                  label: 'Arcs',
+                  active: layerArcs,
+                  onTap: onArcs),
+              _LayerPill(
+                  icon: Icons.location_on_rounded,
+                  label: 'Hubs',
+                  active: layerHubs,
+                  onTap: onHubs),
+              _LayerPill(
+                  icon: Icons.cloud_rounded,
+                  label: 'Clouds',
+                  active: layerClouds,
+                  onTap: onClouds),
+              _LayerPill(
+                  icon: Icons.auto_awesome_rounded,
+                  label: 'Stars',
+                  active: layerStars,
+                  onTap: onStars),
+              _LayerPill(
+                  icon: Icons.brightness_4_rounded,
+                  label: 'Term.',
+                  active: layerTerminator,
+                  onTap: onTerminator),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LayerPill extends StatelessWidget {
+  const _LayerPill({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.primary;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 3),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        width: 60,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+          color: active
+              ? accent.withValues(alpha: 0.20)
+              : Colors.white.withValues(alpha: 0.04),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 18, color: Colors.white),
+            const SizedBox(height: 2),
+            Text(label,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: active ? 1.0 : 0.7),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                )),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom HUD panel: route stats, region focus chips, time-of-day
+/// scrubber. Frosted glass + accent slider + count chip.
+class _GlobeHudPanel extends StatelessWidget {
+  const _GlobeHudPanel({
+    required this.regions,
+    required this.activeRegion,
+    required this.onPickRegion,
+    required this.timeOfDay,
+    required this.onTimeOfDay,
+    required this.routeCount,
+  });
+  final List<String> regions;
+  final String? activeRegion;
+  final ValueChanged<String> onPickRegion;
+  final double timeOfDay;
+  final ValueChanged<double> onTimeOfDay;
+  final int routeCount;
+
+  String _clock(double v) {
+    final mins = (v * 1440).round();
+    final h = mins ~/ 60;
+    final m = mins % 60;
+    return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')} UTC';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.primary;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(
+              AppTokens.space4, AppTokens.space3, AppTokens.space4, AppTokens.space3),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.36),
+            borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Icon(Icons.public_rounded, color: accent, size: 18),
+                const SizedBox(width: 6),
+                Text('$routeCount active arcs',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.4,
+                    )),
+                const Spacer(),
+                Text(_clock(timeOfDay),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.6,
+                    )),
+              ]),
+              const SizedBox(height: 6),
+              SliderTheme(
+                data: SliderThemeData(
+                  trackHeight: 3,
+                  thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 7),
+                  overlayShape: const RoundSliderOverlayShape(
+                      overlayRadius: 16),
+                ),
+                child: Slider(
+                  value: timeOfDay,
+                  min: 0,
+                  max: 1,
+                  onChanged: onTimeOfDay,
+                  activeColor: accent,
+                  inactiveColor: Colors.white.withValues(alpha: 0.16),
+                ),
+              ),
+              const SizedBox(height: 4),
+              SizedBox(
+                height: 32,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: regions.length + 1,
+                  separatorBuilder: (_, __) => const SizedBox(width: 6),
+                  itemBuilder: (_, i) {
+                    if (i == 0) {
+                      final all = activeRegion == null;
+                      return _RegionChip(
+                          label: 'All',
+                          active: all,
+                          onTap: () {
+                            if (!all) onPickRegion(activeRegion!);
+                          });
+                    }
+                    final r = regions[i - 1];
+                    return _RegionChip(
+                        label: r,
+                        active: activeRegion == r,
+                        onTap: () => onPickRegion(r));
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RegionChip extends StatelessWidget {
+  const _RegionChip({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.primary;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+          color: active
+              ? accent.withValues(alpha: 0.30)
+              : Colors.white.withValues(alpha: 0.06),
+          border: Border.all(
+            color: active
+                ? accent
+                : Colors.white.withValues(alpha: 0.12),
+          ),
+        ),
+        child: Text(label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.4,
+            )),
+      ),
+    );
+  }
+}
