@@ -163,6 +163,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   tone: const Color(0xFF059669),
                   onTap: () => context.push('/copilot'),
                 ),
+                _QuickAction(
+                  icon: Icons.travel_explore_rounded,
+                  label: 'Discover',
+                  tone: const Color(0xFF06B6D4),
+                  onTap: () => context.push('/discover'),
+                ),
+                _QuickAction(
+                  icon: Icons.notifications_rounded,
+                  label: 'Inbox',
+                  tone: const Color(0xFFE11D48),
+                  onTap: () => context.push('/inbox'),
+                ),
               ],
             ),
           ),

@@ -29,6 +29,7 @@ import '../features/services/hotels_screen.dart';
 import '../features/services/rides_screen.dart';
 import '../features/services/services_hub_screen.dart';
 import '../features/services/transport_screen.dart';
+import '../features/discover/discover_screen.dart';
 import '../features/security/audit_log_screen.dart';
 import '../features/security/session_lock_provider.dart';
 import '../features/settings/settings_screen.dart';
@@ -142,6 +143,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/analytics', (_, __) => const AnalyticsScreen()),
       _route('/audit-log', (_, __) => const AuditLogScreen()),
       _route('/inbox', (_, __) => const InboxScreen()),
+      _route('/discover', (_, __) => const DiscoverScreen()),
       _route('/settings', (_, __) => const SettingsScreen()),
       _route(
           '/settings/appearance', (_, __) => const AppearanceSettingsScreen()),

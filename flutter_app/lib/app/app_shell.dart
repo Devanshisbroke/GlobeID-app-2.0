@@ -1120,6 +1120,12 @@ class _CommandPaletteState extends State<_CommandPalette> {
       Icons.tune_rounded,
       Color(0xFF6366F1),
     ),
+    _CommandItem(
+      'Discover',
+      '/discover',
+      Icons.travel_explore_rounded,
+      Color(0xFF06B6D4),
+    ),
   ];
 
   List<_CommandItem> get _filtered {
