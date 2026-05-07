@@ -15,11 +15,21 @@ import '../wallet/wallet_provider.dart';
 
 /// Home — premium dashboard with greeting, identity-tier badge,
 /// upcoming trip glance, wallet glance, and a quick-action grid.
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
     final user = ref.watch(userProvider);
     final wallet = ref.watch(walletProvider);
     final lifecycle = ref.watch(lifecycleProvider);

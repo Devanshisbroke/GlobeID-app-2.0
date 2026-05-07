@@ -125,12 +125,15 @@ class _CurrencyRow extends StatelessWidget {
                 SizedBox(
                   height: 18,
                   width: 80,
-                  child: CustomPaint(
-                    painter: _Sparkline(
-                      seed: balance.currency.hashCode,
-                      color: isDefault
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  child: RepaintBoundary(
+                    child: CustomPaint(
+                      painter: _Sparkline(
+                        seed: balance.currency.hashCode,
+                        color: isDefault
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurface
+                                .withValues(alpha: 0.5),
+                      ),
                     ),
                   ),
                 ),

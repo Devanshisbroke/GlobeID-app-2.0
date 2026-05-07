@@ -28,6 +28,7 @@ import '../features/services/hotels_screen.dart';
 import '../features/services/rides_screen.dart';
 import '../features/services/services_hub_screen.dart';
 import '../features/services/transport_screen.dart';
+import '../features/security/audit_log_screen.dart';
 import '../features/security/session_lock_provider.dart';
 import '../features/social/social_screen.dart';
 import '../features/timeline/timeline_screen.dart';
@@ -136,6 +137,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/multi-currency', (_, __) => const MultiCurrencyScreen()),
       _route('/scan', (_, __) => const ScannerScreen()),
       _route('/analytics', (_, __) => const AnalyticsScreen()),
+      _route('/audit-log', (_, __) => const AuditLogScreen()),
       _route(
         '/trip/:tripId',
         (_, state) => TripDetailScreen(tripId: state.pathParameters['tripId']!),

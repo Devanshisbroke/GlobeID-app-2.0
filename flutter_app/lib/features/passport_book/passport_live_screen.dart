@@ -107,10 +107,14 @@ class _PassportLiveScreenState extends ConsumerState<PassportLiveScreen>
             ),
             // ── Star dust ───────────────────────────────────────────
             Positioned.fill(
-              child: AnimatedBuilder(
-                animation: _foil,
-                builder: (_, __) => CustomPaint(
-                  painter: _StarDustPainter(t: _foil.value),
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _foil,
+                  builder: (_, __) => CustomPaint(
+                    isComplex: true,
+                    willChange: true,
+                    painter: _StarDustPainter(t: _foil.value),
+                  ),
                 ),
               ),
             ),
@@ -334,18 +338,27 @@ class _Cover extends StatelessWidget {
             ),
           ),
           // ── Foil shimmer sweep ───────────────────────────────────
-          AnimatedBuilder(
-            animation: foil,
-            builder: (_, __) {
-              final t = foil.value;
-              return CustomPaint(
-                painter: _FoilSweepPainter(t: t),
-              );
-            },
+          RepaintBoundary(
+            child: AnimatedBuilder(
+              animation: foil,
+              builder: (_, __) {
+                final t = foil.value;
+                return CustomPaint(
+                  isComplex: true,
+                  willChange: true,
+                  painter: _FoilSweepPainter(t: t),
+                );
+              },
+            ),
           ),
           // ── Texture grain ────────────────────────────────────────
-          CustomPaint(
-            painter: _GrainPainter(),
+          // Static painter — wrap in RepaintBoundary so it's rasterised
+          // once and re-used as a layer for every frame.
+          RepaintBoundary(
+            child: CustomPaint(
+              isComplex: true,
+              painter: _GrainPainter(),
+            ),
           ),
           // ── Crest / title ────────────────────────────────────────
           Center(
@@ -454,13 +467,17 @@ class _Crest extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: foil,
-      builder: (_, __) => SizedBox(
-        width: 140,
-        height: 140,
-        child: CustomPaint(
-          painter: _CrestPainter(t: foil.value),
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: foil,
+        builder: (_, __) => SizedBox(
+          width: 140,
+          height: 140,
+          child: CustomPaint(
+            isComplex: true,
+            willChange: true,
+            painter: _CrestPainter(t: foil.value),
+          ),
         ),
       ),
     );
@@ -616,10 +633,15 @@ class _InnerPages extends StatelessWidget {
           children: [
             // Security mesh underneath.
             Positioned.fill(
-              child: AnimatedBuilder(
-                animation: foil,
-                builder: (_, __) =>
-                    CustomPaint(painter: _SecurityMeshPainter(t: foil.value)),
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: foil,
+                  builder: (_, __) => CustomPaint(
+                    isComplex: true,
+                    willChange: true,
+                    painter: _SecurityMeshPainter(t: foil.value),
+                  ),
+                ),
               ),
             ),
             PageView.builder(
@@ -746,10 +768,14 @@ class _BioPage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    AnimatedBuilder(
-                      animation: foil,
-                      builder: (_, __) => CustomPaint(
-                        painter: _PhotoHologramPainter(t: foil.value),
+                    RepaintBoundary(
+                      child: AnimatedBuilder(
+                        animation: foil,
+                        builder: (_, __) => CustomPaint(
+                          isComplex: true,
+                          willChange: true,
+                          painter: _PhotoHologramPainter(t: foil.value),
+                        ),
                       ),
                     ),
                   ],

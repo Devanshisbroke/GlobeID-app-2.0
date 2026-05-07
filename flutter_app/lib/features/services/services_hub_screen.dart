@@ -10,14 +10,24 @@ import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
 
 /// Unified services hub. Sectioned by intent (Travel essentials, Money,
-/// Identity, Tools), each tile is a premium pressable card with hero
-/// gradient, label and short description, no duplication. All paths
-/// resolve to existing screens, so flows stay functional.
-class ServicesHubScreen extends ConsumerWidget {
+/// Identity, Lifestyle, Tools), each tile is a premium pressable card
+/// with hero gradient, label and short description, no duplication.
+/// All paths resolve to existing screens, so flows stay functional.
+class ServicesHubScreen extends ConsumerStatefulWidget {
   const ServicesHubScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ServicesHubScreen> createState() => _ServicesHubScreenState();
+}
+
+class _ServicesHubScreenState extends ConsumerState<ServicesHubScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
     final theme = Theme.of(context);
 
     return ListView(
@@ -44,6 +54,13 @@ class ServicesHubScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppTokens.space5),
+
+        // ── Featured hero card: live passport fast path ─────────
+        AnimatedAppearance(
+          delay: const Duration(milliseconds: 80),
+          child: _FeaturedFastPath(),
+        ),
+
         const SectionHeader(title: 'Travel essentials', dense: true),
         _ServicesGrid(
           startDelayMs: 80,
@@ -152,6 +169,41 @@ class ServicesHubScreen extends ConsumerWidget {
               icon: Icons.qr_code_scanner_rounded,
               accent: AccentName.sky,
               description: 'Test how a gate sees your pass',
+            ),
+          ],
+        ),
+        const SizedBox(height: AppTokens.space5),
+        const SectionHeader(title: 'Lifestyle', dense: true),
+        _ServicesGrid(
+          startDelayMs: 380,
+          tiles: const [
+            _ServiceItem(
+              name: 'eSIM',
+              path: '/multi-currency',
+              icon: Icons.sim_card_rounded,
+              accent: AccentName.cyan,
+              description: 'Data plans for 180+ countries',
+            ),
+            _ServiceItem(
+              name: 'Lounges',
+              path: '/services/activities',
+              icon: Icons.airline_seat_recline_extra_rounded,
+              accent: AccentName.fuchsia,
+              description: 'Airport lounge access',
+            ),
+            _ServiceItem(
+              name: 'Insurance',
+              path: '/identity',
+              icon: Icons.health_and_safety_rounded,
+              accent: AccentName.emerald,
+              description: 'Travel + medical coverage',
+            ),
+            _ServiceItem(
+              name: 'Fraud center',
+              path: '/audit-log',
+              icon: Icons.gpp_maybe_rounded,
+              accent: AccentName.rose,
+              description: 'Disputes + suspicious activity',
             ),
           ],
         ),
@@ -339,5 +391,108 @@ class _ServiceTile extends StatelessWidget {
       case AccentName.fuchsia:
         return const Color(0xFFD946EF);
     }
+  }
+}
+
+/// Featured fast-path card — surfaces the live passport opening
+/// experience right at the top of services so first-time users discover
+/// the most cinematic system in the app immediately.
+class _FeaturedFastPath extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    const accent = Color(0xFF7C3AED);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppTokens.space5),
+      child: Pressable(
+        scale: 0.99,
+        onTap: () {
+          HapticFeedback.mediumImpact();
+          GoRouter.of(context).push('/passport-live');
+        },
+        child: Container(
+          padding: const EdgeInsets.all(AppTokens.space5),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF7C3AED),
+                Color(0xFF06B6D4),
+                Color(0xFF050912),
+              ],
+              stops: [0.0, 0.55, 1.0],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: accent.withValues(alpha: 0.30),
+                blurRadius: 28,
+                spreadRadius: -8,
+                offset: const Offset(0, 14),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(AppTokens.radiusXl),
+                  border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.32)),
+                ),
+                child: const Icon(Icons.book_rounded,
+                    color: Colors.white, size: 30),
+              ),
+              const SizedBox(width: AppTokens.space4),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.22),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.radiusFull),
+                      ),
+                      child: const Text(
+                        'FLAGSHIP',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Open your live passport',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Holographic, NFC-grade, anti-counterfeit — the digital twin of your real passport.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.84),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_rounded, color: Colors.white),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

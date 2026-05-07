@@ -75,21 +75,25 @@ class _VaultScreenState extends ConsumerState<VaultScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                AnimatedBuilder(
-                  animation: _pulse,
-                  builder: (_, __) => SizedBox(
-                    width: 200,
-                    height: 200,
-                    child: CustomPaint(
-                      painter: _LockPulse(
-                        progress: _pulse.value,
-                        color: theme.colorScheme.primary,
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.shield_moon_rounded,
-                          size: 64,
+                RepaintBoundary(
+                  child: AnimatedBuilder(
+                    animation: _pulse,
+                    builder: (_, __) => SizedBox(
+                      width: 200,
+                      height: 200,
+                      child: CustomPaint(
+                        isComplex: true,
+                        willChange: true,
+                        painter: _LockPulse(
+                          progress: _pulse.value,
                           color: theme.colorScheme.primary,
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.shield_moon_rounded,
+                            size: 64,
+                            color: theme.colorScheme.primary,
+                          ),
                         ),
                       ),
                     ),

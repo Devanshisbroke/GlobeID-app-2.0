@@ -67,25 +67,28 @@ class _AtmosphereLayerState extends ConsumerState<AtmosphereLayer>
     }
 
     return IgnorePointer(
-      child: Stack(
-        children: [
-          AnimatedBuilder(
-            animation: _ctrl,
-            builder: (_, __) {
-              final t = _ctrl.value; // 0..1 over 30s
-              return CustomPaint(
-                size: Size.infinite,
-                painter: _AtmospherePainter(
-                  t: t,
-                  particles: _particles,
-                  isDark: isDark,
-                  accent: accent,
-                  secondary: secondary,
-                ),
-              );
-            },
-          ),
-        ],
+      // Atmosphere paints every frame behind every screen — isolate it
+      // so its compositor layer doesn't drag every page element with
+      // it on each tick.
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _ctrl,
+          builder: (_, __) {
+            final t = _ctrl.value; // 0..1 over 30s
+            return CustomPaint(
+              size: Size.infinite,
+              isComplex: true,
+              willChange: true,
+              painter: _AtmospherePainter(
+                t: t,
+                particles: _particles,
+                isDark: isDark,
+                accent: accent,
+                secondary: secondary,
+              ),
+            );
+          },
+        ),
       ),
     );
   }

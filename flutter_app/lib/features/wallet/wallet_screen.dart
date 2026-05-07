@@ -25,11 +25,21 @@ import 'wallet_provider.dart';
 /// followed by multi-currency balances and recent transactions. Pulls
 /// from `userProvider` (for boarding passes / travel docs) and
 /// `walletProvider` (for balances / transactions).
-class WalletScreen extends ConsumerWidget {
+class WalletScreen extends ConsumerStatefulWidget {
   const WalletScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WalletScreen> createState() => _WalletScreenState();
+}
+
+class _WalletScreenState extends ConsumerState<WalletScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
     final user = ref.watch(userProvider);
     final wallet = ref.watch(walletProvider);
     final theme = Theme.of(context);
