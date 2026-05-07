@@ -24,6 +24,9 @@ import '../features/profile/profile_screen.dart';
 import '../features/receipt/receipt_screen.dart';
 import '../features/scanner/scanner_screen.dart';
 import '../features/airport/airport_screen.dart';
+import '../features/arrival/arrival_welcome_screen.dart';
+import '../features/globe/cinematic_globe_screen.dart';
+import '../features/sensors/sensors_lab_screen.dart';
 import '../features/services/activities_screen.dart';
 import '../features/services/flights_screen.dart';
 import '../features/services/food_screen.dart';
@@ -190,6 +193,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/services/transport', (_, __) => const TransportScreen()),
       _route('/airport', (_, __) => const AirportScreen()),
       _route('/travel-os', (_, __) => const TravelOSScreen()),
+      _route('/arrival', (_, __) => const ArrivalWelcomeScreen()),
+      _route('/sensors-lab', (_, __) => const SensorsLabScreen()),
+      _route('/globe-cinematic', (_, __) => const CinematicGlobeScreen()),
       _route(
         '/wallet/send',
         (_, __) => const WalletFlowScreen(flow: WalletFlow.send),
