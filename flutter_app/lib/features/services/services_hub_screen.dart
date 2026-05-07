@@ -256,14 +256,14 @@ class _ServicesHubScreenState extends ConsumerState<ServicesHubScreen>
           tiles: const [
             _ServiceItem(
               name: 'eSIM',
-              path: '/multi-currency',
+              path: '/esim',
               icon: Icons.sim_card_rounded,
               accent: AccentName.cyan,
               description: 'Data plans for 180+ countries',
             ),
             _ServiceItem(
               name: 'Lounges',
-              path: '/services/activities',
+              path: '/lounge',
               icon: Icons.airline_seat_recline_extra_rounded,
               accent: AccentName.fuchsia,
               description: 'Airport lounge access',
