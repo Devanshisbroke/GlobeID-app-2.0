@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../data/api/api_provider.dart';
 import '../../widgets/cinematic_button.dart';
 import '../../widgets/premium_card.dart';
 import '_bespoke_scaffold.dart';
+import 'restaurant_detail_screen.dart';
 
 /// Food — bespoke vertical with cuisine filters and a detail sheet
 /// showing the menu highlights and order CTA.
@@ -22,8 +24,7 @@ class FoodScreen extends ConsumerWidget {
     BespokeFilter(
         key: 'dinner', label: 'Dinner', icon: Icons.dinner_dining_rounded),
     BespokeFilter(key: 'sushi', label: 'Sushi', icon: Icons.set_meal_rounded),
-    BespokeFilter(
-        key: 'vegan', label: 'Vegan', icon: Icons.eco_rounded),
+    BespokeFilter(key: 'vegan', label: 'Vegan', icon: Icons.eco_rounded),
   ];
 
   @override
@@ -116,8 +117,8 @@ class FoodScreen extends ConsumerWidget {
                         decoration: BoxDecoration(
                           borderRadius:
                               BorderRadius.circular(AppTokens.radiusLg),
-                          color: const Color(0xFFE11D48)
-                              .withValues(alpha: 0.16),
+                          color:
+                              const Color(0xFFE11D48).withValues(alpha: 0.16),
                         ),
                         child: const Icon(Icons.restaurant_menu_rounded,
                             color: Color(0xFFE11D48)),
@@ -146,10 +147,46 @@ class FoodScreen extends ConsumerWidget {
                 ),
               ),
             const SizedBox(height: AppTokens.space5),
-            CinematicButton(
-              label: 'Order now',
-              icon: Icons.shopping_bag_rounded,
-              onPressed: () => Navigator.of(sheetCtx).maybePop(),
+            Row(
+              children: [
+                Expanded(
+                  child: CinematicButton(
+                    label: 'View menu',
+                    icon: Icons.menu_book_rounded,
+                    onPressed: () {
+                      Navigator.of(sheetCtx).maybePop();
+                      final rating =
+                          (item['rating'] as num?)?.toDouble() ?? 4.5;
+                      final priceTier = price
+                          .replaceAll(RegExp(r'[^\$]'), '')
+                          .length
+                          .clamp(1, 4);
+                      final flag = item['flag']?.toString() ?? '🌍';
+                      final city = item['city']?.toString() ?? 'San Francisco';
+                      context.push(
+                        '/services/food/detail',
+                        extra: RestaurantDetailArgs(
+                          name: title,
+                          cuisine: cuisine,
+                          city: city,
+                          rating: rating,
+                          tonality: _tone,
+                          flag: flag,
+                          priceTier: priceTier == 0 ? 2 : priceTier,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: AppTokens.space2),
+                Expanded(
+                  child: CinematicButton(
+                    label: 'Order now',
+                    icon: Icons.shopping_bag_rounded,
+                    onPressed: () => Navigator.of(sheetCtx).maybePop(),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppTokens.space4),
           ],
@@ -202,8 +239,8 @@ class _FoodCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(cuisine,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.7),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.7),
                       )),
                 ],
                 const SizedBox(height: AppTokens.space2),
@@ -221,8 +258,8 @@ class _FoodCard extends StatelessWidget {
                     ],
                     Icon(Icons.access_time_rounded,
                         size: 13,
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.6)),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.6)),
                     const SizedBox(width: 2),
                     Text(eta,
                         style: theme.textTheme.labelSmall?.copyWith(

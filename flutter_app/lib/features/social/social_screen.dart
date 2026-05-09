@@ -7,6 +7,7 @@ import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/toast.dart';
+import 'social_travel_feed.dart';
 
 /// Social v3 — flagship social feed.
 ///
@@ -62,8 +63,7 @@ class _SocialScreenState extends State<SocialScreen> {
       author: 'Kenji',
       avatar: '🇯🇵',
       timestamp: '6h',
-      caption:
-          'Top tip: book Premium Lounge at NRT T1 with AmEx Platinum, the '
+      caption: 'Top tip: book Premium Lounge at NRT T1 with AmEx Platinum, the '
           'sushi counter is unreal.',
       tags: const ['#nrt', '#lounge', '#tip'],
       likes: 84,
@@ -307,6 +307,22 @@ class _SocialScreenState extends State<SocialScreen> {
                 ),
               ),
             ),
+          AnimatedAppearance(
+            delay: const Duration(milliseconds: 720),
+            child: const Padding(
+              padding:
+                  EdgeInsets.fromLTRB(0, AppTokens.space5, 0, AppTokens.space2),
+              child: WeeklyDigestCard(),
+            ),
+          ),
+          for (var i = 0; i < TripRecap.demos().length; i++)
+            AnimatedAppearance(
+              delay: Duration(milliseconds: 760 + 80 * i),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppTokens.space3),
+                child: TravelRecapCard(recap: TripRecap.demos()[i]),
+              ),
+            ),
           const SizedBox(height: AppTokens.space9),
         ],
       ),
@@ -520,8 +536,7 @@ class _SuggestionRow extends StatelessWidget {
                 Text(
                   user.subtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color:
-                        theme.colorScheme.onSurface.withValues(alpha: 0.66),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.66),
                   ),
                 ),
               ],
@@ -556,13 +571,10 @@ class _SuggestionRow extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    following
-                        ? Icons.check_rounded
-                        : Icons.add_rounded,
+                    following ? Icons.check_rounded : Icons.add_rounded,
                     size: 14,
-                    color: following
-                        ? theme.colorScheme.onSurface
-                        : Colors.white,
+                    color:
+                        following ? theme.colorScheme.onSurface : Colors.white,
                   ),
                   const SizedBox(width: 4),
                   Text(
@@ -647,8 +659,7 @@ class _PostCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                child: Text(post.avatar,
-                    style: const TextStyle(fontSize: 20)),
+                child: Text(post.avatar, style: const TextStyle(fontSize: 20)),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -664,8 +675,8 @@ class _PostCard extends StatelessWidget {
                     Text(
                       post.timestamp,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.5),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
                     ),
                   ],
@@ -734,8 +745,9 @@ class _PostCard extends StatelessWidget {
           Row(
             children: [
               _PostAction(
-                icon:
-                    liked ? Icons.favorite_rounded : Icons.favorite_outline_rounded,
+                icon: liked
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_outline_rounded,
                 label: '${post.likes + (liked ? 1 : 0)}',
                 tone: const Color(0xFFEC4899),
                 active: liked,

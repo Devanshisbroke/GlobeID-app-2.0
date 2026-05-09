@@ -54,8 +54,7 @@ class _ServicesHubScreenState extends ConsumerState<ServicesHubScreen>
                 child: Text(
                   'Everything you need on the road, all in one place.',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color:
-                        theme.colorScheme.onSurface.withValues(alpha: 0.65),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
                   ),
                 ),
               ),
@@ -198,11 +197,32 @@ class _ServicesHubScreenState extends ConsumerState<ServicesHubScreen>
               description: 'Boarding lobby & lounge map',
             ),
             _ServiceItem(
+              name: 'Airport mode',
+              path: '/airport-mode',
+              icon: Icons.hub_rounded,
+              accent: AccentName.sky,
+              description: 'Live gate · terminal map · timing',
+            ),
+            _ServiceItem(
               name: 'Travel OS',
               path: '/travel-os',
               icon: Icons.hub_rounded,
               accent: AccentName.fuchsia,
               description: 'Agentic orchestration of trips',
+            ),
+            _ServiceItem(
+              name: 'Super services',
+              path: '/super-services',
+              icon: Icons.auto_awesome_rounded,
+              accent: AccentName.violet,
+              description: 'Unified score · fraud · safety hub',
+            ),
+            _ServiceItem(
+              name: 'Visa center',
+              path: '/visa',
+              icon: Icons.assignment_ind_rounded,
+              accent: AccentName.emerald,
+              description: 'Eligibility · expiry · readiness ring',
             ),
             _ServiceItem(
               name: 'Live trip',
@@ -280,6 +300,13 @@ class _ServicesHubScreenState extends ConsumerState<ServicesHubScreen>
               icon: Icons.public_rounded,
               accent: AccentName.emerald,
               description: 'Per-currency balances',
+            ),
+            _ServiceItem(
+              name: 'Trip wallet',
+              path: '/trip-wallet',
+              icon: Icons.savings_rounded,
+              accent: AccentName.violet,
+              description: 'Per-trip envelope · auto-tagging',
             ),
             _ServiceItem(
               name: 'Receipts',
@@ -650,8 +677,8 @@ class _FeaturedFastPath extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(AppTokens.radiusXl),
-                  border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.32)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.32)),
                 ),
                 child: const Icon(Icons.book_rounded,
                     color: Colors.white, size: 30),

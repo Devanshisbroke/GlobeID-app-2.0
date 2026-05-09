@@ -105,8 +105,7 @@ class LiveDot extends StatefulWidget {
   State<LiveDot> createState() => _LiveDotState();
 }
 
-class _LiveDotState extends State<LiveDot>
-    with SingleTickerProviderStateMixin {
+class _LiveDotState extends State<LiveDot> with SingleTickerProviderStateMixin {
   late final _ctrl = AnimationController(
     vsync: this,
     duration: AppTokens.duration2xl,
@@ -145,7 +144,8 @@ class _LiveDotState extends State<LiveDot>
                 shape: BoxShape.circle,
                 color: accent,
                 boxShadow: [
-                  BoxShadow(color: accent.withValues(alpha: 0.7), blurRadius: 6),
+                  BoxShadow(
+                      color: accent.withValues(alpha: 0.7), blurRadius: 6),
                 ],
               ),
             ),

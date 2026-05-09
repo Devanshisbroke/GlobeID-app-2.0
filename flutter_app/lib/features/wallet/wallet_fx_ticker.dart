@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -49,11 +48,9 @@ class _FxPairTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final trendUp = pair.trend.isNotEmpty &&
-        pair.trend.last > pair.trend.first;
-    final trendColor = trendUp
-        ? const Color(0xFF22C55E)
-        : const Color(0xFFEF4444);
+    final trendUp = pair.trend.isNotEmpty && pair.trend.last > pair.trend.first;
+    final trendColor =
+        trendUp ? const Color(0xFF22C55E) : const Color(0xFFEF4444);
 
     return Pressable(
       scale: 0.97,

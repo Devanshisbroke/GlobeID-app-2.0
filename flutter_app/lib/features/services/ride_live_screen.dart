@@ -131,11 +131,9 @@ class _RideLiveScreenState extends State<RideLiveScreen>
                             label: 'Plate ${widget.plate}',
                             icon: Icons.confirmation_number_rounded),
                         const HeroBadge(
-                            label: '4.94★ rated',
-                            icon: Icons.star_rounded),
+                            label: '4.94★ rated', icon: Icons.star_rounded),
                         const HeroBadge(
-                            label: 'A/C · charger',
-                            icon: Icons.bolt_rounded),
+                            label: 'A/C · charger', icon: Icons.bolt_rounded),
                       ],
                     ),
                     Positioned(
@@ -154,8 +152,7 @@ class _RideLiveScreenState extends State<RideLiveScreen>
           ),
           const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space3)),
           SliverPadding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
             sliver: SliverToBoxAdapter(
               child: PremiumPulseStrip(
                 pulses: [
@@ -210,16 +207,11 @@ class _RideLiveScreenState extends State<RideLiveScreen>
                 activeIndex: _stage,
                 steps: const [
                   JourneyStep(
-                      label: 'Confirm',
-                      icon: Icons.check_circle_rounded),
+                      label: 'Confirm', icon: Icons.check_circle_rounded),
                   JourneyStep(
-                      label: 'Pickup',
-                      icon: Icons.directions_car_rounded),
-                  JourneyStep(
-                      label: 'Onboard',
-                      icon: Icons.event_seat_rounded),
-                  JourneyStep(
-                      label: 'On trip', icon: Icons.timeline_rounded),
+                      label: 'Pickup', icon: Icons.directions_car_rounded),
+                  JourneyStep(label: 'Onboard', icon: Icons.event_seat_rounded),
+                  JourneyStep(label: 'On trip', icon: Icons.timeline_rounded),
                   JourneyStep(label: 'Drop', icon: Icons.flag_rounded),
                 ],
               ),
@@ -272,8 +264,8 @@ class _RideLiveScreenState extends State<RideLiveScreen>
                               horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
                             color: widget.tone.withValues(alpha: 0.16),
-                            borderRadius: BorderRadius.circular(
-                                AppTokens.radiusFull),
+                            borderRadius:
+                                BorderRadius.circular(AppTokens.radiusFull),
                           ),
                           child: Text(
                             'Plate ${widget.plate}',
@@ -331,8 +323,8 @@ class _RideLiveScreenState extends State<RideLiveScreen>
                       child: Row(
                         children: [
                           Expanded(
-                            child: Text(r.$1,
-                                style: theme.textTheme.bodyMedium),
+                            child:
+                                Text(r.$1, style: theme.textTheme.bodyMedium),
                           ),
                           Text(r.$2,
                               style: theme.textTheme.bodyMedium?.copyWith(
@@ -348,8 +340,8 @@ class _RideLiveScreenState extends State<RideLiveScreen>
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Container(
                       height: 1,
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.12),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.12),
                     ),
                   ),
                   Row(
@@ -507,10 +499,10 @@ class _RideMapPainter extends CustomPainter {
       ..color = Colors.white.withValues(alpha: 0.18)
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(
-        Offset(20, size.height * 0.7), Offset(size.width - 20, size.height * 0.4), roads);
-    canvas.drawLine(
-        Offset(60, size.height * 0.85), Offset(size.width - 60, size.height * 0.15), roads);
+    canvas.drawLine(Offset(20, size.height * 0.7),
+        Offset(size.width - 20, size.height * 0.4), roads);
+    canvas.drawLine(Offset(60, size.height * 0.85),
+        Offset(size.width - 60, size.height * 0.15), roads);
     canvas.drawLine(
         Offset(size.width * 0.2, size.height - 10),
         Offset(size.width * 0.6, 20),
@@ -519,8 +511,8 @@ class _RideMapPainter extends CustomPainter {
     // Route arc
     final start = Offset(36, size.height - 36);
     final end = Offset(size.width - 36, 36);
-    final mid = Offset((start.dx + end.dx) / 2 + 12,
-        (start.dy + end.dy) / 2 + 18);
+    final mid =
+        Offset((start.dx + end.dx) / 2 + 12, (start.dy + end.dy) / 2 + 18);
     final path = Path()
       ..moveTo(start.dx, start.dy)
       ..quadraticBezierTo(mid.dx, mid.dy, end.dx, end.dy);

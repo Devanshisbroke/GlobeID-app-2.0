@@ -131,10 +131,10 @@ class _PremiumSheetState extends State<_PremiumSheet> {
                       width: 38,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.28),
-                        borderRadius: BorderRadius.circular(
-                            AppTokens.radiusFull),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.28),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.radiusFull),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -151,8 +151,7 @@ class _PremiumSheetState extends State<_PremiumSheet> {
                                 if (widget.eyebrow != null)
                                   Text(
                                     widget.eyebrow!.toUpperCase(),
-                                    style: theme.textTheme.labelSmall
-                                        ?.copyWith(
+                                    style: theme.textTheme.labelSmall?.copyWith(
                                       color: accent,
                                       letterSpacing: 1.2,
                                       fontWeight: FontWeight.w800,
@@ -160,8 +159,7 @@ class _PremiumSheetState extends State<_PremiumSheet> {
                                   ),
                                 Text(
                                   widget.title,
-                                  style: theme.textTheme.titleLarge
-                                      ?.copyWith(
+                                  style: theme.textTheme.titleLarge?.copyWith(
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),

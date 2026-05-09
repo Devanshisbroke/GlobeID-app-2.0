@@ -7,6 +7,7 @@ import '../../data/api/api_provider.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/pressable.dart';
+import 'agent_action_card.dart';
 import 'concierge_command_surface.dart';
 
 /// Copilot v2 — premium chat. Suggestion chips, bubble tails, typing
@@ -24,24 +25,33 @@ class _CopilotScreenState extends ConsumerState<CopilotScreen> {
   bool _busy = false;
 
   static const _suggestionGroups = <(String, List<String>)>[
-    ('Travel', [
-      'When does my next trip leave?',
-      'Best route from JFK to LHR',
-      'Pack list for Tokyo in June',
-      'Lounges at NRT terminal 1',
-    ]),
-    ('Wallet', [
-      'Top spend categories this month',
-      'JPY rate compared to last week',
-      'Runway at current spend',
-      'Largest expense last 30 days',
-    ]),
-    ('Identity', [
-      'Any visa expiring soon?',
-      'My current identity tier',
-      'How is my travel score computed?',
-      'Which docs need renewal?',
-    ]),
+    (
+      'Travel',
+      [
+        'When does my next trip leave?',
+        'Best route from JFK to LHR',
+        'Pack list for Tokyo in June',
+        'Lounges at NRT terminal 1',
+      ]
+    ),
+    (
+      'Wallet',
+      [
+        'Top spend categories this month',
+        'JPY rate compared to last week',
+        'Runway at current spend',
+        'Largest expense last 30 days',
+      ]
+    ),
+    (
+      'Identity',
+      [
+        'Any visa expiring soon?',
+        'My current identity tier',
+        'How is my travel score computed?',
+        'Which docs need renewal?',
+      ]
+    ),
   ];
 
   @override
@@ -232,8 +242,7 @@ class _EmptyState extends StatelessWidget {
                   id: 'rate',
                   label: 'FX check',
                   icon: Icons.currency_exchange_rounded,
-                  onActivate: () =>
-                      onPick('JPY rate compared to last week'),
+                  onActivate: () => onPick('JPY rate compared to last week'),
                 ),
                 ConciergeCommand(
                   id: 'visa',
@@ -283,6 +292,26 @@ class _EmptyState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppTokens.space5),
+          AnimatedAppearance(
+            delay: const Duration(milliseconds: 180),
+            child: Text(
+              'Recent agent moves',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppTokens.space2),
+          for (var ai = 0; ai < AgentAction.demoActions().length; ai++)
+            AnimatedAppearance(
+              delay: Duration(milliseconds: 220 + 60 * ai),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppTokens.space2),
+                child: AgentActionCard(
+                  action: AgentAction.demoActions()[ai],
+                ),
+              ),
+            ),
           for (var gi = 0; gi < groups.length; gi++) ...[
             const SizedBox(height: AppTokens.space4),
             AnimatedAppearance(
@@ -382,8 +411,7 @@ class _Bubble extends StatelessWidget {
                   fontSize: 9,
                   letterSpacing: 1.5,
                   fontWeight: FontWeight.w800,
-                  color:
-                      theme.colorScheme.onSurface.withValues(alpha: 0.45),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
                 ),
               ),
             ],

@@ -68,8 +68,7 @@ class PremiumHud extends StatelessWidget {
               Text(
                 label.toUpperCase(),
                 style: AirportFontStack.caption(context).copyWith(
-                  color: theme.colorScheme.onSurface
-                      .withValues(alpha: 0.92),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.92),
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1.4,
                   fontSize: dense ? 9.6 : 10.4,
@@ -100,8 +99,7 @@ class _Pulse extends StatefulWidget {
   State<_Pulse> createState() => _PulseState();
 }
 
-class _PulseState extends State<_Pulse>
-    with SingleTickerProviderStateMixin {
+class _PulseState extends State<_Pulse> with SingleTickerProviderStateMixin {
   late final AnimationController _c;
 
   @override

@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/globe_camera_controller.dart';
+import '../../cinematic/globe_interaction_overlay.dart';
 import '../../widgets/agentic_chip.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/cinematic_button.dart';
@@ -32,6 +34,10 @@ class _CinematicGlobeScreenState extends State<CinematicGlobeScreen>
     vsync: this,
     duration: const Duration(seconds: 18),
   )..repeat();
+
+  /// Cassini-style camera with auto-orbit + fly-to. Ticked every frame
+  /// so its yaw/pitch smoothly settles toward the selected destination.
+  final GlobeCameraController _camera = GlobeCameraController();
 
   int _selected = 1;
 
@@ -67,7 +73,19 @@ class _CinematicGlobeScreenState extends State<CinematicGlobeScreen>
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _camera.flyTo(
+      lat: _destinations[_selected].lat,
+      lng: _destinations[_selected].lng,
+    );
+    _ctrl.addListener(_camera.tick);
+  }
+
+  @override
   void dispose() {
+    _ctrl.removeListener(_camera.tick);
+    _camera.dispose();
     _ctrl.dispose();
     super.dispose();
   }
@@ -88,12 +106,44 @@ class _CinematicGlobeScreenState extends State<CinematicGlobeScreen>
                   animation: _ctrl,
                   builder: (_, __) => ClipRRect(
                     borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-                    child: CustomPaint(
-                      painter: _CinematicGlobePainter(
-                        progress: _ctrl.value,
-                        destinations: _destinations,
-                        selected: _selected,
-                      ),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: CustomPaint(
+                            painter: _CinematicGlobePainter(
+                              progress: _ctrl.value,
+                              destinations: _destinations,
+                              selected: _selected,
+                            ),
+                          ),
+                        ),
+                        Positioned.fill(
+                          child: GlobeInteractionOverlay(
+                            currentLat: _destinations[_selected].lat,
+                            currentLng: _destinations[_selected].lng,
+                            currentZoom: 1.0 + _selected * 0.4,
+                            selectedCity: GlobeCityInfo(
+                              name: _destinations[_selected].city,
+                              country: _destinations[_selected].country,
+                              flag: _destinations[_selected].flag,
+                              timezone: '—',
+                              temperature: '—',
+                              condition: '—',
+                              lat: _destinations[_selected].lat,
+                              lng: _destinations[_selected].lng,
+                              tone: _destinations[_selected].tone,
+                            ),
+                            onTimeChanged: (_) =>
+                                HapticFeedback.selectionClick(),
+                            onLayerToggled: (_, __) =>
+                                HapticFeedback.lightImpact(),
+                            onCityTapped: (_) {
+                              HapticFeedback.lightImpact();
+                              context.push('/cities');
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -120,6 +170,11 @@ class _CinematicGlobeScreenState extends State<CinematicGlobeScreen>
                   onTap: () {
                     HapticFeedback.lightImpact();
                     setState(() => _selected = i);
+                    _camera.flyTo(
+                      lat: d.lat,
+                      lng: d.lng,
+                      zoom: 1.4,
+                    );
                   },
                   child: AnimatedContainer(
                     duration: AppTokens.durationSm,
@@ -339,7 +394,8 @@ class _CinematicGlobePainter extends CustomPainter {
 
     // Continents (deterministic spots)
     final contRng = math.Random(31);
-    final cont = Paint()..color = const Color(0xFF065F46).withValues(alpha: 0.85);
+    final cont = Paint()
+      ..color = const Color(0xFF065F46).withValues(alpha: 0.85);
     for (var i = 0; i < 18; i++) {
       // Random points within unit sphere, projected via simple sin/cos
       final phi = contRng.nextDouble() * math.pi * 2;
@@ -458,8 +514,8 @@ class _CinematicGlobePainter extends CustomPainter {
     return Offset(cx + fx * r, cy + fy * r);
   }
 
-  void _drawArc(Canvas canvas, double cx, double cy, double r, _Dest a,
-      _Dest b, double t,
+  void _drawArc(
+      Canvas canvas, double cx, double cy, double r, _Dest a, _Dest b, double t,
       {required bool isHighlight}) {
     final pa = _project(a, cx, cy, r);
     final pb = _project(b, cx, cy, r);

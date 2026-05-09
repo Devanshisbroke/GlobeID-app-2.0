@@ -157,8 +157,8 @@ class _PassDetailScreenState extends ConsumerState<PassDetailScreen> {
                                     BorderRadius.circular(AppTokens.radius2xl),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: brand.primary
-                                        .withValues(alpha: 0.18),
+                                    color:
+                                        brand.primary.withValues(alpha: 0.18),
                                     blurRadius: 30,
                                     offset: const Offset(0, 12),
                                   ),
@@ -173,8 +173,7 @@ class _PassDetailScreenState extends ConsumerState<PassDetailScreen> {
                                   color: brand.primary,
                                 ),
                                 dataModuleStyle: QrDataModuleStyle(
-                                  dataModuleShape:
-                                      QrDataModuleShape.square,
+                                  dataModuleShape: QrDataModuleShape.square,
                                   color: brand.primary,
                                 ),
                               ),
@@ -661,12 +660,11 @@ class _ActionsRow extends StatelessWidget {
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
                     child: Container(
-                      padding:
-                          const EdgeInsets.symmetric(vertical: AppTokens.space3),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppTokens.space3),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.10),
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.radiusXl),
+                        borderRadius: BorderRadius.circular(AppTokens.radiusXl),
                         border: Border.all(
                           color: Colors.white.withValues(alpha: 0.12),
                         ),
@@ -709,14 +707,22 @@ class _ActivityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entries = const [
-      (Icons.qr_code_scanner_rounded, 'Boarding scanned',
-          'Gate A22 · Frankfurt · 14 Mar 09:42'),
-      (Icons.flight_takeoff_rounded, 'Flight pushed back',
-          'FRA → JFK · 14 Mar 10:18'),
-      (Icons.flight_land_rounded, 'Wheels down',
-          'JFK · 14 Mar 17:54 local'),
-      (Icons.update_rounded, 'Auto-updated from airline',
-          'Seat reassigned 11A → 11K · 13 Mar 21:01'),
+      (
+        Icons.qr_code_scanner_rounded,
+        'Boarding scanned',
+        'Gate A22 · Frankfurt · 14 Mar 09:42'
+      ),
+      (
+        Icons.flight_takeoff_rounded,
+        'Flight pushed back',
+        'FRA → JFK · 14 Mar 10:18'
+      ),
+      (Icons.flight_land_rounded, 'Wheels down', 'JFK · 14 Mar 17:54 local'),
+      (
+        Icons.update_rounded,
+        'Auto-updated from airline',
+        'Seat reassigned 11A → 11K · 13 Mar 21:01'
+      ),
     ];
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppTokens.radius2xl),
@@ -727,8 +733,7 @@ class _ActivityCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.07),
             borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-            border:
-                Border.all(color: Colors.white.withValues(alpha: 0.10)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -736,8 +741,7 @@ class _ActivityCard extends StatelessWidget {
               Row(
                 children: [
                   Icon(Icons.timeline_rounded,
-                      color: brand.primary.withValues(alpha: 0.9),
-                      size: 16),
+                      color: brand.primary.withValues(alpha: 0.9), size: 16),
                   const SizedBox(width: 6),
                   const Text('RECENT ACTIVITY',
                       style: TextStyle(
@@ -777,8 +781,7 @@ class _ActivityCard extends StatelessWidget {
                                     fontSize: 13)),
                             Text(e.$3,
                                 style: TextStyle(
-                                    color:
-                                        Colors.white.withValues(alpha: 0.55),
+                                    color: Colors.white.withValues(alpha: 0.55),
                                     fontSize: 11)),
                           ],
                         ),

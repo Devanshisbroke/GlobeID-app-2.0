@@ -70,6 +70,5 @@ class CinematicRouteHeroTarget extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) =>
-      Hero(tag: tag, child: child);
+  Widget build(BuildContext context) => Hero(tag: tag, child: child);
 }

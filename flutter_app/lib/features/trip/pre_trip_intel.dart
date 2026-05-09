@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/glass_surface.dart';
@@ -76,8 +77,7 @@ class _IntelSectionCardState extends State<_IntelSectionCard> {
                     width: 34,
                     height: 34,
                     decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radiusMd),
+                      borderRadius: BorderRadius.circular(AppTokens.radiusMd),
                       color: sec.tone.withValues(alpha: 0.14),
                     ),
                     child: Icon(sec.icon, size: 18, color: sec.tone),
@@ -132,8 +132,8 @@ class _IntelSectionCardState extends State<_IntelSectionCard> {
                     duration: AppTokens.durationSm,
                     child: Icon(
                       Icons.expand_more_rounded,
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.40),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.40),
                     ),
                   ),
                 ],
@@ -156,15 +156,14 @@ class _IntelSectionCardState extends State<_IntelSectionCard> {
                   const SizedBox(height: AppTokens.space3),
                   for (final item in sec.items)
                     Padding(
-                      padding:
-                          const EdgeInsets.only(bottom: AppTokens.space2),
+                      padding: const EdgeInsets.only(bottom: AppTokens.space2),
                       child: _IntelItem(item: item),
                     ),
                   if (sec.actionRoute != null)
                     Padding(
                       padding: const EdgeInsets.only(top: AppTokens.space2),
                       child: TextButton.icon(
-                        onPressed: () {},
+                        onPressed: () => context.push(sec.actionRoute!),
                         icon: const Icon(Icons.open_in_new_rounded, size: 14),
                         label: Text(sec.actionLabel ?? 'Open'),
                         style: TextButton.styleFrom(
@@ -179,8 +178,9 @@ class _IntelSectionCardState extends State<_IntelSectionCard> {
                 ],
               ),
             ),
-            crossFadeState:
-                _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            crossFadeState: _expanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
             duration: AppTokens.durationSm,
           ),
         ],

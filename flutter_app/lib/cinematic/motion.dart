@@ -22,9 +22,7 @@ class Motion {
 
   /// `prefers-reduced-motion` aware duration scaling.
   static Duration reduce(BuildContext context, Duration d) =>
-      MediaQuery.maybeDisableAnimationsOf(context) == true
-          ? Duration.zero
-          : d;
+      MediaQuery.maybeDisableAnimationsOf(context) == true ? Duration.zero : d;
 
   /// Apple "spring.default" — snappy with a touch of overshoot.
   static const Curve springDefault = Cubic(0.3, 1.4, 0.45, 1);

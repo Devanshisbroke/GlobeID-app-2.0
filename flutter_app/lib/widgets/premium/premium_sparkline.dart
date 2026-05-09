@@ -91,8 +91,8 @@ class _PremiumSparklineState extends State<PremiumSparkline>
                     Text(
                       widget.label!.toUpperCase(),
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.62),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.62),
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.4,
                       ),
@@ -218,7 +218,5 @@ class _SparklinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SparklinePainter old) =>
-      old.progress != progress ||
-      old.values != values ||
-      old.tone != tone;
+      old.progress != progress || old.values != values || old.tone != tone;
 }

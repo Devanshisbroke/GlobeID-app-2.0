@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
@@ -270,7 +271,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   ),
                   child: EmptyState(
                     title: 'No matches yet',
-                    message: 'No “${_labelFor(_category)}” suggestions for now.',
+                    message:
+                        'No “${_labelFor(_category)}” suggestions for now.',
                     icon: Icons.travel_explore_rounded,
                   ),
                 );
@@ -300,9 +302,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     );
   }
 
-  String _labelFor(String id) =>
-      _categories.firstWhere((c) => c.id == id, orElse: () => _categories[0])
-          .label;
+  String _labelFor(String id) => _categories
+      .firstWhere((c) => c.id == id, orElse: () => _categories[0])
+      .label;
 
   Color _accentForIndex(int i) => const [
         Color(0xFF7C3AED),
@@ -561,7 +563,10 @@ class _ExploreRow extends StatelessWidget {
     final icon = _iconFor(kind);
     return Pressable(
       scale: 0.98,
-      onTap: () => HapticFeedback.lightImpact(),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        context.push('/discover');
+      },
       child: PremiumCard(
         padding: const EdgeInsets.all(AppTokens.space4),
         child: Row(

@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-
 /// Cinematic camera controller for the globe renderer.
 ///
 /// Manages smooth transitions between orbital camera states:
@@ -123,8 +122,7 @@ class GlobeCameraController extends ChangeNotifier {
     // Apply residual momentum to target
     if (!_isAutoRotating) {
       _targetYaw += _velocityYaw * 0.5;
-      _targetPitch =
-          (_targetPitch + _velocityPitch * 0.5).clamp(-1.1, 1.1);
+      _targetPitch = (_targetPitch + _velocityPitch * 0.5).clamp(-1.1, 1.1);
     }
 
     // Smooth interpolation toward target

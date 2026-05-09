@@ -193,9 +193,7 @@ class _KineticCardStackState extends State<KineticCardStack>
                                                     tag: widget
                                                         .heroTagBuilder!(i),
                                                     child: widget.builder(
-                                                        context,
-                                                        i,
-                                                        1 - delta),
+                                                        context, i, 1 - delta),
                                                   ),
                                           ),
                                         ),
@@ -284,7 +282,7 @@ class _FanLayer extends StatelessWidget {
             ..setEntry(3, 2, 0.0008)
             ..rotateZ(rot)
             ..rotateX(tilt)
-            ..scaleByDouble(scale, scale, 1, 1),
+            ..scale(scale, scale, 1.0),
           child: GestureDetector(
             onTap: onTap,
             child: child,
@@ -322,4 +320,3 @@ class _SensorTilt extends StatelessWidget {
     );
   }
 }
-

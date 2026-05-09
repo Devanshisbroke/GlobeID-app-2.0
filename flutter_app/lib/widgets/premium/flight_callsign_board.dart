@@ -39,8 +39,7 @@ class FlightCallsignBoard extends StatelessWidget {
               Text('CALLSIGN', style: AirportFontStack.caption(context)),
               const Spacer(),
               if (gate != null && gate!.isNotEmpty) ...[
-                Text('GATE',
-                    style: AirportFontStack.caption(context)),
+                Text('GATE', style: AirportFontStack.caption(context)),
                 const SizedBox(width: 6),
                 DepartureBoardText(
                   text: gate!.toUpperCase(),
@@ -69,15 +68,13 @@ class FlightCallsignBoard extends StatelessWidget {
                       style: AirportFontStack.iata(context, size: 32),
                       tone: tone,
                     ),
-                    Text('FROM',
-                        style: AirportFontStack.caption(context)),
+                    Text('FROM', style: AirportFontStack.caption(context)),
                   ],
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(Icons.flight_rounded,
-                    color: tone, size: 28),
+                child: Icon(Icons.flight_rounded, color: tone, size: 28),
               ),
               Expanded(
                 child: Column(
@@ -88,8 +85,7 @@ class FlightCallsignBoard extends StatelessWidget {
                       style: AirportFontStack.iata(context, size: 32),
                       tone: tone,
                     ),
-                    Text('TO',
-                        style: AirportFontStack.caption(context)),
+                    Text('TO', style: AirportFontStack.caption(context)),
                   ],
                 ),
               ),
@@ -98,8 +94,7 @@ class FlightCallsignBoard extends StatelessWidget {
           const SizedBox(height: AppTokens.space3),
           Row(
             children: [
-              Text('DEPART',
-                  style: AirportFontStack.caption(context)),
+              Text('DEPART', style: AirportFontStack.caption(context)),
               const SizedBox(width: 6),
               DepartureBoardText(
                 text: depart.toUpperCase(),

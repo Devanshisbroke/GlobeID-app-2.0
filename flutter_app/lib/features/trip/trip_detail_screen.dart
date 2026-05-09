@@ -16,6 +16,8 @@ import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
 import '../lifecycle/lifecycle_provider.dart';
+import 'pre_trip_intel.dart';
+import 'trip_intel_cards.dart';
 
 /// Immersive trip detail. Hero brand-tinted backdrop, animated leg
 /// timeline (IATA → IATA with airplane), per-leg pass card, location +
@@ -162,8 +164,7 @@ class TripDetailScreen extends ConsumerWidget {
                 ),
 
                 // ── Destination intel cluster ──────────────────
-                const SectionHeader(
-                    title: 'Destination intel', dense: true),
+                const SectionHeader(title: 'Destination intel', dense: true),
                 AnimatedAppearance(
                   delay: const Duration(milliseconds: 360),
                   child: _AnchorStrip(anchors: const [
@@ -189,10 +190,28 @@ class TripDetailScreen extends ConsumerWidget {
                   delay: const Duration(milliseconds: 420),
                   child: const _CurrencyCard(),
                 ),
+                if (to != null && from != null) ...[
+                  const SizedBox(height: AppTokens.space3),
+                  AnimatedAppearance(
+                    delay: const Duration(milliseconds: 440),
+                    child: TripTimezoneCard(
+                      origin: from,
+                      destination: to,
+                      offsetHours: _offsetHoursFor(to),
+                    ),
+                  ),
+                  const SizedBox(height: AppTokens.space5),
+                  AnimatedAppearance(
+                    delay: const Duration(milliseconds: 460),
+                    child: PreTripIntel(
+                      destination: to,
+                      sections: IntelSection.demo(to),
+                    ),
+                  ),
+                ],
 
                 // ── Ground operations ──────────────────────────
-                const SectionHeader(
-                    title: 'On the ground', dense: true),
+                const SectionHeader(title: 'On the ground', dense: true),
                 AnimatedAppearance(
                   delay: const Duration(milliseconds: 460),
                   child: const _TransportCard(),
@@ -211,6 +230,13 @@ class TripDetailScreen extends ConsumerWidget {
                 AnimatedAppearance(
                   delay: const Duration(milliseconds: 520),
                   child: const _InsuranceCard(),
+                ),
+
+                // ── Spending envelope quick-jump ───────────────
+                const SectionHeader(title: 'Spend envelope', dense: true),
+                AnimatedAppearance(
+                  delay: const Duration(milliseconds: 540),
+                  child: _TripWalletCta(tripName: trip.name),
                 ),
               ],
             ),
@@ -270,8 +296,7 @@ class _WeatherCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            const Icon(Icons.cloud_rounded,
-                color: Color(0xFF06B6D4), size: 18),
+            const Icon(Icons.cloud_rounded, color: Color(0xFF06B6D4), size: 18),
             const SizedBox(width: 6),
             Text('Weather · ${to ?? 'Destination'}',
                 style: t.textTheme.titleSmall
@@ -289,19 +314,24 @@ class _WeatherCard extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text('Mostly cloudy · feels 19°',
                     style: t.textTheme.bodySmall?.copyWith(
-                        color: t.colorScheme.onSurface
-                            .withValues(alpha: 0.65))),
+                        color:
+                            t.colorScheme.onSurface.withValues(alpha: 0.65))),
               ),
             ],
           ),
           const SizedBox(height: AppTokens.space3),
           Row(
             children: const [
-              _ForecastTile(time: 'Now', temp: '21°', icon: Icons.cloud_rounded),
-              _ForecastTile(time: '12:00', temp: '22°', icon: Icons.wb_sunny_rounded),
-              _ForecastTile(time: '15:00', temp: '23°', icon: Icons.wb_sunny_rounded),
-              _ForecastTile(time: '18:00', temp: '20°', icon: Icons.cloud_queue_rounded),
-              _ForecastTile(time: '21:00', temp: '17°', icon: Icons.nights_stay_rounded),
+              _ForecastTile(
+                  time: 'Now', temp: '21°', icon: Icons.cloud_rounded),
+              _ForecastTile(
+                  time: '12:00', temp: '22°', icon: Icons.wb_sunny_rounded),
+              _ForecastTile(
+                  time: '15:00', temp: '23°', icon: Icons.wb_sunny_rounded),
+              _ForecastTile(
+                  time: '18:00', temp: '20°', icon: Icons.cloud_queue_rounded),
+              _ForecastTile(
+                  time: '21:00', temp: '17°', icon: Icons.nights_stay_rounded),
             ],
           ),
         ],
@@ -327,8 +357,7 @@ class _ForecastTile extends StatelessWidget {
                   color: t.colorScheme.onSurface.withValues(alpha: 0.55))),
           const SizedBox(height: 4),
           Icon(icon,
-              size: 18,
-              color: t.colorScheme.onSurface.withValues(alpha: 0.78)),
+              size: 18, color: t.colorScheme.onSurface.withValues(alpha: 0.78)),
           const SizedBox(height: 4),
           Text(temp,
               style: t.textTheme.labelLarge
@@ -345,40 +374,49 @@ class _VisaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    return PremiumCard(
-      padding: const EdgeInsets.all(AppTokens.space4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            const Icon(Icons.assignment_ind_rounded,
-                color: Color(0xFF7C3AED), size: 18),
-            const SizedBox(width: 6),
-            Text('Visa & entry',
-                style: t.textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w800)),
-            const Spacer(),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+    return InkWell(
+      borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+      onTap: () => context.push('/visa'),
+      child: PremiumCard(
+        padding: const EdgeInsets.all(AppTokens.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              const Icon(Icons.assignment_ind_rounded,
+                  color: Color(0xFF7C3AED), size: 18),
+              const SizedBox(width: 6),
+              Text('Visa & entry',
+                  style: t.textTheme.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w800)),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                ),
+                child: const Text('VISA-FREE',
+                    style: TextStyle(
+                        color: Color(0xFF10B981),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.6)),
               ),
-              child: const Text('VISA-FREE',
-                  style: TextStyle(
-                      color: Color(0xFF10B981),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.6)),
-            ),
-          ]),
-          const SizedBox(height: AppTokens.space3),
-          _MetaRow(label: 'Stay allowed', value: '90 days within 180-day window'),
-          _MetaRow(label: 'Passport validity', value: '6 months beyond entry'),
-          _MetaRow(label: 'Onward ticket', value: 'Required'),
-          _MetaRow(label: 'Customs', value: 'Declare > €10,000'),
-        ],
+              const SizedBox(width: 6),
+              Icon(Icons.arrow_forward_ios_rounded,
+                  size: 12,
+                  color: t.colorScheme.onSurface.withValues(alpha: 0.45)),
+            ]),
+            const SizedBox(height: AppTokens.space3),
+            const _MetaRow(
+                label: 'Stay allowed', value: '90 days within 180-day window'),
+            const _MetaRow(
+                label: 'Passport validity', value: '6 months beyond entry'),
+            const _MetaRow(label: 'Onward ticket', value: 'Required'),
+            const _MetaRow(label: 'Customs', value: 'Declare > €10,000'),
+          ],
+        ),
       ),
     );
   }
@@ -424,7 +462,7 @@ class _CurrencyCard extends StatelessWidget {
           Row(children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () {},
+                onPressed: () => context.push('/wallet/exchange'),
                 icon: const Icon(Icons.swap_vert_rounded, size: 18),
                 label: const Text('Convert'),
               ),
@@ -432,7 +470,7 @@ class _CurrencyCard extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () {},
+                onPressed: () => context.push('/multi-currency'),
                 icon: const Icon(Icons.show_chart_rounded, size: 18),
                 label: const Text('Watchlist'),
               ),
@@ -465,14 +503,22 @@ class _TransportCard extends StatelessWidget {
           ]),
           const SizedBox(height: AppTokens.space3),
           for (final r in const [
-            (Icons.train_rounded, 'Express train',
-                '€11.40 · 28 min · every 15 min'),
-            (Icons.local_taxi_rounded, 'Premium ride',
-                '€44 · 22–35 min · 4.9★ avg'),
-            (Icons.airport_shuttle_rounded, 'Airport shuttle',
-                '€8 · 38 min · departs xx:05 + xx:35'),
-            (Icons.directions_subway_rounded, 'Metro + bus',
-                '€3.20 · 47 min'),
+            (
+              Icons.train_rounded,
+              'Express train',
+              '€11.40 · 28 min · every 15 min'
+            ),
+            (
+              Icons.local_taxi_rounded,
+              'Premium ride',
+              '€44 · 22–35 min · 4.9★ avg'
+            ),
+            (
+              Icons.airport_shuttle_rounded,
+              'Airport shuttle',
+              '€8 · 38 min · departs xx:05 + xx:35'
+            ),
+            (Icons.directions_subway_rounded, 'Metro + bus', '€3.20 · 47 min'),
           ])
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
@@ -496,8 +542,7 @@ class _TransportCard extends StatelessWidget {
                   ),
                 ),
                 Icon(Icons.chevron_right_rounded,
-                    color:
-                        t.colorScheme.onSurface.withValues(alpha: 0.32)),
+                    color: t.colorScheme.onSurface.withValues(alpha: 0.32)),
               ]),
             ),
         ],
@@ -526,8 +571,7 @@ class _LoungeCard extends StatelessWidget {
                     ?.copyWith(fontWeight: FontWeight.w800)),
             const Spacer(),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
                 color: const Color(0xFFD4AF37).withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(AppTokens.radiusFull),
@@ -579,16 +623,13 @@ class _EsimCard extends StatelessWidget {
           const SizedBox(height: AppTokens.space3),
           Row(children: const [
             Expanded(
-                child: _EsimPlanTile(
-                    label: '1 GB · 7 days', price: '€4.50')),
+                child: _EsimPlanTile(label: '1 GB · 7 days', price: '€4.50')),
             SizedBox(width: 8),
             Expanded(
-                child: _EsimPlanTile(
-                    label: '5 GB · 30 days', price: '€11.90')),
+                child: _EsimPlanTile(label: '5 GB · 30 days', price: '€11.90')),
             SizedBox(width: 8),
             Expanded(
-                child: _EsimPlanTile(
-                    label: 'Unlimited · 30d', price: '€34')),
+                child: _EsimPlanTile(label: 'Unlimited · 30d', price: '€34')),
           ]),
         ],
       ),
@@ -604,13 +645,13 @@ class _EsimPlanTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(
-          vertical: AppTokens.space3, horizontal: 8),
+      padding:
+          const EdgeInsets.symmetric(vertical: AppTokens.space3, horizontal: 8),
       decoration: BoxDecoration(
         color: t.colorScheme.onSurface.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-        border: Border.all(
-            color: t.colorScheme.onSurface.withValues(alpha: 0.10)),
+        border:
+            Border.all(color: t.colorScheme.onSurface.withValues(alpha: 0.10)),
       ),
       child: Column(children: [
         Text(label,
@@ -619,8 +660,8 @@ class _EsimPlanTile extends StatelessWidget {
                 color: t.colorScheme.onSurface.withValues(alpha: 0.65))),
         const SizedBox(height: 4),
         Text(price,
-            style: t.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.w900)),
+            style:
+                t.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
       ]),
     );
   }
@@ -646,8 +687,7 @@ class _InsuranceCard extends StatelessWidget {
                     ?.copyWith(fontWeight: FontWeight.w800)),
             const Spacer(),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
                 color: const Color(0xFF10B981).withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(AppTokens.radiusFull),
@@ -688,8 +728,7 @@ class _MetaRow extends StatelessWidget {
           Expanded(
             child: Text(label,
                 style: t.textTheme.bodySmall?.copyWith(
-                    color: t.colorScheme.onSurface
-                        .withValues(alpha: 0.60))),
+                    color: t.colorScheme.onSurface.withValues(alpha: 0.60))),
           ),
           const SizedBox(width: AppTokens.space3),
           Flexible(
@@ -887,82 +926,82 @@ class _LegList extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppTokens.radiusLg),
                 child: GlassSurface(
                   child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text('${legs[i].from} → ${legs[i].to}',
-                            style: theme.textTheme.titleLarge),
-                        const Spacer(),
-                        Text(legs[i].flightNumber,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              letterSpacing: 1.4,
-                            )),
-                      ],
-                    ),
-                    const SizedBox(height: AppTokens.space2),
-                    Wrap(
-                      spacing: AppTokens.space2,
-                      runSpacing: AppTokens.space2,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(Icons.access_time_rounded,
-                              size: 14,
-                              color: theme.textTheme.bodySmall?.color),
-                          const SizedBox(width: 4),
-                          Text(legs[i].scheduled,
-                              style: theme.textTheme.bodySmall),
-                        ]),
-                        if (legs[i].gate != null)
-                          PillChip(label: 'Gate ${legs[i].gate}'),
-                        if (legs[i].seat != null)
-                          PillChip(label: 'Seat ${legs[i].seat}'),
-                        if (tightLegIds.contains(legs[i].id))
-                          const PillChip(
-                            label: 'Tight conn',
-                            icon: Icons.warning_amber_rounded,
-                            tone: Color(0xFFD97706),
-                          ),
-                      ],
-                    ),
-                    if (getAirport(legs[i].from) != null) ...[
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text('${legs[i].from} → ${legs[i].to}',
+                              style: theme.textTheme.titleLarge),
+                          const Spacer(),
+                          Text(legs[i].flightNumber,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                letterSpacing: 1.4,
+                              )),
+                        ],
+                      ),
                       const SizedBox(height: AppTokens.space2),
-                      Text(
-                        '${getAirport(legs[i].from)!.city} → ${getAirport(legs[i].to)?.city ?? legs[i].to}',
-                        style: theme.textTheme.bodySmall,
+                      Wrap(
+                        spacing: AppTokens.space2,
+                        runSpacing: AppTokens.space2,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Row(mainAxisSize: MainAxisSize.min, children: [
+                            Icon(Icons.access_time_rounded,
+                                size: 14,
+                                color: theme.textTheme.bodySmall?.color),
+                            const SizedBox(width: 4),
+                            Text(legs[i].scheduled,
+                                style: theme.textTheme.bodySmall),
+                          ]),
+                          if (legs[i].gate != null)
+                            PillChip(label: 'Gate ${legs[i].gate}'),
+                          if (legs[i].seat != null)
+                            PillChip(label: 'Seat ${legs[i].seat}'),
+                          if (tightLegIds.contains(legs[i].id))
+                            const PillChip(
+                              label: 'Tight conn',
+                              icon: Icons.warning_amber_rounded,
+                              tone: Color(0xFFD97706),
+                            ),
+                        ],
+                      ),
+                      if (getAirport(legs[i].from) != null) ...[
+                        const SizedBox(height: AppTokens.space2),
+                        Text(
+                          '${getAirport(legs[i].from)!.city} → ${getAirport(legs[i].to)?.city ?? legs[i].to}',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ],
+                      const SizedBox(height: AppTokens.space2),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.airplane_ticket_outlined,
+                            size: 16,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Open boarding pass',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                          const Spacer(),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 12,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ],
                       ),
                     ],
-                    const SizedBox(height: AppTokens.space2),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.airplane_ticket_outlined,
-                          size: 16,
-                          color: theme.colorScheme.primary,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Open boarding pass',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.6,
-                          ),
-                        ),
-                        const Spacer(),
-                        Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 12,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
           )
       ],
     );
@@ -1046,4 +1085,73 @@ class _PackingCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── Trip wallet CTA ───────────────────────────────────────────
+class _TripWalletCta extends StatelessWidget {
+  const _TripWalletCta({required this.tripName});
+  final String tripName;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return InkWell(
+      borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+      onTap: () => context.push('/trip-wallet'),
+      child: PremiumCard(
+        padding: const EdgeInsets.all(AppTokens.space4),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+              ),
+              child: const Icon(Icons.account_balance_wallet_rounded,
+                  color: Color(0xFF10B981), size: 22),
+            ),
+            const SizedBox(width: AppTokens.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Trip wallet · $tripName',
+                      style: t.textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Per-trip envelope · category breakdown · auto-tagging',
+                    style: t.textTheme.bodySmall?.copyWith(
+                      color: t.colorScheme.onSurface.withValues(alpha: 0.65),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: t.colorScheme.onSurface.withValues(alpha: 0.5)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Deterministic timezone offset between FRA (assumed home) and the
+/// destination IATA — used by the [TripTimezoneCard].
+int _offsetHoursFor(String iata) {
+  return switch (iata.toUpperCase()) {
+    'NRT' || 'HND' || 'KIX' || 'NGO' => 8,
+    'SIN' || 'KUL' || 'BKK' || 'HKG' || 'TPE' => 7,
+    'DXB' || 'AUH' || 'DOH' => 3,
+    'JFK' || 'EWR' || 'LGA' || 'BOS' || 'IAD' || 'YUL' || 'YYZ' => -6,
+    'LAX' || 'SFO' || 'SEA' || 'PDX' || 'YVR' => -9,
+    'GRU' || 'EZE' || 'SCL' => -4,
+    'SYD' || 'MEL' || 'AKL' => 10,
+    'JNB' || 'CPT' => 1,
+    _ => 0,
+  };
 }

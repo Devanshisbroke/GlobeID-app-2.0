@@ -26,6 +26,30 @@ import '../../widgets/section_header.dart';
 ///   • Booking footer with CinematicButton
 ///
 /// All sub-pieces are pure Flutter, deterministic, no network.
+///
+/// Route args carrier — passed via go_router `extra` so we can deep-link
+/// `/services/hotels/detail` from the bespoke list sheet without losing the
+/// per-item context (tonality, price, flag).
+class HotelDetailArgs {
+  const HotelDetailArgs({
+    required this.hotelName,
+    required this.city,
+    required this.country,
+    required this.tonality,
+    required this.rating,
+    required this.pricePerNight,
+    required this.flag,
+  });
+
+  final String hotelName;
+  final String city;
+  final String country;
+  final Color tonality;
+  final double rating;
+  final double pricePerNight;
+  final String flag;
+}
+
 class HotelDetailScreen extends StatefulWidget {
   const HotelDetailScreen({
     super.key,
@@ -82,7 +106,8 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                           label: 'Free cancellation',
                           icon: Icons.event_available_rounded),
                       HeroBadge(
-                          label: 'From \$${widget.pricePerNight.toStringAsFixed(0)}/n',
+                          label:
+                              'From \$${widget.pricePerNight.toStringAsFixed(0)}/n',
                           icon: Icons.payments_rounded),
                       const HeroBadge(
                           label: '12 km city center',
@@ -136,8 +161,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                   tone: widget.tonality,
                   onChanged: (v) {
                     HapticFeedback.lightImpact();
-                    setState(() =>
-                        _selectedNights = v.clamp(1, 14));
+                    setState(() => _selectedNights = v.clamp(1, 14));
                   },
                 ),
               ),
@@ -404,76 +428,75 @@ class _GalleryStrip extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 1),
         itemCount: 6,
-        separatorBuilder: (_, __) =>
-            const SizedBox(width: AppTokens.space3),
+        separatorBuilder: (_, __) => const SizedBox(width: AppTokens.space3),
         itemBuilder: (_, i) {
           return SensorPendulum(
             translation: 2.4,
             rotation: 0.008,
             child: Container(
-            width: 188,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppTokens.radiusXl),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  tonality.withValues(alpha: 0.85 - i * 0.10),
-                  tonality.withValues(alpha: 0.30),
+              width: 188,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppTokens.radiusXl),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    tonality.withValues(alpha: 0.85 - i * 0.10),
+                    tonality.withValues(alpha: 0.30),
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: tonality.withValues(alpha: 0.12),
+                    blurRadius: 14,
+                    offset: const Offset(0, 8),
+                  ),
                 ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: tonality.withValues(alpha: 0.12),
-                  blurRadius: 14,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(AppTokens.space3),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radiusFull),
+              child: Padding(
+                padding: const EdgeInsets.all(AppTokens.space3),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.18),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.radiusFull),
+                      ),
+                      child: Text(
+                        _labels[i],
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 10,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
                     ),
-                    child: Text(
-                      _labels[i],
+                    Text(
+                      _captions[i],
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w800,
-                        fontSize: 10,
-                        letterSpacing: 0.4,
+                        fontSize: 14,
+                        height: 1.1,
+                        shadows: [
+                          Shadow(
+                            color: Color(0x66000000),
+                            blurRadius: 12,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  Text(
-                    _captions[i],
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                      height: 1.1,
-                      shadows: [
-                        Shadow(
-                          color: Color(0x66000000),
-                          blurRadius: 12,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
           );
         },
       ),
@@ -861,8 +884,7 @@ class _ReviewCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                   color: const Color(0xFFD97706).withValues(alpha: 0.15),
@@ -1017,8 +1039,7 @@ class _MapPainter extends CustomPainter {
       final p = Path();
       p.moveTo(rng.nextDouble() * size.width, rng.nextDouble() * size.height);
       for (var j = 0; j < 3; j++) {
-        p.lineTo(
-            rng.nextDouble() * size.width, rng.nextDouble() * size.height);
+        p.lineTo(rng.nextDouble() * size.width, rng.nextDouble() * size.height);
       }
       canvas.drawPath(p, stroke..style = PaintingStyle.stroke);
     }

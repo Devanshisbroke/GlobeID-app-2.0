@@ -55,8 +55,8 @@ class WeeklyDigestCard extends StatelessWidget {
               ),
               Text(_weekLabel(),
                   style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.4))),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.4))),
             ],
           ),
           const SizedBox(height: AppTokens.space4),
@@ -64,16 +64,24 @@ class WeeklyDigestCard extends StatelessWidget {
           Row(
             children: const [
               _DigestStat(
-                  label: 'Trips', value: '2', icon: Icons.flight_rounded,
+                  label: 'Trips',
+                  value: '2',
+                  icon: Icons.flight_rounded,
                   color: Color(0xFF0EA5E9)),
               _DigestStat(
-                  label: 'Spent', value: '€847', icon: Icons.account_balance_wallet_rounded,
+                  label: 'Spent',
+                  value: '€847',
+                  icon: Icons.account_balance_wallet_rounded,
                   color: Color(0xFF22C55E)),
               _DigestStat(
-                  label: 'Countries', value: '3', icon: Icons.public_rounded,
+                  label: 'Countries',
+                  value: '3',
+                  icon: Icons.public_rounded,
                   color: Color(0xFFF59E0B)),
               _DigestStat(
-                  label: 'Score', value: '+4', icon: Icons.trending_up_rounded,
+                  label: 'Score',
+                  value: '+4',
+                  icon: Icons.trending_up_rounded,
                   color: Color(0xFFEC4899)),
             ],
           ),
@@ -138,8 +146,7 @@ class _DigestStat extends StatelessWidget {
                   fontFeatures: const [FontFeature.tabularFigures()])),
           Text(label,
               style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurface
-                      .withValues(alpha: 0.4))),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4))),
         ],
       ),
     );
@@ -245,10 +252,8 @@ class _TravelRecapCardState extends State<TravelRecapCard> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    borderRadius:
-                        BorderRadius.circular(AppTokens.radiusFull),
-                    color:
-                        theme.colorScheme.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
                   ),
                   child: Text('Trip Recap',
                       style: TextStyle(
@@ -328,24 +333,22 @@ class _TravelRecapCardState extends State<TravelRecapCard> {
                     Expanded(
                       child: Container(
                         height: 1.5,
-                        color: theme.colorScheme.primary
-                            .withValues(alpha: 0.25),
+                        color:
+                            theme.colorScheme.primary.withValues(alpha: 0.25),
                       ),
                     ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radiusFull),
+                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                       border: Border.all(
-                          color: theme.colorScheme.primary
-                              .withValues(alpha: 0.3)),
+                          color:
+                              theme.colorScheme.primary.withValues(alpha: 0.3)),
                     ),
                     child: Text(r.route[i],
                         style: theme.textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.8)),
+                            fontWeight: FontWeight.w800, letterSpacing: 0.8)),
                   ),
                 ],
               ],
@@ -411,11 +414,12 @@ class _TravelRecapCardState extends State<TravelRecapCard> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(entry.key, style: const TextStyle(fontSize: 14)),
+                            Text(entry.key,
+                                style: const TextStyle(fontSize: 14)),
                             const SizedBox(width: 3),
                             Text('${entry.value}',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                    fontWeight: FontWeight.w700)),
+                                style: theme.textTheme.labelSmall
+                                    ?.copyWith(fontWeight: FontWeight.w700)),
                           ],
                         ),
                       ),
@@ -463,8 +467,7 @@ class _RecapStat extends StatelessWidget {
                 fontFeatures: const [FontFeature.tabularFigures()])),
         Text(label,
             style: theme.textTheme.labelSmall?.copyWith(
-                color:
-                    theme.colorScheme.onSurface.withValues(alpha: 0.4))),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.4))),
       ],
     );
   }
@@ -500,9 +503,20 @@ class TripRecap {
           distanceKm: 9340,
           spent: 1842,
           route: ['FRA', 'NRT', 'KIX'],
-          caption: 'Japan in cherry blossom season is unreal. The contrast between ancient temples and neon-lit streets never gets old. Already planning the next one. 🌸',
-          photoColors: [Color(0xFFEC4899), Color(0xFF8B5CF6), Color(0xFF0EA5E9), Color(0xFFF59E0B)],
-          photoIcons: [Icons.temple_buddhist_rounded, Icons.castle_rounded, Icons.ramen_dining_rounded, Icons.location_city_rounded],
+          caption:
+              'Japan in cherry blossom season is unreal. The contrast between ancient temples and neon-lit streets never gets old. Already planning the next one. 🌸',
+          photoColors: [
+            Color(0xFFEC4899),
+            Color(0xFF8B5CF6),
+            Color(0xFF0EA5E9),
+            Color(0xFFF59E0B)
+          ],
+          photoIcons: [
+            Icons.temple_buddhist_rounded,
+            Icons.castle_rounded,
+            Icons.ramen_dining_rounded,
+            Icons.location_city_rounded
+          ],
           comments: 8,
         ),
         TripRecap(
@@ -513,9 +527,18 @@ class TripRecap {
           distanceKm: 2100,
           spent: 920,
           route: ['BCN', 'LIS', 'FAO'],
-          caption: 'Iberian Peninsula road trip — pastéis de nata are worth every calorie. Porto wine, fado music, and the Algarve cliffs. Perfect autumn escape.',
-          photoColors: [Color(0xFFF59E0B), Color(0xFF22C55E), Color(0xFFEF4444)],
-          photoIcons: [Icons.landscape_rounded, Icons.wine_bar_rounded, Icons.beach_access_rounded],
+          caption:
+              'Iberian Peninsula road trip — pastéis de nata are worth every calorie. Porto wine, fado music, and the Algarve cliffs. Perfect autumn escape.',
+          photoColors: [
+            Color(0xFFF59E0B),
+            Color(0xFF22C55E),
+            Color(0xFFEF4444)
+          ],
+          photoIcons: [
+            Icons.landscape_rounded,
+            Icons.wine_bar_rounded,
+            Icons.beach_access_rounded
+          ],
           comments: 14,
         ),
         TripRecap(
@@ -526,9 +549,22 @@ class TripRecap {
           distanceKm: 6800,
           spent: 3200,
           route: ['JFK', 'SFO'],
-          caption: 'Cross-country US trip. Big Sur, Yosemite, Silicon Valley coffee shops. The Pacific Coast Highway at sunset is still the most beautiful drive on Earth.',
-          photoColors: [Color(0xFF0EA5E9), Color(0xFF14B8A6), Color(0xFF8B5CF6), Color(0xFFEF4444), Color(0xFF22C55E)],
-          photoIcons: [Icons.directions_car_rounded, Icons.park_rounded, Icons.coffee_rounded, Icons.photo_camera_rounded, Icons.waves_rounded],
+          caption:
+              'Cross-country US trip. Big Sur, Yosemite, Silicon Valley coffee shops. The Pacific Coast Highway at sunset is still the most beautiful drive on Earth.',
+          photoColors: [
+            Color(0xFF0EA5E9),
+            Color(0xFF14B8A6),
+            Color(0xFF8B5CF6),
+            Color(0xFFEF4444),
+            Color(0xFF22C55E)
+          ],
+          photoIcons: [
+            Icons.directions_car_rounded,
+            Icons.park_rounded,
+            Icons.coffee_rounded,
+            Icons.photo_camera_rounded,
+            Icons.waves_rounded
+          ],
           comments: 22,
         ),
       ];

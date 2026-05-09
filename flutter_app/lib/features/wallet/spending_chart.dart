@@ -43,8 +43,7 @@ class _SpendingChartState extends State<SpendingChart>
     super.dispose();
   }
 
-  double get _total =>
-      widget.categories.fold(0.0, (s, c) => s + c.amount);
+  double get _total => widget.categories.fold(0.0, (s, c) => s + c.amount);
 
   @override
   Widget build(BuildContext context) {

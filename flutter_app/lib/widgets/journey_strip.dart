@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 /// JourneyStrip — a compact horizontal lifecycle visualization.
 ///
 /// Each step is one node connected by a hairline with a fill that
@@ -125,9 +124,8 @@ class _Node extends StatelessWidget {
           step.label,
           style: theme.textTheme.labelSmall?.copyWith(
             color: color,
-            fontWeight: state == _NodeState.pending
-                ? FontWeight.w500
-                : FontWeight.w800,
+            fontWeight:
+                state == _NodeState.pending ? FontWeight.w500 : FontWeight.w800,
             fontSize: 10,
           ),
         ),

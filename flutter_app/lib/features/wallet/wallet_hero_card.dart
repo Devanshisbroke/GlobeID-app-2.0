@@ -21,6 +21,7 @@ class WalletHeroCard extends StatelessWidget {
     this.subtitle,
     this.progress = 0.65,
     this.onSend,
+    this.onReceive,
     this.onConvert,
     this.onScanPay,
   });
@@ -31,6 +32,7 @@ class WalletHeroCard extends StatelessWidget {
   final String? subtitle;
   final double progress;
   final VoidCallback? onSend;
+  final VoidCallback? onReceive;
   final VoidCallback? onConvert;
   final VoidCallback? onScanPay;
 
@@ -131,6 +133,23 @@ class WalletHeroCard extends StatelessWidget {
                   icon: Icons.arrow_outward_rounded,
                   onPressed: onSend,
                   compact: true,
+                ),
+              ),
+              const SizedBox(width: AppTokens.space2),
+              Expanded(
+                child: MagneticButton(
+                  label: 'Receive',
+                  icon: Icons.arrow_downward_rounded,
+                  onPressed: onReceive,
+                  compact: true,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      tone.withValues(alpha: 0.30),
+                      tone.withValues(alpha: 0.10),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(width: AppTokens.space2),

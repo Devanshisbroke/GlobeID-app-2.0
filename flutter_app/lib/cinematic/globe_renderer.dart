@@ -81,8 +81,7 @@ class _CinematicGlobeState extends State<CinematicGlobe>
       onPanUpdate: (d) {
         setState(() {
           _userYaw += d.delta.dx * 0.005;
-          _userPitch =
-              (_userPitch - d.delta.dy * 0.005).clamp(-1.1, 1.1);
+          _userPitch = (_userPitch - d.delta.dy * 0.005).clamp(-1.1, 1.1);
         });
       },
       // Isolated repaint layer keeps the heavy globe painter off the
@@ -92,9 +91,8 @@ class _CinematicGlobeState extends State<CinematicGlobe>
         child: AnimatedBuilder(
           animation: Listenable.merge([_spin, _pulse]),
           builder: (_, __) {
-            final autoYaw = widget.autoRotate && !reduce
-                ? _spin.value * 2 * math.pi
-                : 0.0;
+            final autoYaw =
+                widget.autoRotate && !reduce ? _spin.value * 2 * math.pi : 0.0;
             // Cinematic camera — gentle dual-axis ease so the planet
             // feels like a slow-tracking shot, not a flat rotation.
             // Amplitude clipped to a couple of degrees so it never
@@ -297,8 +295,7 @@ class _GlobePainter extends CustomPainter {
           Offset(x, y),
           radius,
           Paint()
-            ..color =
-                Colors.white.withValues(alpha: base * (0.45 + 0.55 * tw)),
+            ..color = Colors.white.withValues(alpha: base * (0.45 + 0.55 * tw)),
         );
       }
     }
@@ -354,8 +351,7 @@ class _GlobePainter extends CustomPainter {
   void _paintCityLights(Canvas canvas, GlobeCamera cam, double r) {
     // Tiny warm glints clustered along the night side of major hubs.
     final sunYaw = -yaw * 0.5 + math.pi * 0.2;
-    final sun = Vector3(math.cos(sunYaw), 0.25, math.sin(sunYaw))
-      ..normalize();
+    final sun = Vector3(math.cos(sunYaw), 0.25, math.sin(sunYaw))..normalize();
     for (final h in WorldOutlines.hubs) {
       final v = GreatCircle.toCartesian(h.lat, h.lng);
       final rotated = cam.apply(v);
@@ -370,8 +366,8 @@ class _GlobePainter extends CustomPainter {
         off,
         1.6 + flicker * 1.0,
         Paint()
-          ..color = const Color(0xFFFFD27D)
-              .withValues(alpha: 0.6 + 0.3 * flicker)
+          ..color =
+              const Color(0xFFFFD27D).withValues(alpha: 0.6 + 0.3 * flicker)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.6),
       );
     }
@@ -520,11 +516,11 @@ class _GlobePainter extends CustomPainter {
     // Approximate sun direction — synced loosely with yaw so the
     // terminator drifts as the user spins.
     final sunYaw = -yaw * 0.5 + math.pi * 0.2;
-    final sun = Vector3(math.cos(sunYaw), 0.25, math.sin(sunYaw))
-      ..normalize();
+    final sun = Vector3(math.cos(sunYaw), 0.25, math.sin(sunYaw))..normalize();
 
     // Render a soft night-side wash.
-    final night = Path()..addOval(Rect.fromCircle(center: Offset.zero, radius: r));
+    final night = Path()
+      ..addOval(Rect.fromCircle(center: Offset.zero, radius: r));
     canvas.save();
     canvas.clipPath(night);
 
@@ -579,8 +575,7 @@ class _GlobePainter extends CustomPainter {
       for (var i = 0; i < particleCount; i++) {
         final phaseOffset = i / particleCount;
         final t = (pulseT + phaseOffset) % 1.0;
-        final idx = (t * samples.length).floor()
-            .clamp(0, samples.length - 1);
+        final idx = (t * samples.length).floor().clamp(0, samples.length - 1);
         final v = samples[idx];
         final rotated = cam.apply(v);
         if (rotated.z < 0) continue;
@@ -750,8 +745,7 @@ class _GlobePainter extends CustomPainter {
   // only on the night side. Animated via [pulseT].
   void _paintAuroraBands(Canvas canvas, GlobeCamera cam, double r) {
     final sunYaw = -yaw * 0.5 + math.pi * 0.2;
-    final sun = Vector3(math.cos(sunYaw), 0.25, math.sin(sunYaw))
-      ..normalize();
+    final sun = Vector3(math.cos(sunYaw), 0.25, math.sin(sunYaw))..normalize();
     const bandColors = [
       Color(0xFF22C55E), // green
       Color(0xFF06B6D4), // teal

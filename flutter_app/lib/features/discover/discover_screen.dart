@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
@@ -64,7 +65,7 @@ class DiscoverScreen extends ConsumerWidget {
               body:
                   'Your Sakura window predicts peak bloom 28 Mar – 3 Apr. Direct flights from FRA from €642 r/t.',
               cta: 'Plan trip',
-              onTap: () {},
+              onTap: () => context.push('/planner'),
             ),
           ),
 
@@ -203,7 +204,8 @@ class DiscoverScreen extends ConsumerWidget {
               tone: const Color(0xFFEAB308),
               tag: 'REROUTE',
               title: 'Eurowings adjusts FRA → BCN via MAD this week',
-              detail: 'Adds ~38 min to typical journey. Auto-applied to TRP-002.',
+              detail:
+                  'Adds ~38 min to typical journey. Auto-applied to TRP-002.',
             ),
           ),
           AnimatedAppearance(
@@ -349,18 +351,16 @@ class _FeaturedHero extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.20),
-                    borderRadius:
-                        BorderRadius.circular(AppTokens.radiusFull),
+                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                   ),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     Text(cta,
                         style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800)),
+                            color: Colors.white, fontWeight: FontWeight.w800)),
                     const SizedBox(width: 4),
                     const Icon(Icons.arrow_forward_rounded,
                         color: Colors.white, size: 16),
@@ -470,8 +470,7 @@ class _DealCard extends StatelessWidget {
                       ?.copyWith(fontWeight: FontWeight.w800)),
               Text(sub,
                   style: t.textTheme.bodySmall?.copyWith(
-                      color:
-                          t.colorScheme.onSurface.withValues(alpha: 0.60))),
+                      color: t.colorScheme.onSurface.withValues(alpha: 0.60))),
             ],
           ),
         ),
@@ -536,8 +535,8 @@ class _WindowCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(detail,
                     style: t.textTheme.bodySmall?.copyWith(
-                        color: t.colorScheme.onSurface
-                            .withValues(alpha: 0.60))),
+                        color:
+                            t.colorScheme.onSurface.withValues(alpha: 0.60))),
               ],
             ),
           ),
@@ -580,8 +579,7 @@ class _AlertCard extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: tone.withValues(alpha: 0.18),
-                    borderRadius:
-                        BorderRadius.circular(AppTokens.radiusFull),
+                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                   ),
                   child: Text(tag,
                       style: TextStyle(
@@ -597,8 +595,8 @@ class _AlertCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(detail,
                     style: t.textTheme.bodySmall?.copyWith(
-                        color: t.colorScheme.onSurface
-                            .withValues(alpha: 0.60))),
+                        color:
+                            t.colorScheme.onSurface.withValues(alpha: 0.60))),
               ],
             ),
           ),
@@ -652,8 +650,7 @@ class _SocialCard extends StatelessWidget {
                       ?.copyWith(fontWeight: FontWeight.w800)),
               Text(detail,
                   style: t.textTheme.bodySmall?.copyWith(
-                      color:
-                          t.colorScheme.onSurface.withValues(alpha: 0.60))),
+                      color: t.colorScheme.onSurface.withValues(alpha: 0.60))),
             ],
           ),
         ),

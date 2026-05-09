@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/document_substrate.dart';
 import '../../data/models/user_profile.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/pressable.dart';
@@ -76,12 +77,11 @@ class _PassportLiveScreenState extends ConsumerState<PassportLiveScreen>
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
     final loyalty = ref.watch(loyaltyProvider);
-    final stamps =
-        loyalty.maybeWhen(
-          data: (m) => ((m['stamps'] as List?) ?? const [])
-              .cast<Map<String, dynamic>>(),
-          orElse: () => const <Map<String, dynamic>>[],
-        );
+    final stamps = loyalty.maybeWhen(
+      data: (m) =>
+          ((m['stamps'] as List?) ?? const []).cast<Map<String, dynamic>>(),
+      orElse: () => const <Map<String, dynamic>>[],
+    );
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -138,7 +138,7 @@ class _PassportLiveScreenState extends ConsumerState<PassportLiveScreen>
                       transform: Matrix4.identity()
                         ..setEntry(3, 2, 0.0014)
                         ..rotateX(-0.15 * (1 - t))
-                        ..scaleByDouble(scale, scale, 1.0, 1.0),
+                        ..scale(scale, scale, 1.0),
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width * 0.86,
                         height: MediaQuery.of(context).size.height * 0.74,
@@ -152,8 +152,7 @@ class _PassportLiveScreenState extends ConsumerState<PassportLiveScreen>
                                   user: user.profile,
                                   stamps: stamps,
                                   pages: _pages,
-                                  onPage: (i) =>
-                                      setState(() => _pageIndex = i),
+                                  onPage: (i) => setState(() => _pageIndex = i),
                                   foil: _foil,
                                 ),
                               ),
@@ -653,13 +652,20 @@ class _InnerPages extends StatelessWidget {
               itemCount: pageCount,
               itemBuilder: (_, i) {
                 if (i == 0) {
-                  return _BioPage(user: user, foil: foil);
+                  return DocumentSubstrate(
+                    type: SubstrateType.passport,
+                    showMicrotext: true,
+                    child: _BioPage(user: user, foil: foil),
+                  );
                 }
                 final start = (i - 1) * 4;
                 final slice = stamps
                     .sublist(start, math.min(start + 4, stamps.length))
                     .toList();
-                return _StampPage(stamps: slice, pageNum: i + 1);
+                return DocumentSubstrate(
+                  type: SubstrateType.passport,
+                  child: _StampPage(stamps: slice, pageNum: i + 1),
+                );
               },
             ),
           ],
@@ -853,8 +859,7 @@ class _BioPage extends StatelessWidget {
           const SizedBox(height: 12),
           // ── MRZ band ────────────────────────────────────────────────
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             decoration: BoxDecoration(
               color: const Color(0xFFDDD0AA),
               borderRadius: BorderRadius.circular(6),

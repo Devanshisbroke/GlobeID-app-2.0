@@ -39,18 +39,27 @@ class _FlightsScreenState extends State<FlightsScreen> {
   /// to drive the Solari callsign board.
   String _depTimeFor(int offset) {
     final base = DateTime.now().add(Duration(days: offset));
-    final hh = ((base.day * 7 + offset * 3) % 18 + 5)
-        .toString()
-        .padLeft(2, '0');
+    final hh =
+        ((base.day * 7 + offset * 3) % 18 + 5).toString().padLeft(2, '0');
     final mm = ((base.day * 13) % 12 * 5).toString().padLeft(2, '0');
     return '$hh:$mm';
   }
 
   static const _filters = <BespokeFilter>[
-    BespokeFilter(key: 'eco', label: 'Economy', icon: Icons.airline_seat_recline_normal_rounded),
-    BespokeFilter(key: 'premium', label: 'Premium', icon: Icons.airline_seat_recline_extra_rounded),
-    BespokeFilter(key: 'business', label: 'Business', icon: Icons.business_center_rounded),
-    BespokeFilter(key: 'first', label: 'First', icon: Icons.workspace_premium_rounded),
+    BespokeFilter(
+        key: 'eco',
+        label: 'Economy',
+        icon: Icons.airline_seat_recline_normal_rounded),
+    BespokeFilter(
+        key: 'premium',
+        label: 'Premium',
+        icon: Icons.airline_seat_recline_extra_rounded),
+    BespokeFilter(
+        key: 'business',
+        label: 'Business',
+        icon: Icons.business_center_rounded),
+    BespokeFilter(
+        key: 'first', label: 'First', icon: Icons.workspace_premium_rounded),
   ];
 
   @override
@@ -60,7 +69,8 @@ class _FlightsScreenState extends State<FlightsScreen> {
       title: 'Flights',
       subtitle: 'Smart routes · pricing intelligence · live cards',
       body: CustomScrollView(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics()),
         slivers: [
           SliverToBoxAdapter(
             child: AnimatedAppearance(
@@ -501,8 +511,8 @@ class _SearchHero extends StatelessWidget {
                       color: Colors.white.withValues(alpha: 0.30),
                     ),
                   ),
-                  child: const Icon(Icons.swap_horiz_rounded,
-                      color: Colors.white),
+                  child:
+                      const Icon(Icons.swap_horiz_rounded, color: Colors.white),
                 ),
               ),
               Expanded(
@@ -527,8 +537,7 @@ class _SearchHero extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   )),
               const Spacer(),
-              const Icon(Icons.person_rounded,
-                  size: 14, color: Colors.white),
+              const Icon(Icons.person_rounded, size: 14, color: Colors.white),
               const SizedBox(width: 4),
               Text('1 traveler',
                   style: theme.textTheme.labelMedium?.copyWith(
@@ -666,9 +675,7 @@ class _FlexDateStrip extends StatelessWidget {
                   Text('${d.day}',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: active
-                            ? tone
-                            : theme.colorScheme.onSurface,
+                        color: active ? tone : theme.colorScheme.onSurface,
                       )),
                   const SizedBox(height: 2),
                   Text('\$$price',
@@ -1029,8 +1036,8 @@ class _FareCard extends StatelessWidget {
                       )),
                   Text(from,
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.7),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w700,
                       )),
                 ],
@@ -1049,8 +1056,8 @@ class _FareCard extends StatelessWidget {
                     Container(
                       height: 1.5,
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.18),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(1),
                       ),
                     ),
@@ -1078,8 +1085,8 @@ class _FareCard extends StatelessWidget {
                       )),
                   Text(to,
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.7),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w700,
                       )),
                 ],
@@ -1097,9 +1104,7 @@ class _FareCard extends StatelessWidget {
                   icon: Icons.eco_rounded,
                   label: 'CO₂ ${fare.co2.toStringAsFixed(0)} kg'),
               const SizedBox(width: 6),
-              _MicroChip(
-                  icon: Icons.wifi_rounded,
-                  label: 'Wi-Fi'),
+              _MicroChip(icon: Icons.wifi_rounded, label: 'Wi-Fi'),
             ],
           ),
         ],
@@ -1175,8 +1180,7 @@ class _ItineraryCard extends StatelessWidget {
                     width: 1.5,
                     height: 64,
                     margin: const EdgeInsets.symmetric(vertical: 2),
-                    color: theme.colorScheme.onSurface
-                        .withValues(alpha: 0.18),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
                   ),
                   Container(
                     width: 12,
@@ -1207,8 +1211,8 @@ class _ItineraryCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius:
                             BorderRadius.circular(AppTokens.radiusFull),
-                        color: theme.colorScheme.primary
-                            .withValues(alpha: 0.15),
+                        color:
+                            theme.colorScheme.primary.withValues(alpha: 0.15),
                       ),
                       child: Text(
                           '${fare.duration} · ${fare.stops == 0 ? 'Non-stop' : 'Stop'}',
@@ -1264,7 +1268,8 @@ class _AmenitiesGrid extends StatelessWidget {
             elevation: PremiumElevation.sm,
             child: Row(
               children: [
-                Icon(i.$1, size: 16, color: Theme.of(context).colorScheme.primary),
+                Icon(i.$1,
+                    size: 16, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(i.$2,

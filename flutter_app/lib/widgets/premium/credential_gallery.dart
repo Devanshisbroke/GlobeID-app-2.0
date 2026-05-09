@@ -134,16 +134,15 @@ class _CredentialGalleryState extends State<CredentialGallery>
     final dragNorm = drag / 180;
     final activeRotY = isActive ? dragNorm * 0.4 + tilt * 0.6 : tilt * 0.18;
     final activeDx = isActive ? drag : 0.0;
-    final activeOpacity =
-        isActive ? (1 - swipeT).clamp(0.0, 1.0) : 1.0;
+    final activeOpacity = isActive ? (1 - swipeT).clamp(0.0, 1.0) : 1.0;
     return Positioned.fill(
       child: Transform(
         alignment: Alignment.center,
         transform: Matrix4.identity()
           ..setEntry(3, 2, 0.0014)
-          ..translateByDouble(activeDx, dy, 0, 1)
+          ..translate(activeDx, dy, 0.0)
           ..rotateY(activeRotY)
-          ..scaleByDouble(scale, scale, 1, 1),
+          ..scale(scale, scale, 1.0),
         child: Opacity(
           opacity: activeOpacity,
           child: _CardSurface(data: data, theme: theme),

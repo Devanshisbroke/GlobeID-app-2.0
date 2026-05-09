@@ -112,7 +112,8 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
             child: Center(child: CircularProgressIndicator()),
           ),
           error: (_, __) => GestureDetector(
-            onTap: () => ScoreExplainerSheet.show(context, user.profile.identityScore),
+            onTap: () =>
+                ScoreExplainerSheet.show(context, user.profile.identityScore),
             child: _IdentityHero(
               score: user.profile.identityScore,
               tier: IdentityTier.forScore(user.profile.identityScore),
@@ -145,8 +146,8 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
                     tier: IdentityTier.forScore(
                       _resolvedScore(score, user.profile),
                     ).label,
-                    sealed: user.profile.verifiedStatus.toLowerCase() ==
-                        'verified',
+                    sealed:
+                        user.profile.verifiedStatus.toLowerCase() == 'verified',
                     heroTag: 'identity-passport-${user.profile.userId}',
                   ),
                 ),
@@ -166,45 +167,66 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
         ),
 
         // ── Travel readiness (visa / passport / verification) ────
-        const SectionHeader(title: 'Travel readiness', dense: true),
+        SectionHeader(
+          title: 'Travel readiness',
+          dense: true,
+          action: 'Visa detail',
+          onAction: () => context.push('/visa'),
+        ),
         AnimatedAppearance(
           delay: const Duration(milliseconds: 140),
-          child: ContextualSurface(
-            child: Row(
-              children: [
-                VisaReadinessRing(
-                  percent: _readinessPercent(user, score),
-                  label: 'Ready to fly',
-                ),
-                const SizedBox(width: AppTokens.space4),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Travel-doc readiness',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+            onTap: () => context.push('/visa'),
+            child: ContextualSurface(
+              child: Row(
+                children: [
+                  VisaReadinessRing(
+                    percent: _readinessPercent(user, score),
+                    label: 'Ready to fly',
+                  ),
+                  const SizedBox(width: AppTokens.space4),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Travel-doc readiness',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w800),
                             ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Passport sealed, identity score above tier '
-                        'threshold, no expiring visas in 90 days.',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(
+                            const Spacer(),
+                            Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 12,
                               color: Theme.of(context)
                                   .colorScheme
                                   .onSurface
-                                  .withValues(alpha: 0.7),
+                                  .withValues(alpha: 0.45),
                             ),
-                      ),
-                    ],
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Passport sealed, identity score above tier '
+                          'threshold, no expiring visas in 90 days.',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.7),
+                                  ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -337,7 +359,6 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
     return 0;
   }
 
-
   int _resolvedScore(AsyncValue<dynamic> async, dynamic profile) {
     return async.maybeWhen(
       data: (s) => (s as dynamic).score as int,
@@ -368,8 +389,7 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
       ),
       CredentialCardData(
         title: 'Identity · $tier',
-        subtitle:
-            'Score ${_resolvedScore(score, profile)} of 100',
+        subtitle: 'Score ${_resolvedScore(score, profile)} of 100',
         code: profile.userId as String,
         tone: const Color(0xFF7E22CE),
         icon: Icons.verified_user_rounded,
@@ -395,8 +415,8 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
   /// status + presence of a passport. Pure function, deterministic.
   double _readinessPercent(dynamic user, AsyncValue<dynamic> async) {
     final s = _resolvedScore(async, user.profile);
-    final verified = (user.profile.verifiedStatus as String).toLowerCase() ==
-        'verified';
+    final verified =
+        (user.profile.verifiedStatus as String).toLowerCase() == 'verified';
     final hasPassport = (user.documents as Iterable)
         .any((d) => (d.type as String).toLowerCase() == 'passport');
     final base = (s.clamp(0, 100) / 100) * 0.7;
@@ -1013,8 +1033,7 @@ class _CredentialCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Text(doc.countryFlag,
-                        style: const TextStyle(fontSize: 22)),
+                    Text(doc.countryFlag, style: const TextStyle(fontSize: 22)),
                   ],
                 ),
                 const Spacer(),
@@ -1140,9 +1159,8 @@ class _TierLadder extends StatelessWidget {
                 Text(t.$1,
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: score >= t.$2
-                          ? FontWeight.w800
-                          : FontWeight.w600,
+                      fontWeight:
+                          score >= t.$2 ? FontWeight.w800 : FontWeight.w600,
                     )),
                 Text('${t.$2}+',
                     style: TextStyle(
@@ -1347,9 +1365,8 @@ class _SecurityRow extends StatelessWidget {
             ),
             Icon(
               item.ok ? Icons.check_circle_rounded : Icons.error_outline,
-              color: item.ok
-                  ? const Color(0xFF22C55E)
-                  : const Color(0xFFEF4444),
+              color:
+                  item.ok ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
               size: 18,
             ),
             const SizedBox(width: 4),

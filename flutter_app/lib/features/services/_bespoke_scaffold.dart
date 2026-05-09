@@ -104,15 +104,13 @@ class _BespokeServiceShellState<T> extends State<BespokeServiceShell<T>> {
                           color: Colors.white.withValues(alpha: 0.20),
                           boxShadow: [
                             BoxShadow(
-                              color:
-                                  Colors.black.withValues(alpha: 0.18),
+                              color: Colors.black.withValues(alpha: 0.18),
                               blurRadius: 12,
                               offset: const Offset(0, 6),
                             ),
                           ],
                         ),
-                        child: Icon(widget.icon,
-                            color: Colors.white, size: 28),
+                        child: Icon(widget.icon, color: Colors.white, size: 28),
                       ),
                       const SizedBox(width: AppTokens.space4),
                       Expanded(
@@ -120,15 +118,13 @@ class _BespokeServiceShellState<T> extends State<BespokeServiceShell<T>> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(widget.title,
-                                style: theme.textTheme.headlineSmall
-                                    ?.copyWith(
+                                style: theme.textTheme.headlineSmall?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,
                                 )),
                             Text(widget.subtitle,
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: Colors.white
-                                      .withValues(alpha: 0.85),
+                                  color: Colors.white.withValues(alpha: 0.85),
                                 )),
                           ],
                         ),
@@ -213,8 +209,7 @@ class _BespokeServiceShellState<T> extends State<BespokeServiceShell<T>> {
                               const EdgeInsets.only(bottom: AppTokens.space3),
                           child: Pressable(
                             scale: 0.985,
-                            onTap: () =>
-                                widget.onItemTap(context, items[i]),
+                            onTap: () => widget.onItemTap(context, items[i]),
                             child: widget.itemBuilder(context, items[i], i),
                           ),
                         ),
@@ -415,8 +410,8 @@ Future<void> showBespokeDetail({
                     height: 4,
                     margin: const EdgeInsets.only(top: 10, bottom: 6),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.18),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                     ),
                   ),

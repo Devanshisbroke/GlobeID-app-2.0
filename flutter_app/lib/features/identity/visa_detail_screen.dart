@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
+import '../../widgets/cinematic_button.dart';
 import '../../widgets/cinematic_hero.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium/premium.dart';
@@ -63,8 +65,7 @@ class VisaDetailScreen extends StatelessWidget {
           ),
           const SectionHeader(title: 'Readiness', dense: true),
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
             child: AnimatedAppearance(
               delay: const Duration(milliseconds: 80),
               child: ContextualSurface(
@@ -82,8 +83,7 @@ class VisaDetailScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Travel-doc readiness',
-                            style:
-                                theme.textTheme.titleMedium?.copyWith(
+                            style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -106,15 +106,13 @@ class VisaDetailScreen extends StatelessWidget {
           ),
           const SectionHeader(title: 'Expiry'),
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
             child: AnimatedAppearance(
               delay: const Duration(milliseconds: 120),
               child: ContextualSurface(
                 child: Row(
                   children: [
-                    Icon(Icons.schedule_rounded,
-                        color: tone, size: 28),
+                    Icon(Icons.schedule_rounded, color: tone, size: 28),
                     const SizedBox(width: AppTokens.space3),
                     Expanded(
                       child: Column(
@@ -122,8 +120,7 @@ class VisaDetailScreen extends StatelessWidget {
                         children: [
                           Text(
                             '$daysToExpiry days remaining',
-                            style:
-                                theme.textTheme.titleMedium?.copyWith(
+                            style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -139,6 +136,32 @@ class VisaDetailScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppTokens.space5),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+            child: AnimatedAppearance(
+              delay: const Duration(milliseconds: 160),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: CinematicButton(
+                      label: 'View in vault',
+                      icon: Icons.shield_moon_rounded,
+                      onPressed: () => context.push('/vault'),
+                    ),
+                  ),
+                  const SizedBox(width: AppTokens.space2),
+                  Expanded(
+                    child: CinematicButton(
+                      label: 'Ask copilot',
+                      icon: Icons.smart_toy_rounded,
+                      onPressed: () => context.push('/copilot'),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

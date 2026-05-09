@@ -40,17 +40,13 @@ class FxTickerPremium extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding:
-            const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
         itemCount: ticks.length,
-        separatorBuilder: (_, __) =>
-            const SizedBox(width: AppTokens.space3),
+        separatorBuilder: (_, __) => const SizedBox(width: AppTokens.space3),
         itemBuilder: (_, i) {
           final t = ticks[i];
           final up = t.changePercent >= 0;
-          final tone = up
-              ? const Color(0xFF10B981)
-              : const Color(0xFFEF4444);
+          final tone = up ? const Color(0xFF10B981) : const Color(0xFFEF4444);
           return SizedBox(
             width: 168,
             child: ContextualSurface(

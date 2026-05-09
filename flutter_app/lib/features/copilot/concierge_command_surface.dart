@@ -99,8 +99,7 @@ class _ConciergeCommandSurfaceState extends State<ConciergeCommandSurface>
                       theme.colorScheme.secondary,
                     ],
                   ),
-                  borderRadius:
-                      BorderRadius.circular(AppTokens.radiusFull),
+                  borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                 ),
                 child: const Icon(
                   Icons.auto_awesome_rounded,
@@ -138,10 +137,9 @@ class _ConciergeCommandSurfaceState extends State<ConciergeCommandSurface>
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.06),
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radiusFull),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                     ),
                     child: Icon(
                       _open ? Icons.close_rounded : Icons.add_rounded,

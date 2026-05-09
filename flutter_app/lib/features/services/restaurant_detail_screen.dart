@@ -21,6 +21,30 @@ import '../../widgets/section_header.dart';
 ///   • Menu (sectioned, 3 categories)
 ///   • Reviews
 ///   • Reservation footer
+///
+/// Route args carrier — passed via go_router `extra` so we can deep-link
+/// `/services/food/detail` from the bespoke food list without losing the
+/// per-item context (tonality, cuisine, flag, price tier).
+class RestaurantDetailArgs {
+  const RestaurantDetailArgs({
+    required this.name,
+    required this.cuisine,
+    required this.city,
+    required this.rating,
+    required this.tonality,
+    required this.flag,
+    required this.priceTier,
+  });
+
+  final String name;
+  final String cuisine;
+  final String city;
+  final double rating;
+  final Color tonality;
+  final String flag;
+  final int priceTier;
+}
+
 class RestaurantDetailScreen extends StatefulWidget {
   const RestaurantDetailScreen({
     super.key,
@@ -112,8 +136,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
               const SliverToBoxAdapter(
                   child: SizedBox(height: AppTokens.space3)),
               SliverPadding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppTokens.space5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: AppTokens.space5),
                 sliver: SliverToBoxAdapter(
                   child: PremiumInfoRail(
                     tiles: [
@@ -200,7 +224,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                 ),
                 SliverList.separated(
                   itemCount: cat.items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: AppTokens.space2),
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(height: AppTokens.space2),
                   itemBuilder: (_, i) {
                     final dish = cat.items[i];
                     final selected = _picks.contains(dish.name);
@@ -234,7 +259,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                     : widget.tonality.withValues(alpha: 0.16),
                               ),
                               child: Icon(
-                                selected ? Icons.check_rounded : Icons.add_rounded,
+                                selected
+                                    ? Icons.check_rounded
+                                    : Icons.add_rounded,
                                 size: 14,
                                 color:
                                     selected ? Colors.white : widget.tonality,
@@ -246,11 +273,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(dish.name,
-                                      style: theme.textTheme.titleSmall?.copyWith(
+                                      style:
+                                          theme.textTheme.titleSmall?.copyWith(
                                         fontWeight: FontWeight.w800,
                                       )),
                                   Text(dish.notes,
-                                      style: theme.textTheme.bodySmall?.copyWith(
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
                                         color: theme.colorScheme.onSurface
                                             .withValues(alpha: 0.7),
                                       )),
@@ -387,7 +416,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _delivery ? 'Delivery total' : '${_picks.length} items',
+                            _delivery
+                                ? 'Delivery total'
+                                : '${_picks.length} items',
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: theme.colorScheme.onSurface
                                   .withValues(alpha: 0.6),
@@ -759,8 +790,7 @@ class _FeaturedDish extends StatelessWidget {
                 overflow: TextOverflow.ellipsis),
             const SizedBox(height: 6),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                 color: Colors.white.withValues(alpha: 0.20),

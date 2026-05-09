@@ -67,11 +67,8 @@ class InboxPremiumRow extends StatelessWidget {
                 width: 4,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: unread
-                      ? tone
-                      : tone.withValues(alpha: 0.32),
-                  borderRadius:
-                      BorderRadius.circular(AppTokens.radiusFull),
+                  color: unread ? tone : tone.withValues(alpha: 0.32),
+                  borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                 ),
               ),
               const SizedBox(width: AppTokens.space3),
@@ -80,8 +77,7 @@ class InboxPremiumRow extends StatelessWidget {
                 height: 36,
                 decoration: BoxDecoration(
                   color: tone.withValues(alpha: 0.14),
-                  borderRadius:
-                      BorderRadius.circular(AppTokens.radiusFull),
+                  borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                 ),
                 child: Icon(icon, color: tone, size: 20),
               ),
@@ -93,8 +89,7 @@ class InboxPremiumRow extends StatelessWidget {
                     Text(
                       title,
                       style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight:
-                            unread ? FontWeight.w800 : FontWeight.w600,
+                        fontWeight: unread ? FontWeight.w800 : FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -103,8 +98,8 @@ class InboxPremiumRow extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.7),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -115,8 +110,7 @@ class InboxPremiumRow extends StatelessWidget {
                 Text(
                   timestamp!.toUpperCase(),
                   style: AirportFontStack.caption(context).copyWith(
-                    color: theme.colorScheme.onSurface
-                        .withValues(alpha: 0.55),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
                   ),
                 ),
               ],
