@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../domain/identity_tier.dart';
 import '../../domain/smart_suggestions.dart';
+import '../../widgets/bible/bible.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/safe_boundary.dart';
@@ -43,7 +44,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final theme = Theme.of(context);
     final greeting = _greeting();
 
-    return RefreshIndicator(
+    return Stack(
+      children: [
+        // Bible §4.1 — every screen has a slowly breathing 4-stop
+        // gradient. Travel-flavored bloom (jet cyan + runway amber)
+        // for the home OS dashboard.
+        Positioned.fill(
+          child: IgnorePointer(child: LivingGradient.travel()),
+        ),
+        RefreshIndicator(
       onRefresh: () async {
         await Future.wait([
           ref.read(userProvider.notifier).hydrate(),
@@ -331,6 +340,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ],
       ),
+    ),
+      ],
     );
   }
 
