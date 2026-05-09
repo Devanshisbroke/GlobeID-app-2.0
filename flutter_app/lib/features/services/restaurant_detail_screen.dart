@@ -7,6 +7,7 @@ import '../../widgets/animated_appearance.dart';
 import '../../widgets/cinematic_button.dart';
 import '../../widgets/cinematic_hero.dart';
 import '../../widgets/page_scaffold.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
@@ -66,23 +67,86 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
             slivers: [
               SliverToBoxAdapter(
                 child: AnimatedAppearance(
-                  child: CinematicHero(
-                    eyebrow: '${widget.rating.toStringAsFixed(1)}★ · ${widget.cuisine.toUpperCase()}',
-                    title: widget.name,
-                    subtitle: '${widget.city} · ${'\$' * widget.priceTier} · open until 23:30',
-                    icon: Icons.restaurant_rounded,
-                    flag: widget.flag,
+                  child: CinematicReveal(
                     tone: widget.tonality,
-                    badges: const [
-                      HeroBadge(label: 'Tonight 19:30', icon: Icons.event_rounded),
-                      HeroBadge(label: '4 min walk', icon: Icons.directions_walk_rounded),
-                      HeroBadge(label: 'Free wine pairing', icon: Icons.local_bar_rounded),
+                    child: Stack(
+                      children: [
+                        CinematicHero(
+                          eyebrow:
+                              '${widget.rating.toStringAsFixed(1)}★ · ${widget.cuisine.toUpperCase()}',
+                          title: widget.name,
+                          subtitle:
+                              '${widget.city} · ${'\$' * widget.priceTier} · open until 23:30',
+                          icon: Icons.restaurant_rounded,
+                          flag: widget.flag,
+                          tone: widget.tonality,
+                          badges: const [
+                            HeroBadge(
+                                label: 'Tonight 19:30',
+                                icon: Icons.event_rounded),
+                            HeroBadge(
+                                label: '4 min walk',
+                                icon: Icons.directions_walk_rounded),
+                            HeroBadge(
+                                label: 'Free wine pairing',
+                                icon: Icons.local_bar_rounded),
+                          ],
+                        ),
+                        Positioned(
+                          top: AppTokens.space3,
+                          right: AppTokens.space3,
+                          child: PremiumHud(
+                            label: _delivery ? 'DELIVERY' : 'DINE-IN',
+                            tone: widget.tonality,
+                            trailing: Text(
+                              widget.flag,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SliverToBoxAdapter(
+                  child: SizedBox(height: AppTokens.space3)),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppTokens.space5),
+                sliver: SliverToBoxAdapter(
+                  child: PremiumInfoRail(
+                    tiles: [
+                      InfoRailTile(
+                        icon: Icons.star_rounded,
+                        label: 'Rating',
+                        value: widget.rating.toStringAsFixed(1),
+                        tone: const Color(0xFFEAB308),
+                      ),
+                      InfoRailTile(
+                        icon: Icons.attach_money_rounded,
+                        label: 'Tier',
+                        value: '\$' * widget.priceTier,
+                        tone: const Color(0xFF10B981),
+                      ),
+                      InfoRailTile(
+                        icon: Icons.schedule_rounded,
+                        label: 'Open',
+                        value: 'Til 23:30',
+                        tone: const Color(0xFF6366F1),
+                      ),
+                      InfoRailTile(
+                        icon: Icons.directions_walk_rounded,
+                        label: 'Distance',
+                        value: '4 min',
+                        tone: const Color(0xFFEA580C),
+                      ),
                     ],
                   ),
                 ),
               ),
               const SliverToBoxAdapter(
-                  child: SizedBox(height: AppTokens.space5)),
+                  child: SizedBox(height: AppTokens.space3)),
               SliverToBoxAdapter(
                 child: _ModeToggle(
                   delivery: _delivery,
