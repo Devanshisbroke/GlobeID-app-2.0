@@ -15,6 +15,7 @@ import '../../domain/airline_brand.dart';
 import '../../widgets/animated_number.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_surface.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/pressable.dart';
 import '../../app/theme/emotional_palette.dart';
 import '../../widgets/section_header.dart';
@@ -116,6 +117,21 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
                 onConvert: () => context.push('/multi-currency-pour'),
                 onScanPay: () => context.push('/wallet/scan'),
               ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: const SectionHeader(title: 'FX board', dense: true),
+          ),
+          SliverToBoxAdapter(
+            child: const FxTickerPremium(
+              ticks: [
+                FxTick(pair: 'USD/JPY', rate: 156.42, changePercent: 0.34),
+                FxTick(pair: 'EUR/USD', rate: 1.0892, changePercent: -0.12),
+                FxTick(pair: 'GBP/USD', rate: 1.2624, changePercent: 0.08),
+                FxTick(pair: 'USD/SGD', rate: 1.3411, changePercent: -0.05),
+                FxTick(pair: 'USD/AED', rate: 3.6725, changePercent: 0.01),
+                FxTick(pair: 'USD/INR', rate: 83.21, changePercent: 0.21),
+              ],
             ),
           ),
           SliverToBoxAdapter(

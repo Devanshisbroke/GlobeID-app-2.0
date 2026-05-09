@@ -7,6 +7,7 @@ import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_surface.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/pressable.dart';
 import 'inbox_models.dart';
 import 'inbox_provider.dart';
@@ -134,6 +135,12 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
                 message: 'New notifications will appear here.',
                 icon: Icons.notifications_off_rounded,
               ),
+            ),
+
+          // Pinned premium rail of the most recent unread items.
+          if (filtered.isNotEmpty)
+            SliverToBoxAdapter(
+              child: _PinnedPremiumRail(items: filtered.take(2).toList()),
             ),
 
           for (final g in groups) ...[
@@ -449,5 +456,43 @@ class _InboxRow extends ConsumerWidget {
     if (d.inMinutes < 60) return '${d.inMinutes}m';
     if (d.inHours < 24) return '${d.inHours}h';
     return '${d.inDays}d';
+  }
+}
+
+class _PinnedPremiumRail extends ConsumerWidget {
+  const _PinnedPremiumRail({required this.items});
+  final List<InboxItem> items;
+
+  String _relative(DateTime ts) {
+    final d = DateTime.now().difference(ts);
+    if (d.inMinutes < 1) return 'now';
+    if (d.inMinutes < 60) return '${d.inMinutes}m';
+    if (d.inHours < 24) return '${d.inHours}h';
+    return '${d.inDays}d';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: AppTokens.space2),
+      child: Column(
+        children: [
+          for (final item in items)
+            InboxPremiumRow(
+              icon: item.heroIcon ?? resolveInboxKind(item.kind).icon,
+              title: item.title,
+              subtitle: item.body,
+              tone: resolveInboxKind(item.kind).accent,
+              timestamp: _relative(item.timestamp),
+              unread: !item.read,
+              onTap: () {
+                ref.read(inboxProvider.notifier).markRead(item.id);
+                GoRouter.of(context).push(item.deeplink);
+              },
+            ),
+        ],
+      ),
+    );
   }
 }
