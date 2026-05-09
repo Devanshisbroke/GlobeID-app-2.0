@@ -12,6 +12,7 @@ import '../features/score/score_provider.dart';
 import '../features/security/session_lock_provider.dart';
 import '../features/settings/theme_prefs_provider.dart';
 import '../features/user/user_provider.dart';
+import '../features/voice/voice_command_overlay.dart';
 import '../features/wallet/wallet_provider.dart';
 import '../widgets/atmosphere_layer.dart';
 import '../widgets/aurora_layer.dart';
@@ -139,6 +140,12 @@ class _AppShellState extends ConsumerState<AppShell>
               top: MediaQuery.of(context).padding.top + 8,
               right: 12,
               child: const _TopChromeRow(),
+            ),
+            // Voice command orb — floats bottom-left over every shell route.
+            Positioned(
+              bottom: 96,
+              left: 16,
+              child: const VoiceCommandOrb(),
             ),
           ],
         ),
@@ -984,27 +991,128 @@ class _LegacyCommandPaletteState extends State<_LegacyCommandPalette> {
   final _ctrl = TextEditingController();
   String _q = '';
 
-  static const _all = <({String label, String path, IconData icon, Color tone})>[
-    (label: 'Scan QR / boarding pass', path: '/scan', icon: Icons.qr_code_scanner_rounded, tone: Color(0xFF06B6D4)),
-    (label: 'Wallet', path: '/wallet', icon: Icons.account_balance_wallet_rounded, tone: Color(0xFF7C3AED)),
-    (label: 'Multi-currency', path: '/multi-currency', icon: Icons.currency_exchange_rounded, tone: Color(0xFF10B981)),
-    (label: 'Travel', path: '/travel', icon: Icons.flight_takeoff_rounded, tone: Color(0xFFEA580C)),
-    (label: 'Map / Globe', path: '/map', icon: Icons.public_rounded, tone: Color(0xFF3B82F6)),
-    (label: 'Identity', path: '/identity', icon: Icons.verified_user_rounded, tone: Color(0xFFF59E0B)),
-    (label: 'Vault', path: '/vault', icon: Icons.shield_moon_rounded, tone: Color(0xFFEA580C)),
-    (label: 'Copilot', path: '/copilot', icon: Icons.smart_toy_rounded, tone: Color(0xFF059669)),
-    (label: 'Planner', path: '/planner', icon: Icons.event_note_rounded, tone: Color(0xFF7C3AED)),
-    (label: 'Cinematic globe', path: '/globe-cinematic', icon: Icons.language_rounded, tone: Color(0xFF06B6D4)),
-    (label: 'Travel OS', path: '/travel-os', icon: Icons.hub_rounded, tone: Color(0xFF8B5CF6)),
-    (label: 'Analytics', path: '/analytics', icon: Icons.insights_rounded, tone: Color(0xFF1D4ED8)),
-    (label: 'Passport book', path: '/passport-book', icon: Icons.menu_book_rounded, tone: Color(0xFFF59E0B)),
-    (label: 'Intelligence', path: '/intelligence', icon: Icons.bolt_rounded, tone: Color(0xFFEAB308)),
-    (label: 'Settings', path: '/settings', icon: Icons.tune_rounded, tone: Color(0xFF6366F1)),
-    (label: 'Inbox', path: '/inbox', icon: Icons.notifications_rounded, tone: Color(0xFFE11D48)),
-    (label: 'Emergency', path: '/emergency', icon: Icons.emergency_rounded, tone: Color(0xFFEF4444)),
-    (label: 'Phrasebook', path: '/phrasebook', icon: Icons.translate_rounded, tone: Color(0xFF06B6D4)),
-    (label: 'Discover', path: '/discover', icon: Icons.travel_explore_rounded, tone: Color(0xFF06B6D4)),
-    (label: 'Profile', path: '/profile', icon: Icons.person_rounded, tone: Color(0xFF06B6D4)),
+  static const _all =
+      <({String label, String path, IconData icon, Color tone})>[
+    (
+      label: 'Scan QR / boarding pass',
+      path: '/scan',
+      icon: Icons.qr_code_scanner_rounded,
+      tone: Color(0xFF06B6D4)
+    ),
+    (
+      label: 'Wallet',
+      path: '/wallet',
+      icon: Icons.account_balance_wallet_rounded,
+      tone: Color(0xFF7C3AED)
+    ),
+    (
+      label: 'Multi-currency',
+      path: '/multi-currency',
+      icon: Icons.currency_exchange_rounded,
+      tone: Color(0xFF10B981)
+    ),
+    (
+      label: 'Travel',
+      path: '/travel',
+      icon: Icons.flight_takeoff_rounded,
+      tone: Color(0xFFEA580C)
+    ),
+    (
+      label: 'Map / Globe',
+      path: '/map',
+      icon: Icons.public_rounded,
+      tone: Color(0xFF3B82F6)
+    ),
+    (
+      label: 'Identity',
+      path: '/identity',
+      icon: Icons.verified_user_rounded,
+      tone: Color(0xFFF59E0B)
+    ),
+    (
+      label: 'Vault',
+      path: '/vault',
+      icon: Icons.shield_moon_rounded,
+      tone: Color(0xFFEA580C)
+    ),
+    (
+      label: 'Copilot',
+      path: '/copilot',
+      icon: Icons.smart_toy_rounded,
+      tone: Color(0xFF059669)
+    ),
+    (
+      label: 'Planner',
+      path: '/planner',
+      icon: Icons.event_note_rounded,
+      tone: Color(0xFF7C3AED)
+    ),
+    (
+      label: 'Cinematic globe',
+      path: '/globe-cinematic',
+      icon: Icons.language_rounded,
+      tone: Color(0xFF06B6D4)
+    ),
+    (
+      label: 'Travel OS',
+      path: '/travel-os',
+      icon: Icons.hub_rounded,
+      tone: Color(0xFF8B5CF6)
+    ),
+    (
+      label: 'Analytics',
+      path: '/analytics',
+      icon: Icons.insights_rounded,
+      tone: Color(0xFF1D4ED8)
+    ),
+    (
+      label: 'Passport book',
+      path: '/passport-book',
+      icon: Icons.menu_book_rounded,
+      tone: Color(0xFFF59E0B)
+    ),
+    (
+      label: 'Intelligence',
+      path: '/intelligence',
+      icon: Icons.bolt_rounded,
+      tone: Color(0xFFEAB308)
+    ),
+    (
+      label: 'Settings',
+      path: '/settings',
+      icon: Icons.tune_rounded,
+      tone: Color(0xFF6366F1)
+    ),
+    (
+      label: 'Inbox',
+      path: '/inbox',
+      icon: Icons.notifications_rounded,
+      tone: Color(0xFFE11D48)
+    ),
+    (
+      label: 'Emergency',
+      path: '/emergency',
+      icon: Icons.emergency_rounded,
+      tone: Color(0xFFEF4444)
+    ),
+    (
+      label: 'Phrasebook',
+      path: '/phrasebook',
+      icon: Icons.translate_rounded,
+      tone: Color(0xFF06B6D4)
+    ),
+    (
+      label: 'Discover',
+      path: '/discover',
+      icon: Icons.travel_explore_rounded,
+      tone: Color(0xFF06B6D4)
+    ),
+    (
+      label: 'Profile',
+      path: '/profile',
+      icon: Icons.person_rounded,
+      tone: Color(0xFF06B6D4)
+    ),
   ];
 
   List<({String label, String path, IconData icon, Color tone})> get _filtered {
