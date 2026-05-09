@@ -5,6 +5,7 @@ import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/page_scaffold.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../boarding_pass/boarding_gate_clock.dart';
@@ -45,11 +46,24 @@ class _AirportOrchestratorState extends State<AirportOrchestratorScreen>
             AppTokens.space5, 0, AppTokens.space5, AppTokens.space9),
         children: [
           // ── Premium gate clock + journey strip ─────────────
-          AnimatedAppearance(
-            child: BoardingGateClock(
-              gate: _gate,
-              boardingTime:
-                  DateTime.now().add(const Duration(minutes: 28)),
+          CinematicReveal(
+            tone: Theme.of(context).colorScheme.primary,
+            child: Stack(
+              children: [
+                BoardingGateClock(
+                  gate: _gate,
+                  boardingTime:
+                      DateTime.now().add(const Duration(minutes: 28)),
+                ),
+                Positioned(
+                  top: AppTokens.space3,
+                  right: AppTokens.space3,
+                  child: const PremiumHud(
+                    label: 'AIRPORT MODE',
+                    trailing: Text('FRA'),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: AppTokens.space3),
