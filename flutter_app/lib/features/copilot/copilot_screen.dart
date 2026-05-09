@@ -7,6 +7,7 @@ import '../../data/api/api_provider.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/pressable.dart';
+import 'concierge_command_surface.dart';
 
 /// Copilot v2 — premium chat. Suggestion chips, bubble tails, typing
 /// indicator, pressable send button, soft keyboard polish.
@@ -197,6 +198,53 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          AnimatedAppearance(
+            child: ConciergeCommandSurface(
+              title: 'Globe Concierge',
+              subtitle: 'Predictive · Long-press to fan out',
+              commands: [
+                ConciergeCommand(
+                  id: 'gate',
+                  label: 'Find my gate',
+                  icon: Icons.airplane_ticket_rounded,
+                  onActivate: () => onPick('Where is my gate?'),
+                ),
+                ConciergeCommand(
+                  id: 'translate',
+                  label: 'Translate menu',
+                  icon: Icons.translate_rounded,
+                  onActivate: () => onPick('Translate this menu'),
+                ),
+                ConciergeCommand(
+                  id: 'pack',
+                  label: 'Pack list',
+                  icon: Icons.luggage_rounded,
+                  onActivate: () =>
+                      onPick('Build a pack list for my next trip'),
+                ),
+                ConciergeCommand(
+                  id: 'spend',
+                  label: 'Spend snapshot',
+                  icon: Icons.savings_rounded,
+                  onActivate: () => onPick('Top spend categories this month'),
+                ),
+                ConciergeCommand(
+                  id: 'rate',
+                  label: 'FX check',
+                  icon: Icons.currency_exchange_rounded,
+                  onActivate: () =>
+                      onPick('JPY rate compared to last week'),
+                ),
+                ConciergeCommand(
+                  id: 'visa',
+                  label: 'Visa expiry',
+                  icon: Icons.task_alt_rounded,
+                  onActivate: () => onPick('Any visa expiring soon?'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppTokens.space5),
           AnimatedAppearance(
             child: Container(
               width: 64,
