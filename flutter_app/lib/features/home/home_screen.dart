@@ -8,6 +8,7 @@ import '../../domain/identity_tier.dart';
 import '../../domain/smart_suggestions.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/premium/premium.dart';
+import '../../widgets/safe_boundary.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/sparkline.dart';
 import '../lifecycle/lifecycle_provider.dart';
@@ -105,29 +106,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               0,
             ),
             sliver: SliverToBoxAdapter(
-              child: PremiumPulseStrip(
-                pulses: [
-                  PulseTile(
-                    label: 'Identity',
-                    value: '${user.profile.identityScore}',
-                    tone: theme.colorScheme.primary,
-                    icon: Icons.verified_user_rounded,
-                  ),
-                  PulseTile(
-                    label: 'Wallet',
-                    value: wallet.balances.isEmpty
-                        ? '—'
-                        : '${wallet.balances.length} ccy',
-                    tone: const Color(0xFF10B981),
-                    icon: Icons.account_balance_wallet_rounded,
-                  ),
-                  PulseTile(
-                    label: 'Trips',
-                    value: '${lifecycle.trips.length}',
-                    tone: const Color(0xFFD97706),
-                    icon: Icons.flight_takeoff_rounded,
-                  ),
-                ],
+              child: SafeBoundary(
+                debugLabel: 'home.pulse_strip',
+                child: PremiumPulseStrip(
+                  pulses: [
+                    PulseTile(
+                      label: 'Identity',
+                      value: '${user.profile.identityScore}',
+                      tone: theme.colorScheme.primary,
+                      icon: Icons.verified_user_rounded,
+                    ),
+                    PulseTile(
+                      label: 'Wallet',
+                      value: wallet.balances.isEmpty
+                          ? '—'
+                          : '${wallet.balances.length} ccy',
+                      tone: const Color(0xFF10B981),
+                      icon: Icons.account_balance_wallet_rounded,
+                    ),
+                    PulseTile(
+                      label: 'Trips',
+                      value: '${lifecycle.trips.length}',
+                      tone: const Color(0xFFD97706),
+                      icon: Icons.flight_takeoff_rounded,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -213,12 +217,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
             sliver: SliverToBoxAdapter(
-              child: HomeMiniGlobe(
-                height: 170,
-                fromLat: lifecycle.trips.isNotEmpty ? 40.6413 : null,
-                fromLng: lifecycle.trips.isNotEmpty ? -73.7781 : null,
-                toLat: lifecycle.trips.isNotEmpty ? 51.4700 : null,
-                toLng: lifecycle.trips.isNotEmpty ? -0.4543 : null,
+              child: SafeBoundary(
+                debugLabel: 'home.mini_globe',
+                fallbackHeight: 170,
+                child: HomeMiniGlobe(
+                  height: 170,
+                  fromLat: lifecycle.trips.isNotEmpty ? 40.6413 : null,
+                  fromLng: lifecycle.trips.isNotEmpty ? -73.7781 : null,
+                  toLat: lifecycle.trips.isNotEmpty ? 51.4700 : null,
+                  toLng: lifecycle.trips.isNotEmpty ? -0.4543 : null,
+                ),
               ),
             ),
           ),
@@ -227,10 +235,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
               sliver: SliverToBoxAdapter(
-                child: _TripGlance(
-                  trip: lifecycle.trips.first,
-                  onTap: () =>
-                      context.push('/trip/${lifecycle.trips.first.id}'),
+                child: SafeBoundary(
+                  debugLabel: 'home.trip_glance',
+                  child: _TripGlance(
+                    trip: lifecycle.trips.first,
+                    onTap: () =>
+                        context.push('/trip/${lifecycle.trips.first.id}'),
+                  ),
                 ),
               ),
             ),
@@ -249,7 +260,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             child: const SectionHeader(title: 'Exchange rates', dense: true),
           ),
           SliverToBoxAdapter(
-            child: WalletFxTicker(pairs: FxPair.demo()),
+            child: SafeBoundary(
+              debugLabel: 'home.fx_ticker',
+              child: WalletFxTicker(pairs: FxPair.demo()),
+            ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space2)),
           SliverToBoxAdapter(

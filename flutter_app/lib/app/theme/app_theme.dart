@@ -195,6 +195,25 @@ class GlassExtension extends ThemeExtension<GlassExtension> {
   final bool highContrast;
   final bool reduceTransparency;
 
+  /// Defensive resolver — returns the registered [GlassExtension] for
+  /// the current theme, or a sane neutral fallback if none is
+  /// registered (e.g., a sub-tree using a stripped-down `ThemeData`).
+  ///
+  /// Replaces the unsafe `Theme.of(ctx).extension<GlassExtension>()!`
+  /// pattern that crashed the entire screen when the extension was
+  /// missing.
+  static GlassExtension of(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.extension<GlassExtension>() ??
+        GlassExtension(
+          surface: theme.brightness == Brightness.dark
+              ? const Color(0xFF111827)
+              : const Color(0xFFF8FAFC),
+          highContrast: false,
+          reduceTransparency: false,
+        );
+  }
+
   @override
   GlassExtension copyWith({
     Color? surface,
@@ -211,7 +230,7 @@ class GlassExtension extends ThemeExtension<GlassExtension> {
   GlassExtension lerp(ThemeExtension<GlassExtension>? other, double t) {
     if (other is! GlassExtension) return this;
     return GlassExtension(
-      surface: Color.lerp(surface, other.surface, t)!,
+      surface: Color.lerp(surface, other.surface, t) ?? surface,
       highContrast: t < 0.5 ? highContrast : other.highContrast,
       reduceTransparency:
           t < 0.5 ? reduceTransparency : other.reduceTransparency,

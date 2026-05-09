@@ -114,7 +114,7 @@ class _AppShellState extends ConsumerState<AppShell>
     final loc = GoRouterState.of(context).uri.toString();
     final activeIndex = _activeTabIndex(loc);
     final theme = Theme.of(context);
-    final glass = theme.extension<GlassExtension>()!;
+    final glass = GlassExtension.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -222,7 +222,7 @@ class _InboxBell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final glass = theme.extension<GlassExtension>()!;
+    final glass = GlassExtension.of(context);
     final unread = ref.watch(inboxUnreadProvider);
 
     return Pressable(
@@ -285,7 +285,7 @@ class _IdentityQuickPill extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final glass = theme.extension<GlassExtension>()!;
+    final glass = GlassExtension.of(context);
     final scoreAsync = ref.watch(scoreProvider);
 
     final score = scoreAsync.maybeWhen(
@@ -418,7 +418,7 @@ class _TopChrome extends ConsumerWidget {
     final prefs = ref.watch(themePrefsProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final glass = theme.extension<GlassExtension>()!;
+    final glass = GlassExtension.of(context);
 
     final modeIcon = switch (prefs.themeMode) {
       ThemeMode.system => Icons.contrast_rounded,
@@ -523,7 +523,7 @@ class _AccentPickerSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final glass = theme.extension<GlassExtension>()!;
+    final glass = GlassExtension.of(context);
     return SafeArea(
       top: false,
       child: ClipRRect(

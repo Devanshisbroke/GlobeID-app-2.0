@@ -22,7 +22,11 @@ class GlassSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final glass = Theme.of(context).extension<GlassExtension>()!;
+    // `GlassExtension.of` returns a registered extension or a neutral
+    // fallback — never null. Pre-Phase-1 this line used `()!` and
+    // crashed the entire page if any sub-tree was rendered without the
+    // extension registered.
+    final glass = GlassExtension.of(context);
     final reduce = glass.reduceTransparency;
     final radiusObj = BorderRadius.circular(radius);
     final base = tint ?? glass.surface;

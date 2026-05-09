@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../app/theme/app_theme.dart';
 import '../../app/theme/app_tokens.dart';
-import 'contextual_surface.dart';
 
 /// Premium pulse strip — a horizontal row of live system pulse pills
 /// used as a status banner ("Wallet · Identity · Globe · Boarding").
@@ -21,10 +21,25 @@ class PremiumPulseStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ContextualSurface(
+    final theme = Theme.of(context);
+    final glass = GlassExtension.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
       padding: EdgeInsets.symmetric(
         horizontal: AppTokens.space4,
         vertical: dense ? 8 : AppTokens.space3,
+      ),
+      decoration: BoxDecoration(
+        color: glass.reduceTransparency
+            ? glass.surface
+            : glass.surface.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.06),
+          width: 0.6,
+        ),
       ),
       child: Row(
         children: [
@@ -36,10 +51,7 @@ class PremiumPulseStrip extends StatelessWidget {
                 height: dense ? 18 : 24,
                 margin:
                     const EdgeInsets.symmetric(horizontal: AppTokens.space2),
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.10),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.10),
               ),
           ],
         ],
