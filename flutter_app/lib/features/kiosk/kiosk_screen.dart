@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../motion/haptic_choreography.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/page_scaffold.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 
@@ -96,7 +98,13 @@ class _KioskScreenState extends State<KioskScreen>
           _hmacSig = _mockHash(16);
         }
       });
-      HapticFeedback.lightImpact();
+      // Per-phase haptic vocabulary — kiosk scan beeps on align /
+      // liveness / match, then arrivalChime on verified.
+      if (_phase == _KioskPhase.verified) {
+        HapticPatterns.arrivalChime.play();
+      } else {
+        HapticPatterns.kioskScan.play();
+      }
     });
   }
 
@@ -141,6 +149,60 @@ class _KioskScreenState extends State<KioskScreen>
       body: ListView(
         physics: const BouncingScrollPhysics(),
         children: [
+          // ── Departure-board status header ─────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.space5,
+              AppTokens.space3,
+              AppTokens.space5,
+              AppTokens.space3,
+            ),
+            child: AnimatedAppearance(
+              child: ContextualSurface(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('GATE STATUS',
+                              style:
+                                  AirportFontStack.caption(context)),
+                          const SizedBox(height: 4),
+                          DepartureBoardText(
+                            text: _phase.name.toUpperCase(),
+                            style: AirportFontStack.board(
+                              context,
+                              size: 22,
+                            ),
+                            tone: verified
+                                ? const Color(0xFF10B981)
+                                : theme.colorScheme.primary,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('CALLSIGN',
+                            style: AirportFontStack.caption(context)),
+                        const SizedBox(height: 4),
+                        DepartureBoardText(
+                          text: 'GID 001',
+                          style: AirportFontStack.flightNumber(context,
+                              size: 18),
+                          tone: theme.colorScheme.primary,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
           // ── Capture frame ─────────────────────────────────────
           AnimatedAppearance(
             child: PremiumCard(

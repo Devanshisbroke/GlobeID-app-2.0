@@ -12,6 +12,7 @@ import '../../domain/predictive_departure.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_surface.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
 import '../lifecycle/lifecycle_provider.dart';
@@ -122,6 +123,20 @@ class TripDetailScreen extends ConsumerWidget {
                     delay: const Duration(milliseconds: 80),
                     child: _RouteHero(from: from, to: to),
                   ),
+                if (trip.legs.isNotEmpty) ...[
+                  const SizedBox(height: AppTokens.space4),
+                  AnimatedAppearance(
+                    delay: const Duration(milliseconds: 120),
+                    child: FlightCallsignBoard(
+                      callsign: trip.legs.first.flightNumber,
+                      fromIata: trip.legs.first.from,
+                      toIata: trip.legs.last.to,
+                      depart: trip.legs.first.scheduled,
+                      gate: trip.legs.first.gate,
+                      tone: brand.primary,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: AppTokens.space5),
                 AnimatedAppearance(
                   delay: const Duration(milliseconds: 160),

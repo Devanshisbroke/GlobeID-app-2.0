@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../motion/haptic_choreography.dart';
 import '../../widgets/agentic_chip.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/cinematic_button.dart';
@@ -47,6 +48,16 @@ class _ArrivalWelcomeScreenState extends State<ArrivalWelcomeScreen>
     vsync: this,
     duration: const Duration(seconds: 8),
   )..repeat();
+
+  @override
+  void initState() {
+    super.initState();
+    // Fire arrival chime once after the first frame so the haptic
+    // lines up with the visual reveal, not the route push.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) HapticPatterns.arrivalChime.play();
+    });
+  }
 
   @override
   void dispose() {
