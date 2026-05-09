@@ -138,8 +138,7 @@ class _PremiumLoadingPainter extends CustomPainter {
     );
 
     // Trailing comet head
-    final head = Paint()
-      ..color = Colors.white.withValues(alpha: 0.85);
+    final head = Paint()..color = Colors.white.withValues(alpha: 0.85);
     final hx = c.dx + math.cos(start + math.pi * 0.65) * (r * 0.6);
     final hy = c.dy + math.sin(start + math.pi * 0.65) * (r * 0.6);
     canvas.drawCircle(Offset(hx, hy), 3.6, head);

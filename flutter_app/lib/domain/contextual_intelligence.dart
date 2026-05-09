@@ -37,7 +37,8 @@ class ContextualIntelligence {
               : 'Head to your gate soon.',
           icon: Icons.directions_walk_rounded,
           tone: minutesToGate <= 10
-              ? const Color(0xFFF59E0B) : const Color(0xFF22C55E),
+              ? const Color(0xFFF59E0B)
+              : const Color(0xFF22C55E),
           priority: 9,
         ));
       }
@@ -57,10 +58,12 @@ class ContextualIntelligence {
       insights.add(ContextualInsight(
         title: 'Passport expires in $daysUntilPassportExpiry days',
         description: daysUntilPassportExpiry < 90
-            ? 'Urgent — renew now' : 'Renew before your next trip',
+            ? 'Urgent — renew now'
+            : 'Renew before your next trip',
         icon: Icons.warning_amber_rounded,
         tone: daysUntilPassportExpiry < 90
-            ? const Color(0xFFEF4444) : const Color(0xFFF59E0B),
+            ? const Color(0xFFEF4444)
+            : const Color(0xFFF59E0B),
         priority: daysUntilPassportExpiry < 90 ? 9 : 6,
         actionRoute: '/identity',
       ));

@@ -273,7 +273,8 @@ class _SensorCard extends StatelessWidget {
 }
 
 class _AxisBar extends StatelessWidget {
-  const _AxisBar({required this.label, required this.value, required this.tone});
+  const _AxisBar(
+      {required this.label, required this.value, required this.tone});
   final String label;
   final double value;
   final Color tone;
@@ -360,7 +361,7 @@ class _HolographicTiltCard extends StatelessWidget {
                 colors: [
                   const Color(0xFF6366F1),
                   Color.lerp(const Color(0xFF6366F1), const Color(0xFF06B6D4),
-                          0.5 + tiltY * 0.4)!,
+                      0.5 + tiltY * 0.4)!,
                   const Color(0xFF0F172A),
                 ],
                 stops: const [0.0, 0.55, 1.0],
@@ -395,8 +396,8 @@ class _HolographicTiltCard extends StatelessWidget {
                                 horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.20),
-                              borderRadius: BorderRadius.circular(
-                                  AppTokens.radiusFull),
+                              borderRadius:
+                                  BorderRadius.circular(AppTokens.radiusFull),
                             ),
                             child: const Text(
                               'HOLO · LIVE',
@@ -418,8 +419,7 @@ class _HolographicTiltCard extends StatelessWidget {
                                 color: Colors.white,
                                 fontWeight: FontWeight.w900,
                               )),
-                          Text(
-                              'GID-IN-2002 · Verified · Sovereign Identity',
+                          Text('GID-IN-2002 · Verified · Sovereign Identity',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: Colors.white.withValues(alpha: 0.85),
                               )),

@@ -12,6 +12,7 @@ import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
+import '../payments/payment_confirm_sheet.dart';
 
 /// Wallet "flow" screens — Send, Receive, Scan-to-pay, Exchange.
 ///
@@ -81,8 +82,7 @@ class _WalletFlowScreenState extends ConsumerState<WalletFlowScreen> {
               ),
             ),
           ),
-          const SliverToBoxAdapter(
-              child: SizedBox(height: AppTokens.space5)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space5)),
           if (flow == WalletFlow.send) ...[
             const SliverToBoxAdapter(
               child: SectionHeader(
@@ -104,8 +104,7 @@ class _WalletFlowScreenState extends ConsumerState<WalletFlowScreen> {
                 ),
               ),
             ),
-            const SliverToBoxAdapter(
-                child: SizedBox(height: AppTokens.space3)),
+            const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space3)),
             SliverToBoxAdapter(
               child: SizedBox(
                 height: 76,
@@ -166,10 +165,10 @@ class _WalletFlowScreenState extends ConsumerState<WalletFlowScreen> {
                     AspectRatio(
                       aspectRatio: 1,
                       child: ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.radiusXl),
+                        borderRadius: BorderRadius.circular(AppTokens.radiusXl),
                         child: CustomPaint(
-                          painter: _QrPainter(tone: tone, seed: 'globeid:devansh'),
+                          painter:
+                              _QrPainter(tone: tone, seed: 'globeid:devansh'),
                         ),
                       ),
                     ),
@@ -204,8 +203,7 @@ class _WalletFlowScreenState extends ConsumerState<WalletFlowScreen> {
               ),
             ),
           ],
-          const SliverToBoxAdapter(
-              child: SizedBox(height: AppTokens.space5)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space5)),
           if (flow != WalletFlow.receive) ...[
             const SliverToBoxAdapter(
               child: SectionHeader(
@@ -219,8 +217,7 @@ class _WalletFlowScreenState extends ConsumerState<WalletFlowScreen> {
                 onDigit: _digit,
               ),
             ),
-            const SliverToBoxAdapter(
-                child: SizedBox(height: AppTokens.space5)),
+            const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space5)),
           ],
           SliverToBoxAdapter(
             child: CinematicButton(
@@ -229,8 +226,36 @@ class _WalletFlowScreenState extends ConsumerState<WalletFlowScreen> {
               gradient: LinearGradient(
                 colors: [tone, tone.withValues(alpha: 0.55)],
               ),
-              onPressed: () {
+              onPressed: () async {
                 HapticFeedback.heavyImpact();
+                if (flow == WalletFlow.send || flow == WalletFlow.scanPay) {
+                  final amount = double.tryParse(_amount) ?? 0;
+                  final messenger = ScaffoldMessenger.of(context);
+                  final navigator = Navigator.of(context);
+                  final result = await PaymentConfirmSheet.show(
+                    context,
+                    amount: amount,
+                    currency: 'USD',
+                    recipient: _recipient.isNotEmpty
+                        ? _recipient
+                        : (flow == WalletFlow.scanPay
+                            ? 'Scanned merchant'
+                            : 'Recipient'),
+                    methodLabel: 'Default wallet',
+                    tone: tone,
+                  );
+                  if (!mounted) return;
+                  if (result == PaymentConfirmResult.confirmed) {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        backgroundColor: tone,
+                        content: Text(_confirmFor(flow)),
+                      ),
+                    );
+                    navigator.maybePop();
+                  }
+                  return;
+                }
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: tone,
@@ -241,8 +266,7 @@ class _WalletFlowScreenState extends ConsumerState<WalletFlowScreen> {
               },
             ),
           ),
-          const SliverToBoxAdapter(
-              child: SizedBox(height: AppTokens.space9)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space9)),
         ],
       ),
     );
@@ -309,7 +333,8 @@ class _WalletFlowScreenState extends ConsumerState<WalletFlowScreen> {
       };
 
   String _ctaFor(WalletFlow f) => switch (f) {
-        WalletFlow.send => 'Send · ${_recipient.isEmpty ? 'select recipient' : _recipient}',
+        WalletFlow.send =>
+          'Send · ${_recipient.isEmpty ? 'select recipient' : _recipient}',
         WalletFlow.receive => 'Share my code',
         WalletFlow.scanPay => 'Confirm scan',
         WalletFlow.exchange => 'Convert $_amount $_from',
@@ -584,9 +609,8 @@ class _QrPainter extends CustomPainter {
     for (var x = 0; x < 21; x++) {
       for (var y = 0; y < 21; y++) {
         // Finder patterns at corners
-        final inFinder = (x < 7 && y < 7) ||
-            (x > 13 && y < 7) ||
-            (x < 7 && y > 13);
+        final inFinder =
+            (x < 7 && y < 7) || (x > 13 && y < 7) || (x < 7 && y > 13);
         if (inFinder) {
           final isOuter = x == 0 ||
               x == 6 ||
@@ -599,8 +623,7 @@ class _QrPainter extends CustomPainter {
               (x >= 2 && x <= 4 && y >= 16 && y <= 18);
           if (isOuter || isInner) {
             canvas.drawRect(
-              Rect.fromLTWH(
-                  x * cellSize, y * cellSize, cellSize, cellSize),
+              Rect.fromLTWH(x * cellSize, y * cellSize, cellSize, cellSize),
               fg,
             );
           }
@@ -616,11 +639,10 @@ class _QrPainter extends CustomPainter {
     }
 
     // Brand mark
-    final center =
-        Offset(size.width / 2 - cellSize * 1.5, size.height / 2 - cellSize * 1.5);
+    final center = Offset(
+        size.width / 2 - cellSize * 1.5, size.height / 2 - cellSize * 1.5);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-          center & Size(cellSize * 3, cellSize * 3),
+      RRect.fromRectAndRadius(center & Size(cellSize * 3, cellSize * 3),
           Radius.circular(cellSize * 0.6)),
       Paint()..color = Colors.white,
     );
@@ -666,6 +688,7 @@ class _ScanFramePainter extends CustomPainter {
       canvas.drawLine(p, p + dx, f);
       canvas.drawLine(p, p + dy, f);
     }
+
     drawCorner(box.topLeft, Offset(corner, 0), Offset(0, corner));
     drawCorner(box.topRight, Offset(-corner, 0), Offset(0, corner));
     drawCorner(box.bottomLeft, Offset(corner, 0), Offset(0, -corner));
@@ -676,8 +699,8 @@ class _ScanFramePainter extends CustomPainter {
     final scan = Paint()
       ..color = tone.withValues(alpha: 0.55)
       ..strokeWidth = 1.4;
-    canvas.drawLine(Offset(box.left + 4, scanY), Offset(box.right - 4, scanY),
-        scan);
+    canvas.drawLine(
+        Offset(box.left + 4, scanY), Offset(box.right - 4, scanY), scan);
   }
 
   @override

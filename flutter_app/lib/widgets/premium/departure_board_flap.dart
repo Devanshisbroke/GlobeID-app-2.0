@@ -82,9 +82,7 @@ class _DepartureBoardFlapState extends State<DepartureBoardFlap>
         ?.copyWith(color: widget.tone ?? Colors.white);
 
     final bg = widget.background ??
-        (isDark
-            ? const Color(0xFF06080F)
-            : const Color(0xFF0B1120));
+        (isDark ? const Color(0xFF06080F) : const Color(0xFF0B1120));
 
     return AnimatedBuilder(
       animation: _ctrl,
@@ -109,7 +107,8 @@ class _DepartureBoardFlapState extends State<DepartureBoardFlap>
                     horizontal: AppTokens.space2,
                     vertical: AppTokens.space2 + 2,
                   ),
-                  child: Text(_shown, style: style, textAlign: TextAlign.center),
+                  child:
+                      Text(_shown, style: style, textAlign: TextAlign.center),
                 ),
                 if (!reduce && t > 0)
                   Positioned.fill(
@@ -161,7 +160,8 @@ class _FlapOverlay extends StatelessWidget {
     final firstHalf = t < 0.5;
     final char = firstHalf ? from : to;
     final localT = firstHalf ? t * 2 : (t - 0.5) * 2;
-    final angle = firstHalf ? -math.pi / 2 * localT : math.pi / 2 * (1 - localT);
+    final angle =
+        firstHalf ? -math.pi / 2 * localT : math.pi / 2 * (1 - localT);
     final flapAlign = firstHalf ? Alignment.bottomCenter : Alignment.topCenter;
     final clipAlign = firstHalf ? Alignment.topCenter : Alignment.bottomCenter;
 
@@ -196,8 +196,9 @@ class _HalfRectClipper extends CustomClipper<Rect> {
   final bool top;
 
   @override
-  Rect getClip(Size size) =>
-      top ? Rect.fromLTWH(0, 0, size.width, size.height / 2) : Rect.fromLTWH(0, size.height / 2, size.width, size.height / 2);
+  Rect getClip(Size size) => top
+      ? Rect.fromLTWH(0, 0, size.width, size.height / 2)
+      : Rect.fromLTWH(0, size.height / 2, size.width, size.height / 2);
 
   @override
   bool shouldReclip(covariant _HalfRectClipper old) => old.top != top;

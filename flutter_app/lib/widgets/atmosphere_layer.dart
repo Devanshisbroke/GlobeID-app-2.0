@@ -290,5 +290,3 @@ class _StaticOrb extends StatelessWidget {
     );
   }
 }
-
-

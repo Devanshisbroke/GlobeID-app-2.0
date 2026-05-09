@@ -83,8 +83,7 @@ class _GlobeInteractionOverlayState extends State<GlobeInteractionOverlay> {
                       setState(() {
                         _layers[entry.key] = !entry.value;
                       });
-                      widget.onLayerToggled(
-                          entry.key, _layers[entry.key]!);
+                      widget.onLayerToggled(entry.key, _layers[entry.key]!);
                     },
                   ),
                 ),
@@ -152,8 +151,7 @@ class _CoordinateHud extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.my_location_rounded,
-              size: 12,
-              color: Colors.white.withValues(alpha: 0.65)),
+              size: 12, color: Colors.white.withValues(alpha: 0.65)),
           const SizedBox(width: 6),
           Text(
             '$latStr  $lngStr  ×${zoom.toStringAsFixed(1)}',
@@ -214,9 +212,8 @@ class _LayerChip extends StatelessWidget {
             Icon(
               _icon,
               size: 12,
-              color: enabled
-                  ? Colors.white
-                  : Colors.white.withValues(alpha: 0.40),
+              color:
+                  enabled ? Colors.white : Colors.white.withValues(alpha: 0.40),
             ),
             const SizedBox(width: 5),
             Text(
@@ -344,8 +341,7 @@ class _CityInfoCard extends StatelessWidget {
                 Text(
                   '${city.country} · ${city.timezone}',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface
-                        .withValues(alpha: 0.55),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
                   ),
                 ),
               ],
@@ -364,8 +360,7 @@ class _CityInfoCard extends StatelessWidget {
               Text(
                 city.condition,
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurface
-                      .withValues(alpha: 0.50),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.50),
                 ),
               ),
             ],

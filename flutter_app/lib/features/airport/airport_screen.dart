@@ -90,7 +90,8 @@ class _AirportScreenState extends State<AirportScreen> {
                 : 4;
     return PageScaffold(
       title: 'Airport · ${widget.terminal}',
-      subtitle: '${widget.airline} ${widget.flightNumber} · ${widget.from} → ${widget.to}',
+      subtitle:
+          '${widget.airline} ${widget.flightNumber} · ${widget.from} → ${widget.to}',
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics()),
@@ -106,18 +107,37 @@ class _AirportScreenState extends State<AirportScreen> {
                 tone: widget.tone,
                 badges: [
                   HeroBadge(
-                      label: 'Gate ${widget.gate}',
-                      icon: Icons.location_pin),
+                      label: 'Gate ${widget.gate}', icon: Icons.location_pin),
                   const HeroBadge(
-                      label: 'Polaris', icon: Icons.airline_seat_recline_extra_rounded),
-                  const HeroBadge(
-                      label: 'On-time', icon: Icons.timer_rounded),
+                      label: 'Polaris',
+                      icon: Icons.airline_seat_recline_extra_rounded),
+                  const HeroBadge(label: 'On-time', icon: Icons.timer_rounded),
                 ],
               ),
             ),
           ),
-          const SliverToBoxAdapter(
-              child: SizedBox(height: AppTokens.space5)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space3)),
+          // Bridge into the orchestrator (live gate, terminal map,
+          // amenity timing) so the boarding lobby flows into the
+          // full airport-mode HUD without a dead-end.
+          SliverToBoxAdapter(
+            child: AnimatedAppearance(
+              delay: const Duration(milliseconds: 80),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+                child: CinematicButton(
+                  label: 'Open airport mode',
+                  icon: Icons.hub_rounded,
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/airport-mode');
+                  },
+                ),
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space5)),
           SliverToBoxAdapter(
             child: PremiumCard(
               padding: const EdgeInsets.all(AppTokens.space4),
@@ -126,13 +146,11 @@ class _AirportScreenState extends State<AirportScreen> {
                 steps: const [
                   JourneyStep(
                       label: 'Check-in', icon: Icons.assignment_ind_rounded),
-                  JourneyStep(
-                      label: 'Security', icon: Icons.security_rounded),
+                  JourneyStep(label: 'Security', icon: Icons.security_rounded),
                   JourneyStep(
                       label: 'Lounge',
                       icon: Icons.airline_seat_recline_extra_rounded),
-                  JourneyStep(
-                      label: 'Gate', icon: Icons.location_pin),
+                  JourneyStep(label: 'Gate', icon: Icons.location_pin),
                   JourneyStep(
                       label: 'Board', icon: Icons.flight_takeoff_rounded),
                 ],
@@ -151,8 +169,8 @@ class _AirportScreenState extends State<AirportScreen> {
               child: SizedBox(
                 height: 220,
                 child: CustomPaint(
-                  painter: _TerminalPainter(
-                      tone: widget.tone, gate: widget.gate),
+                  painter:
+                      _TerminalPainter(tone: widget.tone, gate: widget.gate),
                 ),
               ),
             ),
@@ -200,9 +218,8 @@ class _AirportScreenState extends State<AirportScreen> {
                         _checked.contains(i)
                             ? Icons.check_rounded
                             : _checklist[i].$1,
-                        color: _checked.contains(i)
-                            ? Colors.white
-                            : widget.tone,
+                        color:
+                            _checked.contains(i) ? Colors.white : widget.tone,
                         size: 14,
                       ),
                     ),
@@ -262,8 +279,7 @@ class _AirportScreenState extends State<AirportScreen> {
               ],
             ),
           ),
-          const SliverToBoxAdapter(
-              child: SizedBox(height: AppTokens.space5)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space5)),
           SliverToBoxAdapter(
             child: AgenticBand(
               title: 'When you land',
@@ -295,8 +311,7 @@ class _AirportScreenState extends State<AirportScreen> {
               ],
             ),
           ),
-          const SliverToBoxAdapter(
-              child: SizedBox(height: AppTokens.space5)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space5)),
           SliverToBoxAdapter(
             child: CinematicButton(
               label: 'Open boarding pass',
@@ -312,8 +327,7 @@ class _AirportScreenState extends State<AirportScreen> {
               },
             ),
           ),
-          const SliverToBoxAdapter(
-              child: SizedBox(height: AppTokens.space9)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space9)),
         ],
       ),
     );
@@ -324,8 +338,11 @@ class _AirportScreenState extends State<AirportScreen> {
     (Icons.luggage_rounded, 'Bag drop', '2 checked · 7 kg carry-on'),
     (Icons.security_rounded, 'Security', '18 min wait at TSA-Pre'),
     (Icons.local_atm_rounded, 'Currency', 'JPY 80,000 loaded'),
-    (Icons.battery_charging_full_rounded, 'Power-ups',
-        'Phone 92% · power bank 100%'),
+    (
+      Icons.battery_charging_full_rounded,
+      'Power-ups',
+      'Phone 92% · power bank 100%'
+    ),
     (Icons.water_drop_rounded, 'Hydrate', 'Refill at gate fountain'),
     (Icons.bedtime_rounded, 'Jet-lag', 'Sleep window 22:00–06:00 local'),
     (Icons.medical_services_rounded, 'Meds', 'Carry-on accessible'),
@@ -468,8 +485,8 @@ class _TerminalPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    tpL.paint(canvas,
-        Offset(40 + step * 0.5 - tpL.width / 2, size.height / 2 - 84));
+    tpL.paint(
+        canvas, Offset(40 + step * 0.5 - tpL.width / 2, size.height / 2 - 84));
   }
 
   @override

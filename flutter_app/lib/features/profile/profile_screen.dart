@@ -257,7 +257,8 @@ class ProfileScreen extends ConsumerWidget {
               child: _NavRow(
                 icon: Icons.tune_rounded,
                 label: 'Settings',
-                sub: 'Appearance · Notifications · Security · Privacy · Travel · Accessibility · Lab · About',
+                sub:
+                    'Appearance · Notifications · Security · Privacy · Travel · Accessibility · Lab · About',
                 onTap: () => context.push('/settings'),
               ),
             ),
@@ -402,12 +403,28 @@ class ProfileScreen extends ConsumerWidget {
                       icon: Icons.calendar_today_rounded,
                       label: 'Calendar sync',
                       sub: 'Google + Apple',
-                      onTap: () {}),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        AppToast.show(
+                          context,
+                          title: 'Calendar sync requested',
+                          message: 'We\'ll re-link Google + Apple shortly.',
+                          tone: AppToastTone.info,
+                        );
+                      }),
                   _NavRow(
                       icon: Icons.email_rounded,
                       label: 'Email parsing',
                       sub: 'Auto-detect bookings',
-                      onTap: () {}),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        AppToast.show(
+                          context,
+                          title: 'Inbox scan running',
+                          message: 'Trips & receipts will appear shortly.',
+                          tone: AppToastTone.info,
+                        );
+                      }),
                   _NavRow(
                       icon: Icons.contacts_rounded,
                       label: 'Contacts',
@@ -440,14 +457,14 @@ class ProfileScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('GlobeID Plus',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w800)),
+                          style: theme.textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w800)),
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFD4AF37)
-                              .withValues(alpha: 0.18),
+                          color:
+                              const Color(0xFFD4AF37).withValues(alpha: 0.18),
                           borderRadius:
                               BorderRadius.circular(AppTokens.radiusFull),
                         ),
@@ -469,7 +486,7 @@ class ProfileScreen extends ConsumerWidget {
                   Row(children: [
                     Expanded(
                       child: OutlinedButton(
-                          onPressed: () {},
+                          onPressed: () => context.push('/settings'),
                           child: const Text('Manage plan')),
                     ),
                     const SizedBox(width: AppTokens.space2),
@@ -506,7 +523,7 @@ class ProfileScreen extends ConsumerWidget {
                   _NavRow(
                       icon: Icons.help_outline_rounded,
                       label: 'Help center',
-                      onTap: () {}),
+                      onTap: () => context.push('/copilot')),
                   _NavRow(
                       icon: Icons.chat_rounded,
                       label: 'Contact concierge',
@@ -515,16 +532,25 @@ class ProfileScreen extends ConsumerWidget {
                   _NavRow(
                       icon: Icons.bug_report_rounded,
                       label: 'Report an issue',
-                      onTap: () {}),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        AppToast.show(
+                          context,
+                          title: 'Diagnostics packaged',
+                          message: 'Concierge will follow up via inbox.',
+                          tone: AppToastTone.info,
+                        );
+                        context.push('/inbox');
+                      }),
                   _NavRow(
                       icon: Icons.policy_rounded,
                       label: 'Privacy & terms',
-                      onTap: () {}),
+                      onTap: () => context.push('/settings/privacy')),
                   _NavRow(
                       icon: Icons.info_outline_rounded,
                       label: 'About GlobeID',
                       sub: 'v1.0.0 · build 2026.05',
-                      onTap: () {}),
+                      onTap: () => context.push('/settings/about')),
                 ],
               ),
             ),
@@ -552,12 +578,30 @@ class ProfileScreen extends ConsumerWidget {
                   _DangerRow(
                       icon: Icons.cloud_download_rounded,
                       label: 'Export my data',
-                      onTap: () {}),
+                      onTap: () {
+                        HapticFeedback.mediumImpact();
+                        AppToast.show(
+                          context,
+                          title: 'Export scheduled',
+                          message: 'A download link will arrive in your inbox.',
+                          tone: AppToastTone.info,
+                        );
+                        context.push('/inbox');
+                      }),
                   _DangerRow(
                       icon: Icons.delete_forever_rounded,
                       label: 'Delete account',
                       destructive: true,
-                      onTap: () {}),
+                      onTap: () {
+                        HapticFeedback.heavyImpact();
+                        AppToast.show(
+                          context,
+                          title: 'Confirmation required',
+                          message: 'Concierge will guide closure end-to-end.',
+                          tone: AppToastTone.warning,
+                        );
+                        context.push('/copilot');
+                      }),
                 ],
               ),
             ),
@@ -629,8 +673,7 @@ class _DeviceRow extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon,
-              size: 22,
-              color: t.colorScheme.onSurface.withValues(alpha: 0.78)),
+              size: 22, color: t.colorScheme.onSurface.withValues(alpha: 0.78)),
           const SizedBox(width: AppTokens.space3),
           Expanded(
             child: Column(
@@ -648,8 +691,7 @@ class _DeviceRow extends StatelessWidget {
           ),
           if (isCurrent)
             Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 8, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
                 color: const Color(0xFF10B981).withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(AppTokens.radiusFull),
@@ -708,8 +750,8 @@ class _LinkRow extends StatelessWidget {
                           ?.copyWith(fontWeight: FontWeight.w700)),
                   Text(sub,
                       style: t.textTheme.bodySmall?.copyWith(
-                          color: t.colorScheme.onSurface
-                              .withValues(alpha: 0.60))),
+                          color:
+                              t.colorScheme.onSurface.withValues(alpha: 0.60))),
                 ],
               ),
             ),
@@ -751,8 +793,8 @@ class _DangerRow extends StatelessWidget {
             const SizedBox(width: AppTokens.space3),
             Expanded(
               child: Text(label,
-                  style: t.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700, color: color)),
+                  style: t.textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w700, color: color)),
             ),
             Icon(Icons.chevron_right_rounded,
                 color: t.colorScheme.onSurface.withValues(alpha: 0.32)),

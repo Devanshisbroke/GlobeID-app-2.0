@@ -15,11 +15,10 @@ class TransportScreen extends ConsumerWidget {
   static const _tone = Color(0xFF1D4ED8);
   static const _filters = [
     BespokeFilter(key: 'train', label: 'Train', icon: Icons.train_rounded),
+    BespokeFilter(key: 'metro', label: 'Metro', icon: Icons.subway_rounded),
+    BespokeFilter(key: 'bus', label: 'Bus', icon: Icons.directions_bus_rounded),
     BespokeFilter(
-        key: 'metro', label: 'Metro', icon: Icons.subway_rounded),
-    BespokeFilter(
-        key: 'bus', label: 'Bus', icon: Icons.directions_bus_rounded),
-    BespokeFilter(key: 'ferry', label: 'Ferry', icon: Icons.directions_boat_rounded),
+        key: 'ferry', label: 'Ferry', icon: Icons.directions_boat_rounded),
     BespokeFilter(
         key: 'airport', label: 'Airport', icon: Icons.flight_takeoff_rounded),
   ];
@@ -121,8 +120,7 @@ class TransportScreen extends ConsumerWidget {
                           )),
                       const SizedBox(width: AppTokens.space3),
                       Expanded(
-                        child: Text(d.$2,
-                            style: theme.textTheme.bodyMedium),
+                        child: Text(d.$2, style: theme.textTheme.bodyMedium),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -131,10 +129,8 @@ class TransportScreen extends ConsumerWidget {
                           borderRadius:
                               BorderRadius.circular(AppTokens.radiusFull),
                           color: d.$3 == 'On time'
-                              ? const Color(0xFF10B981)
-                                  .withValues(alpha: 0.15)
-                              : const Color(0xFFF59E0B)
-                                  .withValues(alpha: 0.18),
+                              ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                              : const Color(0xFFF59E0B).withValues(alpha: 0.18),
                         ),
                         child: Text(d.$3,
                             style: theme.textTheme.labelSmall?.copyWith(
@@ -185,8 +181,8 @@ class _TransportCard extends StatelessWidget {
                 colors: [tone, tone.withValues(alpha: 0.55)],
               ),
             ),
-            child: const Icon(Icons.train_rounded,
-                color: Colors.white, size: 26),
+            child:
+                const Icon(Icons.train_rounded, color: Colors.white, size: 26),
           ),
           const SizedBox(width: AppTokens.space3),
           Expanded(
@@ -201,8 +197,7 @@ class _TransportCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis),
                 Text(subtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),

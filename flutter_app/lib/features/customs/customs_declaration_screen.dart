@@ -52,16 +52,31 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
   }
 
   static const _questions = <(IconData, String, String)>[
-    (Icons.local_pharmacy_rounded, 'Carrying medicines?',
-        'Includes prescriptions, narcotics or restricted substances.'),
-    (Icons.eco_rounded, 'Carrying plants, seeds, or animals?',
-        'Including wood products and food items.'),
-    (Icons.payments_rounded, 'Carrying cash > ¥1,000,000?',
-        'Or equivalent in any currency.'),
-    (Icons.shopping_bag_rounded, 'Bringing gifts > ¥200,000?',
-        'Per traveller exemption.'),
-    (Icons.dangerous_rounded, 'Restricted / prohibited items?',
-        'Firearms, swords, drugs, counterfeits.'),
+    (
+      Icons.local_pharmacy_rounded,
+      'Carrying medicines?',
+      'Includes prescriptions, narcotics or restricted substances.'
+    ),
+    (
+      Icons.eco_rounded,
+      'Carrying plants, seeds, or animals?',
+      'Including wood products and food items.'
+    ),
+    (
+      Icons.payments_rounded,
+      'Carrying cash > ¥1,000,000?',
+      'Or equivalent in any currency.'
+    ),
+    (
+      Icons.shopping_bag_rounded,
+      'Bringing gifts > ¥200,000?',
+      'Per traveller exemption.'
+    ),
+    (
+      Icons.dangerous_rounded,
+      'Restricted / prohibited items?',
+      'Firearms, swords, drugs, counterfeits.'
+    ),
   ];
 
   @override
@@ -110,9 +125,7 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
               flag: widget.flag,
               badges: const [
                 HeroBadge(label: 'Auto-fill', icon: Icons.bolt_rounded),
-                HeroBadge(
-                    label: 'Save offline',
-                    icon: Icons.cloud_off_rounded),
+                HeroBadge(label: 'Save offline', icon: Icons.cloud_off_rounded),
                 HeroBadge(label: 'Bilingual', icon: Icons.translate_rounded),
               ],
             ),
@@ -131,13 +144,11 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
                       )),
                   const SizedBox(height: 8),
                   ClipRRect(
-                    borderRadius:
-                        BorderRadius.circular(AppTokens.radiusFull),
+                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                     child: LinearProgressIndicator(
                       value: (_step + 1) / (_questions.length + 2),
                       minHeight: 8,
-                      backgroundColor:
-                          widget.tone.withValues(alpha: 0.18),
+                      backgroundColor: widget.tone.withValues(alpha: 0.18),
                       valueColor: AlwaysStoppedAnimation(widget.tone),
                     ),
                   ),
@@ -163,8 +174,8 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
                     label: const Text('Back'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(
-                          color: widget.tone.withValues(alpha: 0.4)),
+                      side:
+                          BorderSide(color: widget.tone.withValues(alpha: 0.4)),
                     ),
                   ),
                 ),
@@ -182,8 +193,7 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
                                 backgroundColor: widget.tone,
                                 content: const Text(
                                   'Form saved offline. Show kiosk on arrival.',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w800),
+                                  style: TextStyle(fontWeight: FontWeight.w800),
                                 ),
                               ));
                             } else {
@@ -402,8 +412,7 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
-                Icon(Icons.qr_code_2_rounded,
-                    color: Colors.white, size: 84),
+                Icon(Icons.qr_code_2_rounded, color: Colors.white, size: 84),
                 Text('Ready · stamp',
                     style: TextStyle(
                       color: Colors.white,
@@ -430,11 +439,9 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
                 padding: const EdgeInsets.all(AppTokens.space3),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEA580C).withValues(alpha: 0.10),
-                  borderRadius:
-                      BorderRadius.circular(AppTokens.radiusLg),
+                  borderRadius: BorderRadius.circular(AppTokens.radiusLg),
                   border: Border.all(
-                    color:
-                        const Color(0xFFEA580C).withValues(alpha: 0.4),
+                    color: const Color(0xFFEA580C).withValues(alpha: 0.4),
                   ),
                 ),
                 child: Row(
@@ -509,8 +516,8 @@ class _ChoiceButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? tone : tone.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-          border: Border.all(
-              color: tone.withValues(alpha: selected ? 1.0 : 0.4)),
+          border:
+              Border.all(color: tone.withValues(alpha: selected ? 1.0 : 0.4)),
           boxShadow: selected
               ? [
                   BoxShadow(

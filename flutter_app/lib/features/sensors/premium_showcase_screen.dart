@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../app/theme/emotional_palette.dart';
+import '../../motion/spring_simulation.dart';
+import '../../widgets/animated_blob.dart';
+import '../../widgets/glow_pulse.dart';
+import '../../widgets/gradient_text.dart';
+import '../../widgets/loading_dots.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium/premium.dart';
+import '../../widgets/tilt_3d.dart';
 
 /// Premium showcase — a single screen that exercises every Wave 1
 /// foundation widget so QA / design can audit the toolkit at a
@@ -40,7 +47,7 @@ class PremiumShowcaseScreen extends StatelessWidget {
                     child: MagneticButton(
                       label: 'Send',
                       icon: Icons.arrow_outward_rounded,
-                      onPressed: () {},
+                      onPressed: () => HapticFeedback.lightImpact(),
                     ),
                   ),
                   const SizedBox(width: AppTokens.space2),
@@ -57,13 +64,12 @@ class PremiumShowcaseScreen extends StatelessWidget {
                           theme.colorScheme.primary.withValues(alpha: 0.10),
                         ],
                       ),
-                      onPressed: () {},
+                      onPressed: () => HapticFeedback.lightImpact(),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: AppTokens.space5),
-
               const _SectionLabel(title: 'Liquid wave surface'),
               LiquidWaveSurface(
                 progress: 0.62,
@@ -71,7 +77,6 @@ class PremiumShowcaseScreen extends StatelessWidget {
                 height: 60,
               ),
               const SizedBox(height: AppTokens.space5),
-
               const _SectionLabel(title: 'Departure board flap'),
               ContextualSurface(
                 child: Center(
@@ -83,7 +88,6 @@ class PremiumShowcaseScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppTokens.space5),
-
               const _SectionLabel(title: 'Sensor pendulum + spatial depth'),
               SizedBox(
                 height: 240,
@@ -94,8 +98,8 @@ class PremiumShowcaseScreen extends StatelessWidget {
                       haze: true,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.surface
-                              .withValues(alpha: 0.55),
+                          color:
+                              theme.colorScheme.surface.withValues(alpha: 0.55),
                           borderRadius:
                               BorderRadius.circular(AppTokens.radius2xl),
                         ),
@@ -133,8 +137,8 @@ class PremiumShowcaseScreen extends StatelessWidget {
                             height: 96,
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.92),
-                              borderRadius: BorderRadius.circular(
-                                  AppTokens.radius2xl),
+                              borderRadius:
+                                  BorderRadius.circular(AppTokens.radius2xl),
                               boxShadow: [
                                 BoxShadow(
                                   color: theme.colorScheme.primary
@@ -155,20 +159,18 @@ class PremiumShowcaseScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppTokens.space5),
-
               const _SectionLabel(title: 'Kinetic card stack'),
               KineticCardStack(
                 itemCount: 6,
                 builder: (_, i, p) => ContextualSurface(
-                  context: EmotionalContext.values[i %
-                      EmotionalContext.values.length],
+                  context: EmotionalContext
+                      .values[i % EmotionalContext.values.length],
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text('CARD ${i + 1}',
-                          style:
-                              AirportFontStack.iata(context, size: 14)),
+                          style: AirportFontStack.iata(context, size: 14)),
                       const SizedBox(height: 6),
                       Text('Stacked deck with sensor tilt and snap.',
                           style: theme.textTheme.bodyMedium),
@@ -177,7 +179,6 @@ class PremiumShowcaseScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppTokens.space5),
-
               const _SectionLabel(title: 'Contextual surface gallery'),
               for (final ctx in EmotionalContext.values) ...[
                 ContextualSurface(
@@ -188,9 +189,9 @@ class PremiumShowcaseScreen extends StatelessWidget {
                         width: 8,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: EmotionalPalette.shiftFor(ctx)
-                                  .accentOverride ??
-                              theme.colorScheme.primary,
+                          color:
+                              EmotionalPalette.shiftFor(ctx).accentOverride ??
+                                  theme.colorScheme.primary,
                           borderRadius:
                               BorderRadius.circular(AppTokens.radiusFull),
                         ),
@@ -206,11 +207,95 @@ class PremiumShowcaseScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: AppTokens.space2),
               ],
-
               const SizedBox(height: AppTokens.space5),
               const _SectionLabel(title: 'Premium loading'),
               const PremiumLoadingSequence(
                   size: 96, caption: 'Securing your trip…'),
+              const SizedBox(height: AppTokens.space5),
+              const _SectionLabel(title: 'Gradient hero text'),
+              GradientText(
+                'GlobeID',
+                style: const TextStyle(
+                  fontSize: 44,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -1.0,
+                ),
+                gradient: LinearGradient(
+                  colors: [
+                    theme.colorScheme.primary,
+                    theme.colorScheme.secondary,
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppTokens.space5),
+              const _SectionLabel(title: 'Glow pulse + spring entrance'),
+              SpringEntrance(
+                child: GlowPulse(
+                  color: theme.colorScheme.primary,
+                  child: Container(
+                    width: double.infinity,
+                    height: 64,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                      gradient: LinearGradient(
+                        colors: [
+                          theme.colorScheme.primary.withValues(alpha: 0.85),
+                          theme.colorScheme.primary.withValues(alpha: 0.55),
+                        ],
+                      ),
+                    ),
+                    child: const Text(
+                      'Live arc',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppTokens.space5),
+              const _SectionLabel(title: 'Animated blob backdrop'),
+              SizedBox(
+                height: 160,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    AnimatedBlob(color: theme.colorScheme.primary),
+                    Center(
+                      child: LoadingDots(color: theme.colorScheme.onSurface),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppTokens.space5),
+              const _SectionLabel(title: 'Tilt-driven hero card'),
+              Tilt3D(
+                child: Container(
+                  height: 140,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        theme.colorScheme.primary,
+                        theme.colorScheme.primary.withValues(alpha: 0.55),
+                      ],
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'Tilt me',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 22,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ],

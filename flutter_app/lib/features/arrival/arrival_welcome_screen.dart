@@ -13,6 +13,7 @@ import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
+import 'local_mode_sheet.dart';
 
 /// ArrivalWelcomeScreen — the cinematic moment after the kiosk turns
 /// green: a destination welcomes the user with localized phrases,
@@ -145,8 +146,7 @@ class _ArrivalWelcomeScreenState extends State<ArrivalWelcomeScreen>
             ('こんにちは', 'Konnichiwa', 'Hello'),
             ('ありがとう', 'Arigatou', 'Thank you'),
             ('すみません', 'Sumimasen', 'Excuse me'),
-            ('英語を話せますか?', 'Eigo wo hanasemasu ka?',
-                'Do you speak English?'),
+            ('英語を話せますか?', 'Eigo wo hanasemasu ka?', 'Do you speak English?'),
             ('助けてください', 'Tasukete kudasai', 'Please help me'),
           ])
             Padding(
@@ -229,9 +229,17 @@ class _ArrivalWelcomeScreenState extends State<ArrivalWelcomeScreen>
               title: 'Curated for you',
               subtitle: 'Hand-picked for first-time arrivals'),
           for (final c in const [
-            (Icons.restaurant_rounded, 'Sukiyabashi Jiro', 'Ginza · sushi · 4.9'),
+            (
+              Icons.restaurant_rounded,
+              'Sukiyabashi Jiro',
+              'Ginza · sushi · 4.9'
+            ),
             (Icons.hotel_rounded, 'Aman Tokyo', 'Otemachi · 5★ · suite'),
-            (Icons.local_activity_rounded, 'TeamLab Borderless', 'Odaiba · digital art'),
+            (
+              Icons.local_activity_rounded,
+              'TeamLab Borderless',
+              'Odaiba · digital art'
+            ),
             (Icons.train_rounded, 'JR Pass', '7-day · ¥29,650'),
           ])
             Padding(
@@ -245,8 +253,7 @@ class _ArrivalWelcomeScreenState extends State<ArrivalWelcomeScreen>
                       height: 40,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.radiusLg),
+                        borderRadius: BorderRadius.circular(AppTokens.radiusLg),
                         color: widget.tone.withValues(alpha: 0.18),
                       ),
                       child: Icon(c.$1, color: widget.tone),
@@ -265,13 +272,33 @@ class _ArrivalWelcomeScreenState extends State<ArrivalWelcomeScreen>
                       ),
                     ),
                     Icon(Icons.chevron_right_rounded,
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.5)),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.5)),
                   ],
                 ),
               ),
             ),
-          const SizedBox(height: AppTokens.space5),
+          const SizedBox(height: AppTokens.space3),
+          CinematicButton(
+            label: 'Browse local mode',
+            icon: Icons.location_city_rounded,
+            gradient: LinearGradient(
+              colors: [
+                widget.tone.withValues(alpha: 0.85),
+                widget.tone.withValues(alpha: 0.40),
+              ],
+            ),
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              LocalModeSheet.show(
+                context,
+                city: widget.city,
+                country: widget.country,
+                flag: widget.flag,
+              );
+            },
+          ),
+          const SizedBox(height: AppTokens.space3),
           CinematicButton(
             label: 'Open my Travel OS',
             icon: Icons.hub_rounded,
@@ -369,8 +396,8 @@ class _ArrivalPainter extends CustomPainter {
       ..shader = RadialGradient(colors: [
         tone.withValues(alpha: 0.55),
         tone.withValues(alpha: 0.0),
-      ]).createShader(
-          Rect.fromCircle(center: Offset(size.width * 0.7, size.height * 0.35), radius: 140));
+      ]).createShader(Rect.fromCircle(
+          center: Offset(size.width * 0.7, size.height * 0.35), radius: 140));
     canvas.drawCircle(Offset(size.width * 0.7, size.height * 0.35), 140, sun);
 
     // Flight arc
@@ -434,8 +461,8 @@ class _ArrivalPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     )..layout(maxWidth: size.width);
-    tp.paint(canvas,
-        Offset(size.width * 0.5 - tp.width / 2, size.height * 0.78));
+    tp.paint(
+        canvas, Offset(size.width * 0.5 - tp.width / 2, size.height * 0.78));
   }
 
   double _bezier(double a, double b, double c, double t) {

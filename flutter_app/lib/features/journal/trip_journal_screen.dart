@@ -52,7 +52,8 @@ class TripJournalScreen extends StatelessWidget {
       day: 'Day 2',
       date: 'Tue · 7 May',
       title: 'Tsukiji breakfast crawl',
-      caption: 'Tamago, uni, and matcha — in that order. Mr Yamamoto remembered me.',
+      caption:
+          'Tamago, uni, and matcha — in that order. Mr Yamamoto remembered me.',
       icon: Icons.restaurant_rounded,
       tags: ['food', 'morning'],
       gradient: [Color(0xFFD97706), Color(0xFFF59E0B)],
@@ -71,7 +72,8 @@ class TripJournalScreen extends StatelessWidget {
       day: 'Day 3',
       date: 'Wed · 8 May',
       title: 'Kamakura day trip',
-      caption: 'Bamboo at Hokokuji whispered. The big Buddha is bigger than photos suggest.',
+      caption:
+          'Bamboo at Hokokuji whispered. The big Buddha is bigger than photos suggest.',
       icon: Icons.train_rounded,
       tags: ['day-trip', 'temple'],
       gradient: [Color(0xFF10B981), Color(0xFF14B8A6)],
@@ -102,8 +104,7 @@ class TripJournalScreen extends StatelessWidget {
                     icon: Icons.bookmark_rounded),
                 const HeroBadge(
                     label: 'Auto-stitch', icon: Icons.auto_awesome_rounded),
-                const HeroBadge(
-                    label: 'Private', icon: Icons.lock_rounded),
+                const HeroBadge(label: 'Private', icon: Icons.lock_rounded),
               ],
             ),
           ),
@@ -139,8 +140,7 @@ class TripJournalScreen extends StatelessWidget {
             ),
           ),
           const SectionHeader(
-              title: 'Timeline',
-              subtitle: 'Your trip, told as a feed'),
+              title: 'Timeline', subtitle: 'Your trip, told as a feed'),
           for (var i = 0; i < _entries.length; i++)
             AnimatedAppearance(
               delay: Duration(milliseconds: 50 * i),
@@ -256,8 +256,7 @@ class _EntryCard extends StatelessWidget {
                 Text(entry.day,
                     style: theme.textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.w800,
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.7),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     )),
                 const SizedBox(height: 4),
                 Container(
@@ -279,8 +278,7 @@ class _EntryCard extends StatelessWidget {
                     child: Container(
                       width: 2,
                       margin: const EdgeInsets.only(top: 4),
-                      color: theme.colorScheme.outline
-                          .withValues(alpha: 0.18),
+                      color: theme.colorScheme.outline.withValues(alpha: 0.18),
                     ),
                   ),
               ],
@@ -320,14 +318,12 @@ class _EntryCard extends StatelessWidget {
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(entry.title,
-                                  style:
-                                      theme.textTheme.titleSmall?.copyWith(
+                                  style: theme.textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.w800,
                                   )),
                             ),
                             Text(entry.date,
-                                style:
-                                    theme.textTheme.labelSmall?.copyWith(
+                                style: theme.textTheme.labelSmall?.copyWith(
                                   color: theme.colorScheme.onSurface
                                       .withValues(alpha: 0.6),
                                 )),
@@ -349,8 +345,7 @@ class _EntryCard extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color:
-                                      tone.withValues(alpha: 0.16),
+                                  color: tone.withValues(alpha: 0.16),
                                   borderRadius: BorderRadius.circular(
                                       AppTokens.radiusFull),
                                 ),
@@ -465,8 +460,7 @@ class _MemoryPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    tp.paint(canvas,
-        Offset(size.width * 0.06, size.height - tp.height - 8));
+    tp.paint(canvas, Offset(size.width * 0.06, size.height - tp.height - 8));
   }
 
   @override

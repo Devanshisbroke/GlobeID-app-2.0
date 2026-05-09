@@ -134,8 +134,7 @@ class _PullDownSummonerState extends State<PullDownSummoner>
                           .colorScheme
                           .primary
                           .withValues(alpha: 0.16),
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radiusFull),
+                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                       border: Border.all(
                         color: Theme.of(context)
                             .colorScheme

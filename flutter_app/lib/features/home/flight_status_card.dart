@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -154,8 +153,7 @@ class FlightStatusCard extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        Icon(Icons.flight_rounded,
-                            color: accent, size: 18),
+                        Icon(Icons.flight_rounded, color: accent, size: 18),
                         const SizedBox(height: 4),
                         // Progress bar
                         ClipRRect(
@@ -165,8 +163,7 @@ class FlightStatusCard extends StatelessWidget {
                           child: LinearProgressIndicator(
                             value: progress.clamp(0, 1),
                             minHeight: 3,
-                            backgroundColor:
-                                accent.withValues(alpha: 0.12),
+                            backgroundColor: accent.withValues(alpha: 0.12),
                             valueColor: AlwaysStoppedAnimation(accent),
                           ),
                         ),
@@ -290,9 +287,7 @@ class _FlightAction extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon,
-                  size: 16,
-                  color: theme.colorScheme.primary),
+              Icon(icon, size: 16, color: theme.colorScheme.primary),
               const SizedBox(height: 2),
               Text(
                 label,

@@ -45,12 +45,24 @@ class _EmergencySosScreenState extends State<EmergencySosScreen>
 
   static const _hotlines = <(IconData, String, String, String)>[
     (Icons.local_police_rounded, 'Police', '110', 'JPN national line'),
-    (Icons.medical_services_rounded, 'Ambulance', '119',
-        'Fire & medical dispatch'),
-    (Icons.local_fire_department_rounded, 'Fire', '119',
-        'Same as ambulance dispatch'),
-    (Icons.support_agent_rounded, 'Tourist hotline', '050-3816-2787',
-        'JNTO English support'),
+    (
+      Icons.medical_services_rounded,
+      'Ambulance',
+      '119',
+      'Fire & medical dispatch'
+    ),
+    (
+      Icons.local_fire_department_rounded,
+      'Fire',
+      '119',
+      'Same as ambulance dispatch'
+    ),
+    (
+      Icons.support_agent_rounded,
+      'Tourist hotline',
+      '050-3816-2787',
+      'JNTO English support'
+    ),
   ];
 
   static const _embassy = <(IconData, String, String)>[
@@ -185,8 +197,8 @@ class _EmergencySosScreenState extends State<EmergencySosScreen>
                           shape: BoxShape.circle,
                           color: widget.tone.withValues(alpha: 0.16),
                         ),
-                        child: Icon(_hotlines[i].$1,
-                            color: widget.tone, size: 22),
+                        child:
+                            Icon(_hotlines[i].$1, color: widget.tone, size: 22),
                       ),
                       const SizedBox(width: AppTokens.space3),
                       Expanded(
@@ -226,8 +238,7 @@ class _EmergencySosScreenState extends State<EmergencySosScreen>
             ),
           const SizedBox(height: AppTokens.space4),
           const SectionHeader(
-              title: 'Your embassy',
-              subtitle: 'United States Embassy · Tokyo'),
+              title: 'Your embassy', subtitle: 'United States Embassy · Tokyo'),
           AnimatedAppearance(
             delay: const Duration(milliseconds: 80),
             child: PremiumCard(

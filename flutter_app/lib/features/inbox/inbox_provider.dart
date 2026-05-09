@@ -44,7 +44,8 @@ class InboxNotifier extends StateNotifier<List<InboxItem>> {
         id: 'i_delay_warn',
         kind: InboxKind.alert,
         title: 'Delay risk · BA 286',
-        body: 'Departure tomorrow may slip 35–55 min based on inbound aircraft.',
+        body:
+            'Departure tomorrow may slip 35–55 min based on inbound aircraft.',
         timestamp: now.subtract(const Duration(hours: 2, minutes: 41)),
         deeplink: '/intelligence',
         priority: InboxPriority.high,

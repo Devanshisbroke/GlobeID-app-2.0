@@ -110,8 +110,7 @@ class _PulseTileState extends State<_PulseTile>
                 color: widget.tile.tone.withValues(alpha: opacity),
                 boxShadow: [
                   BoxShadow(
-                    color: widget.tile.tone
-                        .withValues(alpha: 0.55 * opacity),
+                    color: widget.tile.tone.withValues(alpha: 0.55 * opacity),
                     blurRadius: 8,
                   ),
                 ],
@@ -126,8 +125,8 @@ class _PulseTileState extends State<_PulseTile>
                   Text(
                     widget.tile.label.toUpperCase(),
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.62),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.62),
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.2,
                       fontSize: widget.dense ? 9 : 9.6,

@@ -267,9 +267,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
             Positioned(
               left: AppTokens.space4,
               right: AppTokens.space4,
-              bottom: _result == null
-                  ? AppTokens.space7
-                  : AppTokens.space10 + 138,
+              bottom:
+                  _result == null ? AppTokens.space7 : AppTokens.space10 + 138,
               child: _ScanConfidenceRail(
                 mode: _mode,
                 hasResult: _result != null,
@@ -391,10 +390,10 @@ class _ScannerHint extends StatelessWidget {
           key: ValueKey(mode),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: Colors.white.withValues(alpha: 0.72),
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-          ),
+                color: Colors.white.withValues(alpha: 0.72),
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+              ),
         ),
       ),
     );
@@ -438,8 +437,8 @@ class _ScanConfidenceRail extends StatelessWidget {
                 hasResult
                     ? Icons.verified_rounded
                     : busy
-                    ? Icons.auto_awesome_rounded
-                    : Icons.center_focus_strong_rounded,
+                        ? Icons.auto_awesome_rounded
+                        : Icons.center_focus_strong_rounded,
                 color: hasResult ? Colors.greenAccent : accent,
                 size: 18,
               ),

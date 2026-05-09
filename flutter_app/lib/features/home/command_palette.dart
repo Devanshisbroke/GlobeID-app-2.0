@@ -94,7 +94,8 @@ class _CommandPaletteState extends State<CommandPalette> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
               child: Container(
-                constraints: const BoxConstraints(maxWidth: 480, maxHeight: 520),
+                constraints:
+                    const BoxConstraints(maxWidth: 480, maxHeight: 520),
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF0B0F1A).withValues(alpha: 0.92)
@@ -118,8 +119,10 @@ class _CommandPaletteState extends State<CommandPalette> {
                     // Search bar
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
-                        AppTokens.space4, AppTokens.space4,
-                        AppTokens.space4, 0,
+                        AppTokens.space4,
+                        AppTokens.space4,
+                        AppTokens.space4,
+                        0,
                       ),
                       child: TextField(
                         controller: _controller,
@@ -144,8 +147,8 @@ class _CommandPaletteState extends State<CommandPalette> {
                           ),
                           suffixIcon: _query.isNotEmpty
                               ? IconButton(
-                                  icon: const Icon(Icons.close_rounded,
-                                      size: 18),
+                                  icon:
+                                      const Icon(Icons.close_rounded, size: 18),
                                   onPressed: () {
                                     _controller.clear();
                                     setState(() => _query = '');
@@ -170,8 +173,8 @@ class _CommandPaletteState extends State<CommandPalette> {
                     const SizedBox(height: AppTokens.space2),
                     Divider(
                       height: 1,
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.06),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.06),
                     ),
                     // Results
                     Flexible(
@@ -188,8 +191,7 @@ class _CommandPaletteState extends State<CommandPalette> {
                                   const SizedBox(height: AppTokens.space3),
                                   Text(
                                     'No matching commands',
-                                    style: theme.textTheme.bodyMedium
-                                        ?.copyWith(
+                                    style: theme.textTheme.bodyMedium?.copyWith(
                                       color: theme.colorScheme.onSurface
                                           .withValues(alpha: 0.40),
                                     ),
@@ -215,8 +217,8 @@ class _CommandPaletteState extends State<CommandPalette> {
                     // Footer
                     Divider(
                       height: 1,
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.06),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.06),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(AppTokens.space3),
@@ -298,8 +300,8 @@ class _CommandRow extends StatelessWidget {
                     Text(
                       command.subtitle,
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.45),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.45),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -310,8 +312,7 @@ class _CommandRow extends StatelessWidget {
             if (command.route != null)
               Icon(Icons.chevron_right_rounded,
                   size: 16,
-                  color: theme.colorScheme.onSurface
-                      .withValues(alpha: 0.25)),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.25)),
           ],
         ),
       ),
@@ -493,5 +494,157 @@ const _allCommands = <_Command>[
     route: '/travel-os',
     tone: Color(0xFF8B5CF6),
     keywords: ['travel', 'os', 'system', 'hub'],
+  ),
+  _Command(
+    label: 'Airport mode',
+    subtitle: 'Live gate · terminal map · timing',
+    icon: Icons.flight_takeoff_rounded,
+    route: '/airport-mode',
+    tone: Color(0xFF2563EB),
+    keywords: ['airport', 'mode', 'gate', 'terminal', 'lounge'],
+  ),
+  _Command(
+    label: 'Super services',
+    subtitle: 'Unified score · fraud · safety hub',
+    icon: Icons.auto_awesome_rounded,
+    route: '/super-services',
+    tone: Color(0xFF7C3AED),
+    keywords: ['super', 'services', 'fraud', 'score', 'safety'],
+  ),
+  _Command(
+    label: 'Trip wallet',
+    subtitle: 'Per-trip envelope · auto-tagging',
+    icon: Icons.savings_rounded,
+    route: '/trip-wallet',
+    tone: Color(0xFF0EA5E9),
+    keywords: ['trip', 'wallet', 'envelope', 'budget'],
+  ),
+  _Command(
+    label: 'Visa center',
+    subtitle: 'Eligibility · expiry · readiness',
+    icon: Icons.assignment_ind_rounded,
+    route: '/visa',
+    tone: Color(0xFF10B981),
+    keywords: ['visa', 'entry', 'passport', 'document'],
+  ),
+  _Command(
+    label: 'Vault',
+    subtitle: 'Documents, IDs, sealed proofs',
+    icon: Icons.shield_moon_rounded,
+    route: '/vault',
+    tone: Color(0xFFEA580C),
+    keywords: ['vault', 'document', 'storage', 'secure'],
+  ),
+  _Command(
+    label: 'Lounge map',
+    subtitle: 'Find a lounge near your gate',
+    icon: Icons.airline_seat_recline_extra_rounded,
+    route: '/lounge',
+    tone: Color(0xFF8B5CF6),
+    keywords: ['lounge', 'priority pass', 'rest'],
+  ),
+  _Command(
+    label: 'eSIM',
+    subtitle: 'Local data plan + auto-activate',
+    icon: Icons.sim_card_rounded,
+    route: '/esim',
+    tone: Color(0xFF22D3EE),
+    keywords: ['esim', 'sim', 'data', 'roaming'],
+  ),
+  _Command(
+    label: 'Customs declaration',
+    subtitle: 'Pre-fill arrival forms',
+    icon: Icons.fact_check_rounded,
+    route: '/customs',
+    tone: Color(0xFFF59E0B),
+    keywords: ['customs', 'declaration', 'arrival'],
+  ),
+  _Command(
+    label: 'Packing checklist',
+    subtitle: 'Smart packing per trip',
+    icon: Icons.checklist_rounded,
+    route: '/packing',
+    tone: Color(0xFF14B8A6),
+    keywords: ['packing', 'checklist', 'luggage'],
+  ),
+  _Command(
+    label: 'Trip journal',
+    subtitle: 'Captured moments per leg',
+    icon: Icons.menu_book_rounded,
+    route: '/journal',
+    tone: Color(0xFFA855F7),
+    keywords: ['journal', 'memories', 'log'],
+  ),
+  _Command(
+    label: 'Country profile',
+    subtitle: 'Costs, climate, customs',
+    icon: Icons.public_rounded,
+    route: '/country',
+    tone: Color(0xFF0EA5E9),
+    keywords: ['country', 'destination', 'profile'],
+  ),
+  _Command(
+    label: 'Kiosk simulator',
+    subtitle: 'Live e-gate / kiosk demo',
+    icon: Icons.point_of_sale_rounded,
+    route: '/kiosk-sim',
+    tone: Color(0xFF7C3AED),
+    keywords: ['kiosk', 'gate', 'simulator'],
+  ),
+  _Command(
+    label: 'Sensors lab',
+    subtitle: 'Live device intelligence',
+    icon: Icons.sensors_rounded,
+    route: '/sensors-lab',
+    tone: Color(0xFF8B5CF6),
+    keywords: ['sensors', 'lab', 'device'],
+  ),
+  _Command(
+    label: 'Premium showcase',
+    subtitle: 'Cinematic widget catalogue',
+    icon: Icons.auto_awesome_motion_rounded,
+    route: '/premium-showcase',
+    tone: Color(0xFFD946EF),
+    keywords: ['premium', 'showcase', 'demo'],
+  ),
+  _Command(
+    label: 'Social feed',
+    subtitle: 'Travel-aware friend updates',
+    icon: Icons.people_alt_rounded,
+    route: '/social',
+    tone: Color(0xFFF97316),
+    keywords: ['social', 'friends', 'feed'],
+  ),
+  _Command(
+    label: 'Timeline',
+    subtitle: 'Your journeys over time',
+    icon: Icons.timeline_rounded,
+    route: '/timeline',
+    tone: Color(0xFF14B8A6),
+    keywords: ['timeline', 'history', 'memories'],
+  ),
+  _Command(
+    label: 'Analytics',
+    subtitle: 'Where your money flows',
+    icon: Icons.insights_rounded,
+    route: '/analytics',
+    tone: Color(0xFFD4AF37),
+    keywords: ['analytics', 'spend', 'reports'],
+  ),
+  _Command(
+    label: 'Receipts',
+    subtitle: 'Scan + categorise spend',
+    icon: Icons.receipt_long_rounded,
+    route: '/receipt',
+    tone: Color(0xFFF59E0B),
+    keywords: ['receipt', 'expense', 'tax'],
+  ),
+  _Command(
+    label: 'Lock',
+    subtitle: 'Lock the app & require auth',
+    icon: Icons.lock_rounded,
+    route: '/lock',
+    tone: Color(0xFFE11D48),
+    keywords: ['lock', 'logout', 'security'],
   ),
 ];

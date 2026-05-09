@@ -99,8 +99,8 @@ class _Tile extends StatelessWidget {
                     Text(
                       tile.label.toUpperCase(),
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.62),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.62),
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.2,
                         fontSize: 9.5,

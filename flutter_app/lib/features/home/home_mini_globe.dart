@@ -95,8 +95,7 @@ class HomeMiniGlobe extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.public_rounded,
-                        color: accent, size: 14),
+                    Icon(Icons.public_rounded, color: accent, size: 14),
                     const SizedBox(width: 6),
                     Text(
                       'Explore globe',
@@ -109,8 +108,7 @@ class HomeMiniGlobe extends StatelessWidget {
                     ),
                     const Spacer(),
                     Icon(Icons.chevron_right_rounded,
-                        color: Colors.white.withValues(alpha: 0.55),
-                        size: 16),
+                        color: Colors.white.withValues(alpha: 0.55), size: 16),
                   ],
                 ),
               ),

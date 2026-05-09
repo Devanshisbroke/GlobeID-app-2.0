@@ -48,9 +48,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
     final user = ref.watch(userProvider);
     final wallet = ref.watch(walletProvider);
     final theme = Theme.of(context);
-    final passes = user.documents
-        .where((d) => d.type == 'boarding_pass')
-        .toList();
+    final passes =
+        user.documents.where((d) => d.type == 'boarding_pass').toList();
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -97,7 +96,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
                 balance: wallet.balances.fold<double>(
                   0,
                   (sum, b) =>
-                      sum + (b.currency == wallet.defaultCurrency ? b.amount : 0),
+                      sum +
+                      (b.currency == wallet.defaultCurrency ? b.amount : 0),
                 ),
                 currency: wallet.defaultCurrency,
                 emotion: EmotionalPalette.detect(),
@@ -114,7 +114,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
                             5000)
                         .clamp(0.05, 1.0),
                 onSend: () => context.push('/wallet/send'),
-                onConvert: () => context.push('/multi-currency-pour'),
+                onReceive: () => context.push('/wallet/receive'),
+                onConvert: () => context.push('/wallet/exchange'),
                 onScanPay: () => context.push('/wallet/scan'),
               ),
             ),
@@ -366,8 +367,7 @@ class _PassStackState extends State<_PassStack>
                               alignment: Alignment.topCenter,
                               children: [
                                 for (var depth = 2; depth >= 1; depth--)
-                                  if (current + depth <
-                                      widget.passes.length)
+                                  if (current + depth < widget.passes.length)
                                     _PeekPassLayer(
                                       pass: widget.passes[current + depth],
                                       depth: depth,
@@ -383,10 +383,9 @@ class _PassStackState extends State<_PassStack>
                                       final delta = (_page - i).abs();
                                       final scale = (1 - (delta * 0.065))
                                           .clamp(0.86, 1.0);
-                                      final opacity = (1 - (delta * 0.34))
-                                          .clamp(0.42, 1.0);
-                                      final y =
-                                          (delta * 12).clamp(0.0, 22.0);
+                                      final opacity =
+                                          (1 - (delta * 0.34)).clamp(0.42, 1.0);
+                                      final y = (delta * 12).clamp(0.0, 22.0);
                                       final isActive = delta < 0.5;
                                       return Transform.translate(
                                         offset: Offset(0, y),
@@ -396,37 +395,28 @@ class _PassStackState extends State<_PassStack>
                                           child: Opacity(
                                             opacity: opacity,
                                             child: Padding(
-                                              padding: const EdgeInsets
-                                                  .symmetric(
-                                                horizontal:
-                                                    AppTokens.space2,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: AppTokens.space2,
                                               ),
                                               child: Pressable(
                                                 scale: 0.985,
                                                 onTap: () {
-                                                  HapticFeedback
-                                                      .lightImpact();
+                                                  HapticFeedback.lightImpact();
                                                   GoRouter.of(context).push(
                                                     '/pass/${widget.passes[i].id}',
                                                   );
                                                 },
                                                 child: Transform(
-                                                  alignment:
-                                                      Alignment.center,
-                                                  transform:
-                                                      Matrix4.identity()
-                                                        ..setEntry(
-                                                            3, 2, 0.0014)
-                                                        ..rotateX(
-                                                          isActive
-                                                              ? _tiltX
-                                                              : 0,
-                                                        )
-                                                        ..rotateY(
-                                                          isActive
-                                                              ? _tiltY
-                                                              : 0,
-                                                        ),
+                                                  alignment: Alignment.center,
+                                                  transform: Matrix4.identity()
+                                                    ..setEntry(3, 2, 0.0014)
+                                                    ..rotateX(
+                                                      isActive ? _tiltX : 0,
+                                                    )
+                                                    ..rotateY(
+                                                      isActive ? _tiltY : 0,
+                                                    ),
                                                   child: Hero(
                                                     tag:
                                                         'pass-${widget.passes[i].id}',
@@ -434,8 +424,7 @@ class _PassStackState extends State<_PassStack>
                                                       type: MaterialType
                                                           .transparency,
                                                       child: PassCard(
-                                                        pass: widget
-                                                            .passes[i],
+                                                        pass: widget.passes[i],
                                                       ),
                                                     ),
                                                   ),
@@ -485,8 +474,7 @@ class _PassStackState extends State<_PassStack>
                     border: Border.all(
                       color: accent.withValues(alpha: 0.32),
                     ),
-                    borderRadius:
-                        BorderRadius.circular(AppTokens.radiusFull),
+                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -959,8 +947,7 @@ class _BalanceRow extends StatelessWidget {
   /// balance gets a stable, distinct sparkline shape without needing a
   /// real history series from the backend.
   List<num> _trend() {
-    final seed =
-        b.currency.codeUnits.fold<int>(0, (a, c) => a + c) +
+    final seed = b.currency.codeUnits.fold<int>(0, (a, c) => a + c) +
         (b.rate * 10).round();
     final out = <double>[];
     var v = 1.0;

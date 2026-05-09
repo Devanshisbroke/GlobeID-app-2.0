@@ -46,9 +46,8 @@ class _TravelScreenState extends ConsumerState<TravelScreen>
     final visible = _stage == 0 ? [...active, ...upcoming] : past;
 
     // First active leg (if any) — hero fast-path into boarding pass.
-    final activeHero = active.isNotEmpty && active.first.legs.isNotEmpty
-        ? active.first
-        : null;
+    final activeHero =
+        active.isNotEmpty && active.first.legs.isNotEmpty ? active.first : null;
     final upcomingHero = activeHero == null &&
             upcoming.isNotEmpty &&
             upcoming.first.legs.isNotEmpty
@@ -263,8 +262,8 @@ class _BoardingReadyHero extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(AppTokens.radiusFull),
@@ -314,8 +313,7 @@ class _BoardingReadyHero extends StatelessWidget {
                           height: 2,
                           child: CustomPaint(
                             painter: _DashPainter(
-                                color:
-                                    Colors.white.withValues(alpha: 0.55)),
+                                color: Colors.white.withValues(alpha: 0.55)),
                             size: const Size(double.infinity, 2),
                           ),
                         ),
@@ -357,8 +355,7 @@ class _BoardingReadyHero extends StatelessWidget {
             ),
             const SizedBox(height: AppTokens.space3),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(AppTokens.radiusLg),
@@ -366,8 +363,7 @@ class _BoardingReadyHero extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(Icons.touch_app_rounded,
-                      size: 14,
-                      color: Colors.white.withValues(alpha: 0.78)),
+                      size: 14, color: Colors.white.withValues(alpha: 0.78)),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
@@ -538,8 +534,7 @@ class _LifecyclePipeline extends StatelessWidget {
                   _stages[i].$1,
                   style: TextStyle(
                     fontSize: 11.5,
-                    fontWeight:
-                        isActive ? FontWeight.w800 : FontWeight.w700,
+                    fontWeight: isActive ? FontWeight.w800 : FontWeight.w700,
                     color: isActive
                         ? accent
                         : (isPast

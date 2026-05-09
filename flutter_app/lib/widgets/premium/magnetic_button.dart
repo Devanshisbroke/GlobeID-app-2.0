@@ -97,8 +97,11 @@ class _MagneticButtonState extends State<MagneticButton>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (widget.icon != null) ...[
-            Icon(widget.icon, color: Colors.white, size: widget.compact ? 16 : 18),
-            SizedBox(width: widget.compact ? AppTokens.space1 + 2 : AppTokens.space2),
+            Icon(widget.icon,
+                color: Colors.white, size: widget.compact ? 16 : 18),
+            SizedBox(
+                width:
+                    widget.compact ? AppTokens.space1 + 2 : AppTokens.space2),
           ],
           Flexible(
             child: Text(
@@ -113,7 +116,9 @@ class _MagneticButtonState extends State<MagneticButton>
             ),
           ),
           if (widget.trailing != null) ...[
-            SizedBox(width: widget.compact ? AppTokens.space1 + 2 : AppTokens.space2),
+            SizedBox(
+                width:
+                    widget.compact ? AppTokens.space1 + 2 : AppTokens.space2),
             Icon(widget.trailing,
                 color: Colors.white, size: widget.compact ? 14 : 16),
           ],

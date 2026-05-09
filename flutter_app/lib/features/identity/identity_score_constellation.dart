@@ -28,8 +28,7 @@ class IdentityScoreConstellation extends StatefulWidget {
       _IdentityScoreConstellationState();
 }
 
-class _IdentityScoreConstellationState
-    extends State<IdentityScoreConstellation>
+class _IdentityScoreConstellationState extends State<IdentityScoreConstellation>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ticker = AnimationController(
     vsync: this,
@@ -82,10 +81,9 @@ class _IdentityScoreConstellationState
                     ),
                     Text(
                       widget.tier.toUpperCase(),
-                      style: AirportFontStack.gate(context, size: 11)
-                          .copyWith(
-                              color: Colors.white.withValues(alpha: 0.65),
-                              letterSpacing: 4),
+                      style: AirportFontStack.gate(context, size: 11).copyWith(
+                          color: Colors.white.withValues(alpha: 0.65),
+                          letterSpacing: 4),
                     ),
                   ],
                 ),

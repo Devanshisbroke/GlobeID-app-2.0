@@ -186,8 +186,7 @@ class _TiltShimmerState extends State<TiltShimmer>
       animation: _ticker,
       builder: (_, child) {
         final sf = SensorFusion.instance;
-        final normalizedTilt =
-            (sf.tiltY / (math.pi / 18)).clamp(-1.0, 1.0);
+        final normalizedTilt = (sf.tiltY / (math.pi / 18)).clamp(-1.0, 1.0);
         return ClipRRect(
           borderRadius:
               widget.borderRadius ?? BorderRadius.circular(AppTokens.radiusLg),

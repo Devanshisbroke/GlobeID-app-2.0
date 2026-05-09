@@ -146,8 +146,8 @@ class _MagneticPressableState extends State<MagneticPressable>
                   ..setEntry(3, 2, 0.0009)
                   ..rotateX(-ny * widget.tilt * t)
                   ..rotateY(nx * widget.tilt * t)
-                  ..translateByDouble(translate.dx, translate.dy, 0, 1)
-                  ..scaleByDouble(scale, scale, 1, 1);
+                  ..translate(translate.dx, translate.dy, 0.0)
+                  ..scale(scale, scale, 1.0);
                 return Transform(
                   transform: m,
                   alignment: Alignment.center,

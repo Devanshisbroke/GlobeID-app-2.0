@@ -120,9 +120,9 @@ VoiceIntent parseVoiceIntent(String transcript) {
   }
 
   // Numeric: "trip 3", "pass 2", "trip number 3", "pass #2"
-  final num = RegExp(
-          r'\b(trip|pass|document)\s+(?:number\s+|no\.?\s+|#)?(\d+)\b')
-      .firstMatch(t);
+  final num =
+      RegExp(r'\b(trip|pass|document)\s+(?:number\s+|no\.?\s+|#)?(\d+)\b')
+          .firstMatch(t);
   if (num != null) {
     return NumericIntent(num.group(1)!, int.parse(num.group(2)!),
         'Open ${num.group(1)} ${num.group(2)}');
@@ -130,8 +130,7 @@ VoiceIntent parseVoiceIntent(String transcript) {
 
   // Translate — handles "translate to french", "translate this into french",
   // "translate this in spanish".
-  final tr = RegExp(
-          r'\btranslate(?:\s+this)?(?:\s+(?:to|into|in))?\s+(\w+)\b')
+  final tr = RegExp(r'\btranslate(?:\s+this)?(?:\s+(?:to|into|in))?\s+(\w+)\b')
       .firstMatch(t);
   if (tr != null) {
     final lang = _langMap[tr.group(1)] ?? tr.group(1)!;

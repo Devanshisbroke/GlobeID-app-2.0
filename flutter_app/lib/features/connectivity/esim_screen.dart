@@ -158,8 +158,7 @@ class _EsimScreenState extends State<EsimScreen>
                     width: 132,
                     padding: const EdgeInsets.all(AppTokens.space3),
                     decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radius2xl),
+                      borderRadius: BorderRadius.circular(AppTokens.radius2xl),
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,

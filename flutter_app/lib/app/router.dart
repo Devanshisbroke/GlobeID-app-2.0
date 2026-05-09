@@ -43,10 +43,13 @@ import '../features/sensors/sensors_lab_screen.dart';
 import '../features/services/activities_screen.dart';
 import '../features/services/flights_screen.dart';
 import '../features/services/food_screen.dart';
+import '../features/services/hotel_detail_screen.dart';
 import '../features/services/hotels_screen.dart';
+import '../features/services/restaurant_detail_screen.dart';
 import '../features/services/ride_live_screen.dart';
 import '../features/services/rides_screen.dart';
 import '../features/services/services_hub_screen.dart';
+import '../features/services/super_services_screen.dart';
 import '../features/services/transport_screen.dart';
 import '../features/travel_os/travel_os_screen.dart';
 import '../features/wallet/wallet_flows_screen.dart';
@@ -63,6 +66,7 @@ import '../features/trip/trip_detail_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../features/wallet/wallet_screen.dart';
+import '../motion/cinematic_transitions.dart' as cinematic;
 import '../motion/motion.dart';
 import 'app_shell.dart';
 
@@ -83,6 +87,26 @@ GoRoute _route(
   return GoRoute(
     path: path,
     pageBuilder: (ctx, state) => _slideFade(state.pageKey, build(ctx, state)),
+  );
+}
+
+/// Cinematic rise — used for hero / immersive routes (kiosk, boarding,
+/// passport, identity hub) so they enter from below with scale + fade.
+CustomTransitionPage<void> _riseFade(LocalKey key, Widget child) {
+  return CustomTransitionPage<void>(
+    key: key,
+    transitionDuration: const Duration(milliseconds: 480),
+    reverseTransitionDuration: const Duration(milliseconds: 320),
+    transitionsBuilder: cinematic.riseTransition,
+    child: child,
+  );
+}
+
+GoRoute _riseRoute(
+    String path, Widget Function(BuildContext, GoRouterState) build) {
+  return GoRoute(
+    path: path,
+    pageBuilder: (ctx, state) => _riseFade(state.pageKey, build(ctx, state)),
   );
 }
 
@@ -140,7 +164,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Secondary routes (full-screen, no shell) — premium slide+fade.
       _route('/profile', (_, __) => const ProfileScreen()),
-      _route('/kiosk-sim', (_, __) => const KioskScreen()),
+      _riseRoute('/kiosk-sim', (_, __) => const KioskScreen()),
       _route('/receipt', (_, __) => const ReceiptScreen()),
       _route('/timeline', (_, __) => const TimelineScreen()),
       _route('/planner', (_, __) => const PlannerScreen()),
@@ -148,8 +172,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/social', (_, __) => const SocialScreen()),
       _route('/explore', (_, __) => const ExploreScreen()),
       _route('/passport-book', (_, __) => const PassportBookScreen()),
-      _route('/passport-live', (_, __) => const PassportLiveScreen()),
-      _route(
+      _riseRoute('/passport-live', (_, __) => const PassportLiveScreen()),
+      _riseRoute(
         '/boarding/:tripId/:legId',
         (_, state) => BoardingPassLiveScreen(
           tripId: state.pathParameters['tripId']!,
@@ -157,12 +181,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       _route('/intelligence', (_, __) => const IntelligenceScreen()),
-      _route('/explorer', (_, __) => const ExploreScreen()),
       _route('/vault', (_, __) => const VaultScreen()),
       _route('/feed', (_, __) => const FeedScreen()),
       _route('/multi-currency', (_, __) => const MultiCurrencyScreen()),
-      _route('/multi-currency-pour',
-          (_, __) => const MultiCurrencyPourScreen()),
+      _route(
+          '/multi-currency-pour', (_, __) => const MultiCurrencyPourScreen()),
       _route('/scan', (_, __) => const ScannerScreen()),
       _route('/analytics', (_, __) => const AnalyticsScreen()),
       _route('/audit-log', (_, __) => const AuditLogScreen()),
@@ -201,12 +224,65 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       // Services sub-routes
       _route('/services/hotels', (_, __) => const HotelsScreen()),
+      _route(
+        '/services/hotels/detail',
+        (_, state) {
+          final extra = state.extra;
+          if (extra is HotelDetailArgs) {
+            return HotelDetailScreen(
+              hotelName: extra.hotelName,
+              city: extra.city,
+              country: extra.country,
+              tonality: extra.tonality,
+              rating: extra.rating,
+              pricePerNight: extra.pricePerNight,
+              flag: extra.flag,
+            );
+          }
+          return const HotelDetailScreen(
+            hotelName: 'Featured Hotel',
+            city: 'San Francisco',
+            country: 'United States',
+            tonality: Color(0xFF7E22CE),
+            rating: 4.7,
+            pricePerNight: 320,
+            flag: '🇺🇸',
+          );
+        },
+      ),
       _route('/services/rides', (_, __) => const RidesScreen()),
       _route('/services/rides/live', (_, __) => const RideLiveScreen()),
       _route('/services/food', (_, __) => const FoodScreen()),
+      _route(
+        '/services/food/detail',
+        (_, state) {
+          final extra = state.extra;
+          if (extra is RestaurantDetailArgs) {
+            return RestaurantDetailScreen(
+              name: extra.name,
+              cuisine: extra.cuisine,
+              city: extra.city,
+              rating: extra.rating,
+              tonality: extra.tonality,
+              flag: extra.flag,
+              priceTier: extra.priceTier,
+            );
+          }
+          return const RestaurantDetailScreen(
+            name: 'Featured Restaurant',
+            cuisine: 'Omakase',
+            city: 'Tokyo',
+            rating: 4.8,
+            tonality: Color(0xFFE11D48),
+            flag: '🇯🇵',
+            priceTier: 3,
+          );
+        },
+      ),
       _route('/services/flights', (_, __) => const FlightsScreen()),
       _route('/services/activities', (_, __) => const ActivitiesScreen()),
       _route('/services/transport', (_, __) => const TransportScreen()),
+      _route('/super-services', (_, __) => const SuperServicesScreen()),
       _route('/airport', (_, __) => const AirportScreen()),
       _route('/airport-mode', (_, __) => const AirportOrchestratorScreen()),
       _route('/trip-wallet', (_, __) => const TripWalletScreen()),

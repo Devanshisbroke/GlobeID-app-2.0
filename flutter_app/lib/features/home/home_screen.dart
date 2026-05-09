@@ -190,9 +190,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       'B12',
                   status: FlightStatus.boarding,
                   progress: 0.0,
-                  tripId: lifecycle.trips
-                      .firstWhere((t) => t.stage == 'active')
-                      .id,
+                  tripId:
+                      lifecycle.trips.firstWhere((t) => t.stage == 'active').id,
                   legId: lifecycle.trips
                       .firstWhere((t) => t.stage == 'active')
                       .legs
@@ -300,6 +299,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   label: 'Inbox',
                   tone: const Color(0xFFE11D48),
                   onTap: () => context.push('/inbox'),
+                ),
+                _QuickAction(
+                  icon: Icons.hub_rounded,
+                  label: 'Airport mode',
+                  tone: const Color(0xFF2563EB),
+                  onTap: () => context.push('/airport-mode'),
+                ),
+                _QuickAction(
+                  icon: Icons.savings_rounded,
+                  label: 'Trip wallet',
+                  tone: const Color(0xFF0EA5E9),
+                  onTap: () => context.push('/trip-wallet'),
                 ),
               ],
             ),
@@ -468,47 +479,47 @@ class _TripGlance extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppTokens.radius2xl),
         child: GlassSurface(
-            radius: AppTokens.radius2xl,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          radius: AppTokens.radius2xl,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  PillChip(
+                    label: trip.stage.toUpperCase() as String,
+                    icon: Icons.flight_takeoff_rounded,
+                  ),
+                  const Spacer(),
+                  Icon(Icons.chevron_right_rounded,
+                      color: theme.colorScheme.primary),
+                ],
+              ),
+              const SizedBox(height: AppTokens.space3),
+              Text(
+                trip.name as String,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.headlineSmall,
+              ),
+              if (firstLeg != null) ...[
+                const SizedBox(height: AppTokens.space2),
                 Row(
                   children: [
-                    PillChip(
-                      label: trip.stage.toUpperCase() as String,
-                      icon: Icons.flight_takeoff_rounded,
+                    _AirportTile(code: firstLeg.from as String),
+                    const Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: AppTokens.space3),
+                      child: Icon(Icons.arrow_right_alt_rounded),
                     ),
+                    _AirportTile(code: firstLeg.to as String),
                     const Spacer(),
-                    Icon(Icons.chevron_right_rounded,
-                        color: theme.colorScheme.primary),
+                    Text(firstLeg.flightNumber as String,
+                        style: theme.textTheme.titleSmall),
                   ],
                 ),
-                const SizedBox(height: AppTokens.space3),
-                Text(
-                  trip.name as String,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.headlineSmall,
-                ),
-                if (firstLeg != null) ...[
-                  const SizedBox(height: AppTokens.space2),
-                  Row(
-                    children: [
-                      _AirportTile(code: firstLeg.from as String),
-                      const Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: AppTokens.space3),
-                        child: Icon(Icons.arrow_right_alt_rounded),
-                      ),
-                      _AirportTile(code: firstLeg.to as String),
-                      const Spacer(),
-                      Text(firstLeg.flightNumber as String,
-                          style: theme.textTheme.titleSmall),
-                    ],
-                  ),
-                ],
               ],
-            ),
+            ],
+          ),
         ),
       ),
     );

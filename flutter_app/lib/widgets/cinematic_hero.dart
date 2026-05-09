@@ -262,8 +262,7 @@ class _Badge extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.22),
             borderRadius: BorderRadius.circular(AppTokens.radiusFull),
@@ -302,9 +301,8 @@ class _AuroraPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center =
-        Offset(size.width * (0.5 + math.sin(t * math.pi * 2) * 0.18),
-            size.height * 0.4 + math.cos(t * math.pi * 2) * 18);
+    final center = Offset(size.width * (0.5 + math.sin(t * math.pi * 2) * 0.18),
+        size.height * 0.4 + math.cos(t * math.pi * 2) * 18);
     final paint = Paint()
       ..shader = RadialGradient(
         colors: [

@@ -36,10 +36,8 @@ class _MultiCurrencyPourScreenState
     super.dispose();
   }
 
-  void _pickFrom(WalletBalance b) =>
-      setState(() => _from = b.currency);
-  void _pickTo(WalletBalance b) =>
-      setState(() => _to = b.currency);
+  void _pickFrom(WalletBalance b) => setState(() => _from = b.currency);
+  void _pickTo(WalletBalance b) => setState(() => _to = b.currency);
 
   Future<void> _commit() async {
     if (_from == null || _to == null) return;
@@ -134,7 +132,8 @@ class _MultiCurrencyPourScreenState
           const SizedBox(height: AppTokens.space5),
           MagneticButton(
             label: _pouring ? 'Pouring…' : 'Convert $_amount $_from to $_to',
-            icon: _pouring ? Icons.water_drop_rounded : Icons.swap_horiz_rounded,
+            icon:
+                _pouring ? Icons.water_drop_rounded : Icons.swap_horiz_rounded,
             onPressed: _pouring ? null : _commit,
           ),
         ],
@@ -393,9 +392,7 @@ class _Picker extends StatelessWidget {
                         ],
                       )
                     : null,
-                color: on
-                    ? null
-                    : Colors.white.withValues(alpha: 0.04),
+                color: on ? null : Colors.white.withValues(alpha: 0.04),
                 borderRadius: BorderRadius.circular(AppTokens.radiusXl),
                 border: Border.all(
                   color: Colors.white.withValues(alpha: on ? 0.3 : 0.08),
@@ -406,8 +403,8 @@ class _Picker extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(b.currency,
-                      style: AirportFontStack.iata(context, size: 16).copyWith(
-                          color: on ? Colors.white : null)),
+                      style: AirportFontStack.iata(context, size: 16)
+                          .copyWith(color: on ? Colors.white : null)),
                   const SizedBox(height: 2),
                   Text(b.amount.toStringAsFixed(2),
                       style: TextStyle(

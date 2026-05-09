@@ -27,9 +27,7 @@ class LoungeOccupancyMeter extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final tone = this.tone ?? theme.colorScheme.primary;
-    final pct = capacity == 0
-        ? 0.0
-        : (occupied / capacity).clamp(0.0, 1.0);
+    final pct = capacity == 0 ? 0.0 : (occupied / capacity).clamp(0.0, 1.0);
     return ContextualSurface(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,8 +57,8 @@ class LoungeOccupancyMeter extends StatelessWidget {
                       color:
                           theme.colorScheme.onSurface.withValues(alpha: 0.6))),
               Text('${(pct * 100).round()}% full',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                      color: tone, fontWeight: FontWeight.w800)),
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(color: tone, fontWeight: FontWeight.w800)),
               Text('Packed',
                   style: theme.textTheme.bodySmall?.copyWith(
                       color:

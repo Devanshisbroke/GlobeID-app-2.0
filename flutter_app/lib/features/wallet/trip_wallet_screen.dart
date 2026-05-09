@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
@@ -47,14 +48,14 @@ class _TripWalletScreenState extends ConsumerState<TripWalletScreen>
     super.dispose();
   }
 
-  double get _totalSpent =>
-      _categories.fold(0.0, (sum, c) => sum + c.spent);
+  double get _totalSpent => _categories.fold(0.0, (sum, c) => sum + c.spent);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final spent = _totalSpent;
-    final pct = (_totalBudget > 0) ? (spent / _totalBudget).clamp(0.0, 1.0) : 0.0;
+    final pct =
+        (_totalBudget > 0) ? (spent / _totalBudget).clamp(0.0, 1.0) : 0.0;
 
     return PageScaffold(
       title: widget.tripName ?? 'Trip Wallet',
@@ -111,7 +112,8 @@ class _TripWalletScreenState extends ConsumerState<TripWalletScreen>
                               decoration: BoxDecoration(
                                 borderRadius:
                                     BorderRadius.circular(AppTokens.radiusFull),
-                                color: _budgetColor(pct).withValues(alpha: 0.15),
+                                color:
+                                    _budgetColor(pct).withValues(alpha: 0.15),
                               ),
                               child: Text(
                                 '${(pct * 100).toStringAsFixed(0)}% used',
@@ -482,8 +484,8 @@ class _CategoryRow extends StatelessWidget {
                       curve: AppTokens.easeOutSoft,
                       builder: (_, v, __) => LinearProgressIndicator(
                         value: v,
-                        backgroundColor: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.06),
+                        backgroundColor:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.06),
                         valueColor: AlwaysStoppedAnimation(cat.color),
                         minHeight: 4,
                       ),
@@ -511,7 +513,10 @@ class _TransactionRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 2),
       child: Pressable(
         scale: 0.98,
-        onTap: () => HapticFeedback.selectionClick(),
+        onTap: () {
+          HapticFeedback.selectionClick();
+          context.push('/receipt');
+        },
         child: Padding(
           padding: const EdgeInsets.symmetric(
               vertical: AppTokens.space2, horizontal: 4),
@@ -597,7 +602,8 @@ class _SpendCategory {
 }
 
 class _Transaction {
-  const _Transaction(this.merchant, this.time, this.amount, this.icon, this.color);
+  const _Transaction(
+      this.merchant, this.time, this.amount, this.icon, this.color);
   final String merchant, time;
   final double amount;
   final IconData icon;
@@ -605,8 +611,7 @@ class _Transaction {
 }
 
 List<_SpendCategory> _demoCategories() => const [
-      _SpendCategory(
-          'Flights', Icons.flight_rounded, Color(0xFF0EA5E9), 680),
+      _SpendCategory('Flights', Icons.flight_rounded, Color(0xFF0EA5E9), 680),
       _SpendCategory('Hotels', Icons.hotel_rounded, Color(0xFF8B5CF6), 420),
       _SpendCategory(
           'Food & Dining', Icons.restaurant_rounded, Color(0xFFEF4444), 310),
@@ -614,8 +619,8 @@ List<_SpendCategory> _demoCategories() => const [
           'Transport', Icons.directions_car_rounded, Color(0xFFF59E0B), 145),
       _SpendCategory(
           'Shopping', Icons.shopping_bag_rounded, Color(0xFFEC4899), 88),
-      _SpendCategory(
-          'Activities', Icons.confirmation_number_rounded, Color(0xFF14B8A6), 64),
+      _SpendCategory('Activities', Icons.confirmation_number_rounded,
+          Color(0xFF14B8A6), 64),
     ];
 
 const _demoTransactions = [
@@ -623,8 +628,8 @@ const _demoTransactions = [
       Color(0xFFEF4444)),
   _Transaction('Metro Day Pass', 'Today 09:15', 8.20,
       Icons.directions_subway_rounded, Color(0xFFF59E0B)),
-  _Transaction(
-      'Lawson Konbini', 'Today 08:30', 5.80, Icons.store_rounded, Color(0xFF22C55E)),
+  _Transaction('Lawson Konbini', 'Today 08:30', 5.80, Icons.store_rounded,
+      Color(0xFF22C55E)),
   _Transaction('Uber to Shibuya', 'Yesterday 22:10', 12.40,
       Icons.local_taxi_rounded, Color(0xFF0EA5E9)),
   _Transaction('TeamLab Planets', 'Yesterday 14:00', 25.00,

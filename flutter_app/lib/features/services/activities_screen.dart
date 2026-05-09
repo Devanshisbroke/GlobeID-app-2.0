@@ -15,13 +15,13 @@ class ActivitiesScreen extends ConsumerWidget {
   static const _tone = Color(0xFF059669);
   static const _filters = [
     BespokeFilter(key: 'tour', label: 'Tours', icon: Icons.tour_rounded),
-    BespokeFilter(
-        key: 'museum', label: 'Museums', icon: Icons.museum_rounded),
+    BespokeFilter(key: 'museum', label: 'Museums', icon: Icons.museum_rounded),
     BespokeFilter(
         key: 'food', label: 'Food tours', icon: Icons.restaurant_menu_rounded),
     BespokeFilter(
         key: 'outdoor', label: 'Outdoors', icon: Icons.terrain_rounded),
-    BespokeFilter(key: 'kids', label: 'Family', icon: Icons.family_restroom_rounded),
+    BespokeFilter(
+        key: 'kids', label: 'Family', icon: Icons.family_restroom_rounded),
     BespokeFilter(
         key: 'nightlife', label: 'Nightlife', icon: Icons.nightlife_rounded),
   ];
@@ -120,8 +120,7 @@ class ActivitiesScreen extends ConsumerWidget {
                     ('10:00', 'Tomorrow'),
                   ])
                     Padding(
-                      padding:
-                          const EdgeInsets.only(right: AppTokens.space2),
+                      padding: const EdgeInsets.only(right: AppTokens.space2),
                       child: _SlotPill(time: s.$1, day: s.$2),
                     ),
                 ],
@@ -149,8 +148,8 @@ class _Tag extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppTokens.space3, vertical: 6),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppTokens.space3, vertical: 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppTokens.radiusFull),
         color: theme.colorScheme.surface.withValues(alpha: 0.7),
@@ -249,8 +248,7 @@ class _ActivityCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis),
                 Text(subtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),

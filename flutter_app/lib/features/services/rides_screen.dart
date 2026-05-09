@@ -18,11 +18,11 @@ class RidesScreen extends ConsumerWidget {
     BespokeFilter(
         key: 'standard', label: 'Standard', icon: Icons.directions_car_rounded),
     BespokeFilter(
-        key: 'premium', label: 'Premium', icon: Icons.airline_seat_recline_extra_rounded),
-    BespokeFilter(
-        key: 'xl', label: 'XL', icon: Icons.airport_shuttle_rounded),
-    BespokeFilter(
-        key: 'airport', label: 'Airport', icon: Icons.flight_rounded),
+        key: 'premium',
+        label: 'Premium',
+        icon: Icons.airline_seat_recline_extra_rounded),
+    BespokeFilter(key: 'xl', label: 'XL', icon: Icons.airport_shuttle_rounded),
+    BespokeFilter(key: 'airport', label: 'Airport', icon: Icons.flight_rounded),
   ];
 
   @override
@@ -119,8 +119,7 @@ class RidesScreen extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: AppTokens.space2),
                 child: PremiumCard(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: AppTokens.space4,
-                      vertical: AppTokens.space3),
+                      horizontal: AppTokens.space4, vertical: AppTokens.space3),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -246,8 +245,8 @@ class _RideCard extends StatelessWidget {
                   children: [
                     Icon(Icons.access_time_rounded,
                         size: 13,
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.6)),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.6)),
                     const SizedBox(width: 4),
                     Text('ETA $eta',
                         style: theme.textTheme.labelSmall?.copyWith(

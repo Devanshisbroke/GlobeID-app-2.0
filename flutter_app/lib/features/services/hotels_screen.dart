@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../data/api/api_provider.dart';
 import '../../widgets/cinematic_button.dart';
 import '../../widgets/premium_card.dart';
 import '_bespoke_scaffold.dart';
+import 'hotel_detail_screen.dart';
 
 /// Hotels — bespoke vertical with curated filters (price band,
 /// rating, distance) and detail sheet showing rooms, amenities and a
@@ -16,7 +18,8 @@ class HotelsScreen extends ConsumerWidget {
   static const _tone = Color(0xFF7E22CE);
   static const _filters = [
     BespokeFilter(key: 'all', label: 'All', icon: Icons.hotel_rounded),
-    BespokeFilter(key: '\$\$', label: 'Mid-range', icon: Icons.attach_money_rounded),
+    BespokeFilter(
+        key: '\$\$', label: 'Mid-range', icon: Icons.attach_money_rounded),
     BespokeFilter(
         key: '\$\$\$', label: 'Premium', icon: Icons.workspace_premium_rounded),
     BespokeFilter(key: '4plus', label: '4★ +', icon: Icons.star_rounded),
@@ -119,8 +122,7 @@ class HotelsScreen extends ConsumerWidget {
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radiusFull),
+                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                     ),
                     child: Text(price,
                         style: theme.textTheme.titleSmall?.copyWith(
@@ -145,11 +147,10 @@ class HotelsScreen extends ConsumerWidget {
                         horizontal: AppTokens.space3, vertical: 6),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surface.withValues(alpha: 0.8),
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radiusFull),
+                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                       border: Border.all(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.08),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.08),
                       ),
                     ),
                     child: Text(a.toString(),
@@ -198,10 +199,47 @@ class HotelsScreen extends ConsumerWidget {
                 ),
               ),
             const SizedBox(height: AppTokens.space5),
-            CinematicButton(
-              label: 'Reserve · $price',
-              icon: Icons.event_available_rounded,
-              onPressed: () => Navigator.of(sheetCtx).maybePop(),
+            Row(
+              children: [
+                Expanded(
+                  child: CinematicButton(
+                    label: 'View suite',
+                    icon: Icons.image_search_rounded,
+                    onPressed: () {
+                      Navigator.of(sheetCtx).maybePop();
+                      final priceNum =
+                          (item['priceValue'] as num?)?.toDouble() ??
+                              double.tryParse(
+                                  price.replaceAll(RegExp(r'[^0-9.]'), '')) ??
+                              280;
+                      final city = item['city']?.toString() ?? 'San Francisco';
+                      final country =
+                          item['country']?.toString() ?? 'United States';
+                      final flag = item['flag']?.toString() ?? '🌍';
+                      context.push(
+                        '/services/hotels/detail',
+                        extra: HotelDetailArgs(
+                          hotelName: title,
+                          city: city,
+                          country: country,
+                          tonality: _tone,
+                          rating: rating,
+                          pricePerNight: priceNum,
+                          flag: flag,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: AppTokens.space2),
+                Expanded(
+                  child: CinematicButton(
+                    label: 'Reserve · $price',
+                    icon: Icons.event_available_rounded,
+                    onPressed: () => Navigator.of(sheetCtx).maybePop(),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppTokens.space4),
           ],
@@ -266,8 +304,7 @@ class _HotelCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(subtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
@@ -286,8 +323,8 @@ class _HotelCard extends StatelessWidget {
                     ],
                     Icon(Icons.location_on_rounded,
                         size: 13,
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.5)),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.5)),
                     const SizedBox(width: 2),
                     Text('1.2 km',
                         style: theme.textTheme.labelSmall?.copyWith(

@@ -25,8 +25,7 @@ import '../insights/insights_provider.dart';
 class PassportBookScreen extends ConsumerStatefulWidget {
   const PassportBookScreen({super.key});
   @override
-  ConsumerState<PassportBookScreen> createState() =>
-      _PassportBookScreenState();
+  ConsumerState<PassportBookScreen> createState() => _PassportBookScreenState();
 }
 
 class _PassportBookScreenState extends ConsumerState<PassportBookScreen> {
@@ -658,8 +657,7 @@ class _StampDetailSheet extends StatelessWidget {
                 child: Text(
                   country,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color:
-                        theme.colorScheme.onSurface.withValues(alpha: 0.66),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.66),
                   ),
                 ),
               ),

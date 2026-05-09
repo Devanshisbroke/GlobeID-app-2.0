@@ -74,7 +74,8 @@ class _EventRow extends StatelessWidget {
                   Expanded(
                     child: Container(
                       width: 1.2,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.08),
                     ),
                   ),
               ],
@@ -127,7 +128,8 @@ class _EventRow extends StatelessWidget {
                   Text(
                     event.description,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.60),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.60),
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -136,7 +138,8 @@ class _EventRow extends StatelessWidget {
                   Text(
                     event.timestamp,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.38),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.38),
                       fontWeight: FontWeight.w600,
                     ),
                   ),

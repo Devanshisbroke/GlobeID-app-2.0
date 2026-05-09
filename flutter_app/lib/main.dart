@@ -7,6 +7,7 @@ import 'app/app_boot.dart';
 import 'app/deep_link_controller.dart';
 import 'app/router.dart';
 import 'app/theme/app_theme.dart';
+import 'core/performance_overlay.dart';
 import 'features/settings/theme_prefs_provider.dart';
 
 /// GlobeID Flutter — entry point.
@@ -22,6 +23,8 @@ Future<void> main() async {
     systemNavigationBarColor: Colors.transparent,
   ));
   await AppBoot.bootstrap();
+  // Frame-timing FPS sampler — only active in debug mode.
+  PerformanceMonitor.instance.start();
   runApp(const ProviderScope(child: GlobeIdApp()));
 }
 

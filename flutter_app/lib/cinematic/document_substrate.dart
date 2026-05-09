@@ -28,8 +28,7 @@ class DocumentSubstrate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveTint =
-        tint ?? Theme.of(context).colorScheme.primary;
+    final effectiveTint = tint ?? Theme.of(context).colorScheme.primary;
     return ClipRRect(
       borderRadius: borderRadius ?? BorderRadius.circular(AppTokens.radius2xl),
       child: CustomPaint(
@@ -70,7 +69,8 @@ class _SubstratePainter extends CustomPainter {
       SubstrateType.passport => tint.withValues(alpha: 0.06),
       SubstrateType.idCard => tint.withValues(alpha: 0.04),
       SubstrateType.boardingPass => tint.withValues(alpha: 0.03),
-      SubstrateType.certificate => const Color(0xFFFFFBF0).withValues(alpha: 0.08),
+      SubstrateType.certificate =>
+        const Color(0xFFFFFBF0).withValues(alpha: 0.08),
       SubstrateType.visa => tint.withValues(alpha: 0.05),
     };
     canvas.drawRect(
@@ -147,9 +147,7 @@ class _SubstratePainter extends CustomPainter {
       final x = rng.nextDouble() * size.width;
       final y = rng.nextDouble() * size.height;
       final alpha = rng.nextDouble() * 0.06;
-      paint.color = (rng.nextBool()
-              ? Colors.white
-              : Colors.black)
+      paint.color = (rng.nextBool() ? Colors.white : Colors.black)
           .withValues(alpha: alpha);
       canvas.drawCircle(Offset(x, y), 0.5 + rng.nextDouble() * 0.5, paint);
     }
@@ -193,7 +191,9 @@ class _SubstratePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SubstratePainter old) =>
-      old.type != type || old.tint != tint || old.showMicrotext != showMicrotext;
+      old.type != type ||
+      old.tint != tint ||
+      old.showMicrotext != showMicrotext;
 }
 
 /// Animated page-curl physics for passport book pages.
@@ -220,7 +220,7 @@ class PageCurlTransition extends StatelessWidget {
           transform: Matrix4.identity()
             ..setEntry(3, 2, 0.002)
             ..rotateY(-math.pi * t * 0.85)
-            ..translateByDouble(0.0, 0.0, -20.0 * math.sin(math.pi * t), 1.0),
+            ..translate(0.0, 0.0, -20.0 * math.sin(math.pi * t)),
           alignment: Alignment.centerLeft,
           child: Opacity(
             opacity: (1 - t * 0.7).clamp(0.0, 1.0),

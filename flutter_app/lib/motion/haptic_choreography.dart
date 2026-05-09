@@ -224,5 +224,6 @@ class HapticEngine {
   static Future<void> reveal() => HapticPatterns.reveal.play();
   static Future<void> scanSuccess() => HapticPatterns.scanSuccess.play();
   static Future<void> pressureBegin() => HapticPatterns.pressureBegin.play();
-  static Future<void> pressureRelease() => HapticPatterns.pressureRelease.play();
+  static Future<void> pressureRelease() =>
+      HapticPatterns.pressureRelease.play();
 }

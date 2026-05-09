@@ -87,8 +87,7 @@ class _TimelineScreenState extends ConsumerState<TimelineScreen> {
                 Expanded(
                   child: Container(
                     height: 1,
-                    color:
-                        theme.colorScheme.onSurface.withValues(alpha: 0.10),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.10),
                   ),
                 ),
               ],

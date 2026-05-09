@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../core/render_profile.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
@@ -23,6 +24,8 @@ class AppearanceSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final prefs = ref.watch(themePrefsProvider);
     final notifier = ref.read(themePrefsProvider.notifier);
+    final quality = ref.watch(renderProfileProvider);
+    final qualityNotifier = ref.read(renderProfileProvider.notifier);
 
     return PageScaffold(
       title: 'Appearance',
@@ -82,6 +85,38 @@ class AppearanceSettingsScreen extends ConsumerWidget {
                       sub: 'Switch dark/light by sunrise + sunset',
                       value: prefs.autoTheme,
                       onChanged: (_) => notifier.toggleAutoTheme()),
+                ],
+              ),
+            ),
+          ),
+          const SectionHeader(title: 'Render quality', dense: true),
+          AnimatedAppearance(
+            delay: const Duration(milliseconds: 160),
+            child: PremiumCard(
+              padding: const EdgeInsets.all(AppTokens.space4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const _Caption('Cinematic detail'),
+                  const SizedBox(height: AppTokens.space2),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      for (final q in RenderQuality.values)
+                        _PillToggle(
+                          label: switch (q) {
+                            RenderQuality.reduced => 'Reduced',
+                            RenderQuality.normal => 'Normal',
+                            RenderQuality.max => 'Max',
+                          },
+                          selected: quality == q,
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            qualityNotifier.setQuality(q);
+                          },
+                        ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -196,8 +231,10 @@ class _NotificationsSettingsState extends State<NotificationsSettingsScreen> {
                   const _Caption('22:00 → 07:00'),
                   const SizedBox(height: 4),
                   Text('Critical only',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800)),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w800)),
                   const SizedBox(height: AppTokens.space2),
                   Text(
                       'Travel-stage notifications and security alerts will still come through.',
@@ -417,17 +454,14 @@ class _TravelPrefsState extends State<TravelPrefsScreen> {
               selected: _seat,
               onSelect: (v) => setState(() => _seat = v)),
           const SectionHeader(title: 'Meal preference', dense: true),
-          _ChoiceCard(
-              choices: const [
-                'Standard',
-                'Vegetarian',
-                'Vegan',
-                'Halal',
-                'Kosher',
-                'Gluten-free',
-              ],
-              selected: _meal,
-              onSelect: (v) => setState(() => _meal = v)),
+          _ChoiceCard(choices: const [
+            'Standard',
+            'Vegetarian',
+            'Vegan',
+            'Halal',
+            'Kosher',
+            'Gluten-free',
+          ], selected: _meal, onSelect: (v) => setState(() => _meal = v)),
           const SectionHeader(title: 'Loyalty rules', dense: true),
           AnimatedAppearance(
             child: PremiumCard(
@@ -464,8 +498,7 @@ class AccessibilitySettingsScreen extends StatefulWidget {
       _AccessibilitySettingsState();
 }
 
-class _AccessibilitySettingsState
-    extends State<AccessibilitySettingsScreen> {
+class _AccessibilitySettingsState extends State<AccessibilitySettingsScreen> {
   double _textScale = 1.0;
   bool _largeIcons = false;
   bool _underlineLinks = false;
@@ -761,8 +794,7 @@ class _ToggleRow extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon,
-              size: 20,
-              color: t.colorScheme.onSurface.withValues(alpha: 0.78)),
+              size: 20, color: t.colorScheme.onSurface.withValues(alpha: 0.78)),
           const SizedBox(width: AppTokens.space3),
           Expanded(
             child: Column(
@@ -854,9 +886,7 @@ class _ChoiceCard extends StatelessWidget {
           children: [
             for (final c in choices)
               _PillToggle(
-                  label: c,
-                  selected: selected == c,
-                  onTap: () => onSelect(c)),
+                  label: c, selected: selected == c, onTap: () => onSelect(c)),
           ],
         ),
       ),

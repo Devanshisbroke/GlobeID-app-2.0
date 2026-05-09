@@ -41,19 +41,48 @@ class _LoungeScreenState extends State<LoungeScreen> {
   static const _amenities = <(IconData, String, String)>[
     (Icons.shower_rounded, 'Shower suite', '12 min wait · towels included'),
     (Icons.king_bed_rounded, 'Nap pod', 'Reserve 90 min · noise-cancelling'),
-    (Icons.local_bar_rounded, 'Bar & sommelier', 'Curated wines · espresso bar'),
+    (
+      Icons.local_bar_rounded,
+      'Bar & sommelier',
+      'Curated wines · espresso bar'
+    ),
     (Icons.spa_rounded, 'Spa & massage', '20 min chair massage · ¥4,500'),
     (Icons.print_rounded, 'Workspaces', 'Booths · 4K monitors · printing'),
     (Icons.child_care_rounded, 'Family room', 'Toys · changing · quiet zone'),
   ];
 
   static const _menu = <(IconData, String, String, String)>[
-    (Icons.ramen_dining_rounded, 'Tonkotsu ramen', 'Pork broth · chashu · ajitama', '¥1,800'),
+    (
+      Icons.ramen_dining_rounded,
+      'Tonkotsu ramen',
+      'Pork broth · chashu · ajitama',
+      '¥1,800'
+    ),
     (Icons.set_meal_rounded, 'Sushi omakase', '8 nigiri · seasonal', '¥4,200'),
-    (Icons.coffee_rounded, 'Single-origin pour-over', 'Ethiopia Yirgacheffe', '¥620'),
-    (Icons.cake_rounded, 'Wagashi platter', 'Mochi · dorayaki · matcha', '¥980'),
-    (Icons.local_bar_rounded, 'Yamazaki 12 highball', 'Single-malt highball', '¥2,100'),
-    (Icons.breakfast_dining_rounded, 'Avocado toast', 'Sourdough · eggs · chili oil', '¥1,400'),
+    (
+      Icons.coffee_rounded,
+      'Single-origin pour-over',
+      'Ethiopia Yirgacheffe',
+      '¥620'
+    ),
+    (
+      Icons.cake_rounded,
+      'Wagashi platter',
+      'Mochi · dorayaki · matcha',
+      '¥980'
+    ),
+    (
+      Icons.local_bar_rounded,
+      'Yamazaki 12 highball',
+      'Single-malt highball',
+      '¥2,100'
+    ),
+    (
+      Icons.breakfast_dining_rounded,
+      'Avocado toast',
+      'Sourdough · eggs · chili oil',
+      '¥1,400'
+    ),
   ];
 
   @override
@@ -69,7 +98,8 @@ class _LoungeScreenState extends State<LoungeScreen> {
             child: CinematicHero(
               eyebrow: 'PREMIUM LOUNGE',
               title: widget.lounge,
-              subtitle: '${widget.terminal} · 124/180 capacity · open until 23:30',
+              subtitle:
+                  '${widget.terminal} · 124/180 capacity · open until 23:30',
               icon: Icons.airline_seat_recline_extra_rounded,
               tone: widget.tone,
               badges: const [
@@ -119,14 +149,12 @@ class _LoungeScreenState extends State<LoungeScreen> {
                   ),
                   const SizedBox(height: 8),
                   ClipRRect(
-                    borderRadius:
-                        BorderRadius.circular(AppTokens.radiusFull),
+                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                     child: SizedBox(
                       height: 10,
                       child: Stack(
                         children: [
-                          Container(
-                              color: widget.tone.withValues(alpha: 0.16)),
+                          Container(color: widget.tone.withValues(alpha: 0.16)),
                           FractionallySizedBox(
                             widthFactor: 124 / 180,
                             child: Container(
@@ -145,8 +173,8 @@ class _LoungeScreenState extends State<LoungeScreen> {
                   const SizedBox(height: 6),
                   Text('~7 min wait for shower suites · 0 min for seats',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.7),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.7),
                       )),
                 ],
               ),
@@ -179,8 +207,7 @@ class _LoungeScreenState extends State<LoungeScreen> {
                     duration: AppTokens.durationSm,
                     padding: const EdgeInsets.all(AppTokens.space3),
                     decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radius2xl),
+                      borderRadius: BorderRadius.circular(AppTokens.radius2xl),
                       gradient: _amenitiesUsed.contains(i)
                           ? LinearGradient(
                               begin: Alignment.topLeft,
@@ -298,7 +325,9 @@ class _LoungeScreenState extends State<LoungeScreen> {
                               color: _selectedDishes.contains(i)
                                   ? Colors.white
                                   : widget.tone,
-                              fontFeatures: const [FontFeature.tabularFigures()],
+                              fontFeatures: const [
+                                FontFeature.tabularFigures()
+                              ],
                             )),
                       ),
                     ],

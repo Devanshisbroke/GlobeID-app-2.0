@@ -292,8 +292,7 @@ class _PlanRow extends StatelessWidget {
     final pinned = (trip['pinned'] as bool?) ?? false;
     final budget = (trip['budget'] as num?)?.toInt();
     final currency = (trip['currency'] ?? 'USD').toString();
-    final title =
-        (trip['title'] ?? trip['name'] ?? 'Trip').toString();
+    final title = (trip['title'] ?? trip['name'] ?? 'Trip').toString();
     final subtitle = (trip['subtitle'] ?? trip['date'] ?? '').toString();
     return PremiumCard(
       padding: const EdgeInsets.all(AppTokens.space4),
@@ -350,8 +349,7 @@ class _PlanRow extends StatelessWidget {
                   Text(
                     subtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 if (budget != null) ...[
@@ -361,8 +359,8 @@ class _PlanRow extends StatelessWidget {
                       Icon(
                         Icons.account_balance_wallet_rounded,
                         size: 12,
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.5),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
                       const SizedBox(width: 3),
                       Text(
@@ -426,9 +424,8 @@ class TripPlanDraft {
 
   Map<String, dynamic> toJson() => {
         'id': 'plan-${DateTime.now().millisecondsSinceEpoch}',
-        'title': destination == null
-            ? 'New plan'
-            : '${destination!.city} · planned',
+        'title':
+            destination == null ? 'New plan' : '${destination!.city} · planned',
         'subtitle': subtitle,
         'destination': destination?.iata,
         'startDate': dates?.start.toIso8601String(),
@@ -734,11 +731,14 @@ class _DestinationStepState extends State<_DestinationStep> {
     final lowerQ = _q.toLowerCase();
     final results = _q.isEmpty
         ? <Airport>[]
-        : kAirports.where((a) {
-            return a.iata.toLowerCase().contains(lowerQ) ||
-                a.city.toLowerCase().contains(lowerQ) ||
-                a.country.toLowerCase().contains(lowerQ);
-          }).take(20).toList();
+        : kAirports
+            .where((a) {
+              return a.iata.toLowerCase().contains(lowerQ) ||
+                  a.city.toLowerCase().contains(lowerQ) ||
+                  a.country.toLowerCase().contains(lowerQ);
+            })
+            .take(20)
+            .toList();
     return ListView(
       physics: const BouncingScrollPhysics(),
       children: [
@@ -869,9 +869,8 @@ class _FeaturedCard extends StatelessWidget {
                   Text(
                     iata,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      color: selected
-                          ? Colors.white
-                          : theme.colorScheme.onSurface,
+                      color:
+                          selected ? Colors.white : theme.colorScheme.onSurface,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 1.2,
                     ),
@@ -883,8 +882,7 @@ class _FeaturedCard extends StatelessWidget {
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: selected
                           ? Colors.white.withValues(alpha: 0.85)
-                          : theme.colorScheme.onSurface
-                              .withValues(alpha: 0.65),
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.65),
                     ),
                   ),
                 ],
@@ -956,8 +954,7 @@ class _AirportRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -1058,8 +1055,8 @@ class _DatesStepState extends State<_DatesStep> {
                   Text(
                     '${dates.duration.inDays} day${dates.duration.inDays == 1 ? '' : 's'}',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.66),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.66),
                     ),
                   ),
               ],
@@ -1084,8 +1081,7 @@ class _DatesStepState extends State<_DatesStep> {
               Pressable(
                 onTap: () {
                   HapticFeedback.selectionClick();
-                  final start =
-                      DateTime.now().add(const Duration(days: 14));
+                  final start = DateTime.now().add(const Duration(days: 14));
                   widget.draft.dates = DateTimeRange(
                     start: start,
                     end: start.add(Duration(days: pick.$2)),
@@ -1226,8 +1222,7 @@ class _TravellersStep extends StatelessWidget {
                       _iconForCabin(c),
                       color: draft.cabin == c
                           ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface
-                              .withValues(alpha: 0.6),
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                     const SizedBox(width: AppTokens.space3),
                     Expanded(
@@ -1294,7 +1289,8 @@ class _StepperButton extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
+          color:
+              Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
         ),
         child: Icon(icon, size: 28),
       ),
@@ -1537,8 +1533,7 @@ class _ReviewStep extends StatelessWidget {
         ),
         _ReviewRow(
           label: 'Travellers',
-          value:
-              '${draft.travellers} · ${draft.cabin}',
+          value: '${draft.travellers} · ${draft.cabin}',
           icon: Icons.group_rounded,
         ),
         _ReviewRow(
@@ -1630,8 +1625,8 @@ class _ReviewRow extends StatelessWidget {
                   Text(
                     label.toUpperCase(),
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.55),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.55),
                       letterSpacing: 1.2,
                       fontWeight: FontWeight.w800,
                     ),

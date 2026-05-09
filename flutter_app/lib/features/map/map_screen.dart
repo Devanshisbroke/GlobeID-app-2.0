@@ -471,7 +471,6 @@ class _GlobeOrbitPainter extends CustomPainter {
       old.t != t || old.accent != accent;
 }
 
-
 // ── Cinematic HUD overlays (Map v3 density pass) ──────────────
 
 /// Vertical layer rail anchored to the right edge. Each pill is a
@@ -563,8 +562,7 @@ class _LayerPill extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppTokens.radiusLg),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 3),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         width: 60,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppTokens.radiusLg),
@@ -622,8 +620,8 @@ class _GlobeHudPanel extends StatelessWidget {
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(
-              AppTokens.space4, AppTokens.space3, AppTokens.space4, AppTokens.space3),
+          padding: const EdgeInsets.fromLTRB(AppTokens.space4, AppTokens.space3,
+              AppTokens.space4, AppTokens.space3),
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.36),
             borderRadius: BorderRadius.circular(AppTokens.radius2xl),
@@ -656,10 +654,10 @@ class _GlobeHudPanel extends StatelessWidget {
               SliderTheme(
                 data: SliderThemeData(
                   trackHeight: 3,
-                  thumbShape: const RoundSliderThumbShape(
-                      enabledThumbRadius: 7),
-                  overlayShape: const RoundSliderOverlayShape(
-                      overlayRadius: 16),
+                  thumbShape:
+                      const RoundSliderThumbShape(enabledThumbRadius: 7),
+                  overlayShape:
+                      const RoundSliderOverlayShape(overlayRadius: 16),
                 ),
                 child: Slider(
                   value: timeOfDay,
@@ -727,9 +725,7 @@ class _RegionChip extends StatelessWidget {
               ? accent.withValues(alpha: 0.30)
               : Colors.white.withValues(alpha: 0.06),
           border: Border.all(
-            color: active
-                ? accent
-                : Colors.white.withValues(alpha: 0.12),
+            color: active ? accent : Colors.white.withValues(alpha: 0.12),
           ),
         ),
         child: Text(label,

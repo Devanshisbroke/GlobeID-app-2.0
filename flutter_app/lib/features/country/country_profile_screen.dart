@@ -52,14 +52,26 @@ class CountryProfileScreen extends StatelessWidget {
   ];
 
   static const _insights = <(IconData, String, String)>[
-    (Icons.savings_rounded, 'Cash still rules',
-        'Many small ramen shops & shrines are cash-only. Withdraw at 7-Eleven.'),
-    (Icons.train_rounded, 'IC card unlocks the country',
-        'A Suica or Pasmo card pays trains, buses, vending machines, and most konbini.'),
-    (Icons.spa_rounded, 'Onsen etiquette',
-        'Wash thoroughly before entering the bath. Tattoos may be turned away — covers help.'),
-    (Icons.emoji_food_beverage_rounded, 'Convenience-store gold',
-        'Konbini sushi, onigiri, and sandwiches are surprisingly excellent. Embrace them.'),
+    (
+      Icons.savings_rounded,
+      'Cash still rules',
+      'Many small ramen shops & shrines are cash-only. Withdraw at 7-Eleven.'
+    ),
+    (
+      Icons.train_rounded,
+      'IC card unlocks the country',
+      'A Suica or Pasmo card pays trains, buses, vending machines, and most konbini.'
+    ),
+    (
+      Icons.spa_rounded,
+      'Onsen etiquette',
+      'Wash thoroughly before entering the bath. Tattoos may be turned away — covers help.'
+    ),
+    (
+      Icons.emoji_food_beverage_rounded,
+      'Convenience-store gold',
+      'Konbini sushi, onigiri, and sandwiches are surprisingly excellent. Embrace them.'
+    ),
   ];
 
   @override
@@ -153,8 +165,8 @@ class CountryProfileScreen extends StatelessWidget {
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFF10B981)
-                              .withValues(alpha: 0.18),
+                          color:
+                              const Color(0xFF10B981).withValues(alpha: 0.18),
                         ),
                         child: const Icon(Icons.check_rounded,
                             color: Color(0xFF10B981), size: 18),
@@ -199,8 +211,8 @@ class CountryProfileScreen extends StatelessWidget {
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFFDC2626)
-                              .withValues(alpha: 0.18),
+                          color:
+                              const Color(0xFFDC2626).withValues(alpha: 0.18),
                         ),
                         child: const Icon(Icons.close_rounded,
                             color: Color(0xFFDC2626), size: 18),
@@ -249,8 +261,7 @@ class CountryProfileScreen extends StatelessWidget {
                               BorderRadius.circular(AppTokens.radiusLg),
                           color: tone.withValues(alpha: 0.18),
                         ),
-                        child:
-                            Icon(_insights[i].$1, color: tone, size: 20),
+                        child: Icon(_insights[i].$1, color: tone, size: 20),
                       ),
                       const SizedBox(width: AppTokens.space3),
                       Expanded(

@@ -41,8 +41,7 @@ class BoardingPassLiveScreen extends ConsumerStatefulWidget {
       _BoardingPassLiveScreenState();
 }
 
-class _BoardingPassLiveScreenState
-    extends ConsumerState<BoardingPassLiveScreen>
+class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
     with TickerProviderStateMixin {
   late final AnimationController _foil;
   late final AnimationController _flip;
@@ -289,8 +288,7 @@ class _BoardingPassLiveScreenState
                                         fromAirport: fromAir,
                                         toAirport: toAir,
                                         passengerName: user.profile.name,
-                                        countdown:
-                                            _fmtRemaining(_remaining),
+                                        countdown: _fmtRemaining(_remaining),
                                         foil: _foil,
                                         airplane: _airplane,
                                       ),
@@ -425,8 +423,7 @@ class _FrontFace extends StatelessWidget {
           children: [
             // ── Brand header ─────────────────────────────────────
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               decoration: BoxDecoration(
                 gradient: brand.gradient(),
               ),

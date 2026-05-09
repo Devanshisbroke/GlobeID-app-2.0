@@ -9,6 +9,7 @@ import 'package:local_auth/local_auth.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/pressable.dart';
+import '../../widgets/pull_down_summoner.dart';
 import '../security/session_lock_provider.dart';
 
 /// Lock screen — cinematic biometric ring with rotating orbital sweep,
@@ -75,73 +76,77 @@ class _LockScreenState extends ConsumerState<LockScreen>
     final accent = theme.colorScheme.primary;
     return Scaffold(
       backgroundColor: const Color(0xFF05060A),
-      body: Stack(
-        children: [
-          // Soft radial bloom backdrop.
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment.topCenter,
-                  radius: 1.4,
-                  colors: [
-                    accent.withValues(alpha: 0.32),
-                    Colors.transparent,
-                  ],
+      body: PullDownSummoner(
+        triggerDistance: 96,
+        overlayBuilder: (ctx) => _EmergencyOverlay(accent: accent),
+        child: Stack(
+          children: [
+            // Soft radial bloom backdrop.
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.topCenter,
+                    radius: 1.4,
+                    colors: [
+                      accent.withValues(alpha: 0.32),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(AppTokens.space7),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedAppearance(
-                    child: Text(
-                      'GlobeID',
-                      style: theme.textTheme.displayMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.2,
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(AppTokens.space7),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AnimatedAppearance(
+                      child: Text(
+                        'GlobeID',
+                        style: theme.textTheme.displayMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                        ),
                       ),
                     ),
-                  ),
-                  AnimatedAppearance(
-                    delay: const Duration(milliseconds: 80),
-                    child: Text(
-                      'Touch to unlock',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.6),
+                    AnimatedAppearance(
+                      delay: const Duration(milliseconds: 80),
+                      child: Text(
+                        'Touch to unlock',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.6),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: AppTokens.space9),
-                  AnimatedAppearance(
-                    delay: const Duration(milliseconds: 200),
-                    child: Pressable(
-                      scale: 0.96,
-                      onTap: _unlock,
-                      child: RepaintBoundary(
-                        child: AnimatedBuilder(
-                          animation: Listenable.merge([_orbit, _pulse]),
-                          builder: (_, __) => SizedBox(
-                            width: 220,
-                            height: 220,
-                            child: CustomPaint(
-                              isComplex: true,
-                              willChange: true,
-                              painter: _BiometricRing(
-                                orbit: _orbit.value,
-                                pulse: _pulse.value,
-                                color: accent,
-                              ),
-                              child: const Center(
-                                child: Icon(
-                                  Icons.fingerprint_rounded,
-                                  color: Colors.white,
-                                  size: 64,
+                    const SizedBox(height: AppTokens.space9),
+                    AnimatedAppearance(
+                      delay: const Duration(milliseconds: 200),
+                      child: Pressable(
+                        scale: 0.96,
+                        onTap: _unlock,
+                        child: RepaintBoundary(
+                          child: AnimatedBuilder(
+                            animation: Listenable.merge([_orbit, _pulse]),
+                            builder: (_, __) => SizedBox(
+                              width: 220,
+                              height: 220,
+                              child: CustomPaint(
+                                isComplex: true,
+                                willChange: true,
+                                painter: _BiometricRing(
+                                  orbit: _orbit.value,
+                                  pulse: _pulse.value,
+                                  color: accent,
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.fingerprint_rounded,
+                                    color: Colors.white,
+                                    size: 64,
+                                  ),
                                 ),
                               ),
                             ),
@@ -149,32 +154,117 @@ class _LockScreenState extends ConsumerState<LockScreen>
                         ),
                       ),
                     ),
-                  ),
-                  if (_error != null) ...[
-                    const SizedBox(height: AppTokens.space5),
-                    Text(_error!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: const Color(0xFFEF4444),
-                        ),
-                        textAlign: TextAlign.center),
-                  ],
-                  const SizedBox(height: AppTokens.space9),
-                  AnimatedAppearance(
-                    delay: const Duration(milliseconds: 280),
-                    child: TextButton(
-                      onPressed: _unlock,
-                      child: Text(
-                        _busy ? 'Authenticating…' : 'Try again',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w600,
+                    if (_error != null) ...[
+                      const SizedBox(height: AppTokens.space5),
+                      Text(_error!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: const Color(0xFFEF4444),
+                          ),
+                          textAlign: TextAlign.center),
+                    ],
+                    const SizedBox(height: AppTokens.space9),
+                    AnimatedAppearance(
+                      delay: const Duration(milliseconds: 280),
+                      child: TextButton(
+                        onPressed: _unlock,
+                        child: Text(
+                          _busy ? 'Authenticating…' : 'Try again',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmergencyOverlay extends StatelessWidget {
+  const _EmergencyOverlay({required this.accent});
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppTokens.space5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            accent.withValues(alpha: 0.85),
+            accent.withValues(alpha: 0.45),
+          ],
+        ),
+        boxShadow: const [
+          BoxShadow(blurRadius: 24, color: Colors.black54),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.shield_moon_rounded, color: Colors.white, size: 20),
+              SizedBox(width: 8),
+              Text(
+                'Emergency mode',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Pull-down summon · biometric assist available\n'
+            'Connecting to consular services + trusted contacts.',
+            style: TextStyle(color: Colors.white70, fontSize: 13),
+          ),
+          const SizedBox(height: AppTokens.space3),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    HapticFeedback.heavyImpact();
+                    Navigator.of(context).maybePop();
+                  },
+                  icon: const Icon(Icons.call_rounded),
+                  label: const Text('Call consulate'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.of(context).maybePop();
+                  },
+                  icon: const Icon(Icons.share_location_rounded,
+                      color: Colors.white),
+                  label: const Text(
+                    'Share location',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.white54),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -76,8 +76,7 @@ class ApiClient {
       _request<T>('PUT', path, () => _dio.put<dynamic>(path, data: body));
 
   Future<T> delete<T>(String path, {Object? body}) =>
-      _request<T>(
-          'DELETE', path, () => _dio.delete<dynamic>(path, data: body));
+      _request<T>('DELETE', path, () => _dio.delete<dynamic>(path, data: body));
 
   Future<T> _request<T>(
     String method,
