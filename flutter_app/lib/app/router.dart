@@ -13,6 +13,7 @@ import '../features/intelligence/intelligence_screen.dart';
 import '../features/kiosk/kiosk_screen.dart';
 import '../features/lock/lock_screen.dart';
 import '../features/map/map_screen.dart';
+import '../features/multi_currency/multi_currency_pour_screen.dart';
 import '../features/multi_currency/multi_currency_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/onboarding/onboarding_provider.dart';
@@ -158,6 +159,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/vault', (_, __) => const VaultScreen()),
       _route('/feed', (_, __) => const FeedScreen()),
       _route('/multi-currency', (_, __) => const MultiCurrencyScreen()),
+      _route('/multi-currency-pour',
+          (_, __) => const MultiCurrencyPourScreen()),
       _route('/scan', (_, __) => const ScannerScreen()),
       _route('/analytics', (_, __) => const AnalyticsScreen()),
       _route('/audit-log', (_, __) => const AuditLogScreen()),
