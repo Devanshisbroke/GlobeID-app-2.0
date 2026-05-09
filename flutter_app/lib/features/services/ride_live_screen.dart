@@ -11,6 +11,7 @@ import '../../widgets/cinematic_button.dart';
 import '../../widgets/cinematic_hero.dart';
 import '../../widgets/journey_strip.dart';
 import '../../widgets/page_scaffold.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
 
@@ -115,27 +116,72 @@ class _RideLiveScreenState extends State<RideLiveScreen>
         slivers: [
           SliverToBoxAdapter(
             child: AnimatedAppearance(
-              child: CinematicHero(
-                eyebrow: _stageLabel.toUpperCase(),
-                title: _eta,
-                subtitle: '${widget.driverName} · ${widget.vehicle}',
-                icon: Icons.local_taxi_rounded,
+              child: CinematicReveal(
                 tone: widget.tone,
-                badges: [
-                  HeroBadge(
-                      label: 'Plate ${widget.plate}',
-                      icon: Icons.confirmation_number_rounded),
-                  const HeroBadge(
-                      label: '4.94★ rated',
-                      icon: Icons.star_rounded),
-                  const HeroBadge(
-                      label: 'A/C · charger',
-                      icon: Icons.bolt_rounded),
+                child: Stack(
+                  children: [
+                    CinematicHero(
+                      eyebrow: _stageLabel.toUpperCase(),
+                      title: _eta,
+                      subtitle: '${widget.driverName} · ${widget.vehicle}',
+                      icon: Icons.local_taxi_rounded,
+                      tone: widget.tone,
+                      badges: [
+                        HeroBadge(
+                            label: 'Plate ${widget.plate}',
+                            icon: Icons.confirmation_number_rounded),
+                        const HeroBadge(
+                            label: '4.94★ rated',
+                            icon: Icons.star_rounded),
+                        const HeroBadge(
+                            label: 'A/C · charger',
+                            icon: Icons.bolt_rounded),
+                      ],
+                    ),
+                    Positioned(
+                      top: AppTokens.space3,
+                      right: AppTokens.space3,
+                      child: PremiumHud(
+                        label: 'LIVE',
+                        tone: widget.tone,
+                        trailing: Text(_eta),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space3)),
+          SliverPadding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+            sliver: SliverToBoxAdapter(
+              child: PremiumPulseStrip(
+                pulses: [
+                  PulseTile(
+                    label: 'Stage',
+                    value: _stageLabel,
+                    tone: widget.tone,
+                    icon: Icons.directions_car_rounded,
+                  ),
+                  PulseTile(
+                    label: 'ETA',
+                    value: _eta,
+                    tone: const Color(0xFF10B981),
+                    icon: Icons.schedule_rounded,
+                  ),
+                  PulseTile(
+                    label: 'Driver',
+                    value: '4.94★',
+                    tone: const Color(0xFFEAB308),
+                    icon: Icons.star_rounded,
+                  ),
                 ],
               ),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space5)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space3)),
           SliverToBoxAdapter(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(AppTokens.radius2xl),

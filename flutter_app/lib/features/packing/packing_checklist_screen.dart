@@ -7,6 +7,7 @@ import '../../widgets/animated_appearance.dart';
 import '../../widgets/cinematic_button.dart';
 import '../../widgets/cinematic_hero.dart';
 import '../../widgets/page_scaffold.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
@@ -110,24 +111,40 @@ class _PackingChecklistScreenState extends State<PackingChecklistScreen> {
         physics: const BouncingScrollPhysics(),
         children: [
           AnimatedAppearance(
-            child: CinematicHero(
-              eyebrow: 'SMART PACK',
-              title: 'Pack like a pro',
-              subtitle:
-                  'Tailored to ${widget.destination} weather, length & style.',
+            child: CinematicReveal(
               tone: widget.tone,
-              icon: Icons.luggage_rounded,
-              badges: [
-                HeroBadge(
-                    label: '${(progress * 100).round()}% packed',
-                    icon: Icons.task_alt_rounded),
-                HeroBadge(
-                    label: '${widget.tripDays} days',
-                    icon: Icons.calendar_today_rounded),
-                const HeroBadge(
-                    label: 'Climate-aware',
-                    icon: Icons.cloud_rounded),
-              ],
+              child: Stack(
+                children: [
+                  CinematicHero(
+                    eyebrow: 'SMART PACK',
+                    title: 'Pack like a pro',
+                    subtitle:
+                        'Tailored to ${widget.destination} weather, length & style.',
+                    tone: widget.tone,
+                    icon: Icons.luggage_rounded,
+                    badges: [
+                      HeroBadge(
+                          label: '${(progress * 100).round()}% packed',
+                          icon: Icons.task_alt_rounded),
+                      HeroBadge(
+                          label: '${widget.tripDays} days',
+                          icon: Icons.calendar_today_rounded),
+                      const HeroBadge(
+                          label: 'Climate-aware',
+                          icon: Icons.cloud_rounded),
+                    ],
+                  ),
+                  Positioned(
+                    top: AppTokens.space3,
+                    right: AppTokens.space3,
+                    child: PremiumHud(
+                      label: 'PACKING',
+                      tone: widget.tone,
+                      trailing: Text('${(progress * 100).round()}%'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: AppTokens.space4),

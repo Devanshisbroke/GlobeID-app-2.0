@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/page_scaffold.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
@@ -31,69 +32,130 @@ class ProfileScreen extends ConsumerWidget {
       body: ListView(
         physics: const BouncingScrollPhysics(),
         children: [
-          AnimatedAppearance(
-            child: PremiumCard(
-              padding: const EdgeInsets.all(AppTokens.space5),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  theme.colorScheme.primary.withValues(alpha: 0.18),
-                  theme.colorScheme.primary.withValues(alpha: 0.04),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Hero(
-                    tag: 'profile-avatar',
-                    child: Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [
-                            theme.colorScheme.primary,
-                            theme.colorScheme.primary.withValues(alpha: 0.6),
-                          ],
-                        ),
-                        boxShadow: AppTokens.shadowMd(
-                          tint: theme.colorScheme.primary,
+          CinematicReveal(
+            tone: theme.colorScheme.primary,
+            child: Stack(
+              children: [
+                PremiumCard(
+                  padding: const EdgeInsets.all(AppTokens.space5),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      theme.colorScheme.primary.withValues(alpha: 0.18),
+                      theme.colorScheme.primary.withValues(alpha: 0.04),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Hero(
+                        tag: 'profile-avatar',
+                        child: SensorPendulum(
+                          translation: 4,
+                          rotation: 0.02,
+                          child: Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  theme.colorScheme.primary,
+                                  theme.colorScheme.primary
+                                      .withValues(alpha: 0.6),
+                                ],
+                              ),
+                              boxShadow: AppTokens.shadowCinematic(
+                                tint: theme.colorScheme.primary,
+                              ),
+                            ),
+                            child: user.profile.avatarUrl.isEmpty
+                                ? const Icon(Icons.person_rounded,
+                                    color: Colors.white, size: 32)
+                                : null,
+                          ),
                         ),
                       ),
-                      child: user.profile.avatarUrl.isEmpty
-                          ? const Icon(Icons.person_rounded,
-                              color: Colors.white, size: 32)
-                          : null,
-                    ),
+                      const SizedBox(width: AppTokens.space4),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(user.profile.name,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                )),
+                            Text(
+                                user.profile.passportNumber.isNotEmpty
+                                    ? 'Passport ${user.profile.passportNumber}'
+                                    : 'No passport on file',
+                                style: theme.textTheme.bodySmall),
+                            const SizedBox(height: AppTokens.space2),
+                            Row(children: [
+                              Text(user.profile.nationalityFlag,
+                                  style: const TextStyle(fontSize: 18)),
+                              const SizedBox(width: 6),
+                              Text(user.profile.nationality,
+                                  style: theme.textTheme.bodySmall),
+                            ]),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: AppTokens.space4),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(user.profile.name,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            )),
-                        Text(
-                            user.profile.passportNumber.isNotEmpty
-                                ? 'Passport ${user.profile.passportNumber}'
-                                : 'No passport on file',
-                            style: theme.textTheme.bodySmall),
-                        const SizedBox(height: AppTokens.space2),
-                        Row(children: [
-                          Text(user.profile.nationalityFlag,
-                              style: const TextStyle(fontSize: 18)),
-                          const SizedBox(width: 6),
-                          Text(user.profile.nationality,
-                              style: theme.textTheme.bodySmall),
-                        ]),
-                      ],
-                    ),
+                ),
+                Positioned(
+                  top: AppTokens.space3,
+                  right: AppTokens.space3,
+                  child: PremiumHud(
+                    label: user.profile.verifiedStatus.toUpperCase(),
+                    tone: user.profile.verifiedStatus == 'verified'
+                        ? const Color(0xFF10B981)
+                        : theme.colorScheme.primary,
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppTokens.space3),
+          AnimatedAppearance(
+            delay: const Duration(milliseconds: 80),
+            child: PremiumInfoRail(
+              tiles: [
+                InfoRailTile(
+                  icon: Icons.verified_user_rounded,
+                  label: 'Identity',
+                  value: '${user.profile.identityScore}',
+                  tone: theme.colorScheme.primary,
+                  onTap: () => context.push('/identity'),
+                ),
+                InfoRailTile(
+                  icon: Icons.shield_moon_rounded,
+                  label: 'Verified',
+                  value: user.profile.verifiedStatus,
+                  tone: user.profile.verifiedStatus == 'verified'
+                      ? const Color(0xFF10B981)
+                      : const Color(0xFFD97706),
+                  onTap: () => context.push('/identity'),
+                ),
+                InfoRailTile(
+                  icon: Icons.event_rounded,
+                  label: 'Member',
+                  value: user.profile.memberSince.isEmpty
+                      ? 'New'
+                      : user.profile.memberSince,
+                  tone: const Color(0xFF8B5CF6),
+                ),
+                InfoRailTile(
+                  icon: Icons.bookmark_rounded,
+                  label: 'Passport',
+                  value: user.profile.passportNumber.isNotEmpty
+                      ? user.profile.passportNumber
+                      : 'Not on file',
+                  tone: const Color(0xFFEA580C),
+                  onTap: () => context.push('/passport-book'),
+                ),
+              ],
             ),
           ),
           const SectionHeader(title: 'Appearance', dense: true),
