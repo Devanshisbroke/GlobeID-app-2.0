@@ -24,6 +24,7 @@ import '../features/profile/profile_screen.dart';
 import '../features/receipt/receipt_screen.dart';
 import '../features/scanner/scanner_screen.dart';
 import '../features/airport/airport_screen.dart';
+import '../features/airport/airport_orchestrator.dart';
 import '../features/arrival/arrival_welcome_screen.dart';
 import '../features/connectivity/esim_screen.dart';
 import '../features/country/country_profile_screen.dart';
@@ -46,6 +47,7 @@ import '../features/services/services_hub_screen.dart';
 import '../features/services/transport_screen.dart';
 import '../features/travel_os/travel_os_screen.dart';
 import '../features/wallet/wallet_flows_screen.dart';
+import '../features/wallet/trip_wallet_screen.dart';
 import '../features/discover/discover_screen.dart';
 import '../features/security/audit_log_screen.dart';
 import '../features/security/session_lock_provider.dart';
@@ -201,6 +203,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/services/activities', (_, __) => const ActivitiesScreen()),
       _route('/services/transport', (_, __) => const TransportScreen()),
       _route('/airport', (_, __) => const AirportScreen()),
+      _route('/airport-mode', (_, __) => const AirportOrchestratorScreen()),
+      _route('/trip-wallet', (_, __) => const TripWalletScreen()),
       _route('/travel-os', (_, __) => const TravelOSScreen()),
       _route('/arrival', (_, __) => const ArrivalWelcomeScreen()),
       _route('/sensors-lab', (_, __) => const SensorsLabScreen()),

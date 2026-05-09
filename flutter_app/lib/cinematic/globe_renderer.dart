@@ -184,16 +184,19 @@ class _GlobePainter extends CustomPainter {
     // we translate to the globe center. This makes deep space feel
     // alive even when the globe is small.
     _paintStars(canvas, size);
+    _paintMilkyWay(canvas, size);
 
     canvas.save();
     canvas.translate(cx, cy);
 
     _paintAtmosphere(canvas, radius);
     _paintSphere(canvas, radius);
+    _paintOceanSpecular(canvas, radius);
     _paintGrid(canvas, cam, radius);
     _paintLand(canvas, cam, radius);
     _paintCloudBand(canvas, cam, radius);
     _paintTerminator(canvas, cam, radius);
+    _paintAuroraBands(canvas, cam, radius);
     _paintCityLights(canvas, cam, radius);
     _paintRoutes(canvas, cam, radius);
     if (showHubs) _paintHubs(canvas, cam, radius);
@@ -705,6 +708,146 @@ class _GlobePainter extends CustomPainter {
       ..strokeWidth = 0.8
       ..color = Colors.white.withValues(alpha: 0.10);
     canvas.drawCircle(Offset.zero, r, rim);
+  }
+
+  // ── Milky Way band ───────────────────────────────────────────────
+  // A dense cluster of faint stars along a great-arc that mimics the
+  // galactic plane. Shifts with yaw for parallax depth.
+  void _paintMilkyWay(Canvas canvas, Size size) {
+    final rng = math.Random(421);
+    final parallax = yaw * 0.04 * size.width;
+    final bandCy = size.height * 0.38;
+    final bandH = size.height * 0.18;
+    for (var i = 0; i < 120; i++) {
+      var x = (rng.nextDouble() * size.width * 1.4 - parallax) % size.width;
+      if (x < 0) x += size.width;
+      // Gaussian-ish distribution around the band center.
+      final yOffset = (rng.nextDouble() + rng.nextDouble() - 1.0) * bandH;
+      final y = bandCy + yOffset;
+      final radius = 0.3 + rng.nextDouble() * 0.9;
+      final alpha = 0.08 + rng.nextDouble() * 0.14;
+      canvas.drawCircle(
+        Offset(x, y),
+        radius,
+        Paint()..color = Colors.white.withValues(alpha: alpha),
+      );
+    }
+    // Soft nebula wash along the band.
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(size.width * 0.5, bandCy),
+        width: size.width * 1.2,
+        height: bandH * 1.4,
+      ),
+      Paint()
+        ..color = const Color(0xFF8B5CF6).withValues(alpha: 0.025)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 40),
+    );
+  }
+
+  // ── Aurora Bands ─────────────────────────────────────────────────
+  // Shimmering green/violet ribbons near polar latitudes, visible
+  // only on the night side. Animated via [pulseT].
+  void _paintAuroraBands(Canvas canvas, GlobeCamera cam, double r) {
+    final sunYaw = -yaw * 0.5 + math.pi * 0.2;
+    final sun = Vector3(math.cos(sunYaw), 0.25, math.sin(sunYaw))
+      ..normalize();
+    const bandColors = [
+      Color(0xFF22C55E), // green
+      Color(0xFF06B6D4), // teal
+      Color(0xFF8B5CF6), // violet
+    ];
+    for (var band = 0; band < 2; band++) {
+      final baseLat = band == 0 ? 68.0 : -68.0;
+      final color = bandColors[band % bandColors.length];
+      final phase = pulseT * 2 * math.pi * (1 + band * 0.3);
+      final path = Path();
+      var first = true;
+      var anyVisible = false;
+      for (var lng = -180.0; lng <= 180.0; lng += 6) {
+        final wobble = math.sin((lng / 20.0) + phase) * 3.5;
+        final v = GreatCircle.toCartesian(baseLat + wobble, lng);
+        final rotated = cam.apply(v);
+        // Only draw on the night side.
+        final dotSun = v.dot(sun);
+        if (rotated.z < 0 || dotSun > 0.15) {
+          if (!first) {
+            canvas.drawPath(
+              path,
+              Paint()
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = 3.5
+                ..strokeCap = StrokeCap.round
+                ..color = color.withValues(alpha: 0.28)
+                ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+            );
+          }
+          path.reset();
+          first = true;
+          continue;
+        }
+        anyVisible = true;
+        final off = _project(rotated, r * 1.008);
+        if (first) {
+          path.moveTo(off.dx, off.dy);
+          first = false;
+        } else {
+          path.lineTo(off.dx, off.dy);
+        }
+      }
+      if (anyVisible && !first) {
+        canvas.drawPath(
+          path,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 3.5
+            ..strokeCap = StrokeCap.round
+            ..color = color.withValues(alpha: 0.28)
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+        );
+        // Second pass: tighter, brighter core.
+        canvas.drawPath(
+          path,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.4
+            ..strokeCap = StrokeCap.round
+            ..color = color.withValues(alpha: 0.50),
+        );
+      }
+    }
+  }
+
+  // ── Ocean specular highlight ─────────────────────────────────────
+  // A subtle circular specular highlight on the ocean surface that
+  // tracks with the sun position, giving the sphere a wet-look.
+  void _paintOceanSpecular(Canvas canvas, double r) {
+    final sunYaw = -yaw * 0.5 + math.pi * 0.2;
+    // Specular position: offset from center toward the sun.
+    final specX = -math.sin(sunYaw) * r * 0.35;
+    final specY = -r * 0.30;
+    canvas.drawCircle(
+      Offset(specX, specY),
+      r * 0.55,
+      Paint()
+        ..shader = ui.Gradient.radial(
+          Offset(specX, specY),
+          r * 0.55,
+          [
+            Colors.white.withValues(alpha: 0.08),
+            Colors.white.withValues(alpha: 0.0),
+          ],
+        )
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+    );
+    // Hot specular dot.
+    canvas.drawCircle(
+      Offset(specX, specY),
+      r * 0.08,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.12)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+    );
   }
 
   Offset _project(Vector3 rotated, double r) =>

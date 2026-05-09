@@ -19,6 +19,9 @@ import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
 import '../score/score_provider.dart';
 import '../user/user_provider.dart';
+import 'identity_timeline.dart';
+import 'score_explainer_sheet.dart';
+import 'tier_progression.dart';
 
 /// Identity OS — the flagship hub for everything identity in GlobeID.
 ///
@@ -92,20 +95,26 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
         score.when(
           data: (s) => AnimatedAppearance(
             delay: const Duration(milliseconds: 120),
-            child: _IdentityHero(
-              score: s.score,
-              tier: IdentityTier.forScore(s.score),
-              history: s.history,
+            child: GestureDetector(
+              onTap: () => ScoreExplainerSheet.show(context, s.score),
+              child: _IdentityHero(
+                score: s.score,
+                tier: IdentityTier.forScore(s.score),
+                history: s.history,
+              ),
             ),
           ),
           loading: () => const Padding(
             padding: EdgeInsets.symmetric(vertical: 40),
             child: Center(child: CircularProgressIndicator()),
           ),
-          error: (_, __) => _IdentityHero(
-            score: user.profile.identityScore,
-            tier: IdentityTier.forScore(user.profile.identityScore),
-            history: const [],
+          error: (_, __) => GestureDetector(
+            onTap: () => ScoreExplainerSheet.show(context, user.profile.identityScore),
+            child: _IdentityHero(
+              score: user.profile.identityScore,
+              tier: IdentityTier.forScore(user.profile.identityScore),
+              history: const [],
+            ),
           ),
         ),
 
@@ -172,6 +181,25 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
         ),
 
         const SizedBox(height: AppTokens.space5),
+
+        // ── Enhanced tier progression ─────────────────────────────
+        const SectionHeader(title: 'Tier progression'),
+        AnimatedAppearance(
+          delay: const Duration(milliseconds: 580),
+          child: TierProgression(
+            currentScore: _resolvedScore(score, user.profile),
+            currentTier: _tierIndex(_resolvedScore(score, user.profile)),
+          ),
+        ),
+
+        // ── Identity timeline ─────────────────────────────────────
+        const SectionHeader(title: 'Activity timeline'),
+        AnimatedAppearance(
+          delay: const Duration(milliseconds: 640),
+          child: IdentityTimeline(events: IdentityEvent.demo()),
+        ),
+
+        const SizedBox(height: AppTokens.space5),
         Row(
           children: [
             Expanded(
@@ -200,6 +228,15 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
       ],
     );
   }
+
+  int _tierIndex(int score) {
+    if (score >= 95) return 4;
+    if (score >= 75) return 3;
+    if (score >= 50) return 2;
+    if (score >= 25) return 1;
+    return 0;
+  }
+
 
   int _resolvedScore(AsyncValue<dynamic> async, dynamic profile) {
     return async.maybeWhen(

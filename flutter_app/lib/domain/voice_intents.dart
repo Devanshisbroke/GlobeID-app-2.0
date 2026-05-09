@@ -197,6 +197,57 @@ VoiceIntent parseVoiceIntent(String transcript) {
   return UnknownIntent(transcript);
 }
 
+/// Suggest likely voice commands for an unrecognized transcript.
+///
+/// Performs simple keyword overlap scoring against a catalog of known
+/// commands. Returns the top [max] matches, each as a human-readable
+/// phrase the user can tap to execute.
+List<String> suggestVoiceIntents(String transcript, {int max = 5}) {
+  final words = transcript.toLowerCase().split(RegExp(r'\s+'));
+  final scored = <(double, String)>[];
+  for (final entry in _commandCatalog) {
+    final keywords = entry.$1;
+    var score = 0.0;
+    for (final w in words) {
+      for (final kw in keywords) {
+        if (kw.contains(w) || w.contains(kw)) {
+          score += 1.0;
+        }
+      }
+    }
+    if (score > 0) scored.add((score, entry.$2));
+  }
+  scored.sort((a, b) => b.$1.compareTo(a.$1));
+  return scored.take(max).map((e) => e.$2).toList();
+}
+
+const _commandCatalog = <(List<String>, String)>[
+  (['open', 'home', 'dashboard'], 'open home'),
+  (['open', 'wallet', 'cards', 'balance'], 'open wallet'),
+  (['open', 'identity', 'passport', 'id'], 'open identity'),
+  (['open', 'travel', 'trips', 'flight'], 'open travel'),
+  (['open', 'map', 'globe', 'earth'], 'open map'),
+  (['open', 'services', 'hub'], 'open services'),
+  (['scan', 'scanner', 'qr', 'barcode'], 'open scanner'),
+  (['scan', 'passport', 'mrz', 'document'], 'scan a passport'),
+  (['passport', 'book', 'stamps'], 'open passport book'),
+  (['vault', 'documents', 'secure'], 'open vault'),
+  (['profile', 'settings', 'account'], 'open profile'),
+  (['analytics', 'insights', 'stats'], 'open analytics'),
+  (['book', 'hotel', 'stay', 'room'], 'book a hotel'),
+  (['book', 'flight', 'plane', 'airline'], 'find flights'),
+  (['find', 'ride', 'taxi', 'car'], 'find a ride'),
+  (['food', 'restaurant', 'dinner', 'eat'], 'find food'),
+  (['translate', 'language', 'speak'], 'translate to a language'),
+  (['remind', 'reminder', 'alarm', 'pack'], 'remind me to pack'),
+  (['weather', 'forecast', 'temperature'], 'check weather'),
+  (['balance', 'money', 'currency', 'exchange'], 'check wallet balance'),
+  (['trip', 'plan', 'planner', 'itinerary'], 'plan a trip'),
+  (['visa', 'entry', 'requirements'], 'check visa requirements'),
+  (['copilot', 'ai', 'assistant', 'help'], 'open copilot'),
+  (['refresh', 'reload', 'sync', 'update'], 'refresh data'),
+];
+
 class _NavRule {
   const _NavRule(this.path, this.label);
   final String path;

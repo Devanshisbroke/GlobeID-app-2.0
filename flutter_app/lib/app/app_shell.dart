@@ -942,193 +942,55 @@ class _ScanFabState extends State<_ScanFab>
 /// Long-press the FAB to open this premium command palette. Provides
 /// instant navigation to common destinations + scoped actions.
 void _showCommandPalette(BuildContext context) {
+  // Delegates to the full CommandPalette overlay in
+  // features/home/command_palette.dart.
+  // Imported lazily to avoid a circular dependency with the shell.
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withValues(alpha: 0.55),
-    builder: (_) => const _CommandPalette(),
+    builder: (_) => const _LegacyCommandPalette(),
   );
 }
 
-class _CommandItem {
-  const _CommandItem(this.label, this.path, this.icon, this.tone);
-  final String label;
-  final String path;
-  final IconData icon;
-  final Color tone;
-}
-
-class _CommandPalette extends StatefulWidget {
-  const _CommandPalette();
+/// Lean fallback palette kept for backward compat — the new one
+/// lives in [CommandPalette] (features/home/command_palette.dart)
+/// and is invoked via [CommandPalette.show(context)].
+class _LegacyCommandPalette extends StatefulWidget {
+  const _LegacyCommandPalette();
   @override
-  State<_CommandPalette> createState() => _CommandPaletteState();
+  State<_LegacyCommandPalette> createState() => _LegacyCommandPaletteState();
 }
 
-class _CommandPaletteState extends State<_CommandPalette> {
+class _LegacyCommandPaletteState extends State<_LegacyCommandPalette> {
   final _ctrl = TextEditingController();
   String _q = '';
 
-  static const _all = <_CommandItem>[
-    _CommandItem(
-      'Scan QR / boarding pass',
-      '/scan',
-      Icons.qr_code_scanner_rounded,
-      Color(0xFF06B6D4),
-    ),
-    _CommandItem(
-      'Wallet',
-      '/wallet',
-      Icons.account_balance_wallet_rounded,
-      Color(0xFF7C3AED),
-    ),
-    _CommandItem(
-      'Multi-currency',
-      '/multi-currency',
-      Icons.currency_exchange_rounded,
-      Color(0xFF10B981),
-    ),
-    _CommandItem(
-      'Travel',
-      '/travel',
-      Icons.flight_takeoff_rounded,
-      Color(0xFFEA580C),
-    ),
-    _CommandItem(
-      'Map / Globe',
-      '/map',
-      Icons.public_rounded,
-      Color(0xFF3B82F6),
-    ),
-    _CommandItem(
-      'Identity',
-      '/identity',
-      Icons.verified_user_rounded,
-      Color(0xFFF59E0B),
-    ),
-    _CommandItem(
-      'Vault',
-      '/vault',
-      Icons.shield_moon_rounded,
-      Color(0xFFEA580C),
-    ),
-    _CommandItem(
-      'Copilot',
-      '/copilot',
-      Icons.smart_toy_rounded,
-      Color(0xFF059669),
-    ),
-    _CommandItem(
-      'Planner',
-      '/planner',
-      Icons.event_note_rounded,
-      Color(0xFF7C3AED),
-    ),
-    _CommandItem(
-      'Receipt',
-      '/receipt',
-      Icons.receipt_long_rounded,
-      Color(0xFFE11D48),
-    ),
-    _CommandItem(
-      'Analytics',
-      '/analytics',
-      Icons.insights_rounded,
-      Color(0xFF1D4ED8),
-    ),
-    _CommandItem(
-      'Activity feed',
-      '/feed',
-      Icons.dynamic_feed_rounded,
-      Color(0xFF06B6D4),
-    ),
-    _CommandItem(
-      'Timeline',
-      '/timeline',
-      Icons.timeline_rounded,
-      Color(0xFF10B981),
-    ),
-    _CommandItem(
-      'Passport book',
-      '/passport-book',
-      Icons.menu_book_rounded,
-      Color(0xFFF59E0B),
-    ),
-    _CommandItem(
-      'Kiosk simulator',
-      '/kiosk-sim',
-      Icons.face_retouching_natural_rounded,
-      Color(0xFF7C3AED),
-    ),
-    _CommandItem(
-      'Profile',
-      '/profile',
-      Icons.person_rounded,
-      Color(0xFF06B6D4),
-    ),
-    _CommandItem(
-      'Intelligence',
-      '/intelligence',
-      Icons.bolt_rounded,
-      Color(0xFFEAB308),
-    ),
-    _CommandItem(
-      'Explore',
-      '/explore',
-      Icons.travel_explore_rounded,
-      Color(0xFF3B82F6),
-    ),
-    _CommandItem(
-      'Live passport',
-      '/passport-live',
-      Icons.book_rounded,
-      Color(0xFF7C3AED),
-    ),
-    _CommandItem(
-      'Audit log',
-      '/audit-log',
-      Icons.fact_check_rounded,
-      Color(0xFFEA580C),
-    ),
-    _CommandItem(
-      'Social',
-      '/social',
-      Icons.people_alt_rounded,
-      Color(0xFFE11D48),
-    ),
-    _CommandItem(
-      'Services hub',
-      '/services',
-      Icons.apps_rounded,
-      Color(0xFF06B6D4),
-    ),
-    _CommandItem(
-      'Onboarding',
-      '/onboarding',
-      Icons.auto_awesome_rounded,
-      Color(0xFF10B981),
-    ),
-    _CommandItem(
-      'Inbox',
-      '/inbox',
-      Icons.notifications_rounded,
-      Color(0xFFE11D48),
-    ),
-    _CommandItem(
-      'Settings',
-      '/settings',
-      Icons.tune_rounded,
-      Color(0xFF6366F1),
-    ),
-    _CommandItem(
-      'Discover',
-      '/discover',
-      Icons.travel_explore_rounded,
-      Color(0xFF06B6D4),
-    ),
+  static const _all = <({String label, String path, IconData icon, Color tone})>[
+    (label: 'Scan QR / boarding pass', path: '/scan', icon: Icons.qr_code_scanner_rounded, tone: Color(0xFF06B6D4)),
+    (label: 'Wallet', path: '/wallet', icon: Icons.account_balance_wallet_rounded, tone: Color(0xFF7C3AED)),
+    (label: 'Multi-currency', path: '/multi-currency', icon: Icons.currency_exchange_rounded, tone: Color(0xFF10B981)),
+    (label: 'Travel', path: '/travel', icon: Icons.flight_takeoff_rounded, tone: Color(0xFFEA580C)),
+    (label: 'Map / Globe', path: '/map', icon: Icons.public_rounded, tone: Color(0xFF3B82F6)),
+    (label: 'Identity', path: '/identity', icon: Icons.verified_user_rounded, tone: Color(0xFFF59E0B)),
+    (label: 'Vault', path: '/vault', icon: Icons.shield_moon_rounded, tone: Color(0xFFEA580C)),
+    (label: 'Copilot', path: '/copilot', icon: Icons.smart_toy_rounded, tone: Color(0xFF059669)),
+    (label: 'Planner', path: '/planner', icon: Icons.event_note_rounded, tone: Color(0xFF7C3AED)),
+    (label: 'Cinematic globe', path: '/globe-cinematic', icon: Icons.language_rounded, tone: Color(0xFF06B6D4)),
+    (label: 'Travel OS', path: '/travel-os', icon: Icons.hub_rounded, tone: Color(0xFF8B5CF6)),
+    (label: 'Analytics', path: '/analytics', icon: Icons.insights_rounded, tone: Color(0xFF1D4ED8)),
+    (label: 'Passport book', path: '/passport-book', icon: Icons.menu_book_rounded, tone: Color(0xFFF59E0B)),
+    (label: 'Intelligence', path: '/intelligence', icon: Icons.bolt_rounded, tone: Color(0xFFEAB308)),
+    (label: 'Settings', path: '/settings', icon: Icons.tune_rounded, tone: Color(0xFF6366F1)),
+    (label: 'Inbox', path: '/inbox', icon: Icons.notifications_rounded, tone: Color(0xFFE11D48)),
+    (label: 'Emergency', path: '/emergency', icon: Icons.emergency_rounded, tone: Color(0xFFEF4444)),
+    (label: 'Phrasebook', path: '/phrasebook', icon: Icons.translate_rounded, tone: Color(0xFF06B6D4)),
+    (label: 'Discover', path: '/discover', icon: Icons.travel_explore_rounded, tone: Color(0xFF06B6D4)),
+    (label: 'Profile', path: '/profile', icon: Icons.person_rounded, tone: Color(0xFF06B6D4)),
   ];
 
-  List<_CommandItem> get _filtered {
+  List<({String label, String path, IconData icon, Color tone})> get _filtered {
     if (_q.trim().isEmpty) return _all;
     final lq = _q.toLowerCase();
     return _all.where((c) => c.label.toLowerCase().contains(lq)).toList();

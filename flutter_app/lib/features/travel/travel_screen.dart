@@ -12,6 +12,7 @@ import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
 import '../lifecycle/lifecycle_provider.dart';
+import 'travel_stats_header.dart';
 
 /// Travel OS — densely-layered hub for the entire travel ecosystem.
 ///
@@ -113,6 +114,18 @@ class _TravelScreenState extends ConsumerState<TravelScreen>
             ),
           ),
           const SizedBox(height: AppTokens.space5),
+
+          // ── Animated travel stats ──────────────────────────────
+          AnimatedAppearance(
+            delay: const Duration(milliseconds: 80),
+            child: const TravelStatsHeader(
+              countries: 14,
+              flights: 38,
+              distanceKm: 142800,
+              hoursInAir: 196,
+            ),
+          ),
+          const SizedBox(height: AppTokens.space4),
 
           // ── Boarding-ready hero (when an active leg exists) ─────
           if (activeHero != null || upcomingHero != null)

@@ -5,13 +5,17 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../domain/identity_tier.dart';
+import '../../domain/smart_suggestions.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/sparkline.dart';
 import '../lifecycle/lifecycle_provider.dart';
 import '../score/score_provider.dart';
 import '../user/user_provider.dart';
+import '../wallet/wallet_fx_ticker.dart';
 import '../wallet/wallet_provider.dart';
+import 'flight_status_card.dart';
+import 'home_mini_globe.dart';
 
 /// Home — premium dashboard with greeting, identity-tier badge,
 /// upcoming trip glance, wallet glance, and a quick-action grid.
@@ -91,6 +95,76 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
             ),
           ),
+          // ── Smart suggestions ────────────────────────────────
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+            sliver: SliverToBoxAdapter(
+              child: _SmartSuggestionsStrip(
+                suggestions: generateSuggestions(
+                  identityScore: user.profile.identityScore,
+                  tripCount: lifecycle.trips.length,
+                  documentCount: user.documents.length,
+                  walletBalanceCount: wallet.balances.length,
+                  hasUpcomingTrip: lifecycle.trips.any(
+                    (t) => t.stage == 'upcoming',
+                  ),
+                  nextTripDestination: lifecycle.trips.isNotEmpty
+                      ? lifecycle.trips.first.legs.isNotEmpty
+                          ? lifecycle.trips.first.legs.first.to
+                          : null
+                      : null,
+                  daysUntilTrip: 7,
+                  hour: DateTime.now().hour,
+                ),
+              ),
+            ),
+          ),
+          // ── Flight status (when trip active) ──────────────────
+          if (lifecycle.trips.any((t) => t.stage == 'active'))
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTokens.space5,
+                vertical: AppTokens.space2,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: FlightStatusCard(
+                  flightNumber: lifecycle.trips
+                      .firstWhere((t) => t.stage == 'active')
+                      .legs
+                      .first
+                      .flightNumber,
+                  airline: 'GlobeAir',
+                  from: lifecycle.trips
+                      .firstWhere((t) => t.stage == 'active')
+                      .legs
+                      .first
+                      .from,
+                  to: lifecycle.trips
+                      .firstWhere((t) => t.stage == 'active')
+                      .legs
+                      .first
+                      .to,
+                  departureTime: '14:30',
+                  arrivalTime: '21:45',
+                  gate: lifecycle.trips
+                          .firstWhere((t) => t.stage == 'active')
+                          .legs
+                          .first
+                          .gate ??
+                      'B12',
+                  status: FlightStatus.boarding,
+                  progress: 0.0,
+                  tripId: lifecycle.trips
+                      .firstWhere((t) => t.stage == 'active')
+                      .id,
+                  legId: lifecycle.trips
+                      .firstWhere((t) => t.stage == 'active')
+                      .legs
+                      .first
+                      .id,
+                ),
+              ),
+            ),
           SliverToBoxAdapter(
             child: SectionHeader(
               title: 'Next trip',
@@ -100,6 +174,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               onAction: () => context.push('/travel'),
             ),
           ),
+          // ── Mini globe with next trip route ───────────────────
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+            sliver: SliverToBoxAdapter(
+              child: HomeMiniGlobe(
+                height: 170,
+                fromLat: lifecycle.trips.isNotEmpty ? 40.6413 : null,
+                fromLng: lifecycle.trips.isNotEmpty ? -73.7781 : null,
+                toLat: lifecycle.trips.isNotEmpty ? 51.4700 : null,
+                toLng: lifecycle.trips.isNotEmpty ? -0.4543 : null,
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space3)),
           if (lifecycle.trips.isNotEmpty)
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
@@ -121,12 +209,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               onAction: () => context.push('/wallet'),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
-            sliver: SliverToBoxAdapter(
-              child: _WalletStrip(balances: wallet.balances),
-            ),
+          // ── FX ticker ──────────────────────────────────────
+          SliverToBoxAdapter(
+            child: const SectionHeader(title: 'Exchange rates', dense: true),
           ),
+          SliverToBoxAdapter(
+            child: WalletFxTicker(pairs: FxPair.demo()),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space2)),
           SliverToBoxAdapter(
             child: const SectionHeader(title: 'Quick actions'),
           ),
@@ -412,78 +502,6 @@ class _AirportTile extends StatelessWidget {
   }
 }
 
-class _WalletStrip extends StatelessWidget {
-  const _WalletStrip({required this.balances});
-  final List balances; // List<WalletBalance>
-  @override
-  Widget build(BuildContext context) {
-    if (balances.isEmpty) {
-      return GlassSurface(
-        child: Row(
-          children: const [
-            Icon(Icons.account_balance_wallet_outlined),
-            SizedBox(width: AppTokens.space3),
-            Expanded(child: Text('Add a currency or scan a receipt to begin')),
-          ],
-        ),
-      );
-    }
-    return SizedBox(
-      height: 116,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: balances.length,
-        separatorBuilder: (_, __) => const SizedBox(width: AppTokens.space3),
-        itemBuilder: (_, i) => _BalanceTile(balance: balances[i]),
-      ),
-    );
-  }
-}
-
-class _BalanceTile extends StatelessWidget {
-  const _BalanceTile({required this.balance});
-  final dynamic balance;
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SizedBox(
-      width: 200,
-      child: GlassSurface(
-        padding: const EdgeInsets.all(AppTokens.space4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Text(balance.flag as String,
-                    style: const TextStyle(fontSize: 22)),
-                const SizedBox(width: AppTokens.space2),
-                Text(balance.currency as String,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      letterSpacing: 1.2,
-                      fontWeight: FontWeight.w700,
-                    )),
-              ],
-            ),
-            const SizedBox(height: AppTokens.space3),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                '${balance.symbol}${(balance.amount as double).toStringAsFixed(2)}',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _QuickAction extends StatelessWidget {
   const _QuickAction({
     required this.icon,
@@ -542,6 +560,100 @@ class _QuickAction extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Horizontally scrolling smart suggestions band with glowing pills.
+class _SmartSuggestionsStrip extends StatelessWidget {
+  const _SmartSuggestionsStrip({required this.suggestions});
+  final List<SmartSuggestion> suggestions;
+
+  @override
+  Widget build(BuildContext context) {
+    if (suggestions.isEmpty) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: AppTokens.space2),
+          child: Row(
+            children: [
+              Icon(Icons.auto_awesome_rounded,
+                  size: 14,
+                  color: theme.colorScheme.primary.withValues(alpha: 0.65)),
+              const SizedBox(width: 6),
+              Text(
+                'Suggested for you',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.50),
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 48,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: suggestions.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (_, i) {
+              final s = suggestions[i];
+              return GestureDetector(
+                onTap: () {
+                  GoRouter.of(context).push(s.route);
+                },
+                child: AnimatedContainer(
+                  duration: AppTokens.durationSm,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                    gradient: LinearGradient(
+                      colors: [
+                        s.tone.withValues(alpha: 0.18),
+                        s.tone.withValues(alpha: 0.06),
+                      ],
+                    ),
+                    border: Border.all(
+                      color: s.tone.withValues(alpha: 0.30),
+                      width: 0.7,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: s.tone.withValues(alpha: 0.12),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(s.icon, size: 14, color: s.tone),
+                      const SizedBox(width: 6),
+                      Text(
+                        s.title,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: s.tone,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

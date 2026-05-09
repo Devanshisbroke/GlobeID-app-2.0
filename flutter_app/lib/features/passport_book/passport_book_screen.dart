@@ -10,6 +10,7 @@ import '../../widgets/animated_appearance.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
+import '../../widgets/premium_effects.dart';
 import '../../widgets/pressable.dart';
 import '../insights/insights_provider.dart';
 
@@ -97,12 +98,15 @@ class _PassportBookScreenState extends ConsumerState<PassportBookScreen> {
             children: [
               // ── Tier hero ──────────────────────────────────────
               AnimatedAppearance(
-                child: _TierHero(
-                  tier: tier,
-                  tierColor: tierColor,
-                  stampCount: stamps.length,
-                  progress: progress,
-                  nextTier: nextTier,
+                child: HolographicFoil(
+                  borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+                  child: _TierHero(
+                    tier: tier,
+                    tierColor: tierColor,
+                    stampCount: stamps.length,
+                    progress: progress,
+                    nextTier: nextTier,
+                  ),
                 ),
               ),
               const SizedBox(height: AppTokens.space3),

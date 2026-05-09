@@ -19,6 +19,8 @@ import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/sparkline.dart';
 import '../user/user_provider.dart';
+import 'wallet_fx_ticker.dart';
+import 'spending_chart.dart';
 import 'wallet_provider.dart';
 
 /// Wallet screen — Apple/Google-Wallet-style PassStack of boarding passes,
@@ -106,6 +108,26 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
             padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
             sliver: SliverToBoxAdapter(
               child: _BalancesGrid(balances: wallet.balances),
+            ),
+          ),
+          // ── FX ticker ──────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: const SectionHeader(title: 'Exchange rates', dense: true),
+          ),
+          SliverToBoxAdapter(
+            child: WalletFxTicker(
+              pairs: FxPair.demo(),
+              onTap: (_) => context.push('/multi-currency'),
+            ),
+          ),
+          // ── Spending analytics ─────────────────────────────
+          SliverToBoxAdapter(
+            child: const SectionHeader(title: 'Spending', dense: true),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+            sliver: SliverToBoxAdapter(
+              child: SpendingChart(categories: SpendCategory.demo()),
             ),
           ),
           SliverToBoxAdapter(

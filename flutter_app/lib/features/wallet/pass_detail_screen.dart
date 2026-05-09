@@ -11,6 +11,7 @@ import '../../app/theme/app_tokens.dart';
 import '../../data/models/travel_document.dart';
 import '../../domain/airline_brand.dart';
 import '../../widgets/animated_appearance.dart';
+import '../../widgets/premium_effects.dart';
 import '../../widgets/pressable.dart';
 import '../user/user_provider.dart';
 
@@ -241,13 +242,17 @@ class _PassDetailScreenState extends ConsumerState<PassDetailScreen> {
                                   ..rotateX(_tiltX)
                                   ..rotateY(_tiltY),
                                 alignment: Alignment.center,
-                                child: _ImmersivePass(
-                                  pass: pass,
-                                  brand: brand,
-                                  onQrTap: () {
-                                    HapticFeedback.mediumImpact();
-                                    setState(() => _qrBoost = true);
-                                  },
+                                child: TiltShimmer(
+                                  borderRadius: BorderRadius.circular(
+                                      AppTokens.radius3xl),
+                                  child: _ImmersivePass(
+                                    pass: pass,
+                                    brand: brand,
+                                    onQrTap: () {
+                                      HapticFeedback.mediumImpact();
+                                      setState(() => _qrBoost = true);
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
