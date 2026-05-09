@@ -29,8 +29,7 @@ class ItineraryBuilderScreen extends StatefulWidget {
   final Color tone;
 
   @override
-  State<ItineraryBuilderScreen> createState() =>
-      _ItineraryBuilderScreenState();
+  State<ItineraryBuilderScreen> createState() => _ItineraryBuilderScreenState();
 }
 
 class _ItineraryBuilderScreenState extends State<ItineraryBuilderScreen> {
@@ -137,7 +136,8 @@ class _ItineraryBuilderScreenState extends State<ItineraryBuilderScreen> {
               flag: widget.flag,
               badges: [
                 HeroBadge(
-                    label: '${_plan.fold<int>(0, (s, l) => s + l.length)} stops',
+                    label:
+                        '${_plan.fold<int>(0, (s, l) => s + l.length)} stops',
                     icon: Icons.bookmark_rounded),
                 const HeroBadge(
                     label: 'Smart fill', icon: Icons.auto_awesome_rounded),
@@ -170,16 +170,12 @@ class _ItineraryBuilderScreenState extends State<ItineraryBuilderScreen> {
                     padding:
                         const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
                     decoration: BoxDecoration(
-                      color: selected
-                          ? widget.tone
-                          : theme.colorScheme.surface,
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radiusLg),
+                      color: selected ? widget.tone : theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(AppTokens.radiusLg),
                       border: Border.all(
                         color: selected
                             ? widget.tone
-                            : theme.colorScheme.outline
-                                .withValues(alpha: 0.18),
+                            : theme.colorScheme.outline.withValues(alpha: 0.18),
                       ),
                       boxShadow: selected
                           ? [
@@ -235,8 +231,8 @@ class _ItineraryBuilderScreenState extends State<ItineraryBuilderScreen> {
                       'from your taste profile.',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.7),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -419,8 +415,7 @@ class _SlotTile extends StatelessWidget {
                     child: Container(
                       width: 2,
                       margin: const EdgeInsets.only(top: 4),
-                      color: theme.colorScheme.outline
-                          .withValues(alpha: 0.18),
+                      color: theme.colorScheme.outline.withValues(alpha: 0.18),
                     ),
                   ),
               ],
@@ -437,8 +432,7 @@ class _SlotTile extends StatelessWidget {
                     height: 40,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radiusLg),
+                      borderRadius: BorderRadius.circular(AppTokens.radiusLg),
                       color: slot.tone.withValues(alpha: 0.18),
                     ),
                     child: Icon(slot.icon, color: slot.tone, size: 20),
@@ -471,8 +465,8 @@ class _SlotTile extends StatelessWidget {
                   IconButton(
                     onPressed: onRemove,
                     icon: Icon(Icons.delete_outline_rounded,
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.5)),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.5)),
                   ),
                 ],
               ),

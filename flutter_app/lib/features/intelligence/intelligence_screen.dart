@@ -357,8 +357,7 @@ class _ContextStripRail extends StatelessWidget {
             );
 
             return ListView.separated(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: AppTokens.space1),
+              padding: const EdgeInsets.symmetric(horizontal: AppTokens.space1),
               scrollDirection: Axis.horizontal,
               itemCount: chips.length,
               separatorBuilder: (_, __) => const SizedBox(width: 8),
@@ -482,10 +481,10 @@ class _WalletRunwayStrip extends StatelessWidget {
           data: (m) {
             final spend = ((m['monthlySpend'] as num?) ?? 0).toDouble();
             final balance = ((m['balance'] as num?) ?? 0).toDouble();
-            final runway = balance > 0 && spend > 0
-                ? (balance / spend * 30).round()
-                : 0;
-            final pct = balance > 0 ? (spend * 12 / balance).clamp(0.0, 1.0) : 0.0;
+            final runway =
+                balance > 0 && spend > 0 ? (balance / spend * 30).round() : 0;
+            final pct =
+                balance > 0 ? (spend * 12 / balance).clamp(0.0, 1.0) : 0.0;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -502,8 +501,8 @@ class _WalletRunwayStrip extends StatelessWidget {
                       style: theme.textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.4,
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.62),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.62),
                       ),
                     ),
                     const Spacer(),
@@ -520,8 +519,8 @@ class _WalletRunwayStrip extends StatelessWidget {
                     Text(
                       'days',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.6),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -560,8 +559,7 @@ class _WalletRunwayStrip extends StatelessWidget {
                   'Monthly spend \$${spend.toStringAsFixed(0)} of'
                   ' \$${balance.toStringAsFixed(0)} balance',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color:
-                        theme.colorScheme.onSurface.withValues(alpha: 0.62),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
                   ),
                 ),
               ],
@@ -595,8 +593,8 @@ class _PredictiveNextTripCard extends StatelessWidget {
         icon: Icons.cloud_off_rounded,
       ),
       data: (m) {
-        final routes =
-            ((m['topRoutes'] as List?) ?? const []).cast<Map<String, dynamic>>();
+        final routes = ((m['topRoutes'] as List?) ?? const [])
+            .cast<Map<String, dynamic>>();
         final top = routes.isNotEmpty ? routes.first : null;
         final from = (top?['from'] ?? 'JFK').toString();
         final to = (top?['to'] ?? 'LHR').toString();
@@ -764,8 +762,7 @@ class _AlertsFeed extends StatelessWidget {
               child: Text(
                 'No alerts. All systems nominal.',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color:
-                      theme.colorScheme.onSurface.withValues(alpha: 0.62),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
                 ),
               ),
             ),
@@ -838,7 +835,10 @@ class _AlertRow extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [tone.withValues(alpha: 0.36), tone.withValues(alpha: 0.10)],
+                colors: [
+                  tone.withValues(alpha: 0.36),
+                  tone.withValues(alpha: 0.10)
+                ],
               ),
               border: Border.all(color: tone.withValues(alpha: 0.32)),
             ),
@@ -862,8 +862,8 @@ class _AlertRow extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.66),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.66),
                     ),
                   ),
                 ],
@@ -913,8 +913,8 @@ class _TopRoutesPanel extends StatelessWidget {
         icon: Icons.cloud_off_rounded,
       ),
       data: (m) {
-        final routes =
-            ((m['topRoutes'] as List?) ?? const []).cast<Map<String, dynamic>>();
+        final routes = ((m['topRoutes'] as List?) ?? const [])
+            .cast<Map<String, dynamic>>();
         if (routes.isEmpty) {
           return PremiumCard(
             padding: const EdgeInsets.all(AppTokens.space4),
@@ -1009,8 +1009,7 @@ class _TopRouteRow extends StatelessWidget {
               child: Stack(
                 children: [
                   Container(
-                    color:
-                        theme.colorScheme.onSurface.withValues(alpha: 0.06),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
                   ),
                   FractionallySizedBox(
                     widthFactor: pct,
@@ -1153,8 +1152,8 @@ class _SnapTile extends StatelessWidget {
                   Text(
                     suffix,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.58),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.58),
                       fontWeight: FontWeight.w600,
                     ),
                   ),

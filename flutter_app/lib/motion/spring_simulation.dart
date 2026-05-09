@@ -26,31 +26,39 @@ class GlobeSpring {
   static const card = SpringDescription(mass: 0.8, stiffness: 320, damping: 28);
 
   /// Bottom sheets, modals — heavier feel, controlled settle.
-  static const sheet = SpringDescription(mass: 0.5, stiffness: 400, damping: 34);
+  static const sheet =
+      SpringDescription(mass: 0.5, stiffness: 400, damping: 34);
 
   /// Micro-feedback: toggles, chips, icon pops — snappy.
-  static const micro = SpringDescription(mass: 0.3, stiffness: 500, damping: 22);
+  static const micro =
+      SpringDescription(mass: 0.3, stiffness: 500, damping: 22);
 
   /// Page transitions — weighty, cinematic.
   static const page = SpringDescription(mass: 1.0, stiffness: 260, damping: 30);
 
   /// Settle after fling — heavy deceleration.
-  static const settle = SpringDescription(mass: 1.2, stiffness: 180, damping: 36);
+  static const settle =
+      SpringDescription(mass: 1.2, stiffness: 180, damping: 36);
 
   /// Bouncy celebration — tier upgrades, achievements.
-  static const bounce = SpringDescription(mass: 0.6, stiffness: 280, damping: 16);
+  static const bounce =
+      SpringDescription(mass: 0.6, stiffness: 280, damping: 16);
 
   /// Gentle float — ambient particles, breathing elements.
-  static const gentle = SpringDescription(mass: 1.5, stiffness: 80, damping: 14);
+  static const gentle =
+      SpringDescription(mass: 1.5, stiffness: 80, damping: 14);
 
   /// Magnetic snap — card dock, nav indicator.
-  static const magnetic = SpringDescription(mass: 0.4, stiffness: 600, damping: 30);
+  static const magnetic =
+      SpringDescription(mass: 0.4, stiffness: 600, damping: 30);
 
   /// Quick dismiss — swipe away, close.
-  static const dismiss = SpringDescription(mass: 0.3, stiffness: 450, damping: 26);
+  static const dismiss =
+      SpringDescription(mass: 0.3, stiffness: 450, damping: 26);
 
   /// Elastic — pull-to-refresh, overscroll.
-  static const elastic = SpringDescription(mass: 0.7, stiffness: 220, damping: 12);
+  static const elastic =
+      SpringDescription(mass: 0.7, stiffness: 220, damping: 12);
 }
 
 /// Extension to create a [SpringSimulation] from a [SpringDescription].
@@ -70,7 +78,8 @@ extension SpringDescriptionX on SpringDescription {
     // Approximation using damping ratio
     final omega = stiffness / mass;
     final zeta = damping / (2 * mass * omega);
-    final settleTime = zeta > 0 ? (-1 / (zeta * omega)) * (tolerance).abs() : 1.0;
+    final settleTime =
+        zeta > 0 ? (-1 / (zeta * omega)) * (tolerance).abs() : 1.0;
     final ms = (settleTime.abs() * 1000).clamp(100, 2000).toInt();
     return Duration(milliseconds: ms);
   }

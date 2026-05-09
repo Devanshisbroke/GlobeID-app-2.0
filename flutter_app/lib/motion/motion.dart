@@ -18,8 +18,7 @@ class GlobeMotion {
   // ── Curves ─────────────────────────────────────────────────────────
 
   /// Standard outward spring used for entrance + state changes.
-  static const Curve spring =
-      Cubic(0.16, 1.0, 0.30, 1.0); // ease-out-back-ish
+  static const Curve spring = Cubic(0.16, 1.0, 0.30, 1.0); // ease-out-back-ish
 
   /// Soft pop used for taps / micro-feedback.
   static const Curve pop = Cubic(0.34, 1.56, 0.64, 1.0);

@@ -167,8 +167,7 @@ class _KioskScreenState extends State<KioskScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('GATE STATUS',
-                              style:
-                                  AirportFontStack.caption(context)),
+                              style: AirportFontStack.caption(context)),
                           const SizedBox(height: 4),
                           DepartureBoardText(
                             text: _phase.name.toUpperCase(),
@@ -191,8 +190,8 @@ class _KioskScreenState extends State<KioskScreen>
                         const SizedBox(height: 4),
                         DepartureBoardText(
                           text: 'GID 001',
-                          style: AirportFontStack.flightNumber(context,
-                              size: 18),
+                          style:
+                              AirportFontStack.flightNumber(context, size: 18),
                           tone: theme.colorScheme.primary,
                         ),
                       ],
@@ -330,8 +329,7 @@ class _KioskScreenState extends State<KioskScreen>
                           ? const [Color(0xFF10B981), Color(0xFF059669)]
                           : [
                               theme.colorScheme.primary,
-                              theme.colorScheme.primary
-                                  .withValues(alpha: 0.6),
+                              theme.colorScheme.primary.withValues(alpha: 0.6),
                             ],
                     ),
                     boxShadow: AppTokens.shadowMd(
@@ -363,9 +361,7 @@ class _KioskScreenState extends State<KioskScreen>
                       Text(
                         verified
                             ? 'Verify again'
-                            : (scanning
-                                ? 'Verifying…'
-                                : 'Start verification'),
+                            : (scanning ? 'Verifying…' : 'Start verification'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w800,
@@ -499,9 +495,8 @@ class _PhasePill extends StatelessWidget {
         gradient: active
             ? LinearGradient(colors: [accent, accent.withValues(alpha: 0.7)])
             : null,
-        color: active
-            ? null
-            : theme.colorScheme.onSurface.withValues(alpha: 0.06),
+        color:
+            active ? null : theme.colorScheme.onSurface.withValues(alpha: 0.06),
         border: Border.all(
           color: active
               ? Colors.transparent
@@ -595,8 +590,8 @@ class _HmacCard extends StatelessWidget {
                     Text(
                       'HMAC-SHA256 · device-bound',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.66),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.66),
                       ),
                     ),
                   ],
@@ -696,9 +691,7 @@ class _AttemptRow extends StatelessWidget {
               color: tone.withValues(alpha: 0.18),
             ),
             child: Icon(
-              log.success
-                  ? Icons.check_circle_rounded
-                  : Icons.error_rounded,
+              log.success ? Icons.check_circle_rounded : Icons.error_rounded,
               color: tone,
               size: 18,
             ),
@@ -718,8 +711,7 @@ class _AttemptRow extends StatelessWidget {
                   '${log.time} · sig 0x${log.signature.substring(0, 8)}…',
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontFamily: 'monospace',
-                    color:
-                        theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
               ],

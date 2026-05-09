@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 import '../../app/theme/app_tokens.dart';
 
 /// Animated travel stats header with counters that animate from 0.
@@ -138,8 +137,8 @@ class _Stat extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14,
-            color: theme.colorScheme.primary.withValues(alpha: 0.65)),
+        Icon(icon,
+            size: 14, color: theme.colorScheme.primary.withValues(alpha: 0.65)),
         const SizedBox(height: 4),
         Text(
           _format(value),

@@ -82,8 +82,8 @@ class _BoardingGateClockState extends State<BoardingGateClock> {
             children: [
               Text('GATE',
                   style: AirportFontStack.gate(context, size: 11).copyWith(
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.55))),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.55))),
               const SizedBox(height: 4),
               DepartureBoardText(
                 text: widget.gate.toUpperCase(),
@@ -99,8 +99,8 @@ class _BoardingGateClockState extends State<BoardingGateClock> {
             children: [
               Text('BOARDS IN',
                   style: AirportFontStack.gate(context, size: 11).copyWith(
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.55))),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.55))),
               const SizedBox(height: 4),
               Row(
                 mainAxisSize: MainAxisSize.min,

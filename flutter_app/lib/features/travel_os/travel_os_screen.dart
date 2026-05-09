@@ -32,7 +32,8 @@ class TravelOSScreen extends StatefulWidget {
 }
 
 class _TravelOSScreenState extends State<TravelOSScreen> {
-  int _activePhase = 1; // 0=Plan, 1=Pre-flight, 2=Board, 3=Fly, 4=Arrive, 5=Stay, 6=Return
+  int _activePhase =
+      1; // 0=Plan, 1=Pre-flight, 2=Board, 3=Fly, 4=Arrive, 5=Stay, 6=Return
 
   static const _phases = <_Phase>[
     _Phase(
@@ -61,7 +62,8 @@ class _TravelOSScreenState extends State<TravelOSScreen> {
       icon: Icons.flight_takeoff_rounded,
       title: 'Boarding',
       subtitle: 'Gate 78A · 09:25 SFO',
-      summary: 'Boarding opens at 08:55. TSA wait is 18 min. You are in zone 3.',
+      summary:
+          'Boarding opens at 08:55. TSA wait is 18 min. You are in zone 3.',
       tone: Color(0xFF0EA5E9),
     ),
     _Phase(
@@ -128,20 +130,15 @@ class _TravelOSScreenState extends State<TravelOSScreen> {
                 tone: phase.tone,
                 badges: const [
                   HeroBadge(
-                      label: 'Live',
-                      icon: Icons.fiber_manual_record_rounded),
+                      label: 'Live', icon: Icons.fiber_manual_record_rounded),
                   HeroBadge(
-                      label: '7 services synced',
-                      icon: Icons.hub_rounded),
-                  HeroBadge(
-                      label: 'Carbon offset',
-                      icon: Icons.eco_rounded),
+                      label: '7 services synced', icon: Icons.hub_rounded),
+                  HeroBadge(label: 'Carbon offset', icon: Icons.eco_rounded),
                 ],
               ),
             ),
           ),
-          const SliverToBoxAdapter(
-              child: SizedBox(height: AppTokens.space5)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space5)),
           SliverToBoxAdapter(
             child: PremiumCard(
               padding: const EdgeInsets.all(AppTokens.space4),
@@ -246,8 +243,8 @@ class _TravelOSScreenState extends State<TravelOSScreen> {
                               horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
                             color: chain.statusTone.withValues(alpha: 0.16),
-                            borderRadius: BorderRadius.circular(
-                                AppTokens.radiusFull),
+                            borderRadius:
+                                BorderRadius.circular(AppTokens.radiusFull),
                           ),
                           child: Text(
                             chain.status,
@@ -268,16 +265,14 @@ class _TravelOSScreenState extends State<TravelOSScreen> {
               );
             },
           ),
-          const SliverToBoxAdapter(
-              child: SizedBox(height: AppTokens.space5)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space5)),
           SliverToBoxAdapter(
             child: AgenticBand(
               title: 'Promote next',
               chips: _chipsFor(phase.key),
             ),
           ),
-          const SliverToBoxAdapter(
-              child: SizedBox(height: AppTokens.space5)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space5)),
           SliverToBoxAdapter(
             child: CinematicButton(
               label: 'Run full sync',
@@ -297,8 +292,7 @@ class _TravelOSScreenState extends State<TravelOSScreen> {
               },
             ),
           ),
-          const SliverToBoxAdapter(
-              child: SizedBox(height: AppTokens.space9)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space9)),
         ],
       ),
     );

@@ -50,12 +50,11 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
                 const SizedBox(width: AppTokens.space2),
                 if (unread > 0)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primary,
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radiusFull),
+                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                     ),
                     child: Text(
                       '$unread',
@@ -100,8 +99,8 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppTokens.space5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: AppTokens.space5),
                 children: [
                   _FilterChip(
                     label: 'All',
@@ -157,8 +156,7 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
                   style: theme.textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.4,
-                    color: theme.colorScheme.onSurface
-                        .withValues(alpha: 0.55),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
                   ),
                 ),
               ),
@@ -187,7 +185,8 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
 
   List<_DayGroup> _groupByDay(List<InboxItem> items) {
     if (items.isEmpty) return const [];
-    final sorted = [...items]..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    final sorted = [...items]
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
@@ -195,7 +194,8 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
     final t = <InboxItem>[];
     final y = <InboxItem>[];
     for (final it in sorted) {
-      final d = DateTime(it.timestamp.year, it.timestamp.month, it.timestamp.day);
+      final d =
+          DateTime(it.timestamp.year, it.timestamp.month, it.timestamp.day);
       if (d == today) {
         t.add(it);
       } else if (d == yesterday) {
@@ -277,8 +277,7 @@ class _FilterChip extends StatelessWidget {
                 Text(
                   '$count',
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurface
-                        .withValues(alpha: 0.50),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.50),
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
@@ -313,8 +312,8 @@ class _InboxRow extends ConsumerWidget {
           color: const Color(0xFFE11D48).withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(AppTokens.radiusXl),
         ),
-        child: const Icon(Icons.delete_outline_rounded,
-            color: Color(0xFFE11D48)),
+        child:
+            const Icon(Icons.delete_outline_rounded, color: Color(0xFFE11D48)),
       ),
       child: Pressable(
         scale: 0.99,
@@ -352,9 +351,8 @@ class _InboxRow extends ConsumerWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: item.read
-                                  ? FontWeight.w600
-                                  : FontWeight.w800,
+                              fontWeight:
+                                  item.read ? FontWeight.w600 : FontWeight.w800,
                             ),
                           ),
                         ),
@@ -374,8 +372,8 @@ class _InboxRow extends ConsumerWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.70),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.70),
                       ),
                     ),
                     const SizedBox(height: AppTokens.space2),
@@ -414,8 +412,8 @@ class _InboxRow extends ConsumerWidget {
                             decoration: BoxDecoration(
                               color: const Color(0xFFE11D48)
                                   .withValues(alpha: 0.14),
-                              borderRadius: BorderRadius.circular(
-                                  AppTokens.radiusFull),
+                              borderRadius:
+                                  BorderRadius.circular(AppTokens.radiusFull),
                             ),
                             child: const Text(
                               'PRIORITY',

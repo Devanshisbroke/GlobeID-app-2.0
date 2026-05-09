@@ -933,7 +933,12 @@ class DemoData {
 
   static const Map<String, dynamic> _visaPolicies = {
     'policies': [
-      {'destination': 'Japan', 'flag': '🇯🇵', 'status': 'evisa', 'maxStay': 90},
+      {
+        'destination': 'Japan',
+        'flag': '🇯🇵',
+        'status': 'evisa',
+        'maxStay': 90
+      },
       {
         'destination': 'France',
         'flag': '🇫🇷',

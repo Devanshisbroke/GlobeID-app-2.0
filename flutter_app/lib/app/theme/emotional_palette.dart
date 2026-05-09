@@ -196,8 +196,7 @@ class EmotionalShift {
       warmthShift: a.warmthShift + (b.warmthShift - a.warmthShift) * t,
       brightnessShift:
           a.brightnessShift + (b.brightnessShift - a.brightnessShift) * t,
-      glowIntensity:
-          a.glowIntensity + (b.glowIntensity - a.glowIntensity) * t,
+      glowIntensity: a.glowIntensity + (b.glowIntensity - a.glowIntensity) * t,
       accentOverride: t < 0.5 ? a.accentOverride : b.accentOverride,
     );
   }
@@ -207,10 +206,8 @@ class EmotionalShift {
     final hsl = HSLColor.fromColor(color);
     return hsl
         .withHue((hsl.hue + hueShift) % 360)
-        .withSaturation(
-            (hsl.saturation * saturationMultiplier).clamp(0.0, 1.0))
-        .withLightness(
-            (hsl.lightness + brightnessShift).clamp(0.0, 1.0))
+        .withSaturation((hsl.saturation * saturationMultiplier).clamp(0.0, 1.0))
+        .withLightness((hsl.lightness + brightnessShift).clamp(0.0, 1.0))
         .toColor();
   }
 

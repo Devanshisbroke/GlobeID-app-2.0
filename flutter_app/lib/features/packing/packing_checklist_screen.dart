@@ -30,8 +30,7 @@ class PackingChecklistScreen extends StatefulWidget {
   final int tripDays;
 
   @override
-  State<PackingChecklistScreen> createState() =>
-      _PackingChecklistScreenState();
+  State<PackingChecklistScreen> createState() => _PackingChecklistScreenState();
 }
 
 class _PackingChecklistScreenState extends State<PackingChecklistScreen> {
@@ -52,13 +51,19 @@ class _PackingChecklistScreenState extends State<PackingChecklistScreen> {
 
   static const _items = <List<(IconData, String, String)>>[
     [
-      (Icons.assignment_ind_rounded, 'Passport',
-          'Valid 6+ months past return'),
+      (Icons.assignment_ind_rounded, 'Passport', 'Valid 6+ months past return'),
       (Icons.verified_rounded, 'eVisa printout', 'Backup if offline'),
-      (Icons.health_and_safety_rounded, 'Travel insurance card', 'Photo on phone'),
+      (
+        Icons.health_and_safety_rounded,
+        'Travel insurance card',
+        'Photo on phone'
+      ),
       (Icons.confirmation_number_rounded, 'Boarding pass', 'In wallet · live'),
-      (Icons.credit_card_rounded, 'Wallet · cards',
-          '2 cards · separate pockets'),
+      (
+        Icons.credit_card_rounded,
+        'Wallet · cards',
+        '2 cards · separate pockets'
+      ),
       (Icons.payments_rounded, 'Backup cash', '\$100 · for first 24h'),
     ],
     [
@@ -80,8 +85,11 @@ class _PackingChecklistScreenState extends State<PackingChecklistScreen> {
     [
       (Icons.brush_rounded, 'Toothbrush + paste', 'Travel size'),
       (Icons.face_rounded, 'Skincare basics', 'Carry-on safe'),
-      (Icons.medication_rounded, 'Painkillers + bandaids',
-          'Small first-aid kit'),
+      (
+        Icons.medication_rounded,
+        'Painkillers + bandaids',
+        'Small first-aid kit'
+      ),
       (Icons.water_drop_rounded, 'Sunscreen', 'SPF 50'),
       (Icons.face_retouching_natural_rounded, 'Lip balm', ''),
     ],
@@ -130,8 +138,7 @@ class _PackingChecklistScreenState extends State<PackingChecklistScreen> {
                           label: '${widget.tripDays} days',
                           icon: Icons.calendar_today_rounded),
                       const HeroBadge(
-                          label: 'Climate-aware',
-                          icon: Icons.cloud_rounded),
+                          label: 'Climate-aware', icon: Icons.cloud_rounded),
                     ],
                   ),
                   Positioned(
@@ -171,13 +178,11 @@ class _PackingChecklistScreenState extends State<PackingChecklistScreen> {
                   ),
                   const SizedBox(height: 8),
                   ClipRRect(
-                    borderRadius:
-                        BorderRadius.circular(AppTokens.radiusFull),
+                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                     child: LinearProgressIndicator(
                       value: progress,
                       minHeight: 8,
-                      backgroundColor:
-                          widget.tone.withValues(alpha: 0.18),
+                      backgroundColor: widget.tone.withValues(alpha: 0.18),
                       valueColor: AlwaysStoppedAnimation(widget.tone),
                     ),
                   ),
@@ -210,13 +215,11 @@ class _PackingChecklistScreenState extends State<PackingChecklistScreen> {
                       color: selected
                           ? widget.tone.withValues(alpha: 0.18)
                           : theme.colorScheme.surface,
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radiusFull),
+                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                       border: Border.all(
                         color: selected
                             ? widget.tone
-                            : theme.colorScheme.outline
-                                .withValues(alpha: 0.18),
+                            : theme.colorScheme.outline.withValues(alpha: 0.18),
                       ),
                     ),
                     child: Row(
@@ -299,10 +302,9 @@ class _PackingChecklistScreenState extends State<PackingChecklistScreen> {
                               Text(items[i].$2,
                                   style: theme.textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.w800,
-                                    decoration:
-                                        _packed.contains(items[i].$2)
-                                            ? TextDecoration.lineThrough
-                                            : null,
+                                    decoration: _packed.contains(items[i].$2)
+                                        ? TextDecoration.lineThrough
+                                        : null,
                                     color: _packed.contains(items[i].$2)
                                         ? theme.colorScheme.onSurface
                                             .withValues(alpha: 0.5)
@@ -310,8 +312,7 @@ class _PackingChecklistScreenState extends State<PackingChecklistScreen> {
                                   )),
                               if (items[i].$3.isNotEmpty)
                                 Text(items[i].$3,
-                                    style:
-                                        theme.textTheme.bodySmall?.copyWith(
+                                    style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.colorScheme.onSurface
                                           .withValues(alpha: 0.7),
                                     )),
@@ -326,8 +327,7 @@ class _PackingChecklistScreenState extends State<PackingChecklistScreen> {
             ),
           const SizedBox(height: AppTokens.space4),
           const SectionHeader(
-              title: 'After packing',
-              subtitle: 'Common chains from here'),
+              title: 'After packing', subtitle: 'Common chains from here'),
           AgenticBand(
             title: '',
             chips: const [

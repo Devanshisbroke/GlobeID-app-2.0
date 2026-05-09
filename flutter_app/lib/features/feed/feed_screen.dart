@@ -138,7 +138,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     padding: const EdgeInsets.only(top: 64),
                     child: EmptyState(
                       title: 'No matches',
-                      message: 'No activity matches the “${_labelFor(_filter)}” filter.',
+                      message:
+                          'No activity matches the “${_labelFor(_filter)}” filter.',
                       icon: Icons.filter_list_rounded,
                     ),
                   ),
@@ -155,8 +156,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       style: theme.textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.4,
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.55),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.55),
                       ),
                     ),
                   ),
@@ -376,8 +377,8 @@ class _Row extends StatelessWidget {
                     Text(
                       subtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.6),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],

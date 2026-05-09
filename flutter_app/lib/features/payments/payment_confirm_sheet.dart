@@ -128,9 +128,9 @@ class _PaymentConfirmSheetState extends State<PaymentConfirmSheet>
                     width: 44,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radiusFull),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                     ),
                   ),
                 ),
@@ -187,8 +187,8 @@ class _PaymentConfirmSheetState extends State<PaymentConfirmSheet>
                     child: Text(
                       widget.note!,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.65),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.65),
                       ),
                     ),
                   ),
@@ -211,13 +211,13 @@ class _PaymentConfirmSheetState extends State<PaymentConfirmSheet>
                 const SizedBox(height: AppTokens.space2),
                 Center(
                   child: TextButton(
-                    onPressed: () =>
-                        Navigator.of(context).pop(PaymentConfirmResult.cancelled),
+                    onPressed: () => Navigator.of(context)
+                        .pop(PaymentConfirmResult.cancelled),
                     child: Text(
                       'Cancel',
                       style: TextStyle(
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.65),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.65),
                       ),
                     ),
                   ),
@@ -300,8 +300,7 @@ class _SwipeRail extends StatelessWidget {
                     Color.lerp(tone, Colors.white, 0.35)!,
                   ],
                 ),
-                borderRadius:
-                    BorderRadius.circular(AppTokens.radiusFull),
+                borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                 boxShadow: [
                   BoxShadow(
                     color: tone.withValues(alpha: 0.45),

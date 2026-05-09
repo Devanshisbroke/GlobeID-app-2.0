@@ -92,13 +92,12 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                       label: entry.value.label,
                       icon: entry.value.icon,
                       accent: entry.value.accent,
-                      selected: _filter ==
-                          (entry.key == 'all' ? null : entry.key),
+                      selected:
+                          _filter == (entry.key == 'all' ? null : entry.key),
                       onTap: () {
                         HapticFeedback.selectionClick();
                         setState(() {
-                          _filter =
-                              entry.key == 'all' ? null : entry.key;
+                          _filter = entry.key == 'all' ? null : entry.key;
                         });
                       },
                     ),
@@ -118,8 +117,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
           else
             for (var i = 0; i < orderedKeys.length; i++) ...[
               SectionHeader(
-                title: _humanDay(
-                    DateTime.parse('${orderedKeys[i]}T00:00:00')),
+                title: _humanDay(DateTime.parse('${orderedKeys[i]}T00:00:00')),
                 dense: i == 0,
               ),
               for (var j = 0; j < byDay[orderedKeys[i]]!.length; j++)
@@ -167,7 +165,8 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
     if (_dayKey(dt) == _dayKey(today)) return 'Today';
     if (_dayKey(dt) == _dayKey(yesterday)) return 'Yesterday';
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', // ignore: prefer_const_literals_to_create_immutables
+      'Jan', 'Feb', 'Mar', 'Apr', 'May',
+      'Jun', // ignore: prefer_const_literals_to_create_immutables
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
     return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';

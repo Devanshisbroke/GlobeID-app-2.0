@@ -65,23 +65,35 @@ class _PhrasebookScreenState extends State<PhrasebookScreen> {
     [
       ('駅はどこですか?', 'Eki wa doko desu ka?', 'Where is the station?'),
       ('切符を一枚ください', 'Kippu wo ichimai kudasai', 'One ticket, please'),
-      ('次の電車は何時ですか?', 'Tsugi no densha wa nanji desu ka?',
-          'When is the next train?'),
+      (
+        '次の電車は何時ですか?',
+        'Tsugi no densha wa nanji desu ka?',
+        'When is the next train?'
+      ),
       ('降ります', 'Orimasu', 'I am getting off'),
     ],
     [
       ('いくらですか?', 'Ikura desu ka?', 'How much is it?'),
-      ('クレジットカードは使えますか?', 'Kurejitto kaado wa tsukaemasu ka?',
-          'Do you accept credit card?'),
+      (
+        'クレジットカードは使えますか?',
+        'Kurejitto kaado wa tsukaemasu ka?',
+        'Do you accept credit card?'
+      ),
       ('袋はいりません', 'Fukuro wa irimasen', 'I do not need a bag'),
     ],
     [
       ('助けてください', 'Tasukete kudasai', 'Please help me'),
       ('警察を呼んでください', 'Keisatsu wo yonde kudasai', 'Please call the police'),
-      ('救急車を呼んでください', 'Kyuukyuusha wo yonde kudasai',
-          'Please call an ambulance'),
-      ('英語の通訳が必要です', 'Eigo no tsuuyaku ga hitsuyou desu',
-          'I need an English interpreter'),
+      (
+        '救急車を呼んでください',
+        'Kyuukyuusha wo yonde kudasai',
+        'Please call an ambulance'
+      ),
+      (
+        '英語の通訳が必要です',
+        'Eigo no tsuuyaku ga hitsuyou desu',
+        'I need an English interpreter'
+      ),
     ],
   ];
 
@@ -108,7 +120,8 @@ class _PhrasebookScreenState extends State<PhrasebookScreen> {
               badges: const [
                 HeroBadge(label: '160+ phrases', icon: Icons.menu_book_rounded),
                 HeroBadge(
-                    label: 'Voice ready', icon: Icons.record_voice_over_rounded),
+                    label: 'Voice ready',
+                    icon: Icons.record_voice_over_rounded),
                 HeroBadge(label: 'Offline', icon: Icons.cloud_off_rounded),
               ],
             ),
@@ -128,8 +141,8 @@ class _PhrasebookScreenState extends State<PhrasebookScreen> {
                       shape: BoxShape.circle,
                       color: widget.tone.withValues(alpha: 0.18),
                     ),
-                    child: Icon(Icons.mic_rounded,
-                        color: widget.tone, size: 20),
+                    child:
+                        Icon(Icons.mic_rounded, color: widget.tone, size: 20),
                   ),
                   const SizedBox(width: AppTokens.space3),
                   Expanded(
@@ -148,8 +161,8 @@ class _PhrasebookScreenState extends State<PhrasebookScreen> {
                     ),
                   ),
                   Icon(Icons.graphic_eq_rounded,
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.5)),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.5)),
                 ],
               ),
             ),
@@ -182,13 +195,11 @@ class _PhrasebookScreenState extends State<PhrasebookScreen> {
                       color: selected
                           ? widget.tone.withValues(alpha: 0.18)
                           : theme.colorScheme.surface,
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.radiusFull),
+                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                       border: Border.all(
                         color: selected
                             ? widget.tone
-                            : theme.colorScheme.outline
-                                .withValues(alpha: 0.18),
+                            : theme.colorScheme.outline.withValues(alpha: 0.18),
                       ),
                     ),
                     child: Row(
@@ -347,8 +358,8 @@ class _PhraseTile extends StatelessWidget {
                   duration: const Duration(milliseconds: 220),
                   turns: expanded ? 0.5 : 0,
                   child: Icon(Icons.expand_more_rounded,
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.5)),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.5)),
                 ),
               ],
             ),
@@ -372,8 +383,7 @@ class _PhraseTile extends StatelessWidget {
                             const SizedBox(width: AppTokens.space2),
                             Expanded(
                               child: Text(phrase.$3,
-                                  style:
-                                      theme.textTheme.bodyMedium?.copyWith(
+                                  style: theme.textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.w700,
                                   )),
                             ),
