@@ -37,6 +37,7 @@ import '../features/journal/trip_journal_screen.dart';
 import '../features/lounge/lounge_screen.dart';
 import '../features/packing/packing_checklist_screen.dart';
 import '../features/phrasebook/phrasebook_screen.dart';
+import '../features/identity/visa_detail_screen.dart';
 import '../features/sensors/premium_showcase_screen.dart';
 import '../features/sensors/sensors_lab_screen.dart';
 import '../features/services/activities_screen.dart';
@@ -213,6 +214,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/arrival', (_, __) => const ArrivalWelcomeScreen()),
       _route('/sensors-lab', (_, __) => const SensorsLabScreen()),
       _route('/premium-showcase', (_, __) => const PremiumShowcaseScreen()),
+      _route('/visa', (_, __) => const VisaDetailScreen()),
       _route('/globe-cinematic', (_, __) => const CinematicGlobeScreen()),
       _route('/lounge', (_, __) => const LoungeScreen()),
       _route('/esim', (_, __) => const EsimScreen()),

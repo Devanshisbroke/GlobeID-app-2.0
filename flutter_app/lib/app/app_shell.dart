@@ -826,11 +826,28 @@ class _NavItem extends StatelessWidget {
                   child: c,
                 ),
               ),
-              child: Icon(
-                selected ? tab.activeIcon : tab.icon,
+              child: Container(
                 key: ValueKey(selected),
-                color: color,
-                size: compact ? 22 : 24,
+                width: compact ? 26 : 30,
+                height: compact ? 26 : 30,
+                alignment: Alignment.center,
+                decoration: selected
+                    ? BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.55),
+                            blurRadius: 12,
+                            spreadRadius: -2,
+                          ),
+                        ],
+                      )
+                    : null,
+                child: Icon(
+                  selected ? tab.activeIcon : tab.icon,
+                  color: color,
+                  size: compact ? 22 : 24,
+                ),
               ),
             ),
             SizedBox(height: compact ? 3 : 4),

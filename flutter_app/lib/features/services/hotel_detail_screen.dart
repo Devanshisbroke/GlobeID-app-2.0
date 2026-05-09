@@ -9,6 +9,7 @@ import '../../widgets/animated_appearance.dart';
 import '../../widgets/cinematic_button.dart';
 import '../../widgets/cinematic_hero.dart';
 import '../../widgets/page_scaffold.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
@@ -406,7 +407,10 @@ class _GalleryStrip extends StatelessWidget {
         separatorBuilder: (_, __) =>
             const SizedBox(width: AppTokens.space3),
         itemBuilder: (_, i) {
-          return Container(
+          return SensorPendulum(
+            translation: 2.4,
+            rotation: 0.008,
+            child: Container(
             width: 188,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppTokens.radiusXl),
@@ -469,6 +473,7 @@ class _GalleryStrip extends StatelessWidget {
                 ],
               ),
             ),
+          ),
           );
         },
       ),

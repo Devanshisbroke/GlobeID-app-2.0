@@ -100,6 +100,43 @@ class AppTokens {
           offset: const Offset(0, 28),
         ),
       ];
+
+  /// XL elevation — used by floating chrome (HUD, sheets, magnetic
+  /// CTAs in dark mode). Two-layer depth: soft ambient + firm
+  /// directional shadow with the brand tint.
+  static List<BoxShadow> shadowXl({Color? tint}) => [
+        BoxShadow(
+          color: (tint ?? Colors.black).withValues(alpha: 0.16),
+          blurRadius: 14,
+          offset: const Offset(0, 4),
+        ),
+        BoxShadow(
+          color: (tint ?? Colors.black).withValues(alpha: 0.34),
+          blurRadius: 64,
+          offset: const Offset(0, 36),
+        ),
+      ];
+
+  /// Cinematic three-layer depth shadow used by hero cards and
+  /// passport-grade surfaces. Brand-tinted bottom + soft top
+  /// highlight + grounded base shadow.
+  static List<BoxShadow> shadowCinematic({Color? tint}) => [
+        BoxShadow(
+          color: (tint ?? Colors.black).withValues(alpha: 0.06),
+          blurRadius: 1,
+          offset: const Offset(0, -1),
+        ),
+        BoxShadow(
+          color: (tint ?? Colors.black).withValues(alpha: 0.20),
+          blurRadius: 18,
+          offset: const Offset(0, 8),
+        ),
+        BoxShadow(
+          color: (tint ?? Colors.black).withValues(alpha: 0.40),
+          blurRadius: 80,
+          offset: const Offset(0, 44),
+        ),
+      ];
 }
 
 @immutable

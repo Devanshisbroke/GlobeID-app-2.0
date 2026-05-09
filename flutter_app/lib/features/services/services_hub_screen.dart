@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
@@ -47,11 +48,20 @@ class _ServicesHubScreenState extends ConsumerState<ServicesHubScreen>
         ),
         AnimatedAppearance(
           delay: const Duration(milliseconds: 60),
-          child: Text(
-            'Everything you need on the road, all in one place.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
-            ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Everything you need on the road, all in one place.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color:
+                        theme.colorScheme.onSurface.withValues(alpha: 0.65),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppTokens.space2),
+              const PremiumHud(label: 'LIVE', dense: true),
+            ],
           ),
         ),
         const SizedBox(height: AppTokens.space5),

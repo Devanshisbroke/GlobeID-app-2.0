@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/pressable.dart';
 import 'onboarding_provider.dart';
 
@@ -242,19 +243,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                           children: [
                             AnimatedAppearance(
                               key: ValueKey('icon-$i'),
-                              child: Container(
-                                width: 120,
-                                height: 120,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: [slide.start, slide.end],
+                              child: SensorPendulum(
+                                translation: 5,
+                                rotation: 0.025,
+                                child: Container(
+                                  width: 120,
+                                  height: 120,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: [slide.start, slide.end],
+                                    ),
+                                    boxShadow:
+                                        AppTokens.shadowLg(tint: slide.start),
                                   ),
-                                  boxShadow:
-                                      AppTokens.shadowLg(tint: slide.start),
+                                  child: Icon(slide.icon,
+                                      size: 64, color: Colors.white),
                                 ),
-                                child: Icon(slide.icon,
-                                    size: 64, color: Colors.white),
                               ),
                             ),
                             const SizedBox(height: AppTokens.space7),

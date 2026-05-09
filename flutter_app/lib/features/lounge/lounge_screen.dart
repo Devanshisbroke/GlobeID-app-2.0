@@ -8,6 +8,7 @@ import '../../widgets/animated_appearance.dart';
 import '../../widgets/cinematic_button.dart';
 import '../../widgets/cinematic_hero.dart';
 import '../../widgets/page_scaffold.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
@@ -76,6 +77,18 @@ class _LoungeScreenState extends State<LoungeScreen> {
                 HeroBadge(label: 'Wi-Fi 720 Mbps', icon: Icons.wifi_rounded),
                 HeroBadge(label: '24/7', icon: Icons.access_time_rounded),
               ],
+            ),
+          ),
+          const SizedBox(height: AppTokens.space3),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+            child: AnimatedAppearance(
+              delay: const Duration(milliseconds: 60),
+              child: LoungeOccupancyMeter(
+                occupied: 124,
+                capacity: 180,
+                tone: widget.tone,
+              ),
             ),
           ),
           const SizedBox(height: AppTokens.space5),

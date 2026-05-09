@@ -8,6 +8,7 @@ import '../../data/models/lifecycle.dart';
 import '../../domain/airline_brand.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
@@ -128,7 +129,7 @@ class _TravelScreenState extends ConsumerState<TravelScreen>
           const SizedBox(height: AppTokens.space4),
 
           // ── Boarding-ready hero (when an active leg exists) ─────
-          if (activeHero != null || upcomingHero != null)
+          if (activeHero != null || upcomingHero != null) ...[
             AnimatedAppearance(
               delay: const Duration(milliseconds: 100),
               child: _BoardingReadyHero(
@@ -136,6 +137,24 @@ class _TravelScreenState extends ConsumerState<TravelScreen>
                 isActive: activeHero != null,
               ),
             ),
+            // Departure-board callsign block, mirrors the kiosk header.
+            const SizedBox(height: AppTokens.space3),
+            Builder(builder: (context) {
+              final t = (activeHero ?? upcomingHero)!;
+              final brand = resolveAirlineBrand(t.legs.first.flightNumber);
+              return AnimatedAppearance(
+                delay: const Duration(milliseconds: 140),
+                child: FlightCallsignBoard(
+                  callsign: t.legs.first.flightNumber,
+                  fromIata: t.legs.first.from,
+                  toIata: t.legs.last.to,
+                  depart: t.legs.first.scheduled,
+                  gate: t.legs.first.gate,
+                  tone: brand.primary,
+                ),
+              );
+            }),
+          ],
 
           // ── Lifecycle pipeline strip ────────────────────────────
           const SectionHeader(title: 'Trip lifecycle', dense: true),

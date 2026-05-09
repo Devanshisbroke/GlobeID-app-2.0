@@ -8,6 +8,7 @@ import '../../widgets/animated_appearance.dart';
 import '../../widgets/cinematic_button.dart';
 import '../../widgets/cinematic_hero.dart';
 import '../../widgets/page_scaffold.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
@@ -111,6 +112,25 @@ class _EsimScreenState extends State<EsimScreen>
                 HeroBadge(label: 'No physical SIM', icon: Icons.eco_rounded),
                 HeroBadge(label: '180+', icon: Icons.public_rounded),
               ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.space5,
+              AppTokens.space3,
+              AppTokens.space5,
+              0,
+            ),
+            child: AnimatedAppearance(
+              delay: const Duration(milliseconds: 80),
+              child: EsimDataWave(
+                country: _countries[_country].code,
+                dataLabel: _plans[_plan].data,
+                duration: _plans[_plan].duration,
+                priceLabel: _plans[_plan].price,
+                tone: tone,
+                percent: (_plan + 1) / _plans.length,
+              ),
             ),
           ),
           const SectionHeader(

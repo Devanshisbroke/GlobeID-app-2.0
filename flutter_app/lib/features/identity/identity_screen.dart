@@ -165,6 +165,50 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
           ),
         ),
 
+        // ── Travel readiness (visa / passport / verification) ────
+        const SectionHeader(title: 'Travel readiness', dense: true),
+        AnimatedAppearance(
+          delay: const Duration(milliseconds: 140),
+          child: ContextualSurface(
+            child: Row(
+              children: [
+                VisaReadinessRing(
+                  percent: _readinessPercent(user, score),
+                  label: 'Ready to fly',
+                ),
+                const SizedBox(width: AppTokens.space4),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Travel-doc readiness',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Passport sealed, identity score above tier '
+                        'threshold, no expiring visas in 90 days.',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.7),
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
         // ── Quick action grid: surfaces hidden systems ───────────
         const SectionHeader(title: 'Identity systems', dense: true),
         AnimatedAppearance(
@@ -290,6 +334,20 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
       data: (s) => (s as dynamic).score as int,
       orElse: () => (profile as dynamic).identityScore as int,
     );
+  }
+
+  /// Compose a 0-1 readiness score from identity score + verified
+  /// status + presence of a passport. Pure function, deterministic.
+  double _readinessPercent(dynamic user, AsyncValue<dynamic> async) {
+    final s = _resolvedScore(async, user.profile);
+    final verified = (user.profile.verifiedStatus as String).toLowerCase() ==
+        'verified';
+    final hasPassport = (user.documents as Iterable)
+        .any((d) => (d.type as String).toLowerCase() == 'passport');
+    final base = (s.clamp(0, 100) / 100) * 0.7;
+    final verifiedBonus = verified ? 0.18 : 0.0;
+    final passportBonus = hasPassport ? 0.12 : 0.0;
+    return (base + verifiedBonus + passportBonus).clamp(0.0, 1.0);
   }
 
   Color _statusAccent(String status, ThemeData theme) {

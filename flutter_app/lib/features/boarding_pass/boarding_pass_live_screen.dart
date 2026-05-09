@@ -11,6 +11,7 @@ import '../../app/theme/app_tokens.dart';
 import '../../data/models/lifecycle.dart';
 import '../../domain/airline_brand.dart';
 import '../../domain/airports.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/pressable.dart';
 import '../lifecycle/lifecycle_provider.dart';
 import '../user/user_provider.dart';
@@ -204,6 +205,12 @@ class _BoardingPassLiveScreenState
                               size: 20,
                             ),
                           ),
+                        ),
+                        const Spacer(),
+                        PremiumHud(
+                          label: 'BOARDING',
+                          tone: brand.primary,
+                          trailing: Text('GATE ${leg.gate}'),
                         ),
                         const Spacer(),
                         Pressable(
