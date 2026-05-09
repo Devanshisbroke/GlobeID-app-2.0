@@ -10,6 +10,7 @@ import '../../widgets/agentic_chip.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/cinematic_button.dart';
 import '../../widgets/page_scaffold.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
 
@@ -74,25 +75,40 @@ class _ArrivalWelcomeScreenState extends State<ArrivalWelcomeScreen>
       body: ListView(
         physics: const BouncingScrollPhysics(),
         children: [
-          AnimatedAppearance(
-            child: AspectRatio(
-              aspectRatio: 1.45,
-              child: RepaintBoundary(
-                child: AnimatedBuilder(
-                  animation: _ctrl,
-                  builder: (_, __) => ClipRRect(
-                    borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-                    child: CustomPaint(
-                      painter: _ArrivalPainter(
-                        tone: widget.tone,
-                        progress: _ctrl.value,
-                        flag: widget.flag,
-                        city: widget.city,
+          CinematicReveal(
+            tone: widget.tone,
+            child: Stack(
+              children: [
+                AspectRatio(
+                  aspectRatio: 1.45,
+                  child: RepaintBoundary(
+                    child: AnimatedBuilder(
+                      animation: _ctrl,
+                      builder: (_, __) => ClipRRect(
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.radius2xl),
+                        child: CustomPaint(
+                          painter: _ArrivalPainter(
+                            tone: widget.tone,
+                            progress: _ctrl.value,
+                            flag: widget.flag,
+                            city: widget.city,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
+                Positioned(
+                  top: AppTokens.space3,
+                  right: AppTokens.space3,
+                  child: PremiumHud(
+                    label: 'ARRIVED',
+                    tone: widget.tone,
+                    trailing: Text(widget.timezone),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: AppTokens.space4),
