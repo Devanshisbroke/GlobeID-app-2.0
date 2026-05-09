@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,7 @@ import 'app/router.dart';
 import 'app/theme/app_theme.dart';
 import 'core/performance_overlay.dart';
 import 'features/settings/theme_prefs_provider.dart';
+import 'widgets/inline_error_widget.dart';
 
 /// GlobeID Flutter — entry point.
 ///
@@ -22,6 +24,29 @@ Future<void> main() async {
     statusBarColor: Colors.transparent,
     systemNavigationBarColor: Colors.transparent,
   ));
+  // Replace Flutter's default red-box ErrorWidget with a compact,
+  // theme-aware inline diagnostic so a single broken sub-tree never
+  // blanks an entire screen. See widgets/inline_error_widget.dart.
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return InlineErrorWidget(details: details);
+  };
+
+  // Mirror Flutter framework errors to console so we can surface
+  // paint-phase exceptions during development / web profile builds.
+  final defaultOnError = FlutterError.onError;
+  FlutterError.onError = (FlutterErrorDetails details) {
+    defaultOnError?.call(details);
+    if (kDebugMode || kProfileMode) {
+      // ignore: avoid_print
+      print('▶▶ FlutterError: ${details.exceptionAsString()}');
+      // ignore: avoid_print
+      print('   library: ${details.library}');
+      if (details.context != null) {
+        // ignore: avoid_print
+        print('   context: ${details.context}');
+      }
+    }
+  };
   await AppBoot.bootstrap();
   // Frame-timing FPS sampler — only active in debug mode.
   PerformanceMonitor.instance.start();

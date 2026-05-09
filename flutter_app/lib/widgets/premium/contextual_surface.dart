@@ -55,6 +55,13 @@ class ContextualSurface extends StatelessWidget {
     final accent = shift.accentOverride ?? theme.colorScheme.primary;
     final radiusObj = BorderRadius.circular(radius);
 
+    // Compose decoration + sheen onto a single Container so the
+    // surface always has an intrinsic size driven by [child]. The
+    // previous implementation used `Stack` with two `Positioned.fill`
+    // children and no non-positioned sibling, which meant the Stack
+    // had no way to size itself when placed inside an unbounded sliver
+    // (e.g., a `SliverToBoxAdapter`). This produced a layout-time null
+    // dereference and blanked every section that followed.
     final body = Container(
       padding: padding,
       decoration: BoxDecoration(
@@ -63,7 +70,7 @@ class ContextualSurface extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             base,
-            Color.lerp(base, accent, 0.06 + shift.glowIntensity * 0.18)!,
+            Color.lerp(base, accent, 0.06 + shift.glowIntensity * 0.18) ?? base,
           ],
         ),
         borderRadius: radiusObj,
@@ -86,33 +93,23 @@ class ContextualSurface extends StatelessWidget {
           ),
         ],
       ),
+      foregroundDecoration: BoxDecoration(
+        borderRadius: radiusObj,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.center,
+          colors: [
+            Colors.white.withValues(alpha: isDark ? 0.06 : 0.34),
+            Colors.white.withValues(alpha: 0),
+          ],
+        ),
+      ),
       child: child,
     );
 
     final clipped = ClipRRect(
       borderRadius: radiusObj,
-      child: Stack(
-        children: [
-          Positioned.fill(child: body),
-          // Sheen that biases toward the accent
-          Positioned.fill(
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.center,
-                    colors: [
-                      Colors.white.withValues(alpha: isDark ? 0.06 : 0.34),
-                      Colors.white.withValues(alpha: 0),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+      child: body,
     );
 
     if (!allowGlass) return clipped;
