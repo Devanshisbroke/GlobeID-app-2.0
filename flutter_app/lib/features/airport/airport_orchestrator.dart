@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -20,8 +19,8 @@ class AirportOrchestratorScreen extends StatefulWidget {
 class _AirportOrchestratorState extends State<AirportOrchestratorScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulse;
-  String _gate = 'B44';
-  int _walkMin = 8;
+  final String _gate = 'B44';
+  final int _walkMin = 8;
 
   @override
   void initState() {
