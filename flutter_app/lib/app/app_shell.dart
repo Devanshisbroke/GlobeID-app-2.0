@@ -16,6 +16,7 @@ import '../features/voice/voice_command_overlay.dart';
 import '../features/wallet/wallet_provider.dart';
 import '../widgets/atmosphere_layer.dart';
 import '../widgets/aurora_layer.dart';
+import '../widgets/bible/bible.dart';
 import '../widgets/pressable.dart';
 import 'theme/app_theme.dart';
 import 'theme/app_tokens.dart';
@@ -124,6 +125,18 @@ class _AppShellState extends ConsumerState<AppShell>
         body: Stack(
           children: [
             const Positioned.fill(child: AtmosphereLayer()),
+            // Bible §4.1 — every screen has a slowly breathing
+            // 4-stop gradient. The flavor follows the active tab so
+            // each surface inherits its bible-mandated emotional
+            // palette (Identity garnet+gold, Wallet treasury green,
+            // Travel jet cyan, Globe equator teal). Tones are held
+            // under 8 % alpha so the substrate dominates and content
+            // remains fully readable.
+            Positioned.fill(
+              child: IgnorePointer(
+                child: _bibleBackdropFor(activeIndex),
+              ),
+            ),
             // Aurora colour-field layer adds cinematic depth without
             // taxing the GPU — single ticker, blendMode plus.
             Positioned.fill(
@@ -175,6 +188,26 @@ class _AppShellState extends ConsumerState<AppShell>
       if (p != '/' && location.startsWith(p)) return i;
     }
     return 0;
+  }
+
+  /// Returns the bible-mandated [LivingGradient] flavor for the
+  /// currently active tab. The tab order is Home / Identity / Wallet
+  /// / Travel / Services / Globe — each tab gets its own contextual
+  /// tone palette per bible §4.1.
+  Widget _bibleBackdropFor(int activeIndex) {
+    switch (activeIndex) {
+      case 1:
+        return LivingGradient.identity();
+      case 2:
+        return LivingGradient.wallet();
+      case 5:
+        return LivingGradient.globe();
+      case 0:
+      case 3:
+      case 4:
+      default:
+        return LivingGradient.travel();
+    }
   }
 }
 
