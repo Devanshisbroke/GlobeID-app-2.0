@@ -11,6 +11,7 @@ import '../../widgets/animated_appearance.dart';
 import '../../widgets/cinematic_button.dart';
 import '../../widgets/cinematic_hero.dart';
 import '../../widgets/page_scaffold.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
@@ -33,6 +34,17 @@ class _FlightsScreenState extends State<FlightsScreen> {
   String _to = 'NRT';
   int _dayOffset = 7;
   String _cabin = 'eco';
+
+  /// Pure deterministic departure label for a given day offset, used
+  /// to drive the Solari callsign board.
+  String _depTimeFor(int offset) {
+    final base = DateTime.now().add(Duration(days: offset));
+    final hh = ((base.day * 7 + offset * 3) % 18 + 5)
+        .toString()
+        .padLeft(2, '0');
+    final mm = ((base.day * 13) % 12 * 5).toString().padLeft(2, '0');
+    return '$hh:$mm';
+  }
 
   static const _filters = <BespokeFilter>[
     BespokeFilter(key: 'eco', label: 'Economy', icon: Icons.airline_seat_recline_normal_rounded),
@@ -66,6 +78,27 @@ class _FlightsScreenState extends State<FlightsScreen> {
                 onPickFrom: () => _pickAirport(true),
                 onPickTo: () => _pickAirport(false),
                 tone: _tone,
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.space5,
+              AppTokens.space3,
+              AppTokens.space5,
+              0,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: AnimatedAppearance(
+                delay: const Duration(milliseconds: 80),
+                child: FlightCallsignBoard(
+                  callsign: 'GID 001',
+                  fromIata: _from,
+                  toIata: _to,
+                  depart: _depTimeFor(_dayOffset),
+                  gate: 'A12',
+                  tone: _tone,
+                ),
               ),
             ),
           ),

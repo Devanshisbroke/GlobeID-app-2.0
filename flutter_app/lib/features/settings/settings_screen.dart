@@ -88,6 +88,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/settings/lab'),
                   ),
                   _SettingsRow(
+                    icon: Icons.auto_awesome_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Premium UI showcase',
+                    sub: 'Magnetic · liquid · solari · sensor',
+                    onTap: () => context.push('/premium-showcase'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
