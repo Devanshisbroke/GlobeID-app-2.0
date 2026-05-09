@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +7,8 @@ import '../../widgets/glass_surface.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
+import '../boarding_pass/boarding_gate_clock.dart';
+import 'airport_journey_strip.dart';
 
 /// Airport orchestration — terminal maps, gate info, connection timers,
 /// amenity chips, and real-time gate assignment simulation.
@@ -20,8 +21,8 @@ class AirportOrchestratorScreen extends StatefulWidget {
 class _AirportOrchestratorState extends State<AirportOrchestratorScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulse;
-  String _gate = 'B44';
-  int _walkMin = 8;
+  final String _gate = 'B44';
+  final int _walkMin = 8;
 
   @override
   void initState() {
@@ -43,6 +44,57 @@ class _AirportOrchestratorState extends State<AirportOrchestratorScreen>
         padding: const EdgeInsets.fromLTRB(
             AppTokens.space5, 0, AppTokens.space5, AppTokens.space9),
         children: [
+          // ── Premium gate clock + journey strip ─────────────
+          AnimatedAppearance(
+            child: BoardingGateClock(
+              gate: _gate,
+              boardingTime:
+                  DateTime.now().add(const Duration(minutes: 28)),
+            ),
+          ),
+          const SizedBox(height: AppTokens.space3),
+          AnimatedAppearance(
+            delay: const Duration(milliseconds: 40),
+            child: const AirportJourneyStrip(
+              activeIndex: 2,
+              stages: [
+                AirportStage(
+                    id: 'check-in',
+                    title: 'Check-in',
+                    icon: Icons.assignment_turned_in_rounded,
+                    subtitle: 'OK'),
+                AirportStage(
+                    id: 'security',
+                    title: 'Security',
+                    icon: Icons.shield_rounded,
+                    subtitle: '6 min'),
+                AirportStage(
+                    id: 'lounge',
+                    title: 'Lounge',
+                    icon: Icons.weekend_rounded,
+                    subtitle: 'Open'),
+                AirportStage(
+                    id: 'gate',
+                    title: 'Gate',
+                    icon: Icons.airplane_ticket_rounded,
+                    subtitle: 'B44'),
+                AirportStage(
+                    id: 'boarding',
+                    title: 'Boarding',
+                    icon: Icons.airline_seat_recline_normal_rounded,
+                    subtitle: '14:25'),
+                AirportStage(
+                    id: 'onboard',
+                    title: 'Onboard',
+                    icon: Icons.flight_takeoff_rounded),
+                AirportStage(
+                    id: 'arrival',
+                    title: 'Arrival',
+                    icon: Icons.flag_rounded),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppTokens.space4),
           // ── Live gate card ─────────────────────────────────
           AnimatedAppearance(child: _GateHero(gate: _gate, pulse: _pulse, walkMin: _walkMin)),
           const SizedBox(height: AppTokens.space4),

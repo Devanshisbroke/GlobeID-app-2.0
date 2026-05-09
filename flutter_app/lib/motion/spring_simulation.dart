@@ -132,9 +132,21 @@ class SpringAnimationController extends AnimationController {
   }
 
   /// Fling with the given [velocity], settling at nearest bound.
-  TickerFuture fling({double velocity = 1.0}) {
+  ///
+  /// Mirrors [AnimationController.fling] but routes through this
+  /// controller's [spring] description so call sites get consistent
+  /// physics. The optional [animationBehavior] / [springDescription]
+  /// parameters are accepted for signature parity with the parent
+  /// override but are intentionally ignored — use [SpringAnimationController.spring]
+  /// directly to change physics.
+  @override
+  TickerFuture fling({
+    double velocity = 1.0,
+    SpringDescription? springDescription,
+    AnimationBehavior? animationBehavior,
+  }) {
     final target = velocity > 0 ? upperBound : lowerBound;
-    return animateWith(spring.toSimulation(
+    return animateWith((springDescription ?? spring).toSimulation(
       from: value,
       to: target,
       velocity: velocity,
@@ -246,12 +258,10 @@ class SpringValue extends StatefulWidget {
 class _SpringValueState extends State<SpringValue>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
-  double _current = 0;
 
   @override
   void initState() {
     super.initState();
-    _current = widget.value;
     _ctrl = AnimationController.unbounded(
       vsync: this,
       value: widget.value,

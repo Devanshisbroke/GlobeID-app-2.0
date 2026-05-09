@@ -119,15 +119,20 @@ VoiceIntent parseVoiceIntent(String transcript) {
     }
   }
 
-  // Numeric: "trip 3", "pass 2"
-  final num = RegExp(r'\b(trip|pass|document)\s+(\d+)\b').firstMatch(t);
+  // Numeric: "trip 3", "pass 2", "trip number 3", "pass #2"
+  final num = RegExp(
+          r'\b(trip|pass|document)\s+(?:number\s+|no\.?\s+|#)?(\d+)\b')
+      .firstMatch(t);
   if (num != null) {
     return NumericIntent(num.group(1)!, int.parse(num.group(2)!),
         'Open ${num.group(1)} ${num.group(2)}');
   }
 
-  // Translate
-  final tr = RegExp(r'\btranslate(?: this)?(?: to)?\s+(\w+)\b').firstMatch(t);
+  // Translate — handles "translate to french", "translate this into french",
+  // "translate this in spanish".
+  final tr = RegExp(
+          r'\btranslate(?:\s+this)?(?:\s+(?:to|into|in))?\s+(\w+)\b')
+      .firstMatch(t);
   if (tr != null) {
     final lang = _langMap[tr.group(1)] ?? tr.group(1)!;
     return TranslateIntent(lang, 'Translate to $lang');
@@ -139,14 +144,15 @@ VoiceIntent parseVoiceIntent(String transcript) {
     return RemindIntent(rem.group(1)!.trim(), rem.group(2)?.trim(), 'Reminder');
   }
 
-  // Compose: "book a hotel in tokyo for next friday"
+  // Compose: "book a hotel in tokyo for next friday" — supports multi-word
+  // place ("new york", "san francisco") and multi-word when phrase.
   final cmp = RegExp(
-          r'^(book|find|plan)\s+(?:a\s+|the\s+)?(\w+)(?:\s+in\s+(\w+))?(?:\s+for\s+(.+))?$')
+          r'^(book|find|plan)\s+(?:a\s+|an\s+|the\s+)?(\w+)(?:\s+in\s+([\w\s]+?))??(?:\s+for\s+(.+))?$')
       .firstMatch(t);
   if (cmp != null) {
     final meta = <String, String>{};
-    if (cmp.group(3) != null) meta['where'] = cmp.group(3)!;
-    if (cmp.group(4) != null) meta['when'] = cmp.group(4)!;
+    if (cmp.group(3) != null) meta['place'] = cmp.group(3)!.trim();
+    if (cmp.group(4) != null) meta['when'] = cmp.group(4)!.trim();
     return ComposeIntent(
       cmp.group(1)!,
       cmp.group(2)!,

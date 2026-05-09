@@ -16,10 +16,12 @@ import '../../widgets/animated_number.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/pressable.dart';
+import '../../app/theme/emotional_palette.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/sparkline.dart';
 import '../user/user_provider.dart';
 import 'wallet_fx_ticker.dart';
+import 'wallet_hero_card.dart';
 import 'spending_chart.dart';
 import 'wallet_provider.dart';
 
@@ -79,6 +81,40 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
                     icon: const Icon(Icons.currency_exchange_rounded),
                   ),
                 ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.space5,
+              AppTokens.space2,
+              AppTokens.space5,
+              AppTokens.space4,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: WalletHeroCard(
+                balance: wallet.balances.fold<double>(
+                  0,
+                  (sum, b) =>
+                      sum + (b.currency == wallet.defaultCurrency ? b.amount : 0),
+                ),
+                currency: wallet.defaultCurrency,
+                emotion: EmotionalPalette.detect(),
+                subtitle:
+                    '${wallet.balances.length} currencies • ${wallet.transactions.length} recent transactions',
+                progress: wallet.balances.isEmpty
+                    ? 0
+                    : (wallet.balances
+                                .firstWhere(
+                                  (b) => b.currency == wallet.defaultCurrency,
+                                  orElse: () => wallet.balances.first,
+                                )
+                                .amount /
+                            5000)
+                        .clamp(0.05, 1.0),
+                onSend: () => context.push('/wallet/send'),
+                onConvert: () => context.push('/multi-currency-pour'),
+                onScanPay: () => context.push('/wallet/scan'),
               ),
             ),
           ),

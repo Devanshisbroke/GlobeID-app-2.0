@@ -143,6 +143,63 @@ class HapticPatterns {
   static const pourTick = HapticSequence([
     HapticImpulse(HapticType.selection),
   ]);
+
+  /// Currency pour finale — soft thunk + selection chime when the
+  /// pour settles at the target value.
+  static const currencyPourEnd = HapticSequence([
+    HapticImpulse(HapticType.medium, delayAfter: Duration(milliseconds: 60)),
+    HapticImpulse(HapticType.selection),
+  ]);
+
+  /// Magnetic snap — heavier than [snap], used when something genuinely
+  /// docks (boarding pass into wallet, card into stack).
+  static const magneticSnap = HapticSequence([
+    HapticImpulse(HapticType.medium, delayAfter: Duration(milliseconds: 30)),
+    HapticImpulse(HapticType.heavy),
+  ]);
+
+  /// Boarding pulse — gate is calling group / countdown crossed a
+  /// boundary. Two soft taps → one heavy lock.
+  static const boardingPulse = HapticSequence([
+    HapticImpulse(HapticType.light, delayAfter: Duration(milliseconds: 80)),
+    HapticImpulse(HapticType.light, delayAfter: Duration(milliseconds: 80)),
+    HapticImpulse(HapticType.heavy),
+  ]);
+
+  /// Payment swipe — used by `PaymentConfirmSheet` while the user
+  /// drags the magnetic CTA across the rail.
+  static const paymentSwipe = HapticSequence([
+    HapticImpulse(HapticType.light, delayAfter: Duration(milliseconds: 50)),
+    HapticImpulse(HapticType.medium, delayAfter: Duration(milliseconds: 70)),
+    HapticImpulse(HapticType.heavy),
+  ]);
+
+  /// Arrival chime — soft single-note feel for "Welcome to [city]".
+  static const arrivalChime = HapticSequence([
+    HapticImpulse(HapticType.selection, delayAfter: Duration(milliseconds: 90)),
+    HapticImpulse(HapticType.light),
+  ]);
+
+  /// Gate ping — single light selection used when the airport
+  /// orchestrator advances stages (`Check-in → Security`, etc.).
+  static const gatePing = HapticSequence([
+    HapticImpulse(HapticType.selection),
+  ]);
+
+  /// Passport seal — secure-copy / vault-add success.
+  static const passportSeal = HapticSequence([
+    HapticImpulse(HapticType.medium, delayAfter: Duration(milliseconds: 50)),
+    HapticImpulse(HapticType.heavy, delayAfter: Duration(milliseconds: 60)),
+    HapticImpulse(HapticType.selection),
+  ]);
+
+  /// Kiosk scan — the deterministic biometric/check-in shimmer scan
+  /// finished. Heavier than [scanSuccess] because it's terminal.
+  static const kioskScan = HapticSequence([
+    HapticImpulse(HapticType.heavy, delayAfter: Duration(milliseconds: 30)),
+    HapticImpulse(HapticType.medium, delayAfter: Duration(milliseconds: 30)),
+    HapticImpulse(HapticType.heavy),
+  ]);
 }
 
 /// Convenience class wrapping [HapticPatterns] for easy call-site usage.

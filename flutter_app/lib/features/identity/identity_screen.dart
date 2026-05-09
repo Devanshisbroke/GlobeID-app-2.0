@@ -15,11 +15,14 @@ import '../../widgets/animated_appearance.dart';
 import '../../widgets/animated_number.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_surface.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
 import '../score/score_provider.dart';
 import '../user/user_provider.dart';
+import 'identity_score_constellation.dart';
 import 'identity_timeline.dart';
+import 'passport_book_premium.dart';
 import 'score_explainer_sheet.dart';
 import 'tier_progression.dart';
 
@@ -114,6 +117,50 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
               score: user.profile.identityScore,
               tier: IdentityTier.forScore(user.profile.identityScore),
               history: const [],
+            ),
+          ),
+        ),
+
+        // ── Premium identity surface (passport + constellation) ──
+        const SectionHeader(title: 'Your identity'),
+        AnimatedAppearance(
+          delay: const Duration(milliseconds: 140),
+          child: ContextualSurface(
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.space5,
+              AppTokens.space5,
+              AppTokens.space5,
+              AppTokens.space4,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: PassportBookPremium(
+                    country: user.profile.nationality.isEmpty
+                        ? 'GLOBE'
+                        : user.profile.nationality,
+                    holderName: user.profile.name,
+                    tier: IdentityTier.forScore(
+                      _resolvedScore(score, user.profile),
+                    ).label,
+                    sealed: user.profile.verifiedStatus.toLowerCase() ==
+                        'verified',
+                    heroTag: 'identity-passport-${user.profile.userId}',
+                  ),
+                ),
+                const SizedBox(width: AppTokens.space4),
+                Expanded(
+                  flex: 5,
+                  child: IdentityScoreConstellation(
+                    score: _resolvedScore(score, user.profile),
+                    tier: IdentityTier.forScore(
+                      _resolvedScore(score, user.profile),
+                    ).label,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

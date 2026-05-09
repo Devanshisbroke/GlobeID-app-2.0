@@ -8,6 +8,7 @@ import '../../widgets/animated_appearance.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
+import 'premium_service_card.dart';
 
 /// Unified services hub. Sectioned by intent (Travel essentials, Money,
 /// Identity, Lifestyle, Tools), each tile is a premium pressable card
@@ -59,6 +60,78 @@ class _ServicesHubScreenState extends ConsumerState<ServicesHubScreen>
         AnimatedAppearance(
           delay: const Duration(milliseconds: 80),
           child: _FeaturedFastPath(),
+        ),
+
+        const SectionHeader(title: 'Featured', dense: true),
+        AnimatedAppearance(
+          delay: const Duration(milliseconds: 100),
+          child: SizedBox(
+            height: 188,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(vertical: AppTokens.space2),
+              children: [
+                SizedBox(
+                  width: 240,
+                  child: PremiumServiceCard(
+                    title: 'Hotels',
+                    subtitle: 'Premium stays curated by Globe',
+                    icon: Icons.hotel_rounded,
+                    tone: const Color(0xFF8B5CF6),
+                    tag: 'Concierge',
+                    onTap: () => context.push('/services/hotels'),
+                  ),
+                ),
+                const SizedBox(width: AppTokens.space3),
+                SizedBox(
+                  width: 240,
+                  child: PremiumServiceCard(
+                    title: 'eSIM',
+                    subtitle: 'Connect in 30s · 200 countries',
+                    icon: Icons.sim_card_rounded,
+                    tone: const Color(0xFF10B981),
+                    tag: 'New',
+                    onTap: () => context.push('/esim'),
+                  ),
+                ),
+                const SizedBox(width: AppTokens.space3),
+                SizedBox(
+                  width: 240,
+                  child: PremiumServiceCard(
+                    title: 'Lounges',
+                    subtitle: 'Worldwide access via Globe Identity',
+                    icon: Icons.weekend_rounded,
+                    tone: const Color(0xFFF59E0B),
+                    tag: 'Tier',
+                    onTap: () => context.push('/lounge'),
+                  ),
+                ),
+                const SizedBox(width: AppTokens.space3),
+                SizedBox(
+                  width: 240,
+                  child: PremiumServiceCard(
+                    title: 'Rides',
+                    subtitle: 'Airport-to-door black car',
+                    icon: Icons.directions_car_rounded,
+                    tone: const Color(0xFFEC4899),
+                    onTap: () => context.push('/services/rides'),
+                  ),
+                ),
+                const SizedBox(width: AppTokens.space3),
+                SizedBox(
+                  width: 240,
+                  child: PremiumServiceCard(
+                    title: 'Concierge',
+                    subtitle: 'Real human help, anywhere',
+                    icon: Icons.support_agent_rounded,
+                    tone: const Color(0xFF3B82F6),
+                    onTap: () => context.push('/copilot'),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
 
         const SectionHeader(title: 'Travel essentials', dense: true),
