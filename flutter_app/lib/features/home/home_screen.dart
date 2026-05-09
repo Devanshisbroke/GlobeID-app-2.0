@@ -7,6 +7,7 @@ import '../../app/theme/app_tokens.dart';
 import '../../domain/identity_tier.dart';
 import '../../domain/smart_suggestions.dart';
 import '../../widgets/glass_surface.dart';
+import '../../widgets/premium/premium.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/sparkline.dart';
 import '../lifecycle/lifecycle_provider.dart';
@@ -92,6 +93,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     score: user.profile.identityScore,
                     tier: IdentityTier.forScore(user.profile.identityScore),
                     history: const []),
+              ),
+            ),
+          ),
+          // ── System pulse strip (live state) ───────────────────
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.space5,
+              AppTokens.space2,
+              AppTokens.space5,
+              0,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: PremiumPulseStrip(
+                pulses: [
+                  PulseTile(
+                    label: 'Identity',
+                    value: '${user.profile.identityScore}',
+                    tone: theme.colorScheme.primary,
+                    icon: Icons.verified_user_rounded,
+                  ),
+                  PulseTile(
+                    label: 'Wallet',
+                    value: wallet.balances.isEmpty
+                        ? '—'
+                        : '${wallet.balances.length} ccy',
+                    tone: const Color(0xFF10B981),
+                    icon: Icons.account_balance_wallet_rounded,
+                  ),
+                  PulseTile(
+                    label: 'Trips',
+                    value: '${lifecycle.trips.length}',
+                    tone: const Color(0xFFD97706),
+                    icon: Icons.flight_takeoff_rounded,
+                  ),
+                ],
               ),
             ),
           ),

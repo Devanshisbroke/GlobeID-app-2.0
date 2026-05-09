@@ -179,6 +179,23 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
             sliver: SliverToBoxAdapter(
+              child: ContextualSurface(
+                child: PremiumSparkline(
+                  values: _spendingTrend(),
+                  label: 'Last 30 days',
+                  delta: -3.4,
+                  height: 64,
+                ),
+              ),
+            ),
+          ),
+          const SliverPadding(
+            padding: EdgeInsets.only(top: AppTokens.space2),
+            sliver: SliverToBoxAdapter(child: SizedBox.shrink()),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+            sliver: SliverToBoxAdapter(
               child: SpendingChart(categories: SpendCategory.demo()),
             ),
           ),
@@ -212,6 +229,20 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
         ],
       ),
     );
+  }
+
+  /// Deterministic 30-day spending series. Uses identity-stable
+  /// arithmetic so the chart always renders the same shape across
+  /// session restarts.
+  List<double> _spendingTrend() {
+    const base = 84.0;
+    return [
+      for (var i = 0; i < 30; i++)
+        base +
+            math.sin(i * 0.42).abs() * 12 +
+            ((i * 7) % 9) * 1.4 -
+            ((i * 3) % 5) * 1.1,
+    ];
   }
 }
 

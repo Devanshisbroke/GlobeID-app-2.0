@@ -230,6 +230,15 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
             child: _CredentialsGallery(documents: user.documents),
           ),
 
+        // ── Premium 3D credential stack ──────────────────────────
+        const SectionHeader(title: 'Wallet of credentials', dense: true),
+        AnimatedAppearance(
+          delay: const Duration(milliseconds: 240),
+          child: CredentialGallery(
+            cards: _credentialCards(user, score),
+          ),
+        ),
+
         // ── Tier ladder ──────────────────────────────────────────
         const SectionHeader(title: 'Tier ladder'),
         AnimatedAppearance(
@@ -334,6 +343,52 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
       data: (s) => (s as dynamic).score as int,
       orElse: () => (profile as dynamic).identityScore as int,
     );
+  }
+
+  /// Build deterministic premium credential cards for the 3D stack.
+  /// Always returns the user's three highest-priority credentials
+  /// (Passport · Identity · Boarding/E-SIM/Vault depending on
+  /// availability).
+  List<CredentialCardData> _credentialCards(
+    dynamic user,
+    AsyncValue<dynamic> score,
+  ) {
+    final profile = user.profile;
+    final passportCode = (profile.passportNumber as String).isNotEmpty
+        ? profile.passportNumber as String
+        : 'PNL •••• ••••';
+    final tier = IdentityTier.forScore(_resolvedScore(score, profile)).label;
+    return [
+      CredentialCardData(
+        title: 'Passport',
+        subtitle: profile.name as String,
+        code: passportCode,
+        tone: const Color(0xFF1D4ED8),
+        icon: Icons.menu_book_rounded,
+      ),
+      CredentialCardData(
+        title: 'Identity · $tier',
+        subtitle:
+            'Score ${_resolvedScore(score, profile)} of 100',
+        code: profile.userId as String,
+        tone: const Color(0xFF7E22CE),
+        icon: Icons.verified_user_rounded,
+      ),
+      const CredentialCardData(
+        title: 'Vault',
+        subtitle: 'Encrypted credentials',
+        code: 'GID • LOCAL • OFFLINE',
+        tone: Color(0xFF059669),
+        icon: Icons.shield_moon_rounded,
+      ),
+      const CredentialCardData(
+        title: 'Boarding',
+        subtitle: 'Live boarding pass',
+        code: 'TAP TO ACTIVATE',
+        tone: Color(0xFFD97706),
+        icon: Icons.airplane_ticket_rounded,
+      ),
+    ];
   }
 
   /// Compose a 0-1 readiness score from identity score + verified
