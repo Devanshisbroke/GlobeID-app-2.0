@@ -752,7 +752,7 @@ void _answerQuery(BuildContext context, WidgetRef ref, QueryIntent intent) {
     case 'score':
       final score = ref.read(scoreProvider);
       score.when(
-        data: (s) => _toast(context, 'Identity score', '${s.score} / 100'),
+        data: (s) => _toast(context, 'Identity score', '${s.score} / 1000'),
         loading: () => _toast(context, 'Identity score', 'Still loading'),
         error: (e, _) => _toast(context, 'Identity score unavailable', '$e',
             tone: AppToastTone.warning),

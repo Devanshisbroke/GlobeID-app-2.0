@@ -7,7 +7,7 @@ import '../../widgets/premium/premium.dart';
 
 /// Constellation visualization for an identity score.
 ///
-/// Renders [score]/100 as a ring of orbiting "stars" — each star is
+/// Renders [score]/1000 as a ring of orbiting "stars" — each star is
 /// a deterministic point on a slow orbit; the central halo grows
 /// brighter with the score; mascot symbols render the tier's emblem
 /// in the centre. Sensor fusion is used to drift the constellation
@@ -66,7 +66,7 @@ class _IdentityScoreConstellationState extends State<IdentityScoreConstellation>
             child: CustomPaint(
               painter: _ConstellationPainter(
                 progress: reduce ? 0 : _ticker.value,
-                score: widget.score / 100,
+                score: widget.score / 1000,
                 tone: theme.colorScheme.primary,
                 glow: theme.colorScheme.secondary,
               ),

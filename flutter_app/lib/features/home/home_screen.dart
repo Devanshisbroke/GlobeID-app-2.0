@@ -360,7 +360,7 @@ class _IdentityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final progress = score / 100;
+    final progress = (score / 1000).clamp(0.0, 1.0);
     final isDark = theme.brightness == Brightness.dark;
     final goldFg = isDark
         ? const Color(0xFFFFE9B0)
@@ -399,7 +399,7 @@ class _IdentityCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 6, top: 8),
                 child: Text(
-                  '/100',
+                  '/1000',
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: goldFg.withValues(alpha: 0.62),
                     letterSpacing: -0.2,

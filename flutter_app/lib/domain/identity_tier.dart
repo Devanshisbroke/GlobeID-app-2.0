@@ -8,9 +8,9 @@ class IdentityTier {
 
   static const tiers = [
     IdentityTier(0, 'Wanderer', 0),
-    IdentityTier(1, 'Voyager', 50),
-    IdentityTier(2, 'Globetrotter', 75),
-    IdentityTier(3, 'Aviator', 90),
+    IdentityTier(1, 'Voyager', 500),
+    IdentityTier(2, 'Globetrotter', 750),
+    IdentityTier(3, 'Aviator', 900),
   ];
 
   static IdentityTier forScore(int score) {

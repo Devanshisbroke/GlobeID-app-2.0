@@ -64,15 +64,18 @@ class AppTokens {
   static AccentSwatch accentByName(String name) =>
       accents.firstWhere((a) => a.name == name, orElse: () => accents.first);
 
-  // ── Canvas (OLED-first dark, paper-grade light) ──────────────────
+  // ── Canvas (pitch-OLED dark, paper-grade light) ─────────────────
   /// Bible §3.2 substrate — three-step elevation ladder
-  /// (canvas → surface → card) tuned for OLED-first dark and a
-  /// paper-grade light. Pure-ink black on the canvas eliminates
-  /// halation around bright HUD elements; the surface layer is a
-  /// near-black indigo so the eye still reads warmth in the dark.
+  /// (canvas → surface → card) tuned for pitch-OLED dark and a
+  /// paper-grade light. Canvas is true 0xFF000000 so OLED pixels
+  /// are physically off — no halation around bright HUD elements,
+  /// no grey lift behind glass surfaces. The surface tier is a
+  /// near-jet neutral and the card tier is a deeper neutral with a
+  /// barely-perceptible cool ambience so glass cards still read as
+  /// distinct layers above pitch black without going milky.
   static const Color canvasDark = Color(0xFF000000);
-  static const Color surfaceDark = Color(0xFF07080C);
-  static const Color cardDark = Color(0xFF0E1320);
+  static const Color surfaceDark = Color(0xFF030305);
+  static const Color cardDark = Color(0xFF080A0E);
   static const Color borderDark = Color(0x1FFFFFFF);
 
   /// Light theme: warm-cool paper substrate. The canvas is a hint of

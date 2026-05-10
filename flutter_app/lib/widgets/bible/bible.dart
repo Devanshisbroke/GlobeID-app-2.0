@@ -15,5 +15,6 @@ export '../../app/theme/ux_bible.dart';
 export 'bible_hero_card.dart';
 export 'bible_top_bar.dart';
 export 'ligature_text.dart';
+export 'liquid_glass.dart';
 export 'living_gradient.dart';
 export 'solari_flap.dart';

@@ -163,7 +163,7 @@ class DemoData {
 
   static const Map<String, dynamic> _user = {
     'userId': 'usr-globeid-001',
-    'name': 'Devansh Kumar',
+    'name': 'Devansh Barai',
     'passportNumber': 'P1234567',
     'nationality': 'India',
     'nationalityFlag': '🇮🇳',
