@@ -7,7 +7,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:globeid/app/theme/ux_bible.dart';
 import 'package:globeid/widgets/bible/bible.dart';
 
 void main() {

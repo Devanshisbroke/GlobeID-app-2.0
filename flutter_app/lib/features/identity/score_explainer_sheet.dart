@@ -174,7 +174,7 @@ class ScoreExplainerSheet extends StatelessWidget {
         _Factor(
             'Travel history',
             'Verified trips completed',
-            (score / 100).clamp(0.0, 1.0),
+            (score / 1000).clamp(0.0, 1.0),
             Icons.flight_rounded,
             const Color(0xFFF59E0B),
             'Complete more verified trips'),

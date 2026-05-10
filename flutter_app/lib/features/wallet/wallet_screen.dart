@@ -9,7 +9,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 import '../../app/theme/app_tokens.dart';
-import '../../app/theme/ux_bible.dart';
 import '../../data/models/travel_document.dart';
 import '../../data/models/wallet_models.dart';
 import '../../domain/airline_brand.dart';

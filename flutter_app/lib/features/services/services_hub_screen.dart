@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
-import '../../app/theme/ux_bible.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/app_chrome.dart';
 import '../../widgets/bible/bible.dart';

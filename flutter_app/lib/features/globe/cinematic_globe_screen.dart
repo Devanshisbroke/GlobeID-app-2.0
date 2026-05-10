@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
-import '../../app/theme/ux_bible.dart';
 import '../../cinematic/globe_camera_controller.dart';
 import '../../cinematic/globe_interaction_overlay.dart';
 import '../../widgets/agentic_chip.dart';

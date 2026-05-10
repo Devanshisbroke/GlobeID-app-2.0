@@ -347,7 +347,10 @@ class _IdentityCard extends StatelessWidget {
   final IdentityTier tier;
   final List<int> history;
 
-  static Widget skeleton() => GlassSurface(
+  static Widget skeleton() => const BibleHeroCard(
+        material: BibleMaterial.foil,
+        tone: BibleTone.foilGold,
+        elevation: BibleHeroElevation.cinematic,
         child: SizedBox(
           height: 120,
           child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
@@ -357,54 +360,115 @@ class _IdentityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final progress = score / 100;
-    return GlassSurface(
+    final progress = (score / 1000).clamp(0.0, 1.0);
+    final isDark = theme.brightness == Brightness.dark;
+    final goldFg = isDark
+        ? const Color(0xFFFFE9B0)
+        : const Color(0xFF6B4E0F);
+    return BibleHeroCard(
+      material: BibleMaterial.foil,
+      tone: BibleTone.foilGold,
+      elevation: BibleHeroElevation.cinematic,
+      radius: 32,
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              PillChip(
-                  label: tier.label, icon: Icons.workspace_premium_rounded),
+              BibleHeroChip(
+                label: tier.label,
+                icon: Icons.workspace_premium_rounded,
+                tone: BibleTone.foilGold,
+                material: BibleMaterial.foil,
+              ),
               const Spacer(),
-              Text(score.toString(),
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: theme.colorScheme.primary,
-                    height: 1,
-                  )),
+              SolariFlap(
+                text: score.toString().padLeft(3, '0'),
+                cellWidth: 20,
+                cellHeight: 30,
+                cellColor: const Color(0xFF0A0E18),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontFamily: 'Departure Mono',
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFFFFE9B0),
+                  letterSpacing: -0.4,
+                ),
+              ),
               Padding(
-                padding: const EdgeInsets.only(left: 4, top: 6),
-                child: Text('/100',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.textTheme.bodySmall?.color,
-                    )),
+                padding: const EdgeInsets.only(left: 6, top: 8),
+                child: Text(
+                  '/1000',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: goldFg.withValues(alpha: 0.62),
+                    letterSpacing: -0.2,
+                  ),
+                ),
               ),
             ],
           ),
           const SizedBox(height: AppTokens.space4),
+          // Bible §6 — score progress as a luminous foil rail. The
+          // value bar uses a champagne→gold gradient so the score
+          // reads as an emotional, valuable measurement, not a
+          // generic linear bar.
           ClipRRect(
             borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-            child: LinearProgressIndicator(
-              value: progress.clamp(0, 1),
-              minHeight: 8,
-              backgroundColor:
-                  theme.colorScheme.primary.withValues(alpha: 0.08),
-              valueColor:
-                  AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+            child: Stack(
+              children: [
+                Container(
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: BibleTone.foilGold.withValues(alpha: 0.12),
+                    borderRadius:
+                        BorderRadius.circular(AppTokens.radiusFull),
+                  ),
+                ),
+                FractionallySizedBox(
+                  widthFactor: progress.clamp(0, 1),
+                  child: Container(
+                    height: 8,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFFE9C25A),
+                          Color(0xFFFFE9B0),
+                          Color(0xFFE9C25A),
+                        ],
+                      ),
+                      borderRadius:
+                          BorderRadius.circular(AppTokens.radiusFull),
+                      boxShadow: [
+                        BoxShadow(
+                          color: BibleTone.foilGold
+                              .withValues(alpha: 0.45),
+                          blurRadius: 10,
+                          spreadRadius: -1,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: AppTokens.space3),
           if (history.isNotEmpty) ...[
             Sparkline(
               values: history,
-              color: theme.colorScheme.primary,
+              color: BibleTone.foilGold,
               height: 28,
             ),
             const SizedBox(height: AppTokens.space3),
           ],
-          Text('Identity score — verified factors compound over time',
-              style: theme.textTheme.bodySmall),
+          Text(
+            'Identity score · verified factors compound over time',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: goldFg.withValues(alpha: 0.78),
+              letterSpacing: -0.1,
+            ),
+          ),
         ],
       ),
     );

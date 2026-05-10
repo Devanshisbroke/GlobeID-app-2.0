@@ -335,28 +335,91 @@ class _FrostedNav extends StatelessWidget {
       ),
     );
 
-    final body = Container(
-      decoration: BoxDecoration(
-        color: reduce
-            ? glass.surface.withValues(alpha: 0.96)
-            : (isDark
-                ? Colors.black.withValues(alpha: 0.42)
-                : Colors.white.withValues(alpha: 0.62)),
-        border: Border(
-          top: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+    final body = Stack(
+      children: [
+        // Tint layer.
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              color: reduce
+                  ? glass.surface.withValues(alpha: 0.96)
+                  : (isDark
+                      ? Colors.black.withValues(alpha: 0.36)
+                      : Colors.white.withValues(alpha: 0.55)),
+              border: Border(
+                top: BorderSide(color: Colors.white.withValues(alpha: 0.10)),
+              ),
+            ),
+          ),
         ),
-      ),
-      child: navContent,
+        // Specular top edge — 0.5-pt glint along the top of the
+        // chrome that catches light and gives the bar perceived
+        // thickness. Apple uses this on every iOS material chrome.
+        if (!reduce)
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            child: Container(
+              height: 1,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [
+                          Colors.transparent,
+                          Colors.white.withValues(alpha: 0.18),
+                          Colors.white.withValues(alpha: 0.08),
+                          Colors.transparent,
+                        ]
+                      : [
+                          Colors.transparent,
+                          Colors.white.withValues(alpha: 0.85),
+                          Colors.white.withValues(alpha: 0.50),
+                          Colors.transparent,
+                        ],
+                  stops: const [0.0, 0.30, 0.70, 1.0],
+                ),
+              ),
+            ),
+          ),
+        navContent,
+      ],
     );
 
     if (reduce) return body;
     return ClipRect(
+      // Apple-grade chrome material: saturation 1.55× *then* blur σ
+      // 28. The two-layer ImageFilter is the iOS-17 signature — it
+      // saturates content behind the bar before softening it, so
+      // colour from the wallpaper / hero card pops. Vanilla blur
+      // alone produces the cheap milky look this avoids.
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+        filter: ImageFilter.compose(
+          outer: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+          inner: _navSaturateMatrix(
+            1.55,
+            isDark ? 0.88 : 1.10,
+          ),
+        ),
         child: body,
       ),
     );
   }
+}
+
+/// Saturation+brightness colour matrix for the bottom-nav backdrop
+/// filter. BT.709 luminance coefficients (same as Safari).
+ColorFilter _navSaturateMatrix(double sat, double bri) {
+  final invSat = 1 - sat;
+  final r = 0.2126 * invSat;
+  final g = 0.7152 * invSat;
+  final b = 0.0722 * invSat;
+  return ColorFilter.matrix(<double>[
+    (r + sat) * bri, g * bri, b * bri, 0, 0,
+    r * bri, (g + sat) * bri, b * bri, 0, 0,
+    r * bri, g * bri, (b + sat) * bri, 0, 0,
+    0, 0, 0, 1, 0,
+  ]);
 }
 
 class _NavItem extends StatelessWidget {
@@ -469,14 +532,16 @@ class _ScanFabState extends State<_ScanFab>
 
   @override
   Widget build(BuildContext context) {
-    final accent = Theme.of(context).colorScheme.primary;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final accent = theme.colorScheme.primary;
     return AnimatedBuilder(
       animation: _glow,
       builder: (_, __) {
         final t = Curves.easeInOut.transform(_glow.value);
         return SizedBox(
-          width: 70,
-          height: 70,
+          width: 72,
+          height: 72,
           child: Material(
             elevation: 0,
             color: Colors.transparent,
@@ -490,34 +555,118 @@ class _ScanFabState extends State<_ScanFab>
                 widget.onLongPress();
               },
               customBorder: const CircleBorder(),
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [accent, accent.withValues(alpha: 0.72)],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: accent.withValues(alpha: 0.30 + 0.20 * t),
-                      blurRadius: 24 + 12 * t,
-                      spreadRadius: 1 + 2 * t,
-                      offset: const Offset(0, 8),
+              child: Stack(
+                alignment: Alignment.center,
+                clipBehavior: Clip.none,
+                children: [
+                  // Outer ambient halo — a soft accent bloom that
+                  // breathes, sized larger than the button so the
+                  // FAB reads as a Dynamic-Island-grade live element
+                  // rather than a flat circle.
+                  Positioned(
+                    width: 96 + 8 * t,
+                    height: 96 + 8 * t,
+                    child: IgnorePointer(
+                      child: Opacity(
+                        opacity: 0.30 + 0.15 * t,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                accent.withValues(alpha: 0.55),
+                                accent.withValues(alpha: 0),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ],
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    width: 1,
                   ),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.qr_code_scanner_rounded,
-                    size: 30,
-                    color: Colors.white,
+                  // Body.
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color.lerp(accent, Colors.white, 0.16)!,
+                          accent,
+                          Color.lerp(accent, Colors.black, 0.10)!,
+                        ],
+                        stops: const [0.0, 0.55, 1.0],
+                      ),
+                      boxShadow: [
+                        // Cinematic drop.
+                        BoxShadow(
+                          color: accent.withValues(alpha: 0.35 + 0.15 * t),
+                          blurRadius: 26 + 12 * t,
+                          spreadRadius: 1 + 2 * t,
+                          offset: const Offset(0, 10),
+                        ),
+                        // Tight inner ring shadow.
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.30),
+                          blurRadius: 8,
+                          spreadRadius: -2,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: Colors.white.withValues(
+                          alpha: isDark ? 0.22 : 0.30,
+                        ),
+                        width: 1,
+                      ),
+                    ),
+                    child: ClipOval(
+                      child: Stack(
+                        children: [
+                          // Top specular cap — simulates light
+                          // catching the lacquered top of the
+                          // sphere, the iOS Live Activity touch.
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            top: 0,
+                            height: 28,
+                            child: IgnorePointer(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.white.withValues(alpha: 0.45),
+                                      Colors.white.withValues(alpha: 0),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Center(
+                            child: Icon(
+                              Icons.qr_code_scanner_rounded,
+                              size: 30,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  color: Color(0x66000000),
+                                  blurRadius: 6,
+                                  offset: Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ),

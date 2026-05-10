@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
-import '../../app/theme/ux_bible.dart';
 import '../../data/models/travel_document.dart';
 import '../../domain/audit_log.dart';
 import '../../domain/identity_tier.dart';
@@ -17,7 +16,6 @@ import '../../widgets/animated_number.dart';
 import '../../widgets/app_chrome.dart';
 import '../../widgets/bible/bible.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/glass_surface.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
@@ -342,10 +340,10 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
   }
 
   int _tierIndex(int score) {
-    if (score >= 95) return 4;
-    if (score >= 75) return 3;
-    if (score >= 50) return 2;
-    if (score >= 25) return 1;
+    if (score >= 950) return 4;
+    if (score >= 750) return 3;
+    if (score >= 500) return 2;
+    if (score >= 250) return 1;
     return 0;
   }
 
@@ -379,7 +377,7 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
       ),
       CredentialCardData(
         title: 'Identity · $tier',
-        subtitle: 'Score ${_resolvedScore(score, profile)} of 100',
+        subtitle: 'Score ${_resolvedScore(score, profile)} of 1000',
         code: profile.userId as String,
         tone: const Color(0xFF7E22CE),
         icon: Icons.verified_user_rounded,
@@ -409,7 +407,7 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
         (user.profile.verifiedStatus as String).toLowerCase() == 'verified';
     final hasPassport = (user.documents as Iterable)
         .any((d) => (d.type as String).toLowerCase() == 'passport');
-    final base = (s.clamp(0, 100) / 100) * 0.7;
+    final base = (s.clamp(0, 1000) / 1000) * 0.7;
     final verifiedBonus = verified ? 0.18 : 0.0;
     final passportBonus = hasPassport ? 0.12 : 0.0;
     return (base + verifiedBonus + passportBonus).clamp(0.0, 1.0);
@@ -476,29 +474,32 @@ class _IdentityHero extends StatelessWidget {
   final List<int> history;
 
   int _nextTierTarget() {
-    if (score < 50) return 50;
-    if (score < 70) return 70;
-    if (score < 90) return 90;
-    return 100;
+    if (score < 500) return 500;
+    if (score < 700) return 700;
+    if (score < 900) return 900;
+    return 1000;
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accent = theme.colorScheme.primary;
+    final isDark = theme.brightness == Brightness.dark;
+    // Bible §3.3 — Identity surfaces always read in foil. The score
+    // ring + tier chip + remaining-points strip live on a foil-grade
+    // hero card, not the legacy generic PremiumCard wash.
+    final accent = BibleTone.foilGold;
     final next = _nextTierTarget();
-    final remaining = (next - score).clamp(0, 100);
+    final remaining = (next - score).clamp(0, 1000);
+    final goldFg = isDark
+        ? const Color(0xFFFFE9B0)
+        : const Color(0xFF6B4E0F);
 
-    return PremiumCard(
-      padding: const EdgeInsets.all(AppTokens.space5),
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          accent.withValues(alpha: 0.18),
-          accent.withValues(alpha: 0.04),
-        ],
-      ),
+    return BibleHeroCard(
+      material: BibleMaterial.foil,
+      tone: BibleTone.foilGold,
+      elevation: BibleHeroElevation.cinematic,
+      radius: 32,
+      padding: const EdgeInsets.fromLTRB(22, 22, 22, 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -511,17 +512,19 @@ class _IdentityHero extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    PillChip(
+                    BibleHeroChip(
                       label: tier.label,
                       icon: Icons.workspace_premium_rounded,
+                      tone: BibleTone.foilGold,
+                      material: BibleMaterial.foil,
                     ),
                     const SizedBox(height: AppTokens.space2),
                     Text(
-                      'Identity score',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                        letterSpacing: 0.6,
+                      'IDENTITY SCORE',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: goldFg.withValues(alpha: 0.65),
+                        letterSpacing: 1.6,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     AnimatedNumber(
@@ -529,15 +532,16 @@ class _IdentityHero extends StatelessWidget {
                       decimals: 0,
                       style: theme.textTheme.displayLarge?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: accent,
+                        color: goldFg,
                         height: 1,
+                        letterSpacing: -1.2,
                       ),
                     ),
                     Text(
-                      'out of 100',
+                      'out of 1000',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                        color: goldFg.withValues(alpha: 0.55),
+                        letterSpacing: -0.1,
                       ),
                     ),
                   ],
@@ -638,7 +642,7 @@ class _ScoreRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: (score / 100).clamp(0, 1)),
+      tween: Tween(begin: 0, end: (score / 1000).clamp(0, 1)),
       duration: AppTokens.durationXl,
       curve: AppTokens.easeOutSoft,
       builder: (_, v, __) {
@@ -1115,9 +1119,9 @@ class _TierLadder extends StatelessWidget {
   Widget build(BuildContext context) {
     const tiers = [
       ('Citizen', 0, Icons.person_outline_rounded, Color(0xFF94A3B8)),
-      ('Verified', 50, Icons.verified_user_outlined, Color(0xFF06B6D4)),
-      ('Trusted', 70, Icons.shield_outlined, Color(0xFF7C3AED)),
-      ('Elite', 90, Icons.workspace_premium_outlined, Color(0xFFF59E0B)),
+      ('Verified', 500, Icons.verified_user_outlined, Color(0xFF06B6D4)),
+      ('Trusted', 700, Icons.shield_outlined, Color(0xFF7C3AED)),
+      ('Elite', 900, Icons.workspace_premium_outlined, Color(0xFFF59E0B)),
     ];
     return PremiumCard(
       padding: const EdgeInsets.all(AppTokens.space4),
