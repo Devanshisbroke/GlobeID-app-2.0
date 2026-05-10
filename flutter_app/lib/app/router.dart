@@ -66,8 +66,8 @@ import '../features/trip/trip_detail_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../features/wallet/wallet_screen.dart';
-import '../motion/cinematic_transitions.dart' as cinematic;
 import '../motion/motion.dart';
+import 'theme/ux_bible.dart';
 import 'app_shell.dart';
 
 /// Premium slide-up + scale + blur transition used for secondary
@@ -90,23 +90,93 @@ GoRoute _route(
   );
 }
 
-/// Cinematic rise — used for hero / immersive routes (kiosk, boarding,
-/// passport, identity hub) so they enter from below with scale + fade.
-CustomTransitionPage<void> _riseFade(LocalKey key, Widget child) {
+// ─── Bible §5.3 — eight named transitions wired to go_router ─────────
+
+/// `atmosphericDescent` — used for descending the altitude stack
+/// (Globe → Travel → Trip → Boarding). Vertical slide + scale +
+/// blur lens that resolves on land.
+CustomTransitionPage<void> _atmosphericDescent(LocalKey key, Widget child) {
   return CustomTransitionPage<void>(
     key: key,
-    transitionDuration: const Duration(milliseconds: 480),
-    reverseTransitionDuration: const Duration(milliseconds: 320),
-    transitionsBuilder: cinematic.riseTransition,
+    transitionDuration: const Duration(milliseconds: 520),
+    reverseTransitionDuration: const Duration(milliseconds: 360),
+    transitionsBuilder: (_, animation, __, c) =>
+        BibleTransitions.atmosphericDescent(animation, c),
     child: child,
   );
 }
 
-GoRoute _riseRoute(
+GoRoute _descentRoute(
     String path, Widget Function(BuildContext, GoRouterState) build) {
   return GoRoute(
     path: path,
-    pageBuilder: (ctx, state) => _riseFade(state.pageKey, build(ctx, state)),
+    pageBuilder: (ctx, state) =>
+        _atmosphericDescent(state.pageKey, build(ctx, state)),
+  );
+}
+
+/// `blurFadeTransition` — incoming fades in while background blurs
+/// from σ=8→0. Used for modal-grade presentations (intelligence,
+/// vault, audit log).
+CustomTransitionPage<void> _blurFade(LocalKey key, Widget child) {
+  return CustomTransitionPage<void>(
+    key: key,
+    transitionDuration: const Duration(milliseconds: 380),
+    reverseTransitionDuration: const Duration(milliseconds: 260),
+    transitionsBuilder: (_, animation, __, c) =>
+        BibleTransitions.blurFade(animation, c),
+    child: child,
+  );
+}
+
+GoRoute _blurFadeRoute(
+    String path, Widget Function(BuildContext, GoRouterState) build) {
+  return GoRoute(
+    path: path,
+    pageBuilder: (ctx, state) => _blurFade(state.pageKey, build(ctx, state)),
+  );
+}
+
+/// `dropTransition` — slide down with bounce. Used for
+/// notifications, alerts, kiosk overlays.
+CustomTransitionPage<void> _drop(LocalKey key, Widget child) {
+  return CustomTransitionPage<void>(
+    key: key,
+    transitionDuration: const Duration(milliseconds: 360),
+    reverseTransitionDuration: const Duration(milliseconds: 240),
+    transitionsBuilder: (_, animation, __, c) =>
+        BibleTransitions.drop(animation, c),
+    child: child,
+  );
+}
+
+GoRoute _dropRoute(
+    String path, Widget Function(BuildContext, GoRouterState) build) {
+  return GoRoute(
+    path: path,
+    pageBuilder: (ctx, state) => _drop(state.pageKey, build(ctx, state)),
+  );
+}
+
+/// `slideLateralTransition` — iOS push from right with parallax
+/// depth on exit. Used for back-navigable detail flows (settings).
+CustomTransitionPage<void> _slideLateral(LocalKey key, Widget child) {
+  return CustomTransitionPage<void>(
+    key: key,
+    transitionDuration: const Duration(milliseconds: 320),
+    reverseTransitionDuration: const Duration(milliseconds: 240),
+    transitionsBuilder: (_, animation, secondary, c) =>
+        BibleTransitions.slideLateral(animation, secondary, c),
+    child: child,
+  );
+}
+
+GoRoute _slideLateralRoute(
+    String path, Widget Function(BuildContext, GoRouterState) build) {
+  return GoRoute(
+    path: path,
+    pageBuilder: (ctx, state) =>
+        _slideLateral(state.pageKey, build(ctx, state)),
   );
 }
 
@@ -162,51 +232,65 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
-      // Secondary routes (full-screen, no shell) — premium slide+fade.
-      _route('/profile', (_, __) => const ProfileScreen()),
-      _riseRoute('/kiosk-sim', (_, __) => const KioskScreen()),
-      _route('/receipt', (_, __) => const ReceiptScreen()),
-      _route('/timeline', (_, __) => const TimelineScreen()),
-      _route('/planner', (_, __) => const PlannerScreen()),
-      _route('/copilot', (_, __) => const CopilotScreen()),
-      _route('/social', (_, __) => const SocialScreen()),
-      _route('/explore', (_, __) => const ExploreScreen()),
-      _route('/passport-book', (_, __) => const PassportBookScreen()),
-      _riseRoute('/passport-live', (_, __) => const PassportLiveScreen()),
-      _riseRoute(
+      // Secondary routes — bible §5.3 named transitions.
+      // Settings flows: slideLateral (back-navigable detail).
+      _slideLateralRoute('/profile', (_, __) => const ProfileScreen()),
+      _slideLateralRoute('/settings', (_, __) => const SettingsScreen()),
+      _slideLateralRoute('/settings/appearance',
+          (_, __) => const AppearanceSettingsScreen()),
+      _slideLateralRoute('/settings/notifications',
+          (_, __) => const NotificationsSettingsScreen()),
+      _slideLateralRoute(
+          '/settings/security', (_, __) => const SecuritySettingsScreen()),
+      _slideLateralRoute(
+          '/settings/privacy', (_, __) => const PrivacySettingsScreen()),
+      _slideLateralRoute(
+          '/settings/travel', (_, __) => const TravelPrefsScreen()),
+      _slideLateralRoute('/settings/accessibility',
+          (_, __) => const AccessibilitySettingsScreen()),
+      _slideLateralRoute(
+          '/settings/lab', (_, __) => const LabSettingsScreen()),
+      _slideLateralRoute(
+          '/settings/about', (_, __) => const AboutSettingsScreen()),
+
+      // Modal-grade presentations: blurFade.
+      _blurFadeRoute('/intelligence', (_, __) => const IntelligenceScreen()),
+      _blurFadeRoute('/vault', (_, __) => const VaultScreen()),
+      _blurFadeRoute('/audit-log', (_, __) => const AuditLogScreen()),
+      _blurFadeRoute('/inbox', (_, __) => const InboxScreen()),
+
+      // Notifications/alerts/scanner overlays: drop.
+      _dropRoute('/scan', (_, __) => const ScannerScreen()),
+      _dropRoute('/copilot', (_, __) => const CopilotScreen()),
+
+      // Altitude descent: kiosk → boarding → passport-live → trip detail.
+      _descentRoute('/kiosk-sim', (_, __) => const KioskScreen()),
+      _descentRoute('/passport-live', (_, __) => const PassportLiveScreen()),
+      _descentRoute(
         '/boarding/:tripId/:legId',
         (_, state) => BoardingPassLiveScreen(
           tripId: state.pathParameters['tripId']!,
           legId: state.pathParameters['legId']!,
         ),
       ),
-      _route('/intelligence', (_, __) => const IntelligenceScreen()),
-      _route('/vault', (_, __) => const VaultScreen()),
+      _descentRoute(
+        '/trip/:tripId',
+        (_, state) => TripDetailScreen(tripId: state.pathParameters['tripId']!),
+      ),
+
+      // Default secondary surfaces: rise / slide-fade.
+      _route('/receipt', (_, __) => const ReceiptScreen()),
+      _route('/timeline', (_, __) => const TimelineScreen()),
+      _route('/planner', (_, __) => const PlannerScreen()),
+      _route('/social', (_, __) => const SocialScreen()),
+      _route('/explore', (_, __) => const ExploreScreen()),
+      _route('/passport-book', (_, __) => const PassportBookScreen()),
       _route('/feed', (_, __) => const FeedScreen()),
       _route('/multi-currency', (_, __) => const MultiCurrencyScreen()),
       _route(
           '/multi-currency-pour', (_, __) => const MultiCurrencyPourScreen()),
-      _route('/scan', (_, __) => const ScannerScreen()),
       _route('/analytics', (_, __) => const AnalyticsScreen()),
-      _route('/audit-log', (_, __) => const AuditLogScreen()),
-      _route('/inbox', (_, __) => const InboxScreen()),
       _route('/discover', (_, __) => const DiscoverScreen()),
-      _route('/settings', (_, __) => const SettingsScreen()),
-      _route(
-          '/settings/appearance', (_, __) => const AppearanceSettingsScreen()),
-      _route('/settings/notifications',
-          (_, __) => const NotificationsSettingsScreen()),
-      _route('/settings/security', (_, __) => const SecuritySettingsScreen()),
-      _route('/settings/privacy', (_, __) => const PrivacySettingsScreen()),
-      _route('/settings/travel', (_, __) => const TravelPrefsScreen()),
-      _route('/settings/accessibility',
-          (_, __) => const AccessibilitySettingsScreen()),
-      _route('/settings/lab', (_, __) => const LabSettingsScreen()),
-      _route('/settings/about', (_, __) => const AboutSettingsScreen()),
-      _route(
-        '/trip/:tripId',
-        (_, state) => TripDetailScreen(tripId: state.pathParameters['tripId']!),
-      ),
       GoRoute(
         path: '/pass/:passId',
         pageBuilder: (_, state) => CustomTransitionPage(

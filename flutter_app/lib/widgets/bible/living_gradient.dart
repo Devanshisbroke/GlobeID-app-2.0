@@ -33,45 +33,49 @@ class LivingGradient extends StatefulWidget {
     this.child,
   });
 
-  /// Convenience: a globe-flavored substrate gradient — midnight
-  /// indigo with a polar-blue tone bloom.
+  /// Globe-flavored backdrop — polar-blue + equator-teal bloom.
+  /// Designed to *underlay*, never dominate. Each tone is held
+  /// under 9 % alpha so map content stays fully readable.
   factory LivingGradient.globe({Widget? child}) => LivingGradient(
-        colors: const [
-          BibleSubstrate.midnightIndigo,
-          Color(0xFF0A1A2E),
-          BibleSubstrate.midnightIndigo,
-          Color(0xFF0F2340),
+        colors: [
+          BibleTone.polarBlue.withValues(alpha: 0.09),
+          BibleSubstrate.midnightIndigo.withValues(alpha: 0.0),
+          BibleSubstrate.midnightIndigo.withValues(alpha: 0.0),
+          BibleTone.equatorTeal.withValues(alpha: 0.05),
         ],
         child: child,
       );
 
-  /// Identity-flavored substrate — vellum bone with foil-gold bloom.
+  /// Identity-flavored backdrop — foil-gold + diplomatic-garnet
+  /// double-bloom. Subtle museum-case warmth on top of the
+  /// existing scaffold substrate.
   factory LivingGradient.identity({Widget? child}) => LivingGradient(
         colors: [
-          BibleSubstrate.vellumBone,
-          BibleTone.foilGold.withValues(alpha: 0.18),
-          BibleSubstrate.vellumBone,
-          BibleTone.diplomaticGarnet.withValues(alpha: 0.10),
+          BibleTone.foilGold.withValues(alpha: 0.08),
+          BibleSubstrate.vellumBone.withValues(alpha: 0.0),
+          BibleSubstrate.vellumBone.withValues(alpha: 0.0),
+          BibleTone.diplomaticGarnet.withValues(alpha: 0.04),
         ],
         child: child,
       );
 
-  /// Wallet-flavored substrate — cabin charcoal with treasury-green
-  /// bloom.
+  /// Wallet-flavored backdrop — treasury-green + mint-glass
+  /// double-bloom. Conveys vault-safe wealth without crowding
+  /// numbers.
   factory LivingGradient.wallet({Widget? child}) => LivingGradient(
         colors: [
-          BibleSubstrate.cabinCharcoal,
-          BibleTone.treasuryGreen.withValues(alpha: 0.18),
-          BibleSubstrate.cabinCharcoal,
-          BibleTone.mintGlass.withValues(alpha: 0.12),
+          BibleTone.treasuryGreen.withValues(alpha: 0.08),
+          BibleSubstrate.cabinCharcoal.withValues(alpha: 0.0),
+          BibleSubstrate.cabinCharcoal.withValues(alpha: 0.0),
+          BibleTone.mintGlass.withValues(alpha: 0.04),
         ],
         child: child,
       );
 
-  /// Travel-flavored substrate — tarmac slate with jet-cyan +
-  /// runway-amber double-bloom. Designed to *underlay* a screen,
-  /// not dominate it: each tone is held under 12 % alpha and the
-  /// substrate dominates the gradient stops.
+  /// Travel-flavored backdrop — jet-cyan + runway-amber
+  /// double-bloom. Designed to *underlay* a screen, not dominate
+  /// it: each tone is held under 8 % alpha and the substrate
+  /// dominates the gradient stops.
   factory LivingGradient.travel({Widget? child}) => LivingGradient(
         colors: [
           BibleTone.jetCyan.withValues(alpha: 0.08),

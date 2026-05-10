@@ -9,10 +9,13 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../app/theme/ux_bible.dart';
 import '../../data/models/travel_document.dart';
 import '../../data/models/wallet_models.dart';
 import '../../domain/airline_brand.dart';
 import '../../widgets/animated_number.dart';
+import '../../widgets/app_chrome.dart';
+import '../../widgets/bible/bible.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/premium/premium.dart';
@@ -47,7 +50,6 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
     super.build(context);
     final user = ref.watch(userProvider);
     final wallet = ref.watch(walletProvider);
-    final theme = Theme.of(context);
     final passes =
         user.documents.where((d) => d.type == 'boarding_pass').toList();
 
@@ -63,26 +65,20 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
           parent: BouncingScrollPhysics(),
         ),
         slivers: [
-          SliverPadding(
-            // 48px right padding leaves room for the floating top-right
-            // theme chrome rendered by AppShell.
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + AppTokens.space5,
-              left: AppTokens.space5,
-              right: AppTokens.space5 + 48,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: Row(
-                children: [
-                  Text('Wallet', style: theme.textTheme.headlineLarge),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => context.push('/multi-currency'),
-                    icon: const Icon(Icons.currency_exchange_rounded),
-                  ),
-                ],
+          BibleTopBar(
+            title: 'Wallet',
+            subtitle:
+                '${wallet.balances.length} currencies · ${wallet.transactions.length} recent',
+            tone: BibleTone.treasuryGreen,
+            actions: [
+              BibleTopBarAction(
+                icon: Icons.currency_exchange_rounded,
+                tooltip: 'Multi-currency',
+                onTap: () => context.push('/multi-currency'),
               ),
-            ),
+              const InboxBellAction(),
+              const ThemeCyclerAction(),
+            ],
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(

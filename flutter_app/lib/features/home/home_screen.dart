@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../domain/identity_tier.dart';
 import '../../domain/smart_suggestions.dart';
+import '../../widgets/app_chrome.dart';
 import '../../widgets/bible/bible.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/premium/premium.dart';
@@ -44,15 +45,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final theme = Theme.of(context);
     final greeting = _greeting();
 
-    return Stack(
-      children: [
-        // Bible §4.1 — every screen has a slowly breathing 4-stop
-        // gradient. Travel-flavored bloom (jet cyan + runway amber)
-        // for the home OS dashboard.
-        Positioned.fill(
-          child: IgnorePointer(child: LivingGradient.travel()),
-        ),
-        RefreshIndicator(
+    return RefreshIndicator(
       onRefresh: () async {
         await Future.wait([
           ref.read(userProvider.notifier).hydrate(),
@@ -65,28 +58,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           parent: BouncingScrollPhysics(),
         ),
         slivers: [
-          SliverPadding(
-            // 60px right padding leaves room for the floating theme-mode
-            // chrome anchored top-right by AppShell.
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + AppTokens.space5,
-              left: AppTokens.space5,
-              right: AppTokens.space5 + 48,
-              bottom: AppTokens.space3,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: _GreetingHeader(
-                name: user.profile.name.isEmpty
-                    ? 'Traveller'
-                    : user.profile.name.split(' ').first,
-                greeting: greeting,
-                avatarUrl: user.profile.avatarUrl,
-                onProfileTap: () => context.push('/profile'),
-              ),
-            ),
+          // Bible §9.2 — collapsing iOS-grade large title with the
+          // global chrome embedded as right-side actions.
+          BibleTopBar(
+            title: 'Hi, ${user.profile.name.isEmpty ? 'Traveller' : user.profile.name.split(' ').first}',
+            subtitle: greeting,
+            actions: appChromeActions(context),
           ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.space5,
+              AppTokens.space3,
+              AppTokens.space5,
+              0,
+            ),
             sliver: SliverToBoxAdapter(
               child: score.when(
                 data: (s) => _IdentityCard(
@@ -340,8 +325,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ],
       ),
-    ),
-      ],
     );
   }
 
@@ -355,62 +338,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 }
 
-class _GreetingHeader extends StatelessWidget {
-  const _GreetingHeader({
-    required this.greeting,
-    required this.name,
-    required this.avatarUrl,
-    required this.onProfileTap,
-  });
-
-  final String greeting;
-  final String name;
-  final String avatarUrl;
-  final VoidCallback onProfileTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(greeting,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.3,
-                  )),
-              const SizedBox(height: 2),
-              Text('Hi, $name',
-                  style: theme.textTheme.headlineLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  )),
-            ],
-          ),
-        ),
-        GestureDetector(
-          onTap: onProfileTap,
-          child: Hero(
-            tag: 'profile-avatar',
-            child: CircleAvatar(
-              radius: 24,
-              backgroundColor:
-                  theme.colorScheme.primary.withValues(alpha: 0.18),
-              backgroundImage:
-                  avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
-              child: avatarUrl.isEmpty
-                  ? Icon(Icons.person_rounded, color: theme.colorScheme.primary)
-                  : null,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 class _IdentityCard extends StatelessWidget {
   const _IdentityCard(
