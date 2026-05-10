@@ -1,11 +1,17 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
-import '../app/theme/app_theme.dart';
 import '../app/theme/app_tokens.dart';
+import 'bible/liquid_glass.dart';
 
-/// Frosted-glass card that respects the user's reduce-transparency setting.
+/// Frosted-glass card.
+///
+/// Now a thin wrapper over [LiquidGlass] with `thickness: regular`
+/// so every glass surface in the app shares the same Apple-grade
+/// material pipeline (saturate-then-blur, specular edge, hairline
+/// stroke, cinematic shadow, continuous-curve squircle corners,
+/// reduce-transparency fallback). The original `GlassSurface` API
+/// is preserved 1:1 so existing callers continue to work without
+/// any source changes.
 class GlassSurface extends StatelessWidget {
   const GlassSurface({
     super.key,
@@ -22,44 +28,15 @@ class GlassSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // `GlassExtension.of` returns a registered extension or a neutral
-    // fallback — never null. Pre-Phase-1 this line used `()!` and
-    // crashed the entire page if any sub-tree was rendered without the
-    // extension registered.
-    final glass = GlassExtension.of(context);
-    final reduce = glass.reduceTransparency;
-    final radiusObj = BorderRadius.circular(radius);
-    final base = tint ?? glass.surface;
-
-    final body = Container(
+    return LiquidGlass(
+      thickness: LiquidGlassThickness.regular,
+      radius: radius,
+      tint: tint,
       padding: padding,
-      decoration: BoxDecoration(
-        color: reduce ? base.withValues(alpha: 0.96) : base,
-        borderRadius: radiusObj,
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.06),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.20),
-            blurRadius: 32,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
+      shadow: LiquidGlassShadow.cinematic,
+      stroke: true,
+      specular: true,
       child: child,
-    );
-
-    if (reduce) {
-      return ClipRRect(borderRadius: radiusObj, child: body);
-    }
-
-    return ClipRRect(
-      borderRadius: radiusObj,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-        child: body,
-      ),
     );
   }
 }

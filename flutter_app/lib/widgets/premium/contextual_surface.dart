@@ -1,21 +1,28 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
-import '../../app/theme/app_theme.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../app/theme/emotional_palette.dart';
+import '../bible/liquid_glass.dart';
 
 /// A morphing surface that adapts its tint, elevation, and shape to
 /// the surrounding emotional context.
 ///
-/// On a focus-mode home, it renders flat and quiet. On a celebration
-/// screen, it warms with gold and lifts. On a stress / urgent state
-/// (gate change, missed connection) it cools and tightens.
+/// Now built on top of [LiquidGlass] (the unified Apple-grade material
+/// primitive). The previous bespoke `Stack`+`BackdropFilter` pipeline
+/// has been replaced by a single `LiquidGlass(thickness: regular)` so
+/// every surface in the app shares the same:
 ///
-/// Built on the existing [EmotionalContext] enum — every screen can
-/// inject its own context, including time-of-day stage flowing in
-/// from `AmbientLightingLayer`.
+///   - saturate-then-blur composition (iOS-17 chrome trick)
+///   - 0.5-pt specular top edge
+///   - hairline stroke
+///   - cinematic ambient shadow
+///   - reduce-transparency accessibility fallback
+///
+/// The emotional accent (gold/cool/warm depending on [EmotionalContext])
+/// is forwarded as the [LiquidGlass.tint] so it still inherits the
+/// screen's bible tone, but only as a low-alpha colour bleed — the
+/// glass body itself is luminosity-aware, not painted with a flat
+/// gradient.
 class ContextualSurface extends StatelessWidget {
   const ContextualSurface({
     super.key,
@@ -39,86 +46,24 @@ class ContextualSurface extends StatelessWidget {
   @override
   Widget build(BuildContext build) {
     final theme = Theme.of(build);
-    final isDark = theme.brightness == Brightness.dark;
-    final glassExt = theme.extension<GlassExtension>();
-    final reduce = (glassExt?.reduceTransparency ?? false) ||
-        MediaQuery.of(build).disableAnimations;
-    final allowGlass = glass && !reduce;
     final shift = context == null
         ? const EmotionalShift()
         : EmotionalPalette.shiftFor(context!);
 
-    final base = tint ??
-        (isDark ? AppTokens.cardDark : AppTokens.cardLight)
-            .withValues(alpha: allowGlass ? 0.55 : 0.94);
+    final accent = tint ?? shift.accentOverride ?? theme.colorScheme.primary;
 
-    final accent = shift.accentOverride ?? theme.colorScheme.primary;
-    final radiusObj = BorderRadius.circular(radius);
-
-    // Compose decoration + sheen onto a single Container so the
-    // surface always has an intrinsic size driven by [child]. The
-    // previous implementation used `Stack` with two `Positioned.fill`
-    // children and no non-positioned sibling, which meant the Stack
-    // had no way to size itself when placed inside an unbounded sliver
-    // (e.g., a `SliverToBoxAdapter`). This produced a layout-time null
-    // dereference and blanked every section that followed.
-    final body = Container(
+    return LiquidGlass(
+      thickness:
+          glass ? LiquidGlassThickness.regular : LiquidGlassThickness.ultraThin,
+      radius: radius,
+      tint: accent,
       padding: padding,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            base,
-            Color.lerp(base, accent, 0.06 + shift.glowIntensity * 0.18) ?? base,
-          ],
-        ),
-        borderRadius: radiusObj,
-        border: Border.all(
-          color: outlined
-              ? accent.withValues(alpha: 0.35)
-              : (isDark ? AppTokens.borderDark : AppTokens.borderLight),
-          width: outlined ? 0.8 : 0.6,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: accent.withValues(alpha: 0.05 + shift.glowIntensity * 0.10),
-            blurRadius: 28,
-            offset: const Offset(0, 18),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.32 : 0.10),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      foregroundDecoration: BoxDecoration(
-        borderRadius: radiusObj,
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.center,
-          colors: [
-            Colors.white.withValues(alpha: isDark ? 0.06 : 0.34),
-            Colors.white.withValues(alpha: 0),
-          ],
-        ),
-      ),
+      shadow: outlined
+          ? LiquidGlassShadow.resting
+          : LiquidGlassShadow.cinematic,
+      stroke: true,
+      specular: true,
       child: child,
-    );
-
-    final clipped = ClipRRect(
-      borderRadius: radiusObj,
-      child: body,
-    );
-
-    if (!allowGlass) return clipped;
-    return ClipRRect(
-      borderRadius: radiusObj,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-        child: clipped,
-      ),
     );
   }
 }

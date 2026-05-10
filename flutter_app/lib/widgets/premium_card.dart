@@ -1,17 +1,24 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../app/theme/app_tokens.dart';
+import 'bible/liquid_glass.dart';
 
-/// Multi-layer premium card. Uses:
-///   1. base canvas tint (theme card color or override)
-///   2. inner gradient sheen (subtle, top-down white wash)
-///   3. 1px hairline border on dark to add definition
-///   4. soft shadow ladder
+/// Premium card built on the unified [LiquidGlass] material primitive.
 ///
-/// `glass=true` adds a 24px BackdropFilter blur (auto-disabled when
-/// reduce-transparency is on via the theme `GlassExtension`).
+/// `glass=true` (the default) routes through `LiquidGlass(thickness: regular)`
+/// so every premium card in the app shares the same:
+///   - saturate-then-blur composition (iOS-17 chrome trick)
+///   - 0.5-pt specular top edge
+///   - hairline stroke
+///   - cinematic ambient shadow
+///   - continuous-curve squircle corners
+///   - reduce-transparency accessibility fallback
+///
+/// `gradient`-painted cards (used for some hero panels) keep their
+/// painted body but render the body inside a glass wrapper so the
+/// outline / shadow / specular language is consistent. Setting
+/// `glass=false` produces a flat opaque card via the [PremiumCard.flat]
+/// factory.
 class PremiumCard extends StatelessWidget {
   const PremiumCard({
     super.key,
@@ -70,82 +77,45 @@ class PremiumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final reduceTransparency = MediaQuery.of(context).disableAnimations;
-    final allowGlass = glass && !reduceTransparency;
-
-    final base = tint ??
-        (gradient != null
-            ? Colors.transparent
-            : (isDark ? AppTokens.cardDark : AppTokens.cardLight));
-
-    final shadows = switch (elevation) {
-      PremiumElevation.none => const <BoxShadow>[],
-      PremiumElevation.sm => AppTokens.shadowSm(),
-      PremiumElevation.md => AppTokens.shadowMd(),
-      PremiumElevation.lg => AppTokens.shadowLg(),
+    // Map elevation → LiquidGlass shadow tier.
+    final shadow = switch (elevation) {
+      PremiumElevation.none => LiquidGlassShadow.none,
+      PremiumElevation.sm => LiquidGlassShadow.resting,
+      PremiumElevation.md => LiquidGlassShadow.cinematic,
+      PremiumElevation.lg => LiquidGlassShadow.floating,
     };
 
-    final border = Border.all(
-      color: borderColor ??
-          (isDark ? AppTokens.borderDark : AppTokens.borderLight),
-      width: 0.6,
-    );
+    // Gradient hero variant: paint the gradient as the body, wrap in
+    // the same shadow + stroke language but without glass blur.
+    if (gradient != null) {
+      return LiquidGlass(
+        thickness: LiquidGlassThickness.ultraThin,
+        radius: radius,
+        tint: tint,
+        shadow: shadow,
+        stroke: true,
+        specular: true,
+        // Clip the gradient inside the same continuous-curve clip.
+        child: DecoratedBox(
+          decoration: BoxDecoration(gradient: gradient),
+          child: Padding(padding: padding, child: child),
+        ),
+      );
+    }
 
-    final clip = ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: Stack(
-        children: [
-          // Base tint layer (gradient or solid).
-          if (gradient != null)
-            Positioned.fill(
-                child:
-                    DecoratedBox(decoration: BoxDecoration(gradient: gradient)))
-          else
-            Positioned.fill(
-                child: ColoredBox(
-                    color: base.withValues(alpha: allowGlass ? 0.55 : 0.92))),
-          // Sheen layer — top-down faint white wash.
-          Positioned.fill(
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.white.withValues(alpha: isDark ? 0.06 : 0.4),
-                      Colors.white.withValues(alpha: 0.0),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Padding(padding: padding, child: child),
-        ],
-      ),
+    return LiquidGlass(
+      // `glass=false` collapses to ultraThin so the surface is
+      // virtually opaque but still inherits the unified language.
+      thickness:
+          glass ? LiquidGlassThickness.regular : LiquidGlassThickness.ultraThin,
+      radius: radius,
+      tint: tint,
+      padding: padding,
+      shadow: shadow,
+      stroke: true,
+      specular: true,
+      child: child,
     );
-
-    final outer = DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius),
-        boxShadow: shadows,
-        border: border,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: allowGlass
-            ? BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-                child: clip,
-              )
-            : clip,
-      ),
-    );
-
-    return outer;
   }
 }
 
