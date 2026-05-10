@@ -92,7 +92,7 @@ enum BibleHeroDensity { compact, spacious }
 enum BibleHeroElevation { resting, cinematic, floating }
 
 class _BibleHeroCardState extends State<BibleHeroCard>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _press = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 110),
@@ -101,9 +101,18 @@ class _BibleHeroCardState extends State<BibleHeroCard>
     upperBound: 1,
   );
 
+  // Long-period shimmer that sweeps a soft specular highlight across
+  // the card every ~6 s. Foil / glass materials use it to feel "alive";
+  // paper / metal / atmosphere skip it so they read as matte.
+  late final AnimationController _shimmer = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 6200),
+  )..repeat();
+
   @override
   void dispose() {
     _press.dispose();
+    _shimmer.dispose();
     super.dispose();
   }
 
@@ -175,6 +184,45 @@ class _BibleHeroCardState extends State<BibleHeroCard>
                           stops: const [0.0, 1.0],
                         ),
                       ),
+                    ),
+                  ),
+                ),
+              // Layer 2.5 — living foil shimmer. A soft diagonal
+              // specular sweep that traverses across the card every
+              // ~6 s, simulating light catching foil. Skipped on
+              // reduce-transparency, paper, and metal so the effect
+              // is reserved for the materials it makes sense on.
+              if (!glass.reduceTransparency &&
+                  (widget.material == BibleMaterial.foil ||
+                      widget.material == BibleMaterial.glass))
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: AnimatedBuilder(
+                      animation: _shimmer,
+                      builder: (context, _) {
+                        final t = _shimmer.value;
+                        // Map t∈[0,1] to position ∈[-1.4, 1.4] so the
+                        // sweep enters from off-screen left, crosses,
+                        // and exits off-screen right before looping.
+                        final pos = -1.4 + 2.8 * t;
+                        final highlight = isDark
+                            ? Colors.white.withValues(alpha: 0.06)
+                            : Colors.white.withValues(alpha: 0.22);
+                        return DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment(pos - 0.5, -1),
+                              end: Alignment(pos + 0.5, 1),
+                              colors: [
+                                Colors.transparent,
+                                highlight,
+                                Colors.transparent,
+                              ],
+                              stops: const [0.35, 0.5, 0.65],
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),

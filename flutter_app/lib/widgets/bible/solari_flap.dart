@@ -92,10 +92,18 @@ class SolariFlap extends StatelessWidget {
         reduceMotion: reduce,
       ));
     }
-    return Wrap(
+    final wrap = Wrap(
       spacing: 2,
       runSpacing: 2,
       children: cells,
+    );
+    // Defensive: scale-down if a parent is narrower than the intrinsic
+    // cell row. Same pattern as `DepartureBoardText` so airport-mode
+    // numerals never overflow on Pixel-class viewports.
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: wrap,
     );
   }
 }

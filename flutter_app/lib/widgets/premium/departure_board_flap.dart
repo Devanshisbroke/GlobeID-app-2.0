@@ -228,7 +228,7 @@ class DepartureBoardText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chars = text.toUpperCase();
-    return Row(
+    final row = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var i = 0; i < chars.length; i++) ...[
@@ -245,6 +245,18 @@ class DepartureBoardText extends StatelessWidget {
           ),
         ],
       ],
+    );
+    // FittedBox.scaleDown lets the row keep its intrinsic size when
+    // the parent provides enough width, but shrinks proportionally if
+    // the parent is narrower than the natural cell-row width. This is
+    // what prevents airport-mode glyphs (FX rates, callsign codes,
+    // gate numbers, ETAs) from spilling outside their cards on
+    // Pixel-class viewports without forcing every callsite to pick a
+    // smaller `charWidth`.
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: row,
     );
   }
 }
