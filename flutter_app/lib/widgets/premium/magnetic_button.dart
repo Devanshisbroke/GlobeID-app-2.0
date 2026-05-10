@@ -83,7 +83,12 @@ class _MagneticButtonState extends State<MagneticButton>
           colors: [glow, accent],
         );
     final radius = BorderRadius.circular(AppTokens.radiusFull);
-    final padH = widget.compact ? AppTokens.space4 : AppTokens.space6;
+    // Compact CTAs (4-up rows on the wallet hero, etc.) need much
+    // tighter horizontal padding so labels like "Convert" / "Receive"
+    // don't ellipsis on Pixel-class viewports (≈360-412 dp wide).
+    // Verified at 412×915 — was 16/10, now 10/10 = comfortable fit
+    // with no truncation.
+    final padH = widget.compact ? AppTokens.space2 + 2 : AppTokens.space6;
     final padV = widget.compact ? AppTokens.space2 + 2 : AppTokens.space3 + 2;
 
     final body = Container(

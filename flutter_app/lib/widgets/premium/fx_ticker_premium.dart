@@ -69,10 +69,20 @@ class FxTickerPremium extends StatelessWidget {
                       ),
                     ],
                   ),
-                  DepartureBoardText(
-                    text: t.rate.toStringAsFixed(t.rate >= 100 ? 2 : 4),
-                    style: AirportFontStack.board(context, size: 22),
-                    tone: theme.colorScheme.onSurface,
+                  // Solari numerals scaled to fit the 168-pt cell.
+                  // Without `FittedBox` the default 26-pt char width
+                  // overflows on 6+ digit pairs (e.g. "1.0892",
+                  // "156.42"); the previous build clipped the last
+                  // glyph against the cell stroke.
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: DepartureBoardText(
+                      text: t.rate.toStringAsFixed(t.rate >= 100 ? 2 : 4),
+                      charWidth: 18,
+                      style: AirportFontStack.board(context, size: 20),
+                      tone: theme.colorScheme.onSurface,
+                    ),
                   ),
                   Text(
                     '${up ? '+' : ''}${t.changePercent.toStringAsFixed(2)}%',

@@ -97,19 +97,23 @@ class WalletHeroCard extends StatelessWidget {
           const SizedBox(height: AppTokens.space2),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: AppTokens.space2),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                DepartureBoardText(
-                  text: balanceText,
-                  charWidth: 24,
-                  style: AirportFontStack.board(build, size: 32),
-                  tone: tone,
-                  background: isDark
-                      ? const Color(0xFF06080F)
-                      : const Color(0xFF0D1322),
-                ),
-              ],
+            // Hero balance is wrapped in `FittedBox` so very long
+            // balances (e.g. "$ 1,234,567.89") shrink to fit instead
+            // of overflowing the card. This is a defensive guard —
+            // we don't expect long balances in demo data, but
+            // production users in JPY / VND will have many digits.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: DepartureBoardText(
+                text: balanceText,
+                charWidth: 24,
+                style: AirportFontStack.board(build, size: 32),
+                tone: tone,
+                background: isDark
+                    ? const Color(0xFF06080F)
+                    : const Color(0xFF0D1322),
+              ),
             ),
           ),
           if (subtitle != null) ...[
