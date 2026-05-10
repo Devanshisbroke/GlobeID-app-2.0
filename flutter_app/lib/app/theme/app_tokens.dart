@@ -64,14 +64,20 @@ class AppTokens {
   static AccentSwatch accentByName(String name) =>
       accents.firstWhere((a) => a.name == name, orElse: () => accents.first);
 
-  // ── Canvas (deep dark) ────────────────────────────────────────────
-  /// Layered dark canvas — background → surface → elevated card.
-  static const Color canvasDark = Color(0xFF05060A);
-  static const Color surfaceDark = Color(0xFF0B0F1A);
-  static const Color cardDark = Color(0xFF111827);
-  static const Color borderDark = Color(0x1AFFFFFF);
+  // ── Canvas (OLED-first dark, paper-grade light) ──────────────────
+  /// Bible §3.2 substrate — three-step elevation ladder
+  /// (canvas → surface → card) tuned for OLED-first dark and a
+  /// paper-grade light. Pure-ink black on the canvas eliminates
+  /// halation around bright HUD elements; the surface layer is a
+  /// near-black indigo so the eye still reads warmth in the dark.
+  static const Color canvasDark = Color(0xFF000000);
+  static const Color surfaceDark = Color(0xFF07080C);
+  static const Color cardDark = Color(0xFF0E1320);
+  static const Color borderDark = Color(0x1FFFFFFF);
 
-  static const Color canvasLight = Color(0xFFF6F7FB);
+  /// Light theme: warm-cool paper substrate. The canvas is a hint of
+  /// blue-violet so accents pop without going steel-grey.
+  static const Color canvasLight = Color(0xFFF4F6FB);
   static const Color surfaceLight = Color(0xFFFFFFFF);
   static const Color cardLight = Color(0xFFFFFFFF);
   static const Color borderLight = Color(0x14000000);

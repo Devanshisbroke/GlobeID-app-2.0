@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
-import '../../app/theme/ux_bible.dart';
 import '../../data/models/lifecycle.dart';
 import '../../domain/airline_brand.dart';
 import '../../widgets/animated_appearance.dart';

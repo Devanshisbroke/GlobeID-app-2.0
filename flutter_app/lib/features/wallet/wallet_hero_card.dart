@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../app/theme/emotional_palette.dart';
+import '../../widgets/bible/bible.dart';
 import '../../widgets/premium/premium.dart';
 
 /// Premium wallet hero — replaces the old plain balance row.
@@ -48,8 +49,11 @@ class WalletHeroCard extends StatelessWidget {
         .toStringAsFixed(balance >= 1000 ? 0 : 2)
         .padLeft(balance >= 1000 ? 5 : 6, ' ');
 
-    return ContextualSurface(
-      context: emotion,
+    return BibleHeroCard(
+      material: BibleMaterial.glass,
+      tone: BibleTone.treasuryGreen,
+      elevation: BibleHeroElevation.cinematic,
+      radius: 32,
       padding: const EdgeInsets.fromLTRB(
         AppTokens.space5,
         AppTokens.space5,
@@ -62,11 +66,11 @@ class WalletHeroCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Total balance',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
-                  letterSpacing: 1.6,
-                  fontWeight: FontWeight.w600,
+                'TOTAL BALANCE',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                  letterSpacing: 1.8,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               const Spacer(),

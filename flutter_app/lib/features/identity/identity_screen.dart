@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
-import '../../app/theme/ux_bible.dart';
 import '../../data/models/travel_document.dart';
 import '../../domain/audit_log.dart';
 import '../../domain/identity_tier.dart';
@@ -17,7 +16,6 @@ import '../../widgets/animated_number.dart';
 import '../../widgets/app_chrome.dart';
 import '../../widgets/bible/bible.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/glass_surface.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
@@ -485,20 +483,23 @@ class _IdentityHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accent = theme.colorScheme.primary;
+    final isDark = theme.brightness == Brightness.dark;
+    // Bible §3.3 — Identity surfaces always read in foil. The score
+    // ring + tier chip + remaining-points strip live on a foil-grade
+    // hero card, not the legacy generic PremiumCard wash.
+    final accent = BibleTone.foilGold;
     final next = _nextTierTarget();
     final remaining = (next - score).clamp(0, 100);
+    final goldFg = isDark
+        ? const Color(0xFFFFE9B0)
+        : const Color(0xFF6B4E0F);
 
-    return PremiumCard(
-      padding: const EdgeInsets.all(AppTokens.space5),
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          accent.withValues(alpha: 0.18),
-          accent.withValues(alpha: 0.04),
-        ],
-      ),
+    return BibleHeroCard(
+      material: BibleMaterial.foil,
+      tone: BibleTone.foilGold,
+      elevation: BibleHeroElevation.cinematic,
+      radius: 32,
+      padding: const EdgeInsets.fromLTRB(22, 22, 22, 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -511,17 +512,19 @@ class _IdentityHero extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    PillChip(
+                    BibleHeroChip(
                       label: tier.label,
                       icon: Icons.workspace_premium_rounded,
+                      tone: BibleTone.foilGold,
+                      material: BibleMaterial.foil,
                     ),
                     const SizedBox(height: AppTokens.space2),
                     Text(
-                      'Identity score',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                        letterSpacing: 0.6,
+                      'IDENTITY SCORE',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: goldFg.withValues(alpha: 0.65),
+                        letterSpacing: 1.6,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     AnimatedNumber(
@@ -529,15 +532,16 @@ class _IdentityHero extends StatelessWidget {
                       decimals: 0,
                       style: theme.textTheme.displayLarge?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: accent,
+                        color: goldFg,
                         height: 1,
+                        letterSpacing: -1.2,
                       ),
                     ),
                     Text(
                       'out of 100',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                        color: goldFg.withValues(alpha: 0.55),
+                        letterSpacing: -0.1,
                       ),
                     ),
                   ],

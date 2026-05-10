@@ -149,14 +149,24 @@ class _BibleTopBarDelegate extends SliverPersistentHeaderDelegate {
     final t = (shrinkOffset / delta).clamp(0.0, 1.0);
     final accent = tone ?? theme.colorScheme.primary;
 
-    // Frost intensity rises as the bar collapses — at full extent the
-    // bar is transparent; at full collapse it's a true frosted slab.
+    // Bible §4.3 — frost intensity rises as the bar collapses. At full
+    // extent the bar is fully transparent so the wallpaper / living
+    // gradient is visible; at full collapse it's a true frosted slab.
+    // The ramp uses easeOutCubic so the frost lands quickly once the
+    // user starts scrolling, then plateaus.
     final frost = Curves.easeOutCubic.transform(t);
+
+    // Scroll-reactive blur sigma — ramps 0 → 24 with the collapse so
+    // the bar feels weightless at full extent and becomes a heavy
+    // material slab when content is sliding under it.
+    final blurSigma = 24.0 * frost;
 
     final largeTitleOpacity = (1.0 - t * 1.4).clamp(0.0, 1.0);
     final compactTitleOpacity = ((t - 0.55) / 0.45).clamp(0.0, 1.0);
-    // Slide the large title up and shrink it slightly as we collapse.
-    final largeTitleSlide = -8.0 * t;
+    // Bible §6.2 — large title parallax: slide up faster than the
+    // scroll velocity so it tucks under the compact bar with a sense
+    // of depth, not a 1:1 slide. -12 px at full collapse.
+    final largeTitleSlide = -12.0 * Curves.easeOutQuad.transform(t);
 
     final compact = compactHeight;
     final actionsRow = Row(
@@ -174,18 +184,22 @@ class _BibleTopBarDelegate extends SliverPersistentHeaderDelegate {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Frosted backdrop — fades in as the bar collapses.
+          // Frosted backdrop — scroll-reactive blur σ from 0→24 as
+          // the bar collapses. Bible §4.3 ultrathin material: heavier
+          // tint in dark mode (0→0.42 alpha black) so OLED-first
+          // canvas reads as a true layer above content; light mode
+          // uses a luminosity-aware white veil.
           if (!glass.reduceTransparency)
             Positioned.fill(
-              child: Opacity(
-                opacity: frost,
-                child: BackdropFilter(
-                  filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                  child: Container(
-                    color: isDark
-                        ? Colors.black.withValues(alpha: 0.28)
-                        : Colors.white.withValues(alpha: 0.55),
-                  ),
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(
+                  sigmaX: blurSigma,
+                  sigmaY: blurSigma,
+                ),
+                child: Container(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.42 * frost)
+                      : Colors.white.withValues(alpha: 0.62 * frost),
                 ),
               ),
             )
@@ -194,6 +208,39 @@ class _BibleTopBarDelegate extends SliverPersistentHeaderDelegate {
               child: Opacity(
                 opacity: frost,
                 child: Container(color: glass.surface.withValues(alpha: 0.92)),
+              ),
+            ),
+          // Specular top edge — a 1-pt glint along the top edge
+          // simulates light catching the frosted surface (iOS 17 /
+          // OneUI 6 ultrathin material trick). Only visible when the
+          // bar has frost (avoids drawing on a transparent expanded
+          // bar).
+          if (!glass.reduceTransparency)
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              child: Opacity(
+                opacity: frost * 0.9,
+                child: Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isDark
+                          ? [
+                              Colors.transparent,
+                              Colors.white.withValues(alpha: 0.10),
+                              Colors.transparent,
+                            ]
+                          : [
+                              Colors.transparent,
+                              Colors.white.withValues(alpha: 0.55),
+                              Colors.transparent,
+                            ],
+                      stops: const [0.0, 0.5, 1.0],
+                    ),
+                  ),
+                ),
               ),
             ),
           // Hair-line bottom border (fades in with frost).
