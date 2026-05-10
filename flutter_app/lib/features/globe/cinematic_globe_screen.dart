@@ -5,12 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../app/theme/ux_bible.dart';
 import '../../cinematic/globe_camera_controller.dart';
 import '../../cinematic/globe_interaction_overlay.dart';
 import '../../widgets/agentic_chip.dart';
 import '../../widgets/animated_appearance.dart';
+import '../../widgets/app_chrome.dart';
+import '../../widgets/bible/bible.dart';
 import '../../widgets/cinematic_button.dart';
-import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
@@ -92,12 +94,24 @@ class _CinematicGlobeScreenState extends State<CinematicGlobeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return PageScaffold(
-      title: 'Cinematic globe',
-      subtitle: 'Atmospheric · animated arcs · contextual destinations',
-      body: ListView(
-        physics: const BouncingScrollPhysics(),
-        children: [
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        BibleTopBar(
+          title: 'Globe',
+          subtitle: 'Atmospheric · animated arcs · destinations',
+          tone: BibleTone.equatorTeal,
+          actions: appChromeActions(context),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+            AppTokens.space5,
+            AppTokens.space2,
+            AppTokens.space5,
+            AppTokens.space9 + 16,
+          ),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
           AnimatedAppearance(
             child: AspectRatio(
               aspectRatio: 0.96,
@@ -293,8 +307,10 @@ class _CinematicGlobeScreenState extends State<CinematicGlobeScreen>
             },
           ),
           const SizedBox(height: AppTokens.space9),
-        ],
-      ),
+            ]),
+          ),
+        ),
+      ],
     );
   }
 }

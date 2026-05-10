@@ -8,6 +8,7 @@
 // flagship surfaces should source from here, not from the lower-
 // level `widgets/premium/*`.
 
+export 'bible_top_bar.dart';
+export 'ligature_text.dart';
 export 'living_gradient.dart';
 export 'solari_flap.dart';
-export 'ligature_text.dart';

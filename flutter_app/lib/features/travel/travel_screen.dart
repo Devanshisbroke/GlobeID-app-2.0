@@ -4,9 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../app/theme/ux_bible.dart';
 import '../../data/models/lifecycle.dart';
 import '../../domain/airline_brand.dart';
 import '../../widgets/animated_appearance.dart';
+import '../../widgets/app_chrome.dart';
+import '../../widgets/bible/bible.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
@@ -38,7 +41,6 @@ class _TravelScreenState extends ConsumerState<TravelScreen>
   Widget build(BuildContext context) {
     super.build(context);
     final lifecycle = ref.watch(lifecycleProvider);
-    final theme = Theme.of(context);
     final upcoming =
         lifecycle.trips.where((t) => t.stage == 'upcoming').toList();
     final active = lifecycle.trips.where((t) => t.stage == 'active').toList();
@@ -56,65 +58,33 @@ class _TravelScreenState extends ConsumerState<TravelScreen>
 
     return RefreshIndicator(
       onRefresh: () => ref.read(lifecycleProvider.notifier).hydrate(),
-      child: ListView(
-        // Right padding leaves room for the floating top-right theme
-        // chrome rendered by AppShell.
-        padding: EdgeInsets.fromLTRB(
-          AppTokens.space5,
-          MediaQuery.of(context).padding.top + AppTokens.space5,
-          AppTokens.space5 + 48,
-          AppTokens.space9 + 16,
-        ),
+      child: CustomScrollView(
         physics: const BouncingScrollPhysics(),
-        children: [
-          // ── Title row + plan trip CTA ────────────────────────────
-          Row(
-            children: [
-              Text('Travel',
-                  style: theme.textTheme.headlineLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  )),
-              const Spacer(),
-              Pressable(
-                scale: 0.96,
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  context.push('/planner');
-                },
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        theme.colorScheme.primary,
-                        theme.colorScheme.primary.withValues(alpha: 0.6),
-                      ],
-                    ),
-                    boxShadow: AppTokens.shadowMd(
-                      tint: theme.colorScheme.primary,
-                    ),
-                  ),
-                  child: const Icon(Icons.add_rounded, color: Colors.white),
-                ),
+        slivers: [
+          BibleTopBar(
+            title: 'Travel',
+            subtitle:
+                '${active.length + upcoming.length} active · ${past.length} past',
+            tone: BibleTone.jetCyan,
+            actions: [
+              BibleTopBarAction(
+                icon: Icons.add_rounded,
+                tooltip: 'Plan a trip',
+                onTap: () => context.push('/planner'),
               ),
+              const InboxBellAction(),
+              const ThemeCyclerAction(),
             ],
           ),
-          AnimatedAppearance(
-            delay: const Duration(milliseconds: 60),
-            child: Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                'Your travel operating system — every trip, lifecycle stage, and ground service in one place.',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.space5,
+              AppTokens.space2,
+              AppTokens.space5,
+              AppTokens.space9 + 16,
             ),
-          ),
-          const SizedBox(height: AppTokens.space5),
-
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
           // ── Animated travel stats ──────────────────────────────
           AnimatedAppearance(
             delay: const Duration(milliseconds: 80),
@@ -209,6 +179,9 @@ class _TravelScreenState extends ConsumerState<TravelScreen>
                   muted: visible[i].stage == 'past',
                 ),
               ),
+              ]),
+            ),
+          ),
         ],
       ),
     );

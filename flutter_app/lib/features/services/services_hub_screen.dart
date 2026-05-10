@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../app/theme/ux_bible.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../widgets/premium/premium.dart';
+import '../../widgets/app_chrome.dart';
+import '../../widgets/bible/bible.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
@@ -30,40 +32,25 @@ class _ServicesHubScreenState extends ConsumerState<ServicesHubScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final theme = Theme.of(context);
 
-    return ListView(
+    return CustomScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(
-        AppTokens.space5,
-        MediaQuery.of(context).padding.top + AppTokens.space5,
-        // Right padding leaves room for the floating top-right theme
-        // chrome rendered by AppShell.
-        AppTokens.space5 + 48,
-        AppTokens.space9 + 16,
-      ),
-      children: [
-        AnimatedAppearance(
-          child: Text('Services', style: theme.textTheme.headlineLarge),
+      slivers: [
+        BibleTopBar(
+          title: 'Services',
+          subtitle: 'Everything you need on the road',
+          tone: BibleTone.honeyAmber,
+          actions: appChromeActions(context),
         ),
-        AnimatedAppearance(
-          delay: const Duration(milliseconds: 60),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Everything you need on the road, all in one place.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppTokens.space2),
-              const PremiumHud(label: 'LIVE', dense: true),
-            ],
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+            AppTokens.space5,
+            AppTokens.space2,
+            AppTokens.space5,
+            AppTokens.space9 + 16,
           ),
-        ),
-        const SizedBox(height: AppTokens.space5),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
 
         // ── Featured hero card: live passport fast path ─────────
         AnimatedAppearance(
@@ -491,6 +478,9 @@ class _ServicesHubScreenState extends ConsumerState<ServicesHubScreen>
               description: 'Updates + community posts',
             ),
           ],
+        ),
+            ]),
+          ),
         ),
       ],
     );

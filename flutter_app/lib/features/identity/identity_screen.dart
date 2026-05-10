@@ -8,11 +8,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../app/theme/ux_bible.dart';
 import '../../data/models/travel_document.dart';
 import '../../domain/audit_log.dart';
 import '../../domain/identity_tier.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/animated_number.dart';
+import '../../widgets/app_chrome.dart';
+import '../../widgets/bible/bible.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/premium/premium.dart';
@@ -51,48 +54,32 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
     final score = ref.watch(scoreProvider);
     final theme = Theme.of(context);
 
-    return ListView(
+    return CustomScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(
-        AppTokens.space5,
-        MediaQuery.of(context).padding.top + AppTokens.space5,
-        // Right padding leaves room for the floating top-right theme
-        // chrome rendered by AppShell.
-        AppTokens.space5 + 48,
-        AppTokens.space9 + 16,
-      ),
-      children: [
-        // ── Title row ────────────────────────────────────────────
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: AnimatedAppearance(
-                child: Text('Identity', style: theme.textTheme.headlineLarge),
-              ),
+      slivers: [
+        BibleTopBar(
+          title: 'Identity',
+          subtitle:
+              'Credentials · trust · documents',
+          tone: BibleTone.foilGold,
+          actions: [
+            _IdentityChip(
+              label: user.profile.verifiedStatus.toUpperCase(),
+              accent: _statusAccent(user.profile.verifiedStatus, theme),
             ),
-            AnimatedAppearance(
-              delay: const Duration(milliseconds: 60),
-              child: _IdentityChip(
-                label: user.profile.verifiedStatus.toUpperCase(),
-                accent: _statusAccent(user.profile.verifiedStatus, theme),
-              ),
-            ),
+            const InboxBellAction(),
+            const ThemeCyclerAction(),
           ],
         ),
-        AnimatedAppearance(
-          delay: const Duration(milliseconds: 80),
-          child: Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              'Your global identity layer — credentials, security, and trust signal in one place.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-            ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+            AppTokens.space5,
+            AppTokens.space2,
+            AppTokens.space5,
+            AppTokens.space9 + 16,
           ),
-        ),
-        const SizedBox(height: AppTokens.space5),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
 
         // ── Hero: score + tier + delta ───────────────────────────
         score.when(
@@ -346,6 +333,9 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
               ),
             ),
           ],
+        ),
+            ]),
+          ),
         ),
       ],
     );
