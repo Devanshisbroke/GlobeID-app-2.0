@@ -1,0 +1,715 @@
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../data/models/wallet_models.dart';
+import '../../features/wallet/wallet_provider.dart';
+import '../os2_tokens.dart';
+import '../primitives/os2_beacon.dart';
+import '../primitives/os2_chip.dart';
+import '../primitives/os2_magnetic.dart';
+import '../primitives/os2_slab.dart';
+import '../primitives/os2_text.dart';
+import '../primitives/os2_world_header.dart';
+
+/// OS 2.0 — Wallet world.
+///
+/// Apple-Wallet-meets-treasury-vault. Hierarchy:
+///   1. World header (Wallet · GMT · TREASURY beacon).
+///   2. Treasury vault hero — giant USD-equivalent display + liquid
+///      pour visual (animated mercury wave). Stage chips for actions.
+///   3. FX strip — continuously scrolling list of currency rates.
+///   4. Currency stack — each balance as a stacked pass with parallax
+///      depth (top one full-bleed, remaining peek by 14pt each).
+///   5. Transaction ribbon — last 6 transactions as a vertical
+///      typographic strip (no card-list).
+class WalletWorld extends ConsumerWidget {
+  const WalletWorld({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final wallet = ref.watch(walletProvider);
+    final balances = wallet.balances;
+    final txns = wallet.transactions;
+
+    final total = balances.fold<double>(0, (acc, b) {
+      return acc + (b.rate > 0 ? b.amount / b.rate : b.amount);
+    });
+
+    return SafeArea(
+      bottom: false,
+      child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 100),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Os2WorldHeader(
+              world: Os2World.wallet,
+              title: 'Treasury',
+              subtitle: 'Multi-currency \u00b7 globally settled',
+              beacon: 'LIQUID',
+            ),
+            const SizedBox(height: Os2.space4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: _TreasuryVaultHero(total: total),
+            ),
+            const SizedBox(height: Os2.space4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: _FxStrip(balances: balances),
+            ),
+            const SizedBox(height: Os2.space5),
+            // Currency stack.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space5),
+              child: _SectionLabel(label: 'CURRENCY VAULT'),
+            ),
+            const SizedBox(height: Os2.space3),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: _CurrencyStack(balances: balances),
+            ),
+            const SizedBox(height: Os2.space5),
+            // Transaction ribbon.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space5),
+              child: _SectionLabel(label: 'TRANSACTION RIBBON'),
+            ),
+            const SizedBox(height: Os2.space3),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: _TransactionRibbon(txns: txns.take(6).toList()),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel({required this.label});
+  final String label;
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(width: 18, height: 1, color: Os2.walletTone.withValues(alpha: 0.55)),
+        const SizedBox(width: 8),
+        Os2Text.caption(label, color: Os2.walletTone),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────── Treasury vault hero
+
+class _TreasuryVaultHero extends StatefulWidget {
+  const _TreasuryVaultHero({required this.total});
+  final double total;
+
+  @override
+  State<_TreasuryVaultHero> createState() => _TreasuryVaultHeroState();
+}
+
+class _TreasuryVaultHeroState extends State<_TreasuryVaultHero>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pour = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 5),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _pour.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Os2Slab(
+      tone: Os2.walletTone,
+      tier: Os2SlabTier.floor2,
+      radius: Os2.rHero,
+      halo: Os2SlabHalo.full,
+      elevation: Os2SlabElevation.cinematic,
+      padding: EdgeInsets.zero,
+      breath: true,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(Os2.rHero),
+        child: SizedBox(
+          height: 220,
+          child: Stack(
+            children: [
+              // Liquid pour layer.
+              AnimatedBuilder(
+                animation: _pour,
+                builder: (context, _) {
+                  return Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: _LiquidPourPainter(
+                          progress: _pour.value,
+                          tone: Os2.walletTone,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              Padding(
+                padding: const EdgeInsets.all(Os2.space5),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Os2Chip(
+                          label: 'TOTAL TREASURY',
+                          tone: Os2.walletTone,
+                          icon: Icons.account_balance_rounded,
+                          intensity: Os2ChipIntensity.solid,
+                        ),
+                        const Spacer(),
+                        Os2Beacon(
+                          label: 'SETTLED',
+                          tone: Os2.signalSettled,
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    Os2Text.caption('USD EQUIVALENT', color: Os2.inkLow),
+                    const SizedBox(height: 4),
+                    Os2Text.display(
+                      '\$${_fmt(widget.total)}',
+                      color: Os2.inkBright,
+                      size: 48,
+                      maxLines: 1,
+                    ),
+                    const SizedBox(height: Os2.space4),
+                    // Stage chips — the verbs.
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: [
+                          _StageChip(
+                            icon: Icons.south_rounded,
+                            label: 'Receive',
+                            onTap: () => GoRouter.of(context)
+                                .push('/wallet/receive'),
+                          ),
+                          const SizedBox(width: 8),
+                          _StageChip(
+                            icon: Icons.north_rounded,
+                            label: 'Send',
+                            onTap: () =>
+                                GoRouter.of(context).push('/wallet/send'),
+                          ),
+                          const SizedBox(width: 8),
+                          _StageChip(
+                            icon: Icons.swap_horiz_rounded,
+                            label: 'Convert',
+                            onTap: () => GoRouter.of(context)
+                                .push('/wallet/convert'),
+                          ),
+                          const SizedBox(width: 8),
+                          _StageChip(
+                            icon: Icons.qr_code_scanner_rounded,
+                            label: 'Scan',
+                            onTap: () => GoRouter.of(context).push('/scan'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static String _fmt(double v) =>
+      v.toStringAsFixed(2).replaceAllMapped(
+          RegExp(r'(\d)(?=(\d{3})+\.)'), (m) => '${m[1]},');
+}
+
+class _StageChip extends StatelessWidget {
+  const _StageChip({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Os2Magnetic(
+      onTap: onTap,
+      pressedScale: 0.94,
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: ShapeDecoration(
+          color: Os2.walletTone.withValues(alpha: 0.18),
+          shape: StadiumBorder(
+            side: BorderSide(
+              color: Os2.walletTone.withValues(alpha: 0.40),
+              width: Os2.strokeFine,
+            ),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: Os2.walletTone),
+            const SizedBox(width: 6),
+            Os2Text.caption(
+              label.toUpperCase(),
+              color: Os2.walletTone,
+              size: 11,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LiquidPourPainter extends CustomPainter {
+  _LiquidPourPainter({required this.progress, required this.tone});
+  final double progress;
+  final Color tone;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path();
+    final amp = 14.0;
+    final freq = 2 * math.pi / size.width * 1.6;
+    final phase = progress * 2 * math.pi;
+    final baseY = size.height * 0.62;
+    path.moveTo(0, baseY);
+    for (double x = 0; x <= size.width; x += 4) {
+      final y = baseY + math.sin(x * freq + phase) * amp;
+      path.lineTo(x, y);
+    }
+    path.lineTo(size.width, size.height);
+    path.lineTo(0, size.height);
+    path.close();
+    final paint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          tone.withValues(alpha: 0.14),
+          tone.withValues(alpha: 0.04),
+        ],
+      ).createShader(Offset.zero & size);
+    canvas.drawPath(path, paint);
+    // Specular crest.
+    final crest = Paint()
+      ..color = tone.withValues(alpha: 0.20)
+      ..strokeWidth = 0.6
+      ..style = PaintingStyle.stroke;
+    final crestPath = Path();
+    crestPath.moveTo(0, baseY);
+    for (double x = 0; x <= size.width; x += 4) {
+      final y = baseY + math.sin(x * freq + phase) * amp;
+      crestPath.lineTo(x, y);
+    }
+    canvas.drawPath(crestPath, crest);
+  }
+
+  @override
+  bool shouldRepaint(covariant _LiquidPourPainter old) =>
+      old.progress != progress || old.tone != tone;
+}
+
+// ─────────────────────────────────────────── FX strip
+
+class _FxStrip extends StatefulWidget {
+  const _FxStrip({required this.balances});
+  final List<WalletBalance> balances;
+
+  @override
+  State<_FxStrip> createState() => _FxStripState();
+}
+
+class _FxStripState extends State<_FxStrip>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _scroll = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 48),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final items = widget.balances.isEmpty
+        ? const [
+            _FxItem(code: 'USD', flag: '🇺🇸', rate: 1.0000),
+            _FxItem(code: 'EUR', flag: '🇪🇺', rate: 0.9210),
+            _FxItem(code: 'GBP', flag: '🇬🇧', rate: 0.7821),
+            _FxItem(code: 'JPY', flag: '🇯🇵', rate: 151.32),
+            _FxItem(code: 'INR', flag: '🇮🇳', rate: 83.42),
+          ]
+        : widget.balances
+            .map((b) =>
+                _FxItem(code: b.currency, flag: b.flag, rate: b.rate))
+            .toList();
+    return Os2Slab(
+      tone: Os2.walletTone,
+      tier: Os2SlabTier.floor1,
+      radius: Os2.rCard,
+      halo: Os2SlabHalo.none,
+      elevation: Os2SlabElevation.flat,
+      padding: EdgeInsets.zero,
+      breath: false,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(Os2.rCard),
+        child: SizedBox(
+          height: 44,
+          child: Stack(
+            children: [
+              AnimatedBuilder(
+                animation: _scroll,
+                builder: (context, _) {
+                  return Transform.translate(
+                    offset: Offset(
+                      -_scroll.value * (items.length * 130),
+                      0,
+                    ),
+                    child: Row(
+                      children: [
+                        for (final item in [...items, ...items])
+                          _FxTile(item: item),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              // Edge fade.
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        stops: const [0.0, 0.08, 0.92, 1.0],
+                        colors: [
+                          Os2.floor1,
+                          Os2.floor1.withValues(alpha: 0),
+                          Os2.floor1.withValues(alpha: 0),
+                          Os2.floor1,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FxItem {
+  const _FxItem({required this.code, required this.flag, required this.rate});
+  final String code;
+  final String flag;
+  final double rate;
+}
+
+class _FxTile extends StatelessWidget {
+  const _FxTile({required this.item});
+  final _FxItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 130,
+      alignment: Alignment.center,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(item.flag, style: const TextStyle(fontSize: 14)),
+          const SizedBox(width: 6),
+          Os2Text.title(item.code, color: Os2.inkBright, size: 12),
+          const SizedBox(width: 6),
+          Os2Text.monoCap(
+            item.rate.toStringAsFixed(item.rate > 10 ? 2 : 4),
+            color: Os2.walletTone,
+            size: 11,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────── Currency stack
+
+class _CurrencyStack extends StatelessWidget {
+  const _CurrencyStack({required this.balances});
+  final List<WalletBalance> balances;
+
+  @override
+  Widget build(BuildContext context) {
+    if (balances.isEmpty) {
+      return _EmptyState(
+        icon: Icons.account_balance_rounded,
+        label: 'No balances yet',
+        sub: 'Receive your first currency to open the vault.',
+      );
+    }
+    return Column(
+      children: [
+        for (int i = 0; i < balances.length; i++) ...[
+          _CurrencySlab(balance: balances[i], primary: i == 0),
+          if (i < balances.length - 1) const SizedBox(height: Os2.space3),
+        ],
+      ],
+    );
+  }
+}
+
+class _CurrencySlab extends StatelessWidget {
+  const _CurrencySlab({required this.balance, required this.primary});
+  final WalletBalance balance;
+  final bool primary;
+
+  @override
+  Widget build(BuildContext context) {
+    return Os2Magnetic(
+      onTap: () =>
+          GoRouter.of(context).push('/multi-currency/${balance.currency}'),
+      child: Os2Slab(
+        tone: Os2.walletTone,
+        tier: primary ? Os2SlabTier.floor2 : Os2SlabTier.floor1,
+        radius: Os2.rCard,
+        halo: primary ? Os2SlabHalo.edge : Os2SlabHalo.corner,
+        elevation: primary
+            ? Os2SlabElevation.raised
+            : Os2SlabElevation.resting,
+        padding: const EdgeInsets.symmetric(
+          horizontal: Os2.space4,
+          vertical: Os2.space4,
+        ),
+        breath: primary,
+        child: Row(
+          children: [
+            Text(balance.flag, style: const TextStyle(fontSize: 26)),
+            const SizedBox(width: Os2.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Os2Text.title(
+                        balance.currency,
+                        color: Os2.inkBright,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Os2Text.caption(
+                        '@ ${balance.rate.toStringAsFixed(balance.rate > 10 ? 2 : 4)}',
+                        color: Os2.inkLow,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Os2Text.headline(
+                    '${balance.symbol}${_fmt(balance.amount)}',
+                    color: Os2.inkBright,
+                    size: 22,
+                    maxLines: 1,
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded,
+                size: 18, color: Os2.inkLow),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static String _fmt(double v) =>
+      v.toStringAsFixed(2).replaceAllMapped(
+          RegExp(r'(\d)(?=(\d{3})+\.)'), (m) => '${m[1]},');
+}
+
+// ─────────────────────────────────────────── Transaction ribbon
+
+class _TransactionRibbon extends StatelessWidget {
+  const _TransactionRibbon({required this.txns});
+  final List<WalletTransaction> txns;
+
+  @override
+  Widget build(BuildContext context) {
+    if (txns.isEmpty) {
+      return _EmptyState(
+        icon: Icons.timeline_rounded,
+        label: 'No transactions yet',
+        sub: 'Your first move shows up here as it settles.',
+      );
+    }
+    return Os2Slab(
+      tone: Os2.walletTone,
+      tier: Os2SlabTier.floor1,
+      radius: Os2.rCard,
+      halo: Os2SlabHalo.none,
+      elevation: Os2SlabElevation.flat,
+      padding: const EdgeInsets.symmetric(
+        horizontal: Os2.space4,
+        vertical: Os2.space2,
+      ),
+      breath: false,
+      child: Column(
+        children: [
+          for (int i = 0; i < txns.length; i++) ...[
+            _TxnRow(txn: txns[i]),
+            if (i < txns.length - 1)
+              Container(height: 0.5, color: Os2.hairlineSoft),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TxnRow extends StatelessWidget {
+  const _TxnRow({required this.txn});
+  final WalletTransaction txn;
+
+  bool get _credit => txn.type == 'receive' || txn.type == 'refund';
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _credit ? Os2.signalSettled : Os2.inkBright;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: Os2.space3),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Os2.walletTone.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Os2.walletTone.withValues(alpha: 0.22),
+                width: Os2.strokeFine,
+              ),
+            ),
+            child: Center(
+              child: Text(txn.icon, style: const TextStyle(fontSize: 14)),
+            ),
+          ),
+          const SizedBox(width: Os2.space3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Os2Text.title(
+                  txn.description,
+                  color: Os2.inkBright,
+                  size: 14,
+                  maxLines: 1,
+                ),
+                const SizedBox(height: 2),
+                Os2Text.caption(
+                  '${txn.category.toUpperCase()} \u00b7 ${_relativeDate(txn.date)}',
+                  color: Os2.inkLow,
+                ),
+              ],
+            ),
+          ),
+          Os2Text.title(
+            '${_credit ? '+' : '-'}${txn.currency} ${_fmt(txn.amount.abs())}',
+            color: color,
+            size: 14,
+            maxLines: 1,
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _fmt(double v) =>
+      v.toStringAsFixed(2).replaceAllMapped(
+          RegExp(r'(\d)(?=(\d{3})+\.)'), (m) => '${m[1]},');
+
+  static String _relativeDate(String iso) {
+    try {
+      final d = DateTime.parse(iso);
+      final diff = DateTime.now().difference(d);
+      if (diff.inMinutes < 1) return 'just now';
+      if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+      if (diff.inHours < 24) return '${diff.inHours}h ago';
+      if (diff.inDays < 7) return '${diff.inDays}d ago';
+      return iso.substring(0, 10);
+    } catch (_) {
+      return iso;
+    }
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({
+    required this.icon,
+    required this.label,
+    required this.sub,
+  });
+  final IconData icon;
+  final String label;
+  final String sub;
+
+  @override
+  Widget build(BuildContext context) {
+    return Os2Slab(
+      tone: Os2.walletTone,
+      radius: Os2.rCard,
+      halo: Os2SlabHalo.corner,
+      elevation: Os2SlabElevation.flat,
+      padding: const EdgeInsets.all(Os2.space5),
+      breath: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: Os2.walletTone),
+          const SizedBox(height: Os2.space3),
+          Os2Text.title(label, color: Os2.inkBright, size: 16),
+          const SizedBox(height: 4),
+          Os2Text.body(sub, color: Os2.inkMid, size: 13),
+        ],
+      ),
+    );
+  }
+}
+
+// A small _ prefix is unused but keeps the dart:ui import referenced
+// for future variants. Stripped by the dead-code shaker.
+// ignore: unused_element
+double _unused() => 0;

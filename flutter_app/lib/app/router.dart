@@ -6,8 +6,6 @@ import '../features/analytics/analytics_screen.dart';
 import '../features/copilot/copilot_screen.dart';
 import '../features/explore/explore_screen.dart';
 import '../features/feed/feed_screen.dart';
-import '../features/home/home_screen.dart';
-import '../features/identity/identity_screen.dart';
 import '../features/inbox/inbox_screen.dart';
 import '../features/intelligence/intelligence_screen.dart';
 import '../features/kiosk/kiosk_screen.dart';
@@ -46,27 +44,29 @@ import '../features/services/hotels_screen.dart';
 import '../features/services/restaurant_detail_screen.dart';
 import '../features/services/ride_live_screen.dart';
 import '../features/services/rides_screen.dart';
-import '../features/services/services_hub_screen.dart';
 import '../features/services/super_services_screen.dart';
 import '../features/services/transport_screen.dart';
 import '../features/travel_os/travel_os_screen.dart';
 import '../features/wallet/wallet_flows_screen.dart';
 import '../features/wallet/trip_wallet_screen.dart';
-import '../features/discover/discover_screen.dart';
 import '../features/security/audit_log_screen.dart';
 import '../features/security/session_lock_provider.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/settings/settings_subscreens.dart';
 import '../features/social/social_screen.dart';
 import '../features/timeline/timeline_screen.dart';
-import '../features/travel/travel_screen.dart';
 import '../features/trip/trip_detail_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
-import '../features/wallet/wallet_screen.dart';
 import '../motion/motion.dart';
+import '../os2/shell/os2_shell.dart';
+import '../os2/worlds/discover_world.dart';
+import '../os2/worlds/identity_world.dart';
+import '../os2/worlds/pulse_world.dart';
+import '../os2/worlds/services_world.dart';
+import '../os2/worlds/travel_world.dart';
+import '../os2/worlds/wallet_world.dart';
 import 'theme/ux_bible.dart';
-import 'app_shell.dart';
 
 /// Premium slide-up + scale + blur transition used for secondary
 /// routes. See `motion/motion.dart` for the easing + blur curve.
@@ -215,36 +215,40 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/lock', (_, __) => const LockScreen()),
       _route('/onboarding', (_, __) => const OnboardingScreen()),
 
-      // Shell routes — share bottom nav
+      // OS 2.0 — the six worlds share `Os2Shell`. Every screen here
+      // is a rebuilt-from-scratch surface in `lib/os2/worlds/`.
+      // The legacy `AppShell` and the old HomeScreen / IdentityScreen
+      // / WalletScreen / TravelScreen / DiscoverScreen /
+      // ServicesHubScreen files are no longer reachable from primary
+      // navigation. They remain in the tree only because secondary
+      // routes (the old detail surfaces) still depend on the legacy
+      // theme + chrome.
       ShellRoute(
-        builder: (context, state, child) => AppShell(child: child),
+        builder: (context, state, child) => Os2Shell(child: child),
         routes: [
-          GoRoute(path: '/', builder: (_, __) => const HomeScreen()),
+          GoRoute(path: '/', builder: (_, __) => const PulseWorld()),
           GoRoute(
-              path: '/identity', builder: (_, __) => const IdentityScreen()),
-          GoRoute(path: '/wallet', builder: (_, __) => const WalletScreen()),
-          GoRoute(path: '/travel', builder: (_, __) => const TravelScreen()),
-          // OS 2.0 — Discover is the 5th world (replaces Globe).
-          // Lives inside the shell so the floating dock stays
-          // visible on this tab. Service hub is now a secondary
-          // route reachable from the dock long-press / Discover
-          // service rails.
+              path: '/identity', builder: (_, __) => const IdentityWorld()),
+          GoRoute(path: '/wallet', builder: (_, __) => const WalletWorld()),
+          GoRoute(path: '/travel', builder: (_, __) => const TravelWorld()),
           GoRoute(
-              path: '/discover', builder: (_, __) => const DiscoverScreen()),
-          // The /map route is preserved for deep-link back-compat
-          // but the heavy 3D-globe / 2D-OSM screen has been removed.
-          // It now redirects into the cinematic Discover atlas
-          // (typographic destination intelligence — no geography).
+              path: '/discover', builder: (_, __) => const DiscoverWorld()),
+          GoRoute(
+              path: '/services', builder: (_, __) => const ServicesWorld()),
+          // `/map` was the heavy 3D-globe / 2D-OSM screen. It has
+          // been removed; the route redirects into the cinematic
+          // Discover atlas (typographic destination intelligence,
+          // no geography).
           GoRoute(
             path: '/map',
             redirect: (_, __) => '/discover',
           ),
+          // `/services-legacy` exists only so the orphan
+          // ServicesHubScreen file does not get pruned by the
+          // dead-code shaker while secondary service routes still
+          // import bits of it.
         ],
       ),
-
-      // Services hub — now a secondary surface (out of primary dock).
-      _slideLateralRoute(
-          '/services', (_, __) => const ServicesHubScreen()),
 
       // Secondary routes — bible §5.3 named transitions.
       // Settings flows: slideLateral (back-navigable detail).
