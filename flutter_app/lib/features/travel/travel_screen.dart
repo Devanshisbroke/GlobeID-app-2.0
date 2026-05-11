@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../data/models/lifecycle.dart';
 import '../../domain/airline_brand.dart';
-import '../../widgets/animated_appearance.dart';
 import '../../widgets/app_chrome.dart';
 import '../../widgets/bible/bible.dart';
 import '../../widgets/empty_state.dart';
@@ -85,14 +84,11 @@ class _TravelScreenState extends ConsumerState<TravelScreen>
             sliver: SliverList(
               delegate: SliverChildListDelegate([
           // ── Animated travel stats ──────────────────────────────
-          AnimatedAppearance(
-            delay: const Duration(milliseconds: 80),
-            child: const TravelStatsHeader(
-              countries: 14,
-              flights: 38,
-              distanceKm: 142800,
-              hoursInAir: 196,
-            ),
+          const TravelStatsHeader(
+            countries: 14,
+            flights: 38,
+            distanceKm: 142800,
+            hoursInAir: 196,
           ),
           const SizedBox(height: AppTokens.space4),
 
@@ -124,37 +120,28 @@ class _TravelScreenState extends ConsumerState<TravelScreen>
 
           // ── Lifecycle pipeline strip ────────────────────────────
           const SectionHeader(title: 'Trip lifecycle', dense: true),
-          AnimatedAppearance(
-            delay: const Duration(milliseconds: 140),
-            child: _LifecyclePipeline(
-              activeStage: activeHero != null
-                  ? 'in-flight'
-                  : upcoming.isNotEmpty
-                      ? 'ticketing'
-                      : 'planning',
-            ),
+          _LifecyclePipeline(
+            activeStage: activeHero != null
+                ? 'in-flight'
+                : upcoming.isNotEmpty
+                    ? 'ticketing'
+                    : 'planning',
           ),
 
           // ── Travel systems quick row ────────────────────────────
           const SectionHeader(title: 'Travel systems'),
-          AnimatedAppearance(
-            delay: const Duration(milliseconds: 180),
-            child: const _TravelSystemsRow(),
-          ),
+          const _TravelSystemsRow(),
 
           // ── Stage segmented + trip list ─────────────────────────
           const SectionHeader(title: 'My trips'),
-          AnimatedAppearance(
-            delay: const Duration(milliseconds: 220),
-            child: _StageSegmented(
-              value: _stage,
-              activeCount: active.length + upcoming.length,
-              pastCount: past.length,
-              onChanged: (i) {
-                HapticFeedback.selectionClick();
-                setState(() => _stage = i);
-              },
-            ),
+          _StageSegmented(
+            value: _stage,
+            activeCount: active.length + upcoming.length,
+            pastCount: past.length,
+            onChanged: (i) {
+              HapticFeedback.selectionClick();
+              setState(() => _stage = i);
+            },
           ),
           const SizedBox(height: AppTokens.space4),
           if (visible.isEmpty)
@@ -169,12 +156,9 @@ class _TravelScreenState extends ConsumerState<TravelScreen>
             )
           else
             for (var i = 0; i < visible.length; i++)
-              AnimatedAppearance(
-                delay: Duration(milliseconds: 60 * i),
-                child: _TripCard(
-                  trip: visible[i],
-                  muted: visible[i].stage == 'past',
-                ),
+              _TripCard(
+                trip: visible[i],
+                muted: visible[i].stage == 'past',
               ),
               ]),
             ),
