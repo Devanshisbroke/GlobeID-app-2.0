@@ -207,11 +207,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               onAction: () => context.push('/travel'),
             ),
           ),
-          // ── Next-trip route flow (2D bezier flight arc) ───────
-          // The heavy 3D globe was removed app-wide; this lightweight
-          // cinematic route visual replaces it. Pure 2D, no shaders,
-          // no GPU sphere, animates a great-circle bezier between the
-          // departure and arrival IATA codes.
+          // ── Next-trip route (typographic only — no geography) ─
+          // OS 2.0 replaced the heavy 3D globe AND every 2D
+          // route visualization. This widget is purely typographic:
+          // Solari flap airport codes (SFO ▸▸▸▸▸ NRT) with an animated
+          // chevron ribbon between them and a tabular distance /
+          // duration line below. No map, no arc, no bezier — by user
+          // direction.
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
             sliver: SliverToBoxAdapter(

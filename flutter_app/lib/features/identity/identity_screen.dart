@@ -80,74 +80,82 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
             delegate: SliverChildListDelegate([
 
         // ── Hero: score + tier + delta ───────────────────────────
-        score.when(
-          data: (s) => AnimatedAppearance(
-            delay: const Duration(milliseconds: 120),
-            child: GestureDetector(
-              onTap: () => ScoreExplainerSheet.show(context, s.score),
-              child: _IdentityHero(
-                score: s.score,
-                tier: IdentityTier.forScore(s.score),
-                history: s.history,
-              ),
+        //
+        // Render the foil hero EAGERLY off the seeded user profile
+        // (identity score 826 by default). When the live score
+        // provider resolves we overwrite with the live value via
+        // score.maybeWhen. This means the hero never goes blank,
+        // never flashes a spinner, and never depends on an
+        // AnimatedAppearance opacity animation to be visible.
+        GestureDetector(
+          onTap: () => ScoreExplainerSheet.show(
+            context,
+            score.maybeWhen(
+              data: (s) => s.score,
+              orElse: () => user.profile.identityScore,
             ),
           ),
-          loading: () => const Padding(
-            padding: EdgeInsets.symmetric(vertical: 40),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-          error: (_, __) => GestureDetector(
-            onTap: () =>
-                ScoreExplainerSheet.show(context, user.profile.identityScore),
-            child: _IdentityHero(
-              score: user.profile.identityScore,
-              tier: IdentityTier.forScore(user.profile.identityScore),
-              history: const [],
+          child: _IdentityHero(
+            score: score.maybeWhen(
+              data: (s) => s.score,
+              orElse: () => user.profile.identityScore,
+            ),
+            tier: IdentityTier.forScore(
+              score.maybeWhen(
+                data: (s) => s.score,
+                orElse: () => user.profile.identityScore,
+              ),
+            ),
+            history: score.maybeWhen(
+              data: (s) => s.history,
+              orElse: () => const <int>[],
             ),
           ),
         ),
 
         // ── Premium identity surface (passport + constellation) ──
+        //
+        // OS 2.0 stacks the passport hero on top of the score
+        // constellation in a single Column. The legacy side-by-side
+        // Row collapsed on narrow Pixel viewports (the constellation
+        // wanted >320 dp and the passport wanted >200 dp, which together
+        // exceeded the available 412-dp width minus gutters). The new
+        // Column also stops depending on AnimatedAppearance — the
+        // surface paints in immediately.
         const SectionHeader(title: 'Your identity'),
-        AnimatedAppearance(
-          delay: const Duration(milliseconds: 140),
-          child: ContextualSurface(
-            padding: const EdgeInsets.fromLTRB(
-              AppTokens.space5,
-              AppTokens.space5,
-              AppTokens.space5,
-              AppTokens.space4,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  flex: 4,
-                  child: PassportBookPremium(
-                    country: user.profile.nationality.isEmpty
-                        ? 'GLOBE'
-                        : user.profile.nationality,
-                    holderName: user.profile.name,
-                    tier: IdentityTier.forScore(
-                      _resolvedScore(score, user.profile),
-                    ).label,
-                    sealed:
-                        user.profile.verifiedStatus.toLowerCase() == 'verified',
-                    heroTag: 'identity-passport-${user.profile.userId}',
-                  ),
+        ContextualSurface(
+          padding: const EdgeInsets.fromLTRB(
+            AppTokens.space5,
+            AppTokens.space5,
+            AppTokens.space5,
+            AppTokens.space4,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AspectRatio(
+                aspectRatio: 3 / 4,
+                child: PassportBookPremium(
+                  country: user.profile.nationality.isEmpty
+                      ? 'GLOBE'
+                      : user.profile.nationality,
+                  holderName: user.profile.name,
+                  tier: IdentityTier.forScore(
+                    _resolvedScore(score, user.profile),
+                  ).label,
+                  sealed:
+                      user.profile.verifiedStatus.toLowerCase() == 'verified',
+                  heroTag: 'identity-passport-${user.profile.userId}',
                 ),
-                const SizedBox(width: AppTokens.space4),
-                Expanded(
-                  flex: 5,
-                  child: IdentityScoreConstellation(
-                    score: _resolvedScore(score, user.profile),
-                    tier: IdentityTier.forScore(
-                      _resolvedScore(score, user.profile),
-                    ).label,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: AppTokens.space4),
+              IdentityScoreConstellation(
+                score: _resolvedScore(score, user.profile),
+                tier: IdentityTier.forScore(
+                  _resolvedScore(score, user.profile),
+                ).label,
+              ),
+            ],
           ),
         ),
 

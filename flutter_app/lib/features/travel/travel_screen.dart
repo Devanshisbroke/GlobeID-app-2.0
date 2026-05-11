@@ -97,29 +97,27 @@ class _TravelScreenState extends ConsumerState<TravelScreen>
           const SizedBox(height: AppTokens.space4),
 
           // ── Boarding-ready hero (when an active leg exists) ─────
+          //
+          // Rendered eagerly without an AnimatedAppearance wrapper so
+          // the hero is visible on first paint instead of staggering
+          // in behind an opacity tween that can read as "empty" if a
+          // user navigates into the tab before the animations finish.
           if (activeHero != null || upcomingHero != null) ...[
-            AnimatedAppearance(
-              delay: const Duration(milliseconds: 100),
-              child: _BoardingReadyHero(
-                trip: (activeHero ?? upcomingHero)!,
-                isActive: activeHero != null,
-              ),
+            _BoardingReadyHero(
+              trip: (activeHero ?? upcomingHero)!,
+              isActive: activeHero != null,
             ),
-            // Departure-board callsign block, mirrors the kiosk header.
             const SizedBox(height: AppTokens.space3),
             Builder(builder: (context) {
               final t = (activeHero ?? upcomingHero)!;
               final brand = resolveAirlineBrand(t.legs.first.flightNumber);
-              return AnimatedAppearance(
-                delay: const Duration(milliseconds: 140),
-                child: FlightCallsignBoard(
-                  callsign: t.legs.first.flightNumber,
-                  fromIata: t.legs.first.from,
-                  toIata: t.legs.last.to,
-                  depart: t.legs.first.scheduled,
-                  gate: t.legs.first.gate,
-                  tone: brand.primary,
-                ),
+              return FlightCallsignBoard(
+                callsign: t.legs.first.flightNumber,
+                fromIata: t.legs.first.from,
+                toIata: t.legs.last.to,
+                depart: t.legs.first.scheduled,
+                gate: t.legs.first.gate,
+                tone: brand.primary,
               );
             }),
           ],
