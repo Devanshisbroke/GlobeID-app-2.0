@@ -1,0 +1,189 @@
+import 'package:flutter/material.dart';
+
+/// OS 2.0 — design tokens for the new product layer.
+///
+/// This is the canonical source of every spatial / chromatic /
+/// typographic constant used by widgets in `lib/os2/`. Nothing in this
+/// directory reaches into `lib/app/theme/app_tokens.dart` — the old
+/// theme layer is preserved for the legacy `lib/features/` tree, but
+/// the OS 2.0 layer carries its own (deliberately stricter) tokens.
+class Os2 {
+  Os2._();
+
+  // ───────────────────────────────────────────────────────── canvas
+  // OLED-first. Canvas is true black; depth comes from the floor tier,
+  // never from coloured backgrounds.
+  static const Color canvas = Color(0xFF000000);
+  static const Color floor1 = Color(0xFF050608); // surface tier
+  static const Color floor2 = Color(0xFF0A0C12); // slab tier
+  static const Color floor3 = Color(0xFF11141C); // raised tier
+  static const Color hairline = Color(0x14FFFFFF); // 8% white
+  static const Color hairlineSoft = Color(0x0AFFFFFF); // 4% white
+
+  // ───────────────────────────────────────────────────────── ink
+  static const Color ink = Color(0xFFFFFFFF);
+  static const Color inkBright = Color(0xFFFFFFFF); // 100%
+  static const Color inkHigh = Color(0xE6FFFFFF); // 90%
+  static const Color inkMid = Color(0xB3FFFFFF); // 70%
+  static const Color inkLow = Color(0x7AFFFFFF); // 48%
+  static const Color inkFaint = Color(0x4DFFFFFF); // 30%
+
+  // ───────────────────────────────────────────── world tones (signals)
+  // Each world owns ONE tone. Used sparingly: halo, accent text,
+  // active dock pill, breathing rim — never as a full background.
+  static const Color pulseTone = Color(0xFFE9C25A); // foil-gold (champagne)
+  static const Color identityTone = Color(0xFFB8902B); // foil-gold (deeper)
+  static const Color walletTone = Color(0xFF0E7A4F); // treasury green
+  static const Color travelTone = Color(0xFF0EA5E9); // jet cyan
+  static const Color discoverTone = Color(0xFF10B981); // equator teal
+  static const Color servicesTone = Color(0xFFE0A85B); // honey amber
+
+  // ───────────────────────────────────────────────────── signal palette
+  static const Color signalLive = Color(0xFF22D3EE);
+  static const Color signalAttention = Color(0xFFF59E0B);
+  static const Color signalCritical = Color(0xFFEF4444);
+  static const Color signalSettled = Color(0xFF22C55E);
+
+  // ───────────────────────────────────────────────────── spatial ladder
+  // 4-base scale. Every dimension in os2/ snaps to this grid.
+  static const double space0 = 0;
+  static const double space1 = 4;
+  static const double space2 = 8;
+  static const double space3 = 12;
+  static const double space4 = 16;
+  static const double space5 = 20;
+  static const double space6 = 24;
+  static const double space7 = 32;
+  static const double space8 = 40;
+  static const double space9 = 56;
+  static const double space10 = 72;
+
+  // ───────────────────────────────────────────────────── radii
+  // Continuous-curve squircle radii — `Os2Card` and `Os2Panel` use a
+  // larger radius than legacy widgets to read as a single sculpted
+  // slab, not a stamped rectangle.
+  static const double rChip = 100; // pill
+  static const double rTile = 14;
+  static const double rCard = 24;
+  static const double rSlab = 32;
+  static const double rHero = 40;
+  static const double rFloor = 56;
+
+  // ───────────────────────────────────────────────────── motion
+  // Apple-style critically-damped spring tempos. All motion in OS 2.0
+  // routes through one of these — no ad-hoc Curves.easeOut anywhere.
+  static const Duration mIn = Duration(milliseconds: 280);
+  static const Duration mOut = Duration(milliseconds: 220);
+  static const Duration mFlick = Duration(milliseconds: 180);
+  static const Duration mCruise = Duration(milliseconds: 420);
+  static const Duration mPortal = Duration(milliseconds: 620);
+  static const Duration mBreathSlow = Duration(milliseconds: 7400);
+  static const Duration mBreathFast = Duration(milliseconds: 2200);
+
+  static const Curve cTakeoff = Cubic(0.16, 1.0, 0.32, 1.0); // ease-out-back-ish
+  static const Curve cCruise = Cubic(0.42, 0.0, 0.10, 1.0); // standard
+  static const Curve cBank = Cubic(0.65, 0.0, 0.35, 1.0); // emphasis
+  static const Curve cDescent = Cubic(0.55, 0.0, 1.0, 0.45); // ease-in
+  static const Curve cTaxi = Cubic(0.33, 1.0, 0.68, 1.0); // ease-out-quad
+
+  // ───────────────────────────────────────────────────── typography
+  // Restraint tracking. The bible's tracking ladder. All Os2Text
+  // helpers default to these, no per-callsite letterSpacing.
+  static const double trackDisplay = -2.4;
+  static const double trackHeadline = -1.2;
+  static const double trackTitle = -0.4;
+  static const double trackBody = 0.2;
+  static const double trackCaption = 0.8;
+  static const double trackMonoCap = 1.6;
+
+  // ───────────────────────────────────────────────────── touch
+  static const double touchMin = 56;
+  static const double touchTight = 44;
+
+  // ───────────────────────────────────────────────────── hairline
+  static const double strokeFine = 0.5;
+  static const double strokeRegular = 0.8;
+  static const double strokeBold = 1.2;
+}
+
+/// World identifier — every screen in `lib/os2/worlds/` belongs to one.
+/// Routing, palette, lighting, and the dock active state all derive
+/// from this enum.
+enum Os2World {
+  pulse,
+  identity,
+  wallet,
+  travel,
+  discover,
+  services,
+}
+
+extension Os2WorldX on Os2World {
+  Color get tone {
+    switch (this) {
+      case Os2World.pulse:
+        return Os2.pulseTone;
+      case Os2World.identity:
+        return Os2.identityTone;
+      case Os2World.wallet:
+        return Os2.walletTone;
+      case Os2World.travel:
+        return Os2.travelTone;
+      case Os2World.discover:
+        return Os2.discoverTone;
+      case Os2World.services:
+        return Os2.servicesTone;
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case Os2World.pulse:
+        return 'Pulse';
+      case Os2World.identity:
+        return 'Identity';
+      case Os2World.wallet:
+        return 'Wallet';
+      case Os2World.travel:
+        return 'Travel';
+      case Os2World.discover:
+        return 'Discover';
+      case Os2World.services:
+        return 'Services';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case Os2World.pulse:
+        return Icons.graphic_eq_rounded;
+      case Os2World.identity:
+        return Icons.workspace_premium_rounded;
+      case Os2World.wallet:
+        return Icons.account_balance_rounded;
+      case Os2World.travel:
+        return Icons.flight_takeoff_rounded;
+      case Os2World.discover:
+        return Icons.travel_explore_rounded;
+      case Os2World.services:
+        return Icons.room_service_rounded;
+    }
+  }
+
+  String get route {
+    switch (this) {
+      case Os2World.pulse:
+        return '/';
+      case Os2World.identity:
+        return '/identity';
+      case Os2World.wallet:
+        return '/wallet';
+      case Os2World.travel:
+        return '/travel';
+      case Os2World.discover:
+        return '/discover';
+      case Os2World.services:
+        return '/services';
+    }
+  }
+}
