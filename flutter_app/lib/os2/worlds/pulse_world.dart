@@ -8,13 +8,21 @@ import '../../features/inbox/inbox_provider.dart';
 import '../../features/score/score_provider.dart';
 import '../../domain/identity_tier.dart';
 import '../os2_tokens.dart';
+import '../motion/os2_breathing.dart';
 import '../primitives/os2_beacon.dart';
 import '../primitives/os2_chip.dart';
+import '../primitives/os2_divider_rule.dart';
+import '../primitives/os2_info_strip.dart';
 import '../primitives/os2_magnetic.dart';
+import '../primitives/os2_marquee.dart';
 import '../primitives/os2_meter.dart';
+import '../primitives/os2_pip.dart';
+import '../primitives/os2_ribbon.dart';
 import '../primitives/os2_slab.dart';
 import '../primitives/os2_solari.dart';
+import '../primitives/os2_sparkline.dart';
 import '../primitives/os2_text.dart';
+import '../primitives/os2_timeline.dart';
 import '../primitives/os2_world_header.dart';
 
 /// OS 2.0 — Pulse world.
@@ -69,7 +77,23 @@ class PulseWorld extends ConsumerWidget {
               title: '$greeting,\n$firstName',
               subtitle: 'Mission control \u00b7 your day in motion',
             ),
-            const SizedBox(height: Os2.space4),
+            const SizedBox(height: Os2.space2),
+            // Live system marquee.
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: Os2Marquee(
+                items: [
+                  'TREASURY · SETTLED',
+                  'IDENTITY · LIVE',
+                  'CONCIERGE · IDLE',
+                  'TRIPS · 1 ACTIVE · 2 UPCOMING',
+                  'eSIM · DE ROAMING',
+                  'AUDIT · ALL CHECKS PASSING',
+                ],
+                tone: Os2.inkMid,
+              ),
+            ),
+            const SizedBox(height: Os2.space3),
             // 1. Active/upcoming trip slab — FOCAL.
             if (activeLeg != null || nextLeg != null) ...[
               Padding(
@@ -114,8 +138,211 @@ class PulseWorld extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: Os2.space4),
+            // 5. Today's signal — info strip
+            Os2InfoStrip(
+              entries: [
+                Os2InfoEntry(
+                  icon: Icons.wb_sunny_rounded,
+                  label: 'WEATHER',
+                  value: '24°C',
+                  tone: Os2.servicesTone,
+                ),
+                Os2InfoEntry(
+                  icon: Icons.signal_wifi_4_bar_rounded,
+                  label: 'NETWORK',
+                  value: '5G · DE',
+                  tone: Os2.travelTone,
+                  onTap: () => GoRouter.of(context).push('/esim'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.flight_rounded,
+                  label: 'NEXT GATE',
+                  value: 'B14 · 16:20',
+                  tone: Os2.signalLive,
+                  onTap: () => GoRouter.of(context).push('/boarding-pass-live'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.currency_exchange_rounded,
+                  label: 'FX',
+                  value: 'EUR 0.921',
+                  tone: Os2.walletTone,
+                  onTap: () => GoRouter.of(context).push('/multi-currency-pour'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.translate_rounded,
+                  label: 'LOCALE',
+                  value: 'DE',
+                  tone: Os2.discoverTone,
+                  onTap: () => GoRouter.of(context).push('/phrasebook'),
+                ),
+              ],
+            ),
+            const SizedBox(height: Os2.space4),
+            // 6. Today's plan timeline.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: _TodayTimeline(),
+            ),
+            const SizedBox(height: Os2.space4),
+            // 7. Activity sparkline.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: _ActivityPulse(),
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────── Today timeline
+
+class _TodayTimeline extends StatelessWidget {
+  const _TodayTimeline();
+
+  @override
+  Widget build(BuildContext context) {
+    return Os2Slab(
+      tone: Os2.pulseTone,
+      tier: Os2SlabTier.floor2,
+      radius: Os2.rCard,
+      halo: Os2SlabHalo.corner,
+      elevation: Os2SlabElevation.resting,
+      padding: const EdgeInsets.all(Os2.space4),
+      breath: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Os2DividerRule(
+            eyebrow: 'TODAY',
+            tone: Os2.pulseTone,
+            trailing: 'LIVE',
+          ),
+          const SizedBox(height: Os2.space2),
+          Os2Timeline(
+            tone: Os2.pulseTone,
+            dense: true,
+            nodes: const [
+              Os2TimelineNode(
+                title: 'Departure · FRA T1',
+                caption: 'Gate B14 · 16:20 boarding',
+                trailing: '14:08',
+                state: Os2NodeState.settled,
+              ),
+              Os2TimelineNode(
+                title: 'In-flight · LH 408',
+                caption: 'Cruise · 11h 04m · FRA → SFO',
+                trailing: '16:55',
+                state: Os2NodeState.active,
+              ),
+              Os2TimelineNode(
+                title: 'Arrival · SFO',
+                caption: 'Customs + ride pickup orchestrated',
+                trailing: '19:32',
+                state: Os2NodeState.pending,
+              ),
+              Os2TimelineNode(
+                title: 'Hotel · Soma Suites',
+                caption: 'Concierge check-in · contactless',
+                trailing: '21:00',
+                state: Os2NodeState.pending,
+              ),
+            ],
+          ),
+          const SizedBox(height: Os2.space2),
+          Os2Ribbon(
+            label: 'CONCIERGE',
+            value: 'WATCHING · 3 INTENTS',
+            tone: Os2.pulseTone,
+            trailing: 'AGI · LIVE',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────── Activity sparkline
+
+class _ActivityPulse extends StatelessWidget {
+  const _ActivityPulse();
+
+  List<double> get _values {
+    final out = <double>[];
+    for (var i = 0; i < 24; i++) {
+      out.add(2 + (i / 24) * 6 +
+          ((i * 3) % 5) * 1.2 +
+          ((i * 7) % 4) * 0.8);
+    }
+    return out;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Os2Slab(
+      tone: Os2.pulseTone,
+      tier: Os2SlabTier.floor1,
+      radius: Os2.rCard,
+      halo: Os2SlabHalo.none,
+      elevation: Os2SlabElevation.flat,
+      padding: const EdgeInsets.all(Os2.space4),
+      breath: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Os2Text.caption('SYSTEM PULSE', color: Os2.pulseTone),
+                    const SizedBox(height: 2),
+                    Os2Text.headline(
+                      'STEADY',
+                      color: Os2.inkBright,
+                      size: 18,
+                    ),
+                    Os2Text.caption(
+                      'Last 24h · 1,402 events · 0 incidents',
+                      color: Os2.inkLow,
+                    ),
+                  ],
+                ),
+              ),
+              Os2Breathing(
+                child: Os2Beacon(
+                  label: 'NOMINAL',
+                  tone: Os2.signalSettled,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Os2.space3),
+          Os2Sparkline(
+            values: _values,
+            tone: Os2.pulseTone,
+            height: 50,
+            dense: true,
+          ),
+          const SizedBox(height: Os2.space2),
+          Os2LabelledPipStack(
+            label: 'CHECK-IN STREAK',
+            tone: Os2.pulseTone,
+            trailing: '6 / 7',
+            pips: const [
+              Os2PipState.settled,
+              Os2PipState.settled,
+              Os2PipState.settled,
+              Os2PipState.settled,
+              Os2PipState.settled,
+              Os2PipState.active,
+              Os2PipState.pending,
+            ],
+          ),
+        ],
       ),
     );
   }

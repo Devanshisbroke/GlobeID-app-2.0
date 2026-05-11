@@ -282,7 +282,7 @@ class _FanLayer extends StatelessWidget {
             ..setEntry(3, 2, 0.0008)
             ..rotateZ(rot)
             ..rotateX(tilt)
-            ..scale(scale, scale, 1.0),
+            ..scaleByDouble(scale, scale, 1.0, 1.0),
           child: GestureDetector(
             onTap: onTap,
             child: child,

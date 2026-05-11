@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../os2_tokens.dart';
+import '../primitives/os2_action_card.dart';
 import '../primitives/os2_beacon.dart';
 import '../primitives/os2_chip.dart';
+import '../primitives/os2_divider_rule.dart';
+import '../primitives/os2_info_strip.dart';
 import '../primitives/os2_magnetic.dart';
+import '../primitives/os2_marquee.dart';
 import '../primitives/os2_slab.dart';
 import '../primitives/os2_solari.dart';
 import '../primitives/os2_text.dart';
@@ -40,7 +44,65 @@ class DiscoverWorld extends ConsumerWidget {
               subtitle: 'Curated cities \u00b7 intelligence briefings',
               beacon: 'CURATING',
             ),
+            const SizedBox(height: Os2.space2),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: Os2Marquee(
+                items: [
+                  'CURATING · 36 CITIES',
+                  'INTEL · 12 BRIEFINGS THIS WEEK',
+                  'SMART DEALS · 8 LIVE',
+                  'CONCIERGE · STANDING BY',
+                  'CULTURE · 4 EVENTS NEAR YOU',
+                ],
+                tone: Os2.discoverTone,
+              ),
+            ),
+            const SizedBox(height: Os2.space3),
+            Os2InfoStrip(
+              entries: [
+                Os2InfoEntry(
+                  icon: Icons.flight_takeoff_rounded,
+                  label: 'FLIGHTS',
+                  value: 'BROWSE',
+                  tone: Os2.travelTone,
+                  onTap: () => GoRouter.of(context).push('/flights'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.hotel_rounded,
+                  label: 'HOTELS',
+                  value: 'BROWSE',
+                  tone: Os2.identityTone,
+                  onTap: () => GoRouter.of(context).push('/hotels'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.restaurant_rounded,
+                  label: 'DINING',
+                  value: 'NEAR',
+                  tone: Os2.servicesTone,
+                  onTap: () => GoRouter.of(context).push('/restaurants'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.directions_car_rounded,
+                  label: 'TRANSPORT',
+                  value: 'PLAN',
+                  tone: Os2.travelTone,
+                  onTap: () => GoRouter.of(context).push('/transport'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.museum_rounded,
+                  label: 'CULTURE',
+                  value: 'EXPLORE',
+                  tone: Os2.discoverTone,
+                ),
+              ],
+            ),
             const SizedBox(height: Os2.space4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: _DiscoverActionGrid(),
+            ),
+            const SizedBox(height: Os2.space5),
             // Atlas — full-bleed vertical destination slabs.
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
@@ -399,4 +461,73 @@ class _DealStrip extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─────────────────────────────────────────── Discover action grid
+
+class _DiscoverActionGrid extends StatelessWidget {
+  const _DiscoverActionGrid();
+
+  @override
+  Widget build(BuildContext context) {
+    final actions = [
+      _Act('Curate trip', Icons.tune_rounded, Os2.discoverTone, '/copilot'),
+      _Act('Smart routes', Icons.alt_route_rounded, Os2.travelTone, '/lifecycle-hub'),
+      _Act('Visa scout', Icons.assignment_turned_in_rounded, Os2.identityTone, '/visa-detail/JP'),
+      _Act('Concierge brief', Icons.psychology_rounded, Os2.pulseTone, '/copilot'),
+    ];
+    return Column(
+      children: [
+        Os2DividerRule(
+          eyebrow: 'INTELLIGENCE',
+          tone: Os2.discoverTone,
+          trailing: 'AGI · IDLE',
+        ),
+        const SizedBox(height: Os2.space3),
+        Row(
+          children: [
+            for (var i = 0; i < 2; i++) ...[
+              Expanded(
+                child: Os2ActionCard(
+                  title: actions[i].title,
+                  icon: actions[i].icon,
+                  tone: actions[i].tone,
+                  caption: 'Tap to summon',
+                  dense: true,
+                  onTap: () => GoRouter.of(context).push(actions[i].route),
+                ),
+              ),
+              if (i == 0) const SizedBox(width: Os2.space3),
+            ],
+          ],
+        ),
+        const SizedBox(height: Os2.space3),
+        Row(
+          children: [
+            for (var i = 2; i < 4; i++) ...[
+              Expanded(
+                child: Os2ActionCard(
+                  title: actions[i].title,
+                  icon: actions[i].icon,
+                  tone: actions[i].tone,
+                  caption: 'Tap to summon',
+                  dense: true,
+                  onTap: () => GoRouter.of(context).push(actions[i].route),
+                ),
+              ),
+              if (i == 2) const SizedBox(width: Os2.space3),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _Act {
+  const _Act(this.title, this.icon, this.tone, this.route);
+  final String title;
+  final IconData icon;
+  final Color tone;
+  final String route;
 }

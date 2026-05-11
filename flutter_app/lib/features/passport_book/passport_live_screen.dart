@@ -138,7 +138,7 @@ class _PassportLiveScreenState extends ConsumerState<PassportLiveScreen>
                       transform: Matrix4.identity()
                         ..setEntry(3, 2, 0.0014)
                         ..rotateX(-0.15 * (1 - t))
-                        ..scale(scale, scale, 1.0),
+                        ..scaleByDouble(scale, scale, 1.0, 1.0),
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width * 0.86,
                         height: MediaQuery.of(context).size.height * 0.74,

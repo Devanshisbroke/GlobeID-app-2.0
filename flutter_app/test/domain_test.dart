@@ -36,10 +36,10 @@ void main() {
 
   group('identity tier', () {
     test('maps score → tier', () {
-      expect(IdentityTier.forScore(10).label, 'Wanderer');
-      expect(IdentityTier.forScore(60).label, 'Voyager');
-      expect(IdentityTier.forScore(80).label, 'Globetrotter');
-      expect(IdentityTier.forScore(95).label, 'Aviator');
+      expect(IdentityTier.forScore(100).label, 'Wanderer');
+      expect(IdentityTier.forScore(600).label, 'Voyager');
+      expect(IdentityTier.forScore(800).label, 'Globetrotter');
+      expect(IdentityTier.forScore(950).label, 'Aviator');
     });
   });
 }

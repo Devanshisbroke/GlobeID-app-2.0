@@ -220,7 +220,7 @@ class PageCurlTransition extends StatelessWidget {
           transform: Matrix4.identity()
             ..setEntry(3, 2, 0.002)
             ..rotateY(-math.pi * t * 0.85)
-            ..translate(0.0, 0.0, -20.0 * math.sin(math.pi * t)),
+            ..translateByDouble(0.0, 0.0, -20.0 * math.sin(math.pi * t), 1.0),
           alignment: Alignment.centerLeft,
           child: Opacity(
             opacity: (1 - t * 0.7).clamp(0.0, 1.0),

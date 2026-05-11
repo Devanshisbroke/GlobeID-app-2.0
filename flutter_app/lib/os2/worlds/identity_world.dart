@@ -7,11 +7,17 @@ import '../../features/user/user_provider.dart';
 import '../os2_tokens.dart';
 import '../primitives/os2_beacon.dart';
 import '../primitives/os2_chip.dart';
+import '../primitives/os2_divider_rule.dart';
+import '../primitives/os2_glyph_halo.dart';
+import '../primitives/os2_info_strip.dart';
 import '../primitives/os2_magnetic.dart';
 import '../primitives/os2_meter.dart';
+import '../primitives/os2_pip.dart';
+import '../primitives/os2_ribbon.dart';
 import '../primitives/os2_slab.dart';
 import '../primitives/os2_solari.dart';
 import '../primitives/os2_text.dart';
+import '../primitives/os2_timeline.dart';
 import '../primitives/os2_world_header.dart';
 
 /// OS 2.0 — Identity world.
@@ -62,6 +68,45 @@ class IdentityWorld extends ConsumerWidget {
                 verifiedStatus: profile.verifiedStatus,
               ),
             ),
+            const SizedBox(height: Os2.space4),
+            // 1a. Quick info strip.
+            Os2InfoStrip(
+              entries: [
+                Os2InfoEntry(
+                  icon: Icons.workspace_premium_rounded,
+                  label: 'TIER',
+                  value: tier.label.toUpperCase(),
+                  tone: Os2.identityTone,
+                ),
+                Os2InfoEntry(
+                  icon: Icons.verified_rounded,
+                  label: 'SCORE',
+                  value: '${profile.identityScore} / 1000',
+                  tone: Os2.identityTone,
+                ),
+                Os2InfoEntry(
+                  icon: Icons.flight_takeoff_rounded,
+                  label: 'TRIPS',
+                  value: '${user.records.length}',
+                  tone: Os2.travelTone,
+                  onTap: () => GoRouter.of(context).push('/trip-pipeline'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.fingerprint_rounded,
+                  label: 'KEYS',
+                  value: '12',
+                  tone: Os2.identityTone,
+                  onTap: () => GoRouter.of(context).push('/vault'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.shield_rounded,
+                  label: 'AUDITS',
+                  value: 'CLEAR',
+                  tone: Os2.signalSettled,
+                  onTap: () => GoRouter.of(context).push('/audit-log'),
+                ),
+              ],
+            ),
             const SizedBox(height: Os2.space5),
             // 2. Score constellation.
             Padding(
@@ -71,6 +116,12 @@ class IdentityWorld extends ConsumerWidget {
                 pct: pct,
                 tier: tier,
               ),
+            ),
+            const SizedBox(height: Os2.space4),
+            // 2a. Tier ladder.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: _TierLadder(score: profile.identityScore),
             ),
             const SizedBox(height: Os2.space5),
             // 3. Section heading.
@@ -126,8 +177,191 @@ class IdentityWorld extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: Os2.space5),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space5),
+              child: _SectionLabel(label: 'VERIFICATION TIMELINE'),
+            ),
+            const SizedBox(height: Os2.space3),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: _VerificationTimeline(),
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────── Tier ladder
+
+class _TierLadder extends StatelessWidget {
+  const _TierLadder({required this.score});
+  final int score;
+
+  @override
+  Widget build(BuildContext context) {
+    final tiers = IdentityTier.tiers;
+    return Os2Slab(
+      tone: Os2.identityTone,
+      tier: Os2SlabTier.floor2,
+      radius: Os2.rCard,
+      halo: Os2SlabHalo.edge,
+      elevation: Os2SlabElevation.resting,
+      padding: const EdgeInsets.all(Os2.space4),
+      breath: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Os2DividerRule(
+            eyebrow: 'TIER LADDER',
+            tone: Os2.identityTone,
+            trailing: '$score / 1000',
+          ),
+          const SizedBox(height: Os2.space3),
+          Row(
+            children: [
+              for (var i = 0; i < tiers.length; i++) ...[
+                Expanded(
+                  child: _TierRung(
+                    tier: tiers[i],
+                    isCurrent: i == _currentTierIndex,
+                    isReached: i <= _currentTierIndex,
+                  ),
+                ),
+                if (i < tiers.length - 1)
+                  Container(
+                    width: 18,
+                    height: 1,
+                    color: i < _currentTierIndex
+                        ? Os2.identityTone.withValues(alpha: 0.6)
+                        : Os2.hairline,
+                  ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  int get _currentTierIndex {
+    final tiers = IdentityTier.tiers;
+    var idx = 0;
+    for (var i = 0; i < tiers.length; i++) {
+      if (score >= tiers[i].threshold) idx = i;
+    }
+    return idx;
+  }
+}
+
+class _TierRung extends StatelessWidget {
+  const _TierRung({
+    required this.tier,
+    required this.isCurrent,
+    required this.isReached,
+  });
+
+  final IdentityTier tier;
+  final bool isCurrent;
+  final bool isReached;
+
+  @override
+  Widget build(BuildContext context) {
+    final tone = isReached ? Os2.identityTone : Os2.inkLow;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Os2GlyphHalo(
+          icon: isReached
+              ? Icons.check_rounded
+              : Icons.radio_button_unchecked_rounded,
+          tone: tone,
+          size: isCurrent ? 32 : 26,
+          iconSize: isCurrent ? 16 : 13,
+        ),
+        const SizedBox(height: 4),
+        Os2Text.monoCap(
+          tier.label,
+          color: isReached ? Os2.inkBright : Os2.inkLow,
+          size: 9,
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────── Verification timeline
+
+class _VerificationTimeline extends StatelessWidget {
+  const _VerificationTimeline();
+
+  @override
+  Widget build(BuildContext context) {
+    return Os2Slab(
+      tone: Os2.identityTone,
+      tier: Os2SlabTier.floor1,
+      radius: Os2.rCard,
+      halo: Os2SlabHalo.none,
+      elevation: Os2SlabElevation.flat,
+      padding: const EdgeInsets.all(Os2.space4),
+      breath: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Os2Ribbon(
+            label: 'AUDIT',
+            value: 'ALL CHECKS PASSING',
+            tone: Os2.signalSettled,
+            trailing: '12 MIN AGO',
+          ),
+          const SizedBox(height: Os2.space3),
+          Os2Timeline(
+            tone: Os2.identityTone,
+            nodes: [
+              Os2TimelineNode(
+                title: 'KIOSK · FRA T1',
+                caption: 'Live biometric · auto-verified · 0.4s match',
+                trailing: '12m',
+                state: Os2NodeState.settled,
+              ),
+              Os2TimelineNode(
+                title: 'Issuer cross-sign',
+                caption: 'Aadhaar UID gateway · re-attested',
+                trailing: '3d',
+                state: Os2NodeState.settled,
+              ),
+              Os2TimelineNode(
+                title: 'Trusted-traveler',
+                caption: 'Global Entry renewal queued',
+                trailing: 'SOON',
+                state: Os2NodeState.active,
+              ),
+              Os2TimelineNode(
+                title: 'Document refresh',
+                caption: 'Passport expires 2031 · plenty of runway',
+                trailing: '2027',
+                state: Os2NodeState.pending,
+              ),
+            ],
+          ),
+          const SizedBox(height: Os2.space3),
+          Os2LabelledPipStack(
+            label: 'VERIFICATION STREAK',
+            tone: Os2.signalSettled,
+            trailing: '7 / 7',
+            pips: const [
+              Os2PipState.settled,
+              Os2PipState.settled,
+              Os2PipState.settled,
+              Os2PipState.settled,
+              Os2PipState.settled,
+              Os2PipState.settled,
+              Os2PipState.active,
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -100,8 +100,8 @@ class _Os2MagneticState extends State<Os2Magnetic>
             return Transform(
               alignment: Alignment.center,
               transform: Matrix4.identity()
-                ..scale(scale)
-                ..translate(0.0, lift),
+                ..scaleByDouble(scale, scale, 1.0, 1.0)
+                ..translateByDouble(0.0, lift, 0.0, 1.0),
               child: child,
             );
           },

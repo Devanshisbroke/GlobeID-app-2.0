@@ -140,9 +140,9 @@ class _CredentialGalleryState extends State<CredentialGallery>
         alignment: Alignment.center,
         transform: Matrix4.identity()
           ..setEntry(3, 2, 0.0014)
-          ..translate(activeDx, dy, 0.0)
+          ..translateByDouble(activeDx, dy, 0.0, 1.0)
           ..rotateY(activeRotY)
-          ..scale(scale, scale, 1.0),
+          ..scaleByDouble(scale, scale, 1.0, 1.0),
         child: Opacity(
           opacity: activeOpacity,
           child: _CardSurface(data: data, theme: theme),

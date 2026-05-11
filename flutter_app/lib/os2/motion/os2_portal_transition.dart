@@ -39,8 +39,8 @@ class Os2PortalTransition extends StatelessWidget {
         return Transform(
           alignment: Alignment.center,
           transform: Matrix4.identity()
-            ..scale(0.96 + 0.04 * t)
-            ..translate(0.0, (1.0 - t) * 18.0 + tRev * -10.0),
+            ..scaleByDouble(0.96 + 0.04 * t, 0.96 + 0.04 * t, 1.0, 1.0)
+            ..translateByDouble(0.0, (1.0 - t) * 18.0 + tRev * -10.0, 0.0, 1.0),
           child: Opacity(
             opacity: (t * (1.0 - tRev * 0.4)).clamp(0.0, 1.0),
             child: child,
