@@ -50,7 +50,7 @@ class _Tilt3DState extends State<Tilt3D> {
         ..setEntry(3, 2, 0.0009)
         ..rotateX(angleX)
         ..rotateY(angleY)
-        ..scale(s, s, s);
+        ..scaleByDouble(s, s, s, 1.0);
 
       return GestureDetector(
         onPanStart: (d) {

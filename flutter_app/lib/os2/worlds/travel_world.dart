@@ -7,10 +7,15 @@ import '../../features/user/user_provider.dart';
 import '../os2_tokens.dart';
 import '../primitives/os2_beacon.dart';
 import '../primitives/os2_chip.dart';
+import '../primitives/os2_divider_rule.dart';
+import '../primitives/os2_info_strip.dart';
 import '../primitives/os2_magnetic.dart';
+import '../primitives/os2_pip.dart';
+import '../primitives/os2_ribbon.dart';
 import '../primitives/os2_slab.dart';
 import '../primitives/os2_solari.dart';
 import '../primitives/os2_text.dart';
+import '../primitives/os2_timeline.dart';
 import '../primitives/os2_world_header.dart';
 
 /// OS 2.0 — Travel world.
@@ -62,11 +67,56 @@ class TravelWorld extends ConsumerWidget {
                   isActive: active != null,
                 ),
               ),
+              const SizedBox(height: Os2.space4),
+              // Quick info strip.
+              Os2InfoStrip(
+                entries: [
+                  Os2InfoEntry(
+                    icon: Icons.flight_takeoff_rounded,
+                    label: 'GATE',
+                    value: 'B14',
+                    tone: Os2.travelTone,
+                  ),
+                  Os2InfoEntry(
+                    icon: Icons.airline_seat_recline_extra_rounded,
+                    label: 'SEAT',
+                    value: '14A',
+                    tone: Os2.travelTone,
+                  ),
+                  Os2InfoEntry(
+                    icon: Icons.timer_rounded,
+                    label: 'BOARDING',
+                    value: '16:20',
+                    tone: Os2.signalLive,
+                    onTap: () =>
+                        GoRouter.of(context).push('/boarding-pass-live'),
+                  ),
+                  Os2InfoEntry(
+                    icon: Icons.local_airport_rounded,
+                    label: 'AIRPORT',
+                    value: 'FRA T1',
+                    tone: Os2.servicesTone,
+                    onTap: () => GoRouter.of(context).push('/airport-mode'),
+                  ),
+                  Os2InfoEntry(
+                    icon: Icons.luggage_rounded,
+                    label: 'CHECKED',
+                    value: '2 BAGS',
+                    tone: Os2.identityTone,
+                  ),
+                ],
+              ),
               const SizedBox(height: Os2.space5),
               // Lifecycle ribbon.
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
                 child: _LifecycleRibbon(active: active != null),
+              ),
+              const SizedBox(height: Os2.space5),
+              // Lifecycle timeline.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+                child: _JourneyTimeline(record: focal),
               ),
               const SizedBox(height: Os2.space5),
             ],
@@ -613,6 +663,104 @@ class _PastRow extends StatelessWidget {
                 ? record.date.substring(0, 10)
                 : record.date,
             color: Os2.inkLow,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────── Journey timeline
+
+class _JourneyTimeline extends StatelessWidget {
+  const _JourneyTimeline({required this.record});
+  final TravelRecord record;
+
+  @override
+  Widget build(BuildContext context) {
+    final from = record.from.length > 20
+        ? record.from.substring(0, 20)
+        : record.from;
+    final to =
+        record.to.length > 20 ? record.to.substring(0, 20) : record.to;
+    return Os2Slab(
+      tone: Os2.travelTone,
+      tier: Os2SlabTier.floor2,
+      radius: Os2.rCard,
+      halo: Os2SlabHalo.corner,
+      elevation: Os2SlabElevation.resting,
+      padding: const EdgeInsets.all(Os2.space4),
+      breath: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Os2DividerRule(
+            eyebrow: 'JOURNEY ORCHESTRATION',
+            tone: Os2.travelTone,
+            trailing: 'AGI · LIVE',
+          ),
+          const SizedBox(height: Os2.space3),
+          Os2Timeline(
+            tone: Os2.travelTone,
+            nodes: [
+              Os2TimelineNode(
+                title: 'Pack · brief',
+                caption: 'Concierge composed your kit · 11 items',
+                trailing: 'DONE',
+                state: Os2NodeState.settled,
+              ),
+              Os2TimelineNode(
+                title: 'Check-in · $from',
+                caption: 'Mobile check-in cleared · seat 14A',
+                trailing: 'DONE',
+                state: Os2NodeState.settled,
+              ),
+              Os2TimelineNode(
+                title: 'Lounge · Star Alliance',
+                caption: 'Access available · 64 / 110 occupancy',
+                trailing: 'OPEN',
+                state: Os2NodeState.active,
+              ),
+              Os2TimelineNode(
+                title: 'Boarding · Gate B14',
+                caption: 'Group 2 · 16:20 · self-board kiosk',
+                trailing: '16:20',
+                state: Os2NodeState.pending,
+              ),
+              Os2TimelineNode(
+                title: 'Land · $to',
+                caption: 'Customs queue · ride staged · 21°C',
+                trailing: '19:32',
+                state: Os2NodeState.pending,
+              ),
+              Os2TimelineNode(
+                title: 'Stay · concierge handoff',
+                caption: 'Hotel notified · contactless check-in',
+                trailing: '21:00',
+                state: Os2NodeState.pending,
+              ),
+            ],
+          ),
+          const SizedBox(height: Os2.space3),
+          Os2LabelledPipStack(
+            label: 'STAGES COMPLETE',
+            tone: Os2.travelTone,
+            trailing: '2 / 6',
+            pips: const [
+              Os2PipState.settled,
+              Os2PipState.settled,
+              Os2PipState.active,
+              Os2PipState.pending,
+              Os2PipState.pending,
+              Os2PipState.pending,
+            ],
+          ),
+          const SizedBox(height: Os2.space3),
+          Os2Ribbon(
+            label: 'LIVE',
+            value: 'GATE B14 · 16:20',
+            tone: Os2.signalLive,
+            trailing: 'BOARDING IN 2H 12M',
           ),
         ],
       ),
