@@ -61,11 +61,14 @@ import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
 import '../os2/screens/os2_airport_orchestrator.dart';
 import '../os2/screens/os2_boarding_pass.dart';
+import '../os2/screens/os2_concierge_hub.dart';
 import '../os2/screens/os2_copilot_screen.dart';
 import '../os2/screens/os2_lock_screen.dart';
 import '../os2/screens/os2_onboarding_screen.dart';
 import '../os2/screens/os2_passport_book_screen.dart';
 import '../os2/screens/os2_settings_screen.dart';
+import '../os2/screens/os2_treasury_hub.dart';
+import '../os2/screens/os2_trust_hub.dart';
 import '../os2/shell/os2_shell.dart';
 import '../os2/worlds/discover_world.dart';
 import '../os2/worlds/identity_world.dart';
@@ -432,6 +435,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/os2/copilot', (_, __) => const Os2CopilotScreen()),
       _route('/os2/settings', (_, __) => const Os2SettingsScreen()),
       _route('/os2/passport', (_, __) => const Os2PassportBookScreen()),
+      _route('/os2/treasury', (_, __) => const Os2TreasuryHub()),
+      _route('/os2/trust', (_, __) => const Os2TrustHub()),
+      _route('/os2/concierge', (_, __) => const Os2ConciergeHub()),
     ],
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Not found')),
