@@ -19,7 +19,7 @@ import '../user/user_provider.dart';
 import '../wallet/wallet_fx_ticker.dart';
 import '../wallet/wallet_provider.dart';
 import 'flight_status_card.dart';
-import 'home_mini_globe.dart';
+import 'next_trip_route.dart';
 
 /// Home — premium dashboard with greeting, identity-tier badge,
 /// upcoming trip glance, wallet glance, and a quick-action grid.
@@ -207,19 +207,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               onAction: () => context.push('/travel'),
             ),
           ),
-          // ── Mini globe with next trip route ───────────────────
+          // ── Next-trip route flow (2D bezier flight arc) ───────
+          // The heavy 3D globe was removed app-wide; this lightweight
+          // cinematic route visual replaces it. Pure 2D, no shaders,
+          // no GPU sphere, animates a great-circle bezier between the
+          // departure and arrival IATA codes.
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
             sliver: SliverToBoxAdapter(
               child: SafeBoundary(
-                debugLabel: 'home.mini_globe',
-                fallbackHeight: 170,
-                child: HomeMiniGlobe(
-                  height: 170,
-                  fromLat: lifecycle.trips.isNotEmpty ? 40.6413 : null,
-                  fromLng: lifecycle.trips.isNotEmpty ? -73.7781 : null,
-                  toLat: lifecycle.trips.isNotEmpty ? 51.4700 : null,
-                  toLng: lifecycle.trips.isNotEmpty ? -0.4543 : null,
+                debugLabel: 'home.next_trip_route',
+                fallbackHeight: 180,
+                child: NextTripRoute(
+                  height: 180,
+                  fromCode: lifecycle.trips.isNotEmpty &&
+                          lifecycle.trips.first.legs.isNotEmpty
+                      ? lifecycle.trips.first.legs.first.from
+                      : null,
+                  toCode: lifecycle.trips.isNotEmpty &&
+                          lifecycle.trips.first.legs.isNotEmpty
+                      ? lifecycle.trips.first.legs.first.to
+                      : null,
                 ),
               ),
             ),

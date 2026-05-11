@@ -12,7 +12,6 @@ import '../features/inbox/inbox_screen.dart';
 import '../features/intelligence/intelligence_screen.dart';
 import '../features/kiosk/kiosk_screen.dart';
 import '../features/lock/lock_screen.dart';
-import '../features/map/map_screen.dart';
 import '../features/multi_currency/multi_currency_pour_screen.dart';
 import '../features/multi_currency/multi_currency_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
@@ -31,7 +30,6 @@ import '../features/connectivity/esim_screen.dart';
 import '../features/country/country_profile_screen.dart';
 import '../features/customs/customs_declaration_screen.dart';
 import '../features/emergency/emergency_screen.dart';
-import '../features/globe/cinematic_globe_screen.dart';
 import '../features/itinerary/itinerary_builder_screen.dart';
 import '../features/journal/trip_journal_screen.dart';
 import '../features/lounge/lounge_screen.dart';
@@ -226,11 +224,27 @@ final routerProvider = Provider<GoRouter>((ref) {
               path: '/identity', builder: (_, __) => const IdentityScreen()),
           GoRoute(path: '/wallet', builder: (_, __) => const WalletScreen()),
           GoRoute(path: '/travel', builder: (_, __) => const TravelScreen()),
+          // OS 2.0 — Discover is the 5th world (replaces Globe).
+          // Lives inside the shell so the floating dock stays
+          // visible on this tab. Service hub is now a secondary
+          // route reachable from the dock long-press / Discover
+          // service rails.
           GoRoute(
-              path: '/services', builder: (_, __) => const ServicesHubScreen()),
-          GoRoute(path: '/map', builder: (_, __) => const MapScreen()),
+              path: '/discover', builder: (_, __) => const DiscoverScreen()),
+          // The /map route is preserved for deep-link back-compat
+          // but the heavy 3D-globe / 2D-OSM screen has been removed.
+          // It now redirects into the cinematic Discover atlas
+          // (typographic destination intelligence — no geography).
+          GoRoute(
+            path: '/map',
+            redirect: (_, __) => '/discover',
+          ),
         ],
       ),
+
+      // Services hub — now a secondary surface (out of primary dock).
+      _slideLateralRoute(
+          '/services', (_, __) => const ServicesHubScreen()),
 
       // Secondary routes — bible §5.3 named transitions.
       // Settings flows: slideLateral (back-navigable detail).
@@ -290,7 +304,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route(
           '/multi-currency-pour', (_, __) => const MultiCurrencyPourScreen()),
       _route('/analytics', (_, __) => const AnalyticsScreen()),
-      _route('/discover', (_, __) => const DiscoverScreen()),
       GoRoute(
         path: '/pass/:passId',
         pageBuilder: (_, state) => CustomTransitionPage(
@@ -375,7 +388,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/sensors-lab', (_, __) => const SensorsLabScreen()),
       _route('/premium-showcase', (_, __) => const PremiumShowcaseScreen()),
       _route('/visa', (_, __) => const VisaDetailScreen()),
-      _route('/globe-cinematic', (_, __) => const CinematicGlobeScreen()),
       _route('/lounge', (_, __) => const LoungeScreen()),
       _route('/esim', (_, __) => const EsimScreen()),
       _route('/phrasebook', (_, __) => const PhrasebookScreen()),

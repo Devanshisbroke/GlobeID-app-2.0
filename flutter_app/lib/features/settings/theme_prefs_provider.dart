@@ -9,7 +9,12 @@ import '../../core/storage/preferences.dart';
 class ThemePrefs {
   const ThemePrefs({
     this.accent = 'azure',
-    this.themeMode = ThemeMode.system,
+    // OS 2.0 ships in OLED-first dark by default. The user explicitly
+    // asked for a pitch-OLED canvas across the app; defaulting to
+    // system theme caused the device's light-mode preference to bleed
+    // through and break the cinematic dark identity. Users can still
+    // switch via the theme cycler in the top bar / settings.
+    this.themeMode = ThemeMode.dark,
     this.highContrast = false,
     this.reduceTransparency = false,
     this.density = AppDensity.comfortable,
