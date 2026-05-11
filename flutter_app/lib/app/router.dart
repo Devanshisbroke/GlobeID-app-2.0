@@ -224,8 +224,13 @@ final routerProvider = Provider<GoRouter>((ref) {
               path: '/identity', builder: (_, __) => const IdentityScreen()),
           GoRoute(path: '/wallet', builder: (_, __) => const WalletScreen()),
           GoRoute(path: '/travel', builder: (_, __) => const TravelScreen()),
+          // OS 2.0 — Discover is the 5th world (replaces Globe).
+          // Lives inside the shell so the floating dock stays
+          // visible on this tab. Service hub is now a secondary
+          // route reachable from the dock long-press / Discover
+          // service rails.
           GoRoute(
-              path: '/services', builder: (_, __) => const ServicesHubScreen()),
+              path: '/discover', builder: (_, __) => const DiscoverScreen()),
           // The /map route is preserved for deep-link back-compat
           // but the heavy 3D-globe / 2D-OSM screen has been removed.
           // It now redirects into the cinematic Discover atlas
@@ -236,6 +241,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
+
+      // Services hub — now a secondary surface (out of primary dock).
+      _slideLateralRoute(
+          '/services', (_, __) => const ServicesHubScreen()),
 
       // Secondary routes — bible §5.3 named transitions.
       // Settings flows: slideLateral (back-navigable detail).
@@ -295,7 +304,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route(
           '/multi-currency-pour', (_, __) => const MultiCurrencyPourScreen()),
       _route('/analytics', (_, __) => const AnalyticsScreen()),
-      _route('/discover', (_, __) => const DiscoverScreen()),
       GoRoute(
         path: '/pass/:passId',
         pageBuilder: (_, state) => CustomTransitionPage(

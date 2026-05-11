@@ -69,16 +69,20 @@ class UserProfile {
         'identityScore': identityScore,
       };
 
+  // OS 2.0 default profile. Matches the seed demo profile in
+  // data/api/demo_data.dart so the home greeting reads "Hi, Devansh"
+  // from the first frame instead of flashing "Hi, GlobeID" while the
+  // user provider hydrates.
   static UserProfile defaults() => UserProfile(
         userId: 'usr-001',
-        name: 'GlobeID User',
-        passportNumber: '',
-        nationality: '',
-        nationalityFlag: '🌍',
-        verifiedStatus: 'unverified',
+        name: 'Devansh Barai',
+        passportNumber: 'P12345678',
+        nationality: 'India',
+        nationalityFlag: '🇮🇳',
+        verifiedStatus: 'verified',
         avatarUrl: '',
-        email: '',
-        memberSince: '',
-        identityScore: 0,
+        email: 'devansh@globeid.app',
+        memberSince: '2024-01',
+        identityScore: 826,
       );
 }
