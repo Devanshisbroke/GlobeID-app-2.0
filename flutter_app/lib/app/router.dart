@@ -12,7 +12,6 @@ import '../features/inbox/inbox_screen.dart';
 import '../features/intelligence/intelligence_screen.dart';
 import '../features/kiosk/kiosk_screen.dart';
 import '../features/lock/lock_screen.dart';
-import '../features/map/map_screen.dart';
 import '../features/multi_currency/multi_currency_pour_screen.dart';
 import '../features/multi_currency/multi_currency_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
@@ -31,7 +30,6 @@ import '../features/connectivity/esim_screen.dart';
 import '../features/country/country_profile_screen.dart';
 import '../features/customs/customs_declaration_screen.dart';
 import '../features/emergency/emergency_screen.dart';
-import '../features/globe/cinematic_globe_screen.dart';
 import '../features/itinerary/itinerary_builder_screen.dart';
 import '../features/journal/trip_journal_screen.dart';
 import '../features/lounge/lounge_screen.dart';
@@ -228,7 +226,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/travel', builder: (_, __) => const TravelScreen()),
           GoRoute(
               path: '/services', builder: (_, __) => const ServicesHubScreen()),
-          GoRoute(path: '/map', builder: (_, __) => const MapScreen()),
+          // The /map route is preserved for deep-link back-compat
+          // but the heavy 3D-globe / 2D-OSM screen has been removed.
+          // It now redirects into the cinematic Discover atlas
+          // (typographic destination intelligence — no geography).
+          GoRoute(
+            path: '/map',
+            redirect: (_, __) => '/discover',
+          ),
         ],
       ),
 
@@ -375,7 +380,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/sensors-lab', (_, __) => const SensorsLabScreen()),
       _route('/premium-showcase', (_, __) => const PremiumShowcaseScreen()),
       _route('/visa', (_, __) => const VisaDetailScreen()),
-      _route('/globe-cinematic', (_, __) => const CinematicGlobeScreen()),
       _route('/lounge', (_, __) => const LoungeScreen()),
       _route('/esim', (_, __) => const EsimScreen()),
       _route('/phrasebook', (_, __) => const PhrasebookScreen()),

@@ -103,7 +103,13 @@ class _AppShellState extends ConsumerState<AppShell>
       Icons.dashboard_rounded,
       'Services',
     ),
-    _Tab('/map', Icons.public_outlined, Icons.public_rounded, 'Globe'),
+    // The Globe tab has been retired — the heavy 3D-globe / 2D-OSM
+    // surface was removed app-wide. Its slot is now the cinematic
+    // Discover atlas: a typographic destination intelligence feed
+    // with no geographic visualisation. The old /map deep link is
+    // preserved by the router as a redirect to /discover.
+    _Tab('/discover', Icons.travel_explore_outlined,
+        Icons.travel_explore_rounded, 'Discover'),
   ];
 
   @override
@@ -186,7 +192,7 @@ class _AppShellState extends ConsumerState<AppShell>
 
   /// Returns the bible-mandated [LivingGradient] flavor for the
   /// currently active tab. The tab order is Home / Identity / Wallet
-  /// / Travel / Services / Globe — each tab gets its own contextual
+  /// / Travel / Services / Discover — each tab gets its own contextual
   /// tone palette per bible §4.1.
   Widget _bibleBackdropFor(int activeIndex) {
     switch (activeIndex) {
@@ -195,6 +201,10 @@ class _AppShellState extends ConsumerState<AppShell>
       case 2:
         return LivingGradient.wallet();
       case 5:
+        // Discover tab — equator-teal palette inherited from the
+        // retired Globe tab so the visual continuity remains, but
+        // the gradient is now anchored to a typographic surface,
+        // not a 3D sphere.
         return LivingGradient.globe();
       case 0:
       case 3:
@@ -731,10 +741,10 @@ class _LegacyCommandPaletteState extends State<_LegacyCommandPalette> {
       tone: Color(0xFFEA580C)
     ),
     (
-      label: 'Map / Globe',
-      path: '/map',
-      icon: Icons.public_rounded,
-      tone: Color(0xFF3B82F6)
+      label: 'Discover',
+      path: '/discover',
+      icon: Icons.travel_explore_rounded,
+      tone: Color(0xFF06B6D4)
     ),
     (
       label: 'Identity',
@@ -759,12 +769,6 @@ class _LegacyCommandPaletteState extends State<_LegacyCommandPalette> {
       path: '/planner',
       icon: Icons.event_note_rounded,
       tone: Color(0xFF7C3AED)
-    ),
-    (
-      label: 'Cinematic globe',
-      path: '/globe-cinematic',
-      icon: Icons.language_rounded,
-      tone: Color(0xFF06B6D4)
     ),
     (
       label: 'Travel OS',

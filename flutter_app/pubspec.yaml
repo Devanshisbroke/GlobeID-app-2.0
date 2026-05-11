@@ -51,9 +51,12 @@ dependencies:
   path_provider: ^2.1.5
   sensors_plus: ^6.1.1
 
-  # Maps (2D fallback for the 3D globe)
-  flutter_map: ^7.0.2
-  latlong2: ^0.9.1
+  # Maps / 3D globe — REMOVED in OS 2.0.
+  # The entire heavy globe pipeline (3D shaders, GlobeRenderer,
+  # great-circle arcs, the 2D flutter_map fallback) was dismantled
+  # in favour of a typographic Discover atlas. flutter_map and
+  # latlong2 are no longer pulled in — keep this comment as a marker
+  # so they don't quietly creep back in.
 
   # Forms
   flutter_form_builder: ^10.3.0+2
