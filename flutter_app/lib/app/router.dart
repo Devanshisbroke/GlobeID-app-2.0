@@ -2,6 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../bible/screens/bible_arrival_screen.dart';
+import '../bible/screens/bible_boarding_screen.dart';
+import '../bible/screens/bible_home_screen.dart';
+import '../bible/screens/bible_lock_screen.dart';
+import '../bible/screens/bible_lounge_screen.dart';
+import '../bible/screens/bible_passport_screen.dart';
+import '../bible/screens/bible_trip_screen.dart';
+import '../bible/screens/bible_wallet_screen.dart';
 import '../features/analytics/analytics_screen.dart';
 import '../features/copilot/copilot_screen.dart';
 import '../features/explore/explore_screen.dart';
@@ -438,6 +446,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/os2/treasury', (_, __) => const Os2TreasuryHub()),
       _route('/os2/trust', (_, __) => const Os2TrustHub()),
       _route('/os2/concierge', (_, __) => const Os2ConciergeHub()),
+      // Bible screens — the liquid-glass cinematic operating system.
+      _route('/bible/lock', (_, __) => const BibleLockScreen()),
+      _route('/bible/home', (_, __) => const BibleHomeScreen()),
+      _route('/bible/passport', (_, __) => const BiblePassportScreen()),
+      _route('/bible/wallet', (_, __) => const BibleWalletScreen()),
+      _route('/bible/boarding', (_, __) => const BibleBoardingScreen()),
+      _route('/bible/arrival', (_, __) => const BibleArrivalScreen()),
+      _route('/bible/lounge', (_, __) => const BibleLoungeScreen()),
+      _route('/bible/trip', (_, __) => const BibleTripScreen()),
     ],
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Not found')),
