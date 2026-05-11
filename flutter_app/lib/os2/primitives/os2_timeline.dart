@@ -49,12 +49,14 @@ class Os2TimelineNode {
     this.caption,
     this.trailing,
     this.state = Os2NodeState.pending,
+    this.onTap,
   });
 
   final String title;
   final String? caption;
   final String? trailing;
   final Os2NodeState state;
+  final VoidCallback? onTap;
 }
 
 enum Os2NodeState { settled, active, pending }
@@ -99,7 +101,7 @@ class _Row extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hPad = dense ? Os2.space2 : Os2.space3;
-    return IntrinsicHeight(
+    final core = IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -161,6 +163,12 @@ class _Row extends StatelessWidget {
           ),
         ],
       ),
+    );
+    if (node.onTap == null) return core;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: node.onTap,
+      child: core,
     );
   }
 }

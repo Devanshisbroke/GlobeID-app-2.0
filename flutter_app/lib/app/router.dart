@@ -59,6 +59,13 @@ import '../features/trip/trip_detail_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
+import '../os2/screens/os2_airport_orchestrator.dart';
+import '../os2/screens/os2_boarding_pass.dart';
+import '../os2/screens/os2_copilot_screen.dart';
+import '../os2/screens/os2_lock_screen.dart';
+import '../os2/screens/os2_onboarding_screen.dart';
+import '../os2/screens/os2_passport_book_screen.dart';
+import '../os2/screens/os2_settings_screen.dart';
 import '../os2/shell/os2_shell.dart';
 import '../os2/worlds/discover_world.dart';
 import '../os2/worlds/identity_world.dart';
@@ -417,6 +424,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         '/wallet/exchange',
         (_, __) => const WalletFlowScreen(flow: WalletFlow.exchange),
       ),
+      // OS2 screens — cinematic primary surfaces.
+      _route('/os2/onboarding', (_, __) => const Os2OnboardingScreen()),
+      _route('/os2/lock', (_, __) => const Os2LockScreen()),
+      _route('/os2/airport', (_, __) => const Os2AirportOrchestrator()),
+      _route('/os2/boarding', (_, __) => const Os2BoardingPassScreen()),
+      _route('/os2/copilot', (_, __) => const Os2CopilotScreen()),
+      _route('/os2/settings', (_, __) => const Os2SettingsScreen()),
+      _route('/os2/passport', (_, __) => const Os2PassportBookScreen()),
     ],
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Not found')),
