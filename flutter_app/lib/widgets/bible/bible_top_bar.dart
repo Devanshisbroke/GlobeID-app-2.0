@@ -31,14 +31,13 @@
 //     ],
 //   );
 
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/theme/app_theme.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../app/theme/ux_bible.dart';
+import '../../nexus/nexus_tokens.dart';
 
 /// iOS / OneUI grade collapsing top bar with frosted material,
 /// large title, and a right-side actions slot.
@@ -143,23 +142,16 @@ class _BibleTopBarDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final glass = GlassExtension.of(context);
     final delta = (expandedHeight - compactHeight).clamp(1.0, double.infinity);
     final t = (shrinkOffset / delta).clamp(0.0, 1.0);
     final accent = tone ?? theme.colorScheme.primary;
 
     // Bible §4.3 — frost intensity rises as the bar collapses. At full
-    // extent the bar is fully transparent so the wallpaper / living
-    // gradient is visible; at full collapse it's a true frosted slab.
-    // The ramp uses easeOutCubic so the frost lands quickly once the
-    // user starts scrolling, then plateaus.
+    // extent the bar is fully transparent so the OLED canvas shows
+    // through; at full collapse it's a flat Nexus surface slab. The
+    // ramp uses easeOutCubic so the frost lands quickly once the user
+    // starts scrolling, then plateaus.
     final frost = Curves.easeOutCubic.transform(t);
-
-    // Scroll-reactive blur sigma — ramps 0 → 24 with the collapse so
-    // the bar feels weightless at full extent and becomes a heavy
-    // material slab when content is sliding under it.
-    final blurSigma = 24.0 * frost;
 
     final largeTitleOpacity = (1.0 - t * 1.4).clamp(0.0, 1.0);
     final compactTitleOpacity = ((t - 0.55) / 0.45).clamp(0.0, 1.0);
@@ -184,84 +176,26 @@ class _BibleTopBarDelegate extends SliverPersistentHeaderDelegate {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Apple-grade chrome material — saturation 1.55× + blur σ
-          // ramps with collapse. The two-layer ImageFilter (saturate
-          // *then* blur) is the iOS-17 signature: content under the
-          // bar pops in colour before being softened. Vanilla
-          // BackdropFilter blur alone produces the cheap "milky"
-          // look; the saturation matrix is what makes the bar feel
-          // like real glass.
-          if (!glass.reduceTransparency)
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ui.ImageFilter.compose(
-                  outer: ui.ImageFilter.blur(
-                    sigmaX: blurSigma,
-                    sigmaY: blurSigma,
-                  ),
-                  inner: _saturateMatrix(
-                    1.0 + 0.55 * frost,
-                    isDark ? (1.0 - 0.15 * frost) : (1.0 + 0.10 * frost),
-                  ),
-                ),
-                child: Container(
-                  color: isDark
-                      ? Colors.black.withValues(alpha: 0.36 * frost)
-                      : Colors.white.withValues(alpha: 0.55 * frost),
-                ),
-              ),
-            )
-          else
-            Positioned.fill(
-              child: Opacity(
-                opacity: frost,
-                child: Container(color: glass.surface.withValues(alpha: 0.92)),
-              ),
+          // Nexus rule: flat N.surface substrate, no BackdropFilter blur.
+          // The hairline bottom border + content density carries the
+          // visual separation from the body content beneath.
+          Positioned.fill(
+            child: Opacity(
+              opacity: frost,
+              child: Container(color: N.surface),
             ),
-          // Specular top edge — a 1-pt glint along the top edge
-          // simulates light catching the frosted surface (iOS 17 /
-          // OneUI 6 ultrathin material trick). Only visible when the
-          // bar has frost (avoids drawing on a transparent expanded
-          // bar).
-          if (!glass.reduceTransparency)
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              child: Opacity(
-                opacity: frost * 0.9,
-                child: Container(
-                  height: 1,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: isDark
-                          ? [
-                              Colors.transparent,
-                              Colors.white.withValues(alpha: 0.10),
-                              Colors.transparent,
-                            ]
-                          : [
-                              Colors.transparent,
-                              Colors.white.withValues(alpha: 0.55),
-                              Colors.transparent,
-                            ],
-                      stops: const [0.0, 0.5, 1.0],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          // Hair-line bottom border (fades in with frost).
+          ),
+          // Nexus hairline bottom border (fades in with frost). The
+          // top "specular glint" effect from the old Bible chrome has
+          // been retired in favour of the flat OLED substrate +
+          // 0.5pt hairline language.
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             child: Opacity(
               opacity: frost,
-              child: Container(
-                height: 0.6,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.10),
-              ),
+              child: Container(height: N.strokeHair, color: N.hairline),
             ),
           ),
           // Compact title (centred-left, fades in late).
@@ -276,7 +210,10 @@ class _BibleTopBarDelegate extends SliverPersistentHeaderDelegate {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    if (leading != null) ...[leading!, const SizedBox(width: 8)],
+                    if (leading != null) ...[
+                      leading!,
+                      const SizedBox(width: 8)
+                    ],
                     Expanded(
                       child: Text(
                         title,
@@ -444,8 +381,8 @@ class BibleTopBarAction extends StatelessWidget {
               Icon(
                 icon,
                 size: 18,
-                color: tone ??
-                    theme.colorScheme.onSurface.withValues(alpha: 0.82),
+                color:
+                    tone ?? theme.colorScheme.onSurface.withValues(alpha: 0.82),
               ),
               if (badgeCount > 0)
                 Positioned(
@@ -470,24 +407,6 @@ class BibleTopBarAction extends StatelessWidget {
       ),
     );
 
-    return tooltip == null
-        ? core
-        : Tooltip(message: tooltip!, child: core);
+    return tooltip == null ? core : Tooltip(message: tooltip!, child: core);
   }
-}
-
-/// Saturation+brightness colour matrix used by the chrome backdrop
-/// filter. BT.709 luminance coefficients — same matrix Safari uses
-/// for `filter: saturate()`. Identity matrix at sat=1, bri=1.
-ui.ColorFilter _saturateMatrix(double sat, double bri) {
-  final invSat = 1 - sat;
-  final r = 0.2126 * invSat;
-  final g = 0.7152 * invSat;
-  final b = 0.0722 * invSat;
-  return ui.ColorFilter.matrix(<double>[
-    (r + sat) * bri, g * bri, b * bri, 0, 0,
-    r * bri, (g + sat) * bri, b * bri, 0, 0,
-    r * bri, g * bri, (b + sat) * bri, 0, 0,
-    0, 0, 0, 1, 0,
-  ]);
 }

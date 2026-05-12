@@ -8,8 +8,6 @@
 // hide the identity pill on the identity tab itself by passing
 // `showIdentity: false`.
 
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +18,7 @@ import '../app/theme/app_tokens.dart';
 import '../features/inbox/inbox_provider.dart';
 import '../features/score/score_provider.dart';
 import '../features/settings/theme_prefs_provider.dart';
+import '../nexus/nexus_tokens.dart';
 import 'pressable.dart';
 
 /// Returns the standard right-aligned chrome (identity quick-pill,
@@ -44,8 +43,6 @@ class IdentityQuickPill extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final glass = GlassExtension.of(context);
     final scoreAsync = ref.watch(scoreProvider);
 
     final score = scoreAsync.maybeWhen(
@@ -87,72 +84,59 @@ class IdentityQuickPill extends ConsumerWidget {
           },
           child: ClipRRect(
             borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(
-                height: 36,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                  color: glass.reduceTransparency
-                      ? glass.surface.withValues(alpha: 0.94)
-                      : (isDark
-                          ? Colors.white.withValues(alpha: 0.10)
-                          : Colors.white.withValues(alpha: 0.58)),
-                  border: Border.all(
-                    color: tierColor.withValues(alpha: 0.45),
-                    width: 0.6,
-                  ),
-                  boxShadow: AppTokens.shadowSm(),
+            // Nexus: flat N.surface + hairline, no BackdropFilter blur.
+            child: Container(
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                color: N.surface,
+                border: Border.all(
+                  color: tierColor.withValues(alpha: 0.45),
+                  width: 0.6,
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 18,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [
-                            tierColor,
-                            tierColor.withValues(alpha: 0.65),
-                          ],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: tierColor.withValues(alpha: 0.40),
-                            blurRadius: 6,
-                          ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          tierColor,
+                          tierColor.withValues(alpha: 0.65),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.fingerprint_rounded,
-                        size: 12,
-                        color: Colors.white,
-                      ),
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      score?.toString() ?? '—',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.2,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                        color: theme.colorScheme.onSurface,
-                      ),
+                    child: const Icon(
+                      Icons.fingerprint_rounded,
+                      size: 12,
+                      color: Colors.white,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      tierLabel,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                        color: tierColor,
-                      ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    score?.toString() ?? '—',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.2,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      color: theme.colorScheme.onSurface,
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    tierLabel,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                      color: tierColor,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -234,8 +218,6 @@ class ThemeCyclerAction extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final prefs = ref.watch(themePrefsProvider);
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final glass = GlassExtension.of(context);
 
     final modeIcon = switch (prefs.themeMode) {
       ThemeMode.system => Icons.contrast_rounded,
@@ -268,33 +250,26 @@ class ThemeCyclerAction extends ConsumerWidget {
             showAccentPicker(context, ref);
           },
           child: ClipOval(
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: glass.reduceTransparency
-                      ? glass.surface.withValues(alpha: 0.94)
-                      : (isDark
-                          ? Colors.white.withValues(alpha: 0.10)
-                          : Colors.white.withValues(alpha: 0.58)),
-                  border: Border.all(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.32),
-                    width: 0.6,
-                  ),
-                  boxShadow: AppTokens.shadowSm(),
+            // Nexus: flat N.surface + hairline.
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: N.surface,
+                border: Border.all(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.32),
+                  width: 0.6,
                 ),
-                child: AnimatedSwitcher(
-                  duration: AppTokens.durationSm,
-                  switchInCurve: AppTokens.easeOutSoft,
-                  child: Icon(
-                    modeIcon,
-                    key: ValueKey(prefs.themeMode),
-                    size: 16,
-                    color: theme.colorScheme.primary,
-                  ),
+              ),
+              child: AnimatedSwitcher(
+                duration: AppTokens.durationSm,
+                switchInCurve: AppTokens.easeOutSoft,
+                child: Icon(
+                  modeIcon,
+                  key: ValueKey(prefs.themeMode),
+                  size: 16,
+                  color: theme.colorScheme.primary,
                 ),
               ),
             ),
@@ -332,103 +307,97 @@ class _AccentPickerSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final glass = GlassExtension.of(context);
     return SafeArea(
       top: false,
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppTokens.radius2xl),
         ),
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 32, sigmaY: 32),
-          child: Container(
-            decoration: BoxDecoration(
-              color: glass.surface.withValues(alpha: 0.92),
-              border: Border(
-                top: BorderSide(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.18),
-                  width: 0.6,
+        // Nexus: flat N.surface + hairline.
+        child: Container(
+          decoration: const BoxDecoration(
+            color: N.surface,
+            border: Border(
+              top: BorderSide(color: N.hairline, width: N.strokeHair),
+            ),
+          ),
+          padding: const EdgeInsets.fromLTRB(
+            AppTokens.space5,
+            AppTokens.space4,
+            AppTokens.space5,
+            AppTokens.space6,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: AppTokens.space4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                 ),
               ),
-            ),
-            padding: const EdgeInsets.fromLTRB(
-              AppTokens.space5,
-              AppTokens.space4,
-              AppTokens.space5,
-              AppTokens.space6,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 36,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: AppTokens.space4),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                  ),
+              Text(
+                'Accent',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
                 ),
-                Text(
-                  'Accent',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Tap to set the brand colour app-wide',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Tap to set the brand colour app-wide',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
-                  ),
-                ),
-                const SizedBox(height: AppTokens.space4),
-                Wrap(
-                  spacing: AppTokens.space3,
-                  runSpacing: AppTokens.space3,
-                  children: AppTokens.accents.map((a) {
-                    final selected = a.name == current;
-                    return GestureDetector(
-                      onTap: () {
-                        onPick(a.name);
-                        Navigator.of(context).maybePop();
-                      },
-                      child: AnimatedContainer(
-                        duration: AppTokens.durationSm,
-                        curve: AppTokens.easeOutSoft,
-                        width: 46,
-                        height: 46,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: a.heroGradient,
-                          border: Border.all(
-                            color: selected
-                                ? Colors.white
-                                : Colors.white.withValues(alpha: 0.30),
-                            width: selected ? 2.4 : 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: a.primary.withValues(alpha: 0.36),
-                              blurRadius: selected ? 14 : 6,
-                              spreadRadius: selected ? 1 : 0,
-                            ),
-                          ],
+              ),
+              const SizedBox(height: AppTokens.space4),
+              Wrap(
+                spacing: AppTokens.space3,
+                runSpacing: AppTokens.space3,
+                children: AppTokens.accents.map((a) {
+                  final selected = a.name == current;
+                  return GestureDetector(
+                    onTap: () {
+                      onPick(a.name);
+                      Navigator.of(context).maybePop();
+                    },
+                    child: AnimatedContainer(
+                      duration: AppTokens.durationSm,
+                      curve: AppTokens.easeOutSoft,
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: a.heroGradient,
+                        border: Border.all(
+                          color: selected
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.30),
+                          width: selected ? 2.4 : 1,
                         ),
-                        child: selected
-                            ? const Icon(
-                                Icons.check_rounded,
-                                color: Colors.white,
-                                size: 20,
-                              )
-                            : null,
+                        boxShadow: [
+                          BoxShadow(
+                            color: a.primary.withValues(alpha: 0.36),
+                            blurRadius: selected ? 14 : 6,
+                            spreadRadius: selected ? 1 : 0,
+                          ),
+                        ],
                       ),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
+                      child: selected
+                          ? const Icon(
+                              Icons.check_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            )
+                          : null,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
           ),
         ),
       ),

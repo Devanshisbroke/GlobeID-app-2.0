@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +8,7 @@ import '../features/security/session_lock_provider.dart';
 import '../features/user/user_provider.dart';
 import '../features/voice/voice_command_overlay.dart';
 import '../features/wallet/wallet_provider.dart';
+import '../nexus/nexus_tokens.dart';
 import '../widgets/atmosphere_layer.dart';
 import '../widgets/aurora_layer.dart';
 import '../widgets/bible/bible.dart';
@@ -94,13 +93,16 @@ class _AppShellState extends ConsumerState<AppShell>
   static const _tabs = [
     _Tab('/', Icons.cottage_rounded, Icons.cottage_rounded, 'Home',
         BibleTone.foilGold),
-    _Tab('/identity', Icons.verified_user_rounded,
-        Icons.verified_user_rounded, 'Identity', BibleTone.foilGold),
-    _Tab('/wallet', Icons.account_balance_wallet_rounded,
-        Icons.account_balance_wallet_rounded, 'Wallet',
+    _Tab('/identity', Icons.verified_user_rounded, Icons.verified_user_rounded,
+        'Identity', BibleTone.foilGold),
+    _Tab(
+        '/wallet',
+        Icons.account_balance_wallet_rounded,
+        Icons.account_balance_wallet_rounded,
+        'Wallet',
         BibleTone.treasuryGreen),
-    _Tab('/travel', Icons.flight_takeoff_rounded,
-        Icons.flight_takeoff_rounded, 'Travel', BibleTone.jetCyan),
+    _Tab('/travel', Icons.flight_takeoff_rounded, Icons.flight_takeoff_rounded,
+        'Travel', BibleTone.jetCyan),
     _Tab('/discover', Icons.travel_explore_rounded,
         Icons.travel_explore_rounded, 'Discover', BibleTone.equatorTeal),
   ];
@@ -278,7 +280,6 @@ class _WorldDockState extends State<_WorldDock>
 
   @override
   Widget build(BuildContext context) {
-    final reduce = widget.glass.reduceTransparency;
     final isDark = widget.isDark;
 
     // The dock is full-width visually (a single rounded capsule), but
@@ -294,56 +295,31 @@ class _WorldDockState extends State<_WorldDock>
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-          child: BackdropFilter(
-            // Same Apple-grade chrome material as before: saturation
-            // 1.55× → blur σ 28. The saturate-before-blur composition
-            // is the iOS-17 signature that makes content under the
-            // chrome stay vibrant instead of going milky.
-            filter: reduce
-                ? ImageFilter.matrix(Matrix4.identity().storage)
-                : ImageFilter.compose(
-                    outer: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
-                    inner: _navSaturateMatrix(
-                      1.55,
-                      isDark ? 0.88 : 1.10,
-                    ),
-                  ),
-            child: Container(
-              height: 64,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                color: reduce
-                    ? widget.glass.surface.withValues(alpha: 0.96)
-                    : (isDark
-                        ? Colors.black.withValues(alpha: 0.36)
-                        : Colors.white.withValues(alpha: 0.55)),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: isDark ? 0.10 : 0.40),
-                  width: 0.6,
-                ),
-                boxShadow: [
-                  // Cinematic ambient lift so the dock reads as
-                  // floating above the canvas, not glued to the edge.
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: 26,
-                    spreadRadius: -2,
-                    offset: const Offset(0, 12),
-                  ),
-                ],
+          // Nexus rule: depth via contrast + hairline, NOT BackdropFilter.
+          // Flat N.surface substrate with a 0.5pt hairline border reads
+          // floating against the OLED canvas without the every-frame
+          // blur cost.
+          child: Container(
+            height: 64,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+              color: N.surface,
+              border: Border.all(
+                color: N.hairline,
+                width: N.strokeHair,
               ),
-              child: LayoutBuilder(
-                builder: (_, c) {
-                  return _DockRow(
-                    tabs: widget.tabs,
-                    activeIndex: widget.activeIndex,
-                    width: c.maxWidth,
-                    isDark: isDark,
-                    breath: _breath,
-                    onTap: widget.onTap,
-                  );
-                },
-              ),
+            ),
+            child: LayoutBuilder(
+              builder: (_, c) {
+                return _DockRow(
+                  tabs: widget.tabs,
+                  activeIndex: widget.activeIndex,
+                  width: c.maxWidth,
+                  isDark: isDark,
+                  breath: _breath,
+                  onTap: widget.onTap,
+                );
+              },
             ),
           ),
         ),
@@ -503,21 +479,6 @@ class _DockTab extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Saturation+brightness colour matrix for the bottom-nav backdrop
-/// filter. BT.709 luminance coefficients (same as Safari).
-ColorFilter _navSaturateMatrix(double sat, double bri) {
-  final invSat = 1 - sat;
-  final r = 0.2126 * invSat;
-  final g = 0.7152 * invSat;
-  final b = 0.0722 * invSat;
-  return ColorFilter.matrix(<double>[
-    (r + sat) * bri, g * bri, b * bri, 0, 0,
-    r * bri, (g + sat) * bri, b * bri, 0, 0,
-    r * bri, g * bri, (b + sat) * bri, 0, 0,
-    0, 0, 0, 1, 0,
-  ]);
 }
 
 // _NavItem (legacy 6-tab column-layout item) was removed when the
@@ -853,138 +814,132 @@ class _LegacyCommandPaletteState extends State<_LegacyCommandPalette> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final padding = MediaQuery.of(context).viewInsets;
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(
         top: Radius.circular(AppTokens.radius2xl),
       ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-        child: Container(
-          padding: EdgeInsets.only(
-            left: AppTokens.space4,
-            right: AppTokens.space4,
-            top: AppTokens.space3,
-            bottom: padding.bottom + AppTokens.space5,
+      // Nexus rule: flat N.surface substrate with a hairline border —
+      // no BackdropFilter, no every-frame blur.
+      child: Container(
+        padding: EdgeInsets.only(
+          left: AppTokens.space4,
+          right: AppTokens.space4,
+          top: AppTokens.space3,
+          bottom: padding.bottom + AppTokens.space5,
+        ),
+        decoration: const BoxDecoration(
+          color: N.surface,
+          border: Border(
+            top: BorderSide(color: N.hairline, width: N.strokeHair),
           ),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.72)
-                : Colors.white.withValues(alpha: 0.78),
-            border: Border(
-              top: BorderSide(
-                color: theme.colorScheme.primary.withValues(alpha: 0.18),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(4),
+                ),
               ),
             ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+            const SizedBox(height: AppTokens.space3),
+            TextField(
+              controller: _ctrl,
+              autofocus: true,
+              onChanged: (v) => setState(() => _q = v),
+              decoration: InputDecoration(
+                hintText: 'Type a command or destination…',
+                prefixIcon: const Icon(Icons.bolt_rounded),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: theme.colorScheme.onSurface.withValues(
+                  alpha: 0.06,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppTokens.space4,
+                  vertical: 14,
                 ),
               ),
-              const SizedBox(height: AppTokens.space3),
-              TextField(
-                controller: _ctrl,
-                autofocus: true,
-                onChanged: (v) => setState(() => _q = v),
-                decoration: InputDecoration(
-                  hintText: 'Type a command or destination…',
-                  prefixIcon: const Icon(Icons.bolt_rounded),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: theme.colorScheme.onSurface.withValues(
-                    alpha: 0.06,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppTokens.space4,
-                    vertical: 14,
-                  ),
-                ),
+            ),
+            const SizedBox(height: AppTokens.space3),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.5,
               ),
-              const SizedBox(height: AppTokens.space3),
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.5,
-                ),
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: _filtered.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 4),
-                  itemBuilder: (_, i) {
-                    final c = _filtered[i];
-                    return Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-                        onTap: () {
-                          HapticFeedback.lightImpact();
-                          Navigator.of(context).pop();
-                          context.push(c.path);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 10,
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(
-                                    AppTokens.radiusLg,
-                                  ),
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      c.tone.withValues(alpha: 0.32),
-                                      c.tone.withValues(alpha: 0.10),
-                                    ],
-                                  ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: _filtered.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 4),
+                itemBuilder: (_, i) {
+                  final c = _filtered[i];
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.of(context).pop();
+                        context.push(c.path);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 10,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(
+                                  AppTokens.radiusLg,
                                 ),
-                                child: Icon(c.icon, color: c.tone, size: 18),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  c.label,
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    c.tone.withValues(alpha: 0.32),
+                                    c.tone.withValues(alpha: 0.10),
+                                  ],
                                 ),
                               ),
-                              Text(
-                                c.path,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.5,
-                                  ),
-                                  fontFamily: 'monospace',
+                              child: Icon(c.icon, color: c.tone, size: 18),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                c.label,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                            Text(
+                              c.path,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
+                                ),
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

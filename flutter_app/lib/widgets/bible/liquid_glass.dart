@@ -33,12 +33,10 @@
 //
 // The Bible (§4.3 Materials) prescribes this exact ladder.
 
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 
-import '../../app/theme/app_theme.dart';
 import '../../app/theme/app_tokens.dart';
+import '../../nexus/nexus_tokens.dart';
 
 /// Five thickness tiers mirroring SwiftUI's `Material`.
 ///
@@ -112,8 +110,6 @@ class LiquidGlass extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final glassExt = GlassExtension.of(context);
-    final reduce = glassExt.reduceTransparency;
 
     final spec = _specFor(thickness, isDark);
     final tintColor = tint ?? Colors.transparent;
@@ -133,9 +129,7 @@ class LiquidGlass extends StatelessWidget {
         tintColor.withValues(alpha: tintColor.a > 0 ? 0.06 : 0),
         spec.tint,
       ),
-      child: padding == null
-          ? child
-          : Padding(padding: padding!, child: child),
+      child: padding == null ? child : Padding(padding: padding!, child: child),
     );
 
     final shadows = _shadowsFor(shadow, tintColor, isDark);
@@ -163,39 +157,16 @@ class LiquidGlass extends StatelessWidget {
             child: body,
           );
 
-    if (reduce) {
-      // Accessibility: reduce-transparency users get an opaque
-      // surface with the same tint and stroke.
-      return ClipPath(
-        clipper: clipper,
-        child: ColoredBox(
-          color: glassExt.surface.withValues(alpha: 0.96),
-          child: stroked,
-        ),
-      );
-    }
-
+    // Nexus rule: no BackdropFilter. Every glass surface is an opaque
+    // N.surface slab with a hairline stroke. Saturation/blur lenses
+    // would re-introduce the every-frame GPU cost the Lovable
+    // reference rejects; depth comes from the substrate hairline
+    // instead. Reduce-transparency users get the same flat substrate.
     return ClipPath(
       clipper: clipper,
-      child: BackdropFilter(
-        // The two-layer filter is the Apple signature: a saturation
-        // matrix is applied first so colour behind the glass pops,
-        // *then* the gaussian blur softens it. Doing them the other
-        // way around blurs the saturation away.
-        filter: ui.ImageFilter.compose(
-          outer: ui.ImageFilter.blur(
-            sigmaX: spec.blur,
-            sigmaY: spec.blur,
-          ),
-          inner: _saturationMatrix(spec.saturation, spec.brightness),
-        ),
-        child: Stack(
-          fit: StackFit.passthrough,
-          children: [
-            stroked,
-            if (specular) _SpecularEdge(isDark: isDark, shape: shape),
-          ],
-        ),
+      child: ColoredBox(
+        color: N.surface,
+        child: stroked,
       ),
     );
   }
@@ -250,25 +221,6 @@ class LiquidGlass extends StatelessWidget {
     }
   }
 
-  /// 4×5 colour matrix that combines saturation + brightness.
-  ///
-  /// Identity matrix is at sat=1.0, bri=1.0. The luminance
-  /// coefficients (0.2126, 0.7152, 0.0722) come from BT.709 — the
-  /// same matrix Safari uses for `filter: saturate()`.
-  static ui.ImageFilter _saturationMatrix(double sat, double bri) {
-    final invSat = 1 - sat;
-    final r = 0.2126 * invSat;
-    final g = 0.7152 * invSat;
-    final b = 0.0722 * invSat;
-    final m = <double>[
-      (r + sat) * bri, g * bri, b * bri, 0, 0,
-      r * bri, (g + sat) * bri, b * bri, 0, 0,
-      r * bri, g * bri, (b + sat) * bri, 0, 0,
-      0, 0, 0, 1, 0,
-    ];
-    return ui.ColorFilter.matrix(m);
-  }
-
   static List<BoxShadow> _shadowsFor(
     LiquidGlassShadow shadow,
     Color tint,
@@ -312,46 +264,4 @@ class _GlassSpec {
   final double saturation;
   final double brightness;
   final Color tint;
-}
-
-/// 0.5-pt specular highlight along the top edge of a glass surface.
-class _SpecularEdge extends StatelessWidget {
-  const _SpecularEdge({required this.isDark, required this.shape});
-  final bool isDark;
-  final ShapeBorder shape;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: IgnorePointer(
-        child: ClipPath(
-          clipper: ShapeBorderClipper(shape: shape),
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isDark
-                      ? [
-                          Colors.transparent,
-                          Colors.white.withValues(alpha: 0.20),
-                          Colors.white.withValues(alpha: 0.10),
-                          Colors.transparent,
-                        ]
-                      : [
-                          Colors.transparent,
-                          Colors.white.withValues(alpha: 0.92),
-                          Colors.white.withValues(alpha: 0.65),
-                          Colors.transparent,
-                        ],
-                  stops: const [0.0, 0.30, 0.70, 1.0],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
