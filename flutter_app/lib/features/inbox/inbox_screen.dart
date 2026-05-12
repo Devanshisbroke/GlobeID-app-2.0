@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../nexus/chrome/nexus_legacy_scaffold.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_surface.dart';
@@ -36,62 +37,42 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
 
     final groups = _groupByDay(filtered);
 
-    return Scaffold(
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverAppBar.large(
-            pinned: true,
-            stretch: true,
-            backgroundColor: theme.colorScheme.surface,
-            title: Row(
-              children: [
-                const Text('Inbox'),
-                const SizedBox(width: AppTokens.space2),
-                if (unread > 0)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary,
-                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                    ),
-                    child: Text(
-                      '$unread',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            actions: [
-              IconButton(
-                tooltip: 'Mark all read',
-                onPressed: unread == 0
-                    ? null
-                    : () {
-                        HapticFeedback.lightImpact();
-                        ref.read(inboxProvider.notifier).markAllRead();
-                      },
-                icon: const Icon(Icons.done_all_rounded),
-              ),
-              IconButton(
-                tooltip: 'Clear all',
-                onPressed: all.isEmpty
-                    ? null
-                    : () {
-                        HapticFeedback.mediumImpact();
-                        ref.read(inboxProvider.notifier).clear();
-                      },
-                icon: const Icon(Icons.delete_sweep_rounded),
-              ),
-              const SizedBox(width: 4),
-            ],
+    return NexusLegacyScaffold(
+      eyebrow: 'GLOBE ID · INBOX',
+      title: 'Inbox',
+      subtitle: unread > 0
+          ? '$unread unread · ${all.length} total'
+          : 'All caught up · ${all.length} total',
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: 'Mark all read',
+            onPressed: unread == 0
+                ? null
+                : () {
+                    HapticFeedback.lightImpact();
+                    ref.read(inboxProvider.notifier).markAllRead();
+                  },
+            icon: const Icon(Icons.done_all_rounded, size: 20),
           ),
-
+          IconButton(
+            tooltip: 'Clear all',
+            onPressed: all.isEmpty
+                ? null
+                : () {
+                    HapticFeedback.mediumImpact();
+                    ref.read(inboxProvider.notifier).clear();
+                  },
+            icon: const Icon(Icons.delete_sweep_rounded, size: 20),
+          ),
+        ],
+      ),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        slivers: [
           // Filter chip strip.
           SliverToBoxAdapter(
             child: SizedBox(

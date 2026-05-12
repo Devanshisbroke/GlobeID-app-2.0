@@ -30,9 +30,14 @@ class AppTheme {
 
     final isDark = brightness == Brightness.dark;
     final surface = isDark ? AppTokens.canvasDark : AppTokens.canvasLight;
-    final card = isDark
-        ? AppTokens.cardDark.withValues(alpha: 0.74)
-        : AppTokens.cardLight.withValues(alpha: 0.82);
+    // Nexus alignment — flat hairline cards on OLED canvas. No more
+    // 0.74 alpha mixing on dark: the substrate IS the surface; the card
+    // sits 1 step above the floor with a 0.5px hairline border instead
+    // of a tinted fill. Light mode keeps the paper surface.
+    final card = isDark ? const Color(0xFF0A0A0C) : AppTokens.cardLight;
+    final hairline = isDark
+        ? const Color(0x1AFFFFFF) // 10% white — Nexus N.hairline
+        : const Color(0x14000000);
 
     final density = prefs.density;
     final base = density.scale;
@@ -68,8 +73,45 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTokens.radiusXl),
+          side: BorderSide(color: hairline, width: 0.5),
         ),
         margin: EdgeInsets.zero,
+        surfaceTintColor: Colors.transparent,
+      ),
+      dividerTheme: DividerThemeData(
+        color: hairline,
+        thickness: 0.5,
+        space: 0,
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: card,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        modalElevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(28),
+          ),
+          side: BorderSide(color: hairline, width: 0.5),
+        ),
+        showDragHandle: true,
+        dragHandleColor: isDark
+            ? Colors.white.withValues(alpha: 0.18)
+            : Colors.black.withValues(alpha: 0.18),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: card,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+          side: BorderSide(color: hairline, width: 0.5),
+        ),
+      ),
+      listTileTheme: ListTileThemeData(
+        iconColor: isDark
+            ? Colors.white.withValues(alpha: 0.66)
+            : Colors.black.withValues(alpha: 0.66),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(

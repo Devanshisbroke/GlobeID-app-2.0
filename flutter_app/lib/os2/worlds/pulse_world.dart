@@ -7,6 +7,12 @@ import '../../features/wallet/wallet_provider.dart';
 import '../../features/inbox/inbox_provider.dart';
 import '../../features/score/score_provider.dart';
 import '../../domain/identity_tier.dart';
+import '../../nexus/cards/nexus_countdown_card.dart';
+import '../../nexus/chrome/nexus_pipeline.dart';
+import '../../nexus/chrome/nexus_quick_actions.dart';
+import '../../nexus/chrome/nexus_update_banner.dart';
+import '../../nexus/nexus_haptics.dart';
+import '../../nexus/nexus_tokens.dart';
 import '../os2_tokens.dart';
 import '../motion/os2_breathing.dart';
 import '../primitives/os2_beacon.dart';
@@ -78,6 +84,99 @@ class PulseWorld extends ConsumerWidget {
               subtitle: 'Mission control \u00b7 your day in motion',
             ),
             const SizedBox(height: Os2.space2),
+            // ─── Nexus update banner — canonical attention pattern (only
+            //     surfaces when there's actionable signal).
+            if (activeLeg != null || nextLeg != null) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+                child: NUpdateBanner(
+                  eyebrow: activeLeg != null ? 'In flight' : 'Departure',
+                  message: activeLeg != null
+                      ? 'Cruise · all systems nominal'
+                      : 'Gate confirmed · B14 · 16:20 boarding',
+                  onDetails: () => GoRouter.of(context)
+                      .push('/boarding-pass-live'),
+                  tone: activeLeg != null ? N.success : N.warning,
+                ),
+              ),
+              const SizedBox(height: Os2.space3),
+              // ─── Nexus pipeline strip — Plan · Pack · Check-in · …
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+                child: NPipeline(
+                  stages: const [
+                    'Plan',
+                    'Pack',
+                    'Check-in',
+                    'Security',
+                    'Lounge',
+                    'Board',
+                    'Land',
+                  ],
+                  activeIndex: activeLeg != null ? 5 : 2,
+                ),
+              ),
+              const SizedBox(height: Os2.space3),
+              // ─── Nexus countdown card — canonical "Departs in HH:MM:SS".
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+                child: NCountdownCard(
+                  target: DateTime.now().add(const Duration(
+                    hours: 2,
+                    minutes: 14,
+                    seconds: 45,
+                  )),
+                  eyebrow: activeLeg != null
+                      ? 'Arrives in'
+                      : 'Departs in',
+                  flight: 'LH 408',
+                  route: 'FRA · SFO',
+                ),
+              ),
+              const SizedBox(height: Os2.space3),
+              // ─── Nexus quick actions — 4-pill tactile row.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+                child: NQuickActionsRow(
+                  actions: [
+                    NQuickAction(
+                      icon: Icons.account_balance_wallet_rounded,
+                      label: 'WALLET',
+                      onTap: () {
+                        NHaptics.tap();
+                        GoRouter.of(context).go('/wallet');
+                      },
+                    ),
+                    NQuickAction(
+                      icon: Icons.workspace_premium_rounded,
+                      label: 'IDENTITY',
+                      onTap: () {
+                        NHaptics.tap();
+                        GoRouter.of(context).go('/identity');
+                      },
+                    ),
+                    NQuickAction(
+                      icon: Icons.flight_takeoff_rounded,
+                      label: 'TRAVEL',
+                      onTap: () {
+                        NHaptics.tap();
+                        GoRouter.of(context).go('/travel');
+                      },
+                      accented: true,
+                    ),
+                    NQuickAction(
+                      icon: Icons.travel_explore_rounded,
+                      label: 'DISCOVER',
+                      onTap: () {
+                        NHaptics.tap();
+                        GoRouter.of(context).go('/discover');
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: Os2.space4),
+            ],
             // Live system marquee.
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: Os2.space4),

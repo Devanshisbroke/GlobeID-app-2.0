@@ -49,16 +49,19 @@ class AppTokens {
   static const Duration durationXl = Duration(milliseconds: 700);
   static const Duration duration2xl = Duration(milliseconds: 1000);
 
-  // ── Brand accents (8 swatches + custom HSL) ───────────────────────
+  // ── Brand accents — Nexus-aligned palette ─────────────────────────
+  // Champagne is the canonical GlobeID accent (Lovable Travel OS / Wallet
+  // refs). The rest are kept for the legacy AppearanceSettings picker but
+  // tuned away from neon saturation toward muted aviation tones.
   static const List<AccentSwatch> accents = [
-    AccentSwatch('azure', Color(0xFF0EA5E9), Color(0xFF38BDF8)),
-    AccentSwatch('cobalt', Color(0xFF1D4ED8), Color(0xFF3B82F6)),
-    AccentSwatch('emerald', Color(0xFF059669), Color(0xFF10B981)),
-    AccentSwatch('amber', Color(0xFFD97706), Color(0xFFF59E0B)),
-    AccentSwatch('rose', Color(0xFFE11D48), Color(0xFFF43F5E)),
-    AccentSwatch('coral', Color(0xFFEA580C), Color(0xFFFB923C)),
-    AccentSwatch('plum', Color(0xFF7E22CE), Color(0xFFA855F7)),
-    AccentSwatch('violet', Color(0xFF6D28D9), Color(0xFF8B5CF6)),
+    AccentSwatch('champagne', Color(0xFFC9A961), Color(0xFFE0BC72)),
+    AccentSwatch('steel', Color(0xFF7280A8), Color(0xFF94A3BD)),
+    AccentSwatch('treasury', Color(0xFF3FB68B), Color(0xFF5BC79E)),
+    AccentSwatch('garnet', Color(0xFFD55656), Color(0xFFE07878)),
+    AccentSwatch('honey', Color(0xFFE0A85B), Color(0xFFEDC07F)),
+    AccentSwatch('mauve', Color(0xFF8B6FA8), Color(0xFFA890C0)),
+    AccentSwatch('azure', Color(0xFF6B8FB8), Color(0xFF8AA8CB)),
+    AccentSwatch('emerald', Color(0xFF4FA88B), Color(0xFF6DBFA3)),
   ];
 
   static AccentSwatch accentByName(String name) =>
