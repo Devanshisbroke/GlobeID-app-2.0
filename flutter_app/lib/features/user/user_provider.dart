@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/storage/preferences.dart';
 import '../../data/api/api_provider.dart';
+import '../../data/api/demo_data.dart';
 import '../../data/api/globeid_api.dart';
 import '../../data/models/travel_document.dart';
 import '../../data/models/travel_record.dart';
@@ -46,6 +47,22 @@ class UserState {
         error: error,
       );
 
+  /// Synchronous demo seed — used as the fresh-install default so the
+  /// Pulse home, Travel tab, and any record-derived surface never
+  /// render empty before the async `hydrate()` resolves. Upgraded
+  /// installs replace this with their persisted snapshot via `fromJson`.
+  static UserState seed() => UserState(
+        profile: UserProfile.fromJson(DemoData.seedUser()),
+        records: DemoData.seedTrips()
+            .map(TravelRecord.fromJson)
+            .toList(growable: false),
+        documents: DemoData.seedDocuments()
+            .map(TravelDocument.fromJson)
+            .toList(growable: false),
+        hydrated: false,
+        loading: false,
+      );
+
   static UserState initial() => UserState(
         profile: UserProfile.defaults(),
         records: const [],
@@ -83,10 +100,22 @@ class UserController extends Notifier<UserState> {
     final prefs = Preferences.instance.readJson(_key);
     if (prefs != null) {
       try {
-        return UserState.fromJson(prefs);
+        final cached = UserState.fromJson(prefs);
+        // Defensive: an upgrade install whose previous build persisted
+        // an empty records list (e.g. hydrate failed before seed) would
+        // otherwise read identical to a cold install. Re-seed so the
+        // Pulse DEPARTURE card + Travel tab never blank.
+        if (cached.records.isEmpty) {
+          return cached.copyWith(records: UserState.seed().records);
+        }
+        return cached;
       } catch (_) {/* ignore */}
     }
-    return UserState.initial();
+    // Fresh install (or unreadable cache): seed from DemoData so every
+    // surface that reads `user.records` (Pulse DEPARTURE card, Travel
+    // tab cards, Trip lifecycle pipeline, etc.) renders rich UI on
+    // first frame instead of an empty placeholder.
+    return UserState.seed();
   }
 
   Future<void> _persist() async {

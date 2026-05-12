@@ -159,6 +159,23 @@ class DemoData {
     return null;
   }
 
+  // ─────────────────── public typed seed accessors ────────────────────
+  //
+  // Used by Riverpod Notifier.build() callbacks to populate state
+  // synchronously on a fresh install (before async hydrate() resolves).
+  // This guarantees every flagship surface is alive on first paint —
+  // no blank Travel tab, no $0.00 Treasury, no missing DEPARTURE card.
+  //
+  // The maps are deep-copied via JSON encode/decode round-trips inside
+  // the callers' fromJson constructors, so mutations to returned
+  // collections never poison the const seeds.
+
+  static Map<String, dynamic> seedUser() => _user;
+  static List<Map<String, dynamic>> seedTrips() => _trips;
+  static List<Map<String, dynamic>> seedDocuments() => _documents;
+  static Map<String, dynamic> seedWallet() => _wallet;
+  static List<Map<String, dynamic>> seedLifecycleTrips() => _lifecycleTrips;
+
   // ─────────────────── seed data ───────────────────
 
   static const Map<String, dynamic> _user = {
