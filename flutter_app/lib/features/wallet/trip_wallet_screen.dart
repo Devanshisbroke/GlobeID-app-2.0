@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../nexus/nexus_tokens.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/page_scaffold.dart';
@@ -295,10 +296,12 @@ class _TripWalletScreenState extends ConsumerState<TripWalletScreen>
   void _showBudgetPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: N.surface,
+      barrierColor: Colors.black.withValues(alpha: 0.62),
+      elevation: 0,
       shape: const RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppTokens.radiusXl)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(N.rSheet)),
+        side: BorderSide(color: N.hairline, width: N.strokeHair),
       ),
       builder: (_) => Padding(
         padding: const EdgeInsets.all(AppTokens.space5),

@@ -7,6 +7,7 @@ import '../../data/api/api_provider.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/pressable.dart';
+import '../../widgets/toast.dart';
 import 'agent_action_card.dart';
 import 'concierge_command_surface.dart';
 
@@ -421,13 +422,11 @@ class _Bubble extends StatelessWidget {
           onLongPress: () {
             HapticFeedback.mediumImpact();
             Clipboard.setData(ClipboardData(text: msg.text));
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                duration: const Duration(milliseconds: 1400),
-                behavior: SnackBarBehavior.floating,
-                content: const Text('Copied'),
-                backgroundColor: theme.colorScheme.primary,
-              ),
+            AppToast.show(
+              context,
+              title: 'Copied',
+              tone: AppToastTone.neutral,
+              duration: const Duration(milliseconds: 1400),
             );
           },
           child: Align(

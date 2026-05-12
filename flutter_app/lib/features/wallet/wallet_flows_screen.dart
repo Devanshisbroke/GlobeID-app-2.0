@@ -12,6 +12,7 @@ import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/toast.dart';
 import '../payments/payment_confirm_sheet.dart';
 
 /// Wallet "flow" screens — Send, Receive, Scan-to-pay, Exchange.
@@ -230,7 +231,6 @@ class _WalletFlowScreenState extends ConsumerState<WalletFlowScreen> {
                 HapticFeedback.heavyImpact();
                 if (flow == WalletFlow.send || flow == WalletFlow.scanPay) {
                   final amount = double.tryParse(_amount) ?? 0;
-                  final messenger = ScaffoldMessenger.of(context);
                   final navigator = Navigator.of(context);
                   final result = await PaymentConfirmSheet.show(
                     context,
@@ -246,21 +246,20 @@ class _WalletFlowScreenState extends ConsumerState<WalletFlowScreen> {
                   );
                   if (!mounted) return;
                   if (result == PaymentConfirmResult.confirmed) {
-                    messenger.showSnackBar(
-                      SnackBar(
-                        backgroundColor: tone,
-                        content: Text(_confirmFor(flow)),
-                      ),
+                    if (!context.mounted) return;
+                    AppToast.show(
+                      context,
+                      title: _confirmFor(flow),
+                      tone: AppToastTone.success,
                     );
                     navigator.maybePop();
                   }
                   return;
                 }
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: tone,
-                    content: Text(_confirmFor(flow)),
-                  ),
+                AppToast.show(
+                  context,
+                  title: _confirmFor(flow),
+                  tone: AppToastTone.success,
                 );
                 Navigator.of(context).maybePop();
               },

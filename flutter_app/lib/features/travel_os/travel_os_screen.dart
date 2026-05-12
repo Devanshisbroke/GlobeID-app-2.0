@@ -12,6 +12,7 @@ import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/toast.dart';
 
 /// TravelOSScreen — the agentic orchestration hub.
 ///
@@ -199,11 +200,10 @@ class _TravelOSScreenState extends State<TravelOSScreen> {
                     if (chain.route != null) {
                       GoRouter.of(context).push(chain.route!);
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          backgroundColor: phase.tone,
-                          content: Text('${chain.label} · scheduled'),
-                        ),
+                      AppToast.show(
+                        context,
+                        title: '${chain.label} · scheduled',
+                        tone: AppToastTone.info,
                       );
                     }
                   },
@@ -282,12 +282,12 @@ class _TravelOSScreenState extends State<TravelOSScreen> {
               ),
               onPressed: () {
                 HapticFeedback.heavyImpact();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: phase.tone,
-                    content: Text(
-                        'GlobeID sync · ${_chainsFor(phase.key).length} services chained'),
-                  ),
+                AppToast.show(
+                  context,
+                  title: 'GlobeID sync',
+                  message:
+                      '${_chainsFor(phase.key).length} services chained',
+                  tone: AppToastTone.success,
                 );
               },
             ),

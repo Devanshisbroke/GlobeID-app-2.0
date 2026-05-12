@@ -14,6 +14,7 @@ import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/toast.dart';
 
 /// RideLiveScreen — premium Uber/Lyft-style live trip view.
 ///
@@ -411,13 +412,12 @@ class _RideLiveScreenState extends State<RideLiveScreen>
               ),
               onPressed: () {
                 HapticFeedback.heavyImpact();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: widget.tone,
-                    content: Text(_stage >= 4
-                        ? 'Trip archived · receipt available in Wallet'
-                        : 'Driver notified · trip held'),
-                  ),
+                AppToast.show(
+                  context,
+                  title: _stage >= 4
+                      ? 'Trip archived · receipt available in Wallet'
+                      : 'Driver notified · trip held',
+                  tone: AppToastTone.success,
                 );
               },
             ),

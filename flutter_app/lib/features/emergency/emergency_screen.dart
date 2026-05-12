@@ -12,6 +12,7 @@ import '../../widgets/cinematic_hero.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/toast.dart';
 
 /// EmergencySosScreen — civilization-scale safety hub.
 ///
@@ -116,14 +117,11 @@ class _EmergencySosScreenState extends State<EmergencySosScreen>
                 onLongPressEnd: (_) {
                   HapticFeedback.mediumImpact();
                   setState(() => _armed = false);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: widget.tone,
-                      content: const Text(
-                        'SOS broadcast to your trusted contacts.',
-                        style: TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                    ),
+                  AppToast.show(
+                    context,
+                    title: 'SOS broadcast',
+                    message: 'Your trusted contacts have been alerted.',
+                    tone: AppToastTone.danger,
                   );
                 },
                 child: AnimatedBuilder(

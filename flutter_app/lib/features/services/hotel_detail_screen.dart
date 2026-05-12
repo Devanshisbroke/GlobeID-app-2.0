@@ -13,6 +13,7 @@ import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/toast.dart';
 
 /// Cinematic hotel detail — opened from the Hotels list.
 ///
@@ -311,13 +312,11 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                           ),
                           onPressed: () {
                             HapticFeedback.heavyImpact();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: widget.tonality,
-                                content: Text(
-                                  'Reservation hold placed · ${_rooms[_selectedRoom].name}',
-                                ),
-                              ),
+                            AppToast.show(
+                              context,
+                              title: 'Reservation hold placed',
+                              message: _rooms[_selectedRoom].name,
+                              tone: AppToastTone.success,
                             );
                           },
                         ),

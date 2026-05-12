@@ -1,13 +1,15 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../app/theme/app_tokens.dart';
+import '../nexus/nexus_tokens.dart';
+import '../nexus/nexus_typography.dart';
 
-/// Premium toast / snackbar system. Renders into the app overlay so
-/// it survives navigation. Uses backdrop blur, accent gradient border,
-/// slide-up + fade in. Stacks multiple toasts vertically.
+/// Nexus notification system. Renders into the app overlay so it
+/// survives navigation. Flat OLED surface + 0.5pt hairline border +
+/// 3px severity rail on the left edge. No blur, no shadow, no
+/// saturated gradient — pure Travel-OS language.
+///
+/// Use [AppToast.show] anywhere you previously used a `SnackBar`.
 enum AppToastTone { neutral, info, success, warning, danger }
 
 class AppToast {
@@ -24,7 +26,7 @@ class AppToast {
     AppToastTone tone = AppToastTone.neutral,
     Duration duration = const Duration(milliseconds: 2800),
   }) {
-    HapticFeedback.lightImpact();
+    HapticFeedback.selectionClick();
     final overlay = Overlay.of(context, rootOverlay: true);
     final id = UniqueKey();
     _queue.add(_ToastData(
@@ -50,7 +52,7 @@ class AppToast {
   static IconData _iconFor(AppToastTone t) {
     switch (t) {
       case AppToastTone.success:
-        return Icons.check_circle_rounded;
+        return Icons.check_circle_outline_rounded;
       case AppToastTone.warning:
         return Icons.warning_amber_rounded;
       case AppToastTone.danger:
@@ -58,7 +60,7 @@ class AppToast {
       case AppToastTone.info:
         return Icons.info_outline_rounded;
       case AppToastTone.neutral:
-        return Icons.bolt_rounded;
+        return Icons.bolt_outlined;
     }
   }
 
@@ -100,14 +102,14 @@ class _ToastStack extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4),
+          padding: const EdgeInsets.symmetric(horizontal: N.s4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               for (final d in AppToast._queue)
                 Padding(
                   key: d.id,
-                  padding: const EdgeInsets.only(top: AppTokens.space2),
+                  padding: const EdgeInsets.only(top: N.s2),
                   child: _ToastCard(data: d),
                 ),
             ],
@@ -129,7 +131,7 @@ class _ToastCardState extends State<_ToastCard>
     with SingleTickerProviderStateMixin {
   late final _ctrl = AnimationController(
     vsync: this,
-    duration: AppTokens.durationMd,
+    duration: N.dBanner,
   )..forward();
 
   @override
@@ -140,76 +142,68 @@ class _ToastCardState extends State<_ToastCard>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final tone = _toneColor(widget.data.tone, theme);
-    final isDark = theme.brightness == Brightness.dark;
+    final tone = _toneColor(widget.data.tone);
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (_, child) {
-        final t = Curves.easeOutCubic.transform(_ctrl.value);
+        final t = N.ease.transform(_ctrl.value);
         return Opacity(
           opacity: t,
           child: Transform.translate(
-            offset: Offset(0, (1 - t) * 18),
+            offset: Offset(0, (1 - t) * 14),
             child: child,
           ),
         );
       },
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppTokens.space4, vertical: 14),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.62)
-                  : Colors.white.withValues(alpha: 0.78),
-              border: Border.all(
-                color: tone.withValues(alpha: 0.40),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: tone.withValues(alpha: 0.20),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+        borderRadius: BorderRadius.circular(N.rCard),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: N.surface,
+            border: Border.all(
+              color: N.hairline,
+              width: N.strokeHair,
             ),
+            borderRadius: BorderRadius.circular(N.rCard),
+          ),
+          child: IntrinsicHeight(
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        tone.withValues(alpha: 0.36),
-                        tone.withValues(alpha: 0.10),
+                  width: 3,
+                  color: tone,
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: N.s4, vertical: 14),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Icon(widget.data.icon, color: tone, size: N.iconMd),
+                        const SizedBox(width: N.s3),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                widget.data.title,
+                                style: NType.title16(color: N.inkHi),
+                              ),
+                              if (widget.data.message != null) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  widget.data.message!,
+                                  style: NType.body13(color: N.inkMid),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                  child: Icon(widget.data.icon, color: tone, size: 18),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(widget.data.title,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          )),
-                      if (widget.data.message != null)
-                        Text(widget.data.message!,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.7),
-                            )),
-                    ],
                   ),
                 ),
               ],
@@ -220,18 +214,18 @@ class _ToastCardState extends State<_ToastCard>
     );
   }
 
-  Color _toneColor(AppToastTone t, ThemeData theme) {
+  Color _toneColor(AppToastTone t) {
     switch (t) {
       case AppToastTone.success:
-        return const Color(0xFF10B981);
+        return N.success;
       case AppToastTone.warning:
-        return const Color(0xFFF59E0B);
+        return N.warning;
       case AppToastTone.danger:
-        return const Color(0xFFEF4444);
+        return N.critical;
       case AppToastTone.info:
-        return const Color(0xFF3B82F6);
+        return N.info;
       case AppToastTone.neutral:
-        return theme.colorScheme.primary;
+        return N.tierGold;
     }
   }
 }

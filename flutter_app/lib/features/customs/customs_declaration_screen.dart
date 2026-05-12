@@ -9,6 +9,7 @@ import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/toast.dart';
 
 /// CustomsDeclarationScreen — arrival customs form simulator.
 ///
@@ -186,16 +187,17 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
                       ? null
                       : () {
                           HapticFeedback.lightImpact();
+                          if (_onReview) {
+                            AppToast.show(
+                              context,
+                              title: 'Form saved offline',
+                              message: 'Show kiosk on arrival.',
+                              tone: AppToastTone.success,
+                            );
+                          }
                           setState(() {
                             if (_onReview) {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(SnackBar(
-                                backgroundColor: widget.tone,
-                                content: const Text(
-                                  'Form saved offline. Show kiosk on arrival.',
-                                  style: TextStyle(fontWeight: FontWeight.w800),
-                                ),
-                              ));
+                              // already toasted above
                             } else {
                               _step++;
                             }

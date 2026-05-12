@@ -11,6 +11,7 @@ import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/toast.dart';
 
 /// Cinematic restaurant detail page — opened from the Food list.
 ///
@@ -454,15 +455,12 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                           ),
                           onPressed: () {
                             HapticFeedback.heavyImpact();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: widget.tonality,
-                                content: Text(
-                                  _delivery
-                                      ? 'Delivery placed · ${widget.name}'
-                                      : 'Table held · ${widget.name} 19:30',
-                                ),
-                              ),
+                            AppToast.show(
+                              context,
+                              title: _delivery
+                                  ? 'Delivery placed · ${widget.name}'
+                                  : 'Table held · ${widget.name} 19:30',
+                              tone: AppToastTone.success,
                             );
                           },
                         ),
