@@ -8,7 +8,7 @@ import '../../core/storage/preferences.dart';
 @immutable
 class ThemePrefs {
   const ThemePrefs({
-    this.accent = 'azure',
+    this.accent = 'champagne',
     // OS 2.0 ships in OLED-first dark by default. The user explicitly
     // asked for a pitch-OLED canvas across the app; defaulting to
     // system theme caused the device's light-mode preference to bleed
@@ -70,7 +70,7 @@ class ThemePrefs {
       };
 
   static ThemePrefs fromJson(Map<String, dynamic> json) => ThemePrefs(
-        accent: (json['accent'] as String?) ?? 'azure',
+        accent: (json['accent'] as String?) ?? 'champagne',
         themeMode: ThemeMode.values.firstWhere(
           (m) => m.name == json['themeMode'],
           orElse: () => ThemeMode.system,

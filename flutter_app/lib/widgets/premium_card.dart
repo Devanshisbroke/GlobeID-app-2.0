@@ -1,30 +1,31 @@
 import 'package:flutter/material.dart';
 
 import '../app/theme/app_tokens.dart';
-import 'bible/liquid_glass.dart';
+import '../nexus/nexus_tokens.dart';
 
-/// Premium card built on the unified [LiquidGlass] material primitive.
+/// Premium card — **Nexus-aligned hairline panel.**
 ///
-/// `glass=true` (the default) routes through `LiquidGlass(thickness: regular)`
-/// so every premium card in the app shares the same:
-///   - saturate-then-blur composition (iOS-17 chrome trick)
-///   - 0.5-pt specular top edge
-///   - hairline stroke
-///   - cinematic ambient shadow
-///   - continuous-curve squircle corners
-///   - reduce-transparency accessibility fallback
+/// Was previously a multi-layer LiquidGlass surface with blur + sheen +
+/// ambient shadows. After the canonical Travel-OS / Wallet redesign
+/// migration, this primitive now renders the Lovable hairline-card
+/// language across the entire legacy feature tree:
 ///
-/// `gradient`-painted cards (used for some hero panels) keep their
-/// painted body but render the body inside a glass wrapper so the
-/// outline / shadow / specular language is consistent. Setting
-/// `glass=false` produces a flat opaque card via the [PremiumCard.flat]
-/// factory.
+///   - flat dark surface (`N.surface`) sitting directly on the OLED bg
+///   - 0.5pt `N.hairline` border
+///   - generous radius (defaults to `N.rCard = 18`)
+///   - **no shadow** and **no specular** — depth is conveyed by the
+///     hairline alone (Nothing-OS / Linear language)
+///   - hero variant keeps a soft tinted wash + 1px tonal border for
+///     focal surfaces, still without blur
+///
+/// The public API is preserved so all 51 callers across the legacy
+/// `lib/features/*` tree get the new visual language for free.
 class PremiumCard extends StatelessWidget {
   const PremiumCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(AppTokens.space5),
-    this.radius = AppTokens.radius2xl,
+    this.radius = AppTokens.radiusXl,
     this.tint,
     this.gradient,
     this.glass = true,
@@ -36,7 +37,7 @@ class PremiumCard extends StatelessWidget {
     Key? key,
     required Widget child,
     EdgeInsetsGeometry padding = const EdgeInsets.all(AppTokens.space5),
-    double radius = AppTokens.radius2xl,
+    double radius = AppTokens.radiusLg,
     Color? tint,
   }) =>
       PremiumCard(
@@ -54,7 +55,7 @@ class PremiumCard extends StatelessWidget {
     required Widget child,
     required Gradient gradient,
     EdgeInsetsGeometry padding = const EdgeInsets.all(AppTokens.space6),
-    double radius = AppTokens.radius3xl,
+    double radius = AppTokens.radius2xl,
   }) =>
       PremiumCard(
         key: key,
@@ -77,44 +78,50 @@ class PremiumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Map elevation → LiquidGlass shadow tier.
-    final shadow = switch (elevation) {
-      PremiumElevation.none => LiquidGlassShadow.none,
-      PremiumElevation.sm => LiquidGlassShadow.resting,
-      PremiumElevation.md => LiquidGlassShadow.cinematic,
-      PremiumElevation.lg => LiquidGlassShadow.floating,
-    };
-
-    // Gradient hero variant: paint the gradient as the body, wrap in
-    // the same shadow + stroke language but without glass blur.
+    // Hero gradient variant — paint the gradient under a hairline; no
+    // shadow. The brand wash is the only visual lift.
     if (gradient != null) {
-      return LiquidGlass(
-        thickness: LiquidGlassThickness.ultraThin,
-        radius: radius,
-        tint: tint,
-        shadow: shadow,
-        stroke: true,
-        specular: true,
-        // Clip the gradient inside the same continuous-curve clip.
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
         child: DecoratedBox(
-          decoration: BoxDecoration(gradient: gradient),
+          decoration: BoxDecoration(
+            gradient: gradient,
+            borderRadius: BorderRadius.circular(radius),
+            border: Border.all(
+              color: borderColor ??
+                  N.tierGold.withValues(alpha: 0.32),
+              width: 0.5,
+            ),
+          ),
           child: Padding(padding: padding, child: child),
         ),
       );
     }
 
-    return LiquidGlass(
-      // `glass=false` collapses to ultraThin so the surface is
-      // virtually opaque but still inherits the unified language.
-      thickness:
-          glass ? LiquidGlassThickness.regular : LiquidGlassThickness.ultraThin,
-      radius: radius,
-      tint: tint,
-      padding: padding,
-      shadow: shadow,
-      stroke: true,
-      specular: true,
-      child: child,
+    // Optional tint wash for focal panels (used by a few wallet /
+    // identity hero cards). Tone-only, no neon.
+    final Color background = tint == null
+        ? N.surface
+        : Color.alphaBlend(
+            tint!.withValues(alpha: 0.05),
+            N.surface,
+          );
+
+    final Color border = borderColor ??
+        (tint == null
+            ? N.hairline
+            : tint!.withValues(alpha: 0.28));
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(
+          color: border,
+          width: 0.5,
+        ),
+      ),
+      child: Padding(padding: padding, child: child),
     );
   }
 }

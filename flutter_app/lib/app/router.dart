@@ -345,6 +345,27 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       // Services sub-routes
+      // Direct aliases so deep-links / nav from the new Nexus tiles
+      // never hit "No route for /hotels" etc.
+      GoRoute(path: '/hotels', redirect: (_, __) => '/services/hotels'),
+      GoRoute(path: '/flights', redirect: (_, __) => '/services/flights'),
+      GoRoute(path: '/restaurants', redirect: (_, __) => '/services/food'),
+      GoRoute(path: '/transport', redirect: (_, __) => '/services/transport'),
+      GoRoute(path: '/rides', redirect: (_, __) => '/services/rides'),
+      GoRoute(path: '/activities', redirect: (_, __) => '/services/activities'),
+      GoRoute(path: '/visa-scout', redirect: (_, __) => '/visa'),
+      GoRoute(path: '/smart-routes', redirect: (_, __) => '/intelligence'),
+      GoRoute(path: '/atlas', redirect: (_, __) => '/explore'),
+      GoRoute(path: '/trip-pipeline', redirect: (_, __) => '/travel-os'),
+      GoRoute(
+        path: '/boarding-pass-live',
+        redirect: (_, __) => '/boarding/demo-trip/demo-leg',
+      ),
+      GoRoute(
+        path: '/credential/:id',
+        redirect: (_, state) =>
+            '/visa?id=${state.pathParameters['id']}',
+      ),
       _route('/services/hotels', (_, __) => const HotelsScreen()),
       _route(
         '/services/hotels/detail',

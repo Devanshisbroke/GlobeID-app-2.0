@@ -9,6 +9,7 @@ import '../../domain/airports.dart';
 import '../../domain/connection_detector.dart';
 import '../../domain/packing_list.dart';
 import '../../domain/predictive_departure.dart';
+import '../../nexus/chrome/nexus_legacy_scaffold.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_surface.dart';
@@ -36,11 +37,11 @@ class TripDetailScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     if (trip == null) {
-      return Scaffold(
-        appBar: AppBar(
-          leading: BackButton(onPressed: () => context.pop()),
-        ),
-        body: const EmptyState(
+      return const NexusLegacyScaffold(
+        eyebrow: 'GLOBE ID · TRAVEL',
+        title: 'Trip not found',
+        subtitle: 'This trip may have been removed.',
+        body: EmptyState(
           title: 'Trip not found',
           message: 'This trip may have been removed.',
           icon: Icons.search_off_rounded,
@@ -61,6 +62,7 @@ class TripDetailScreen extends ConsumerWidget {
         : resolveAirlineBrand('GID');
 
     return Scaffold(
+      backgroundColor: Colors.black,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -68,7 +70,8 @@ class TripDetailScreen extends ConsumerWidget {
             leading: BackButton(onPressed: () => context.pop()),
             stretch: true,
             expandedHeight: 240,
-            backgroundColor: theme.colorScheme.surface,
+            backgroundColor: Colors.black,
+            surfaceTintColor: Colors.transparent,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 trip.name,
