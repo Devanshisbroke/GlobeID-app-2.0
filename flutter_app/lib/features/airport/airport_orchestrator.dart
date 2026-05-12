@@ -377,9 +377,11 @@ class _TerminalMap extends StatelessWidget {
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppTokens.radiusLg),
               color: theme.colorScheme.onSurface.withValues(alpha: 0.04)),
-          child: CustomPaint(
-              painter: _TerminalPainter(theme: theme),
-              size: const Size.square(double.infinity)),
+          child: RepaintBoundary(
+            child: CustomPaint(
+                painter: _TerminalPainter(theme: theme),
+                size: const Size.square(double.infinity)),
+          ),
         ),
         const SizedBox(height: AppTokens.space2),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [

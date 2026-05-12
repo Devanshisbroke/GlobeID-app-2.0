@@ -1056,94 +1056,97 @@ class _StampState extends State<_Stamp> with SingleTickerProviderStateMixin {
     final issued = (widget.data['issuedAt'] as String?) ?? '';
     final tone = _stampTone(country);
     final rot = ((country.hashCode % 12) - 6) * math.pi / 180;
-    return AnimatedBuilder(
-      animation: _ink,
-      builder: (_, __) {
-        final t = Curves.easeOutCubic.transform(_ink.value);
-        return Transform.rotate(
-          angle: rot,
-          child: Transform.scale(
-            scale: 0.6 + 0.4 * t,
-            child: Opacity(
-              opacity: t,
-              child: Container(
-                width: 110,
-                height: 110,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: tone, width: 2.4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: tone.withValues(alpha: 0.34),
-                      blurRadius: 12,
-                      spreadRadius: -4,
-                    ),
-                  ],
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 96,
-                      height: 96,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: tone.withValues(alpha: 0.65),
-                          width: 1.0,
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _ink,
+        builder: (_, __) {
+          final t = Curves.easeOutCubic.transform(_ink.value);
+          return Transform.rotate(
+            angle: rot,
+            child: Transform.scale(
+              scale: 0.6 + 0.4 * t,
+              child: Opacity(
+                opacity: t,
+                child: Container(
+                  width: 110,
+                  height: 110,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: tone, width: 2.4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: tone.withValues(alpha: 0.34),
+                        blurRadius: 12,
+                        spreadRadius: -4,
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 96,
+                        height: 96,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: tone.withValues(alpha: 0.65),
+                            width: 1.0,
+                          ),
                         ),
                       ),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          code,
-                          style: TextStyle(
-                            color: tone,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 22,
-                            letterSpacing: 2,
-                          ),
-                        ),
-                        Text(
-                          country.length > 9
-                              ? country.substring(0, 9)
-                              : country,
-                          style: TextStyle(
-                            color: tone,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 10,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Container(width: 24, height: 1, color: tone),
-                        const SizedBox(height: 2),
-                        if (issued.isNotEmpty)
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                           Text(
-                            issued,
+                            code,
                             style: TextStyle(
-                              color: tone.withValues(alpha: 0.85),
-                              fontWeight: FontWeight.w700,
-                              fontSize: 9,
-                              letterSpacing: 0.8,
+                              color: tone,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 22,
+                              letterSpacing: 2,
                             ),
                           ),
-                      ],
-                    ),
-                    // Speckle ink texture.
-                    CustomPaint(
-                      size: const Size(108, 108),
-                      painter: _InkSpecklePainter(seed: country.hashCode),
-                    ),
-                  ],
+                          Text(
+                            country.length > 9
+                                ? country.substring(0, 9)
+                                : country,
+                            style: TextStyle(
+                              color: tone,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 10,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Container(width: 24, height: 1, color: tone),
+                          const SizedBox(height: 2),
+                          if (issued.isNotEmpty)
+                            Text(
+                              issued,
+                              style: TextStyle(
+                                color: tone.withValues(alpha: 0.85),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 9,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                        ],
+                      ),
+                      // Speckle ink texture.
+                      CustomPaint(
+                        size: const Size(108, 108),
+                        painter:
+                            _InkSpecklePainter(seed: country.hashCode),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

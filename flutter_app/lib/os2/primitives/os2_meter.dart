@@ -87,40 +87,42 @@ class _Os2MeterState extends State<Os2Meter>
     return SizedBox(
       width: widget.diameter,
       height: widget.diameter,
-      child: AnimatedBuilder(
-        animation: _c,
-        builder: (context, _) {
-          return CustomPaint(
-            painter: _MeterPainter(
-              value: _current,
-              tone: widget.tone,
-              strokeWidth: widget.strokeWidth,
-              ticks: widget.ticks,
-            ),
-            child: Center(
-              child: widget.center ??
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (widget.label != null)
-                        Os2Text.headline(
-                          widget.label!,
-                          color: Os2.inkBright,
-                          size: widget.diameter * 0.22,
-                          weight: FontWeight.w900,
-                        ),
-                      if (widget.subLabel != null) ...[
-                        const SizedBox(height: 2),
-                        Os2Text.caption(
-                          widget.subLabel!,
-                          color: widget.tone,
-                        ),
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _c,
+          builder: (context, _) {
+            return CustomPaint(
+              painter: _MeterPainter(
+                value: _current,
+                tone: widget.tone,
+                strokeWidth: widget.strokeWidth,
+                ticks: widget.ticks,
+              ),
+              child: Center(
+                child: widget.center ??
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.label != null)
+                          Os2Text.headline(
+                            widget.label!,
+                            color: Os2.inkBright,
+                            size: widget.diameter * 0.22,
+                            weight: FontWeight.w900,
+                          ),
+                        if (widget.subLabel != null) ...[
+                          const SizedBox(height: 2),
+                          Os2Text.caption(
+                            widget.subLabel!,
+                            color: widget.tone,
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-            ),
-          );
-        },
+                    ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

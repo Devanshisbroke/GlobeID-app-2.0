@@ -80,21 +80,23 @@ class _Os2ProgressArcState extends State<Os2ProgressArc>
         SizedBox(
           width: widget.diameter,
           height: widget.diameter,
-          child: AnimatedBuilder(
-            animation: _anim,
-            builder: (_, __) => Stack(
-              alignment: Alignment.center,
-              children: [
-                CustomPaint(
-                  size: Size(widget.diameter, widget.diameter),
-                  painter: _ArcPainter(
-                    value: _anim.value,
-                    tone: widget.tone,
-                    strokeWidth: widget.strokeWidth,
+          child: RepaintBoundary(
+            child: AnimatedBuilder(
+              animation: _anim,
+              builder: (_, __) => Stack(
+                alignment: Alignment.center,
+                children: [
+                  CustomPaint(
+                    size: Size(widget.diameter, widget.diameter),
+                    painter: _ArcPainter(
+                      value: _anim.value,
+                      tone: widget.tone,
+                      strokeWidth: widget.strokeWidth,
+                    ),
                   ),
-                ),
-                if (widget.center != null) widget.center!,
-              ],
+                  if (widget.center != null) widget.center!,
+                ],
+              ),
             ),
           ),
         ),

@@ -78,12 +78,17 @@ class _ConfettiOverlayState extends State<ConfettiOverlay>
         if (widget.child != null) widget.child!,
         if (_active)
           Positioned.fill(
-              child: IgnorePointer(
-                  child: AnimatedBuilder(
-            animation: _ctrl,
-            builder: (_, __) =>
-                CustomPaint(painter: _CP(ps: _ps, t: _ctrl.value)),
-          ))),
+            child: IgnorePointer(
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _ctrl,
+                  builder: (_, __) => CustomPaint(
+                    painter: _CP(ps: _ps, t: _ctrl.value),
+                  ),
+                ),
+              ),
+            ),
+          ),
       ]);
 }
 

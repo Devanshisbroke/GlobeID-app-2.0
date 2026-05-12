@@ -76,37 +76,39 @@ class _SpendingChartState extends State<SpendingChart>
               SizedBox(
                 width: widget.height * 0.55,
                 height: widget.height * 0.55,
-                child: CustomPaint(
-                  painter: _DonutPainter(
-                    categories: widget.categories,
-                    total: total,
-                    progress: t,
-                    selectedIndex: _selectedIndex,
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '\$${total.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            color: N.inkHi,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18,
-                            fontFeatures: [FontFeature.tabularFigures()],
+                child: RepaintBoundary(
+                  child: CustomPaint(
+                    painter: _DonutPainter(
+                      categories: widget.categories,
+                      total: total,
+                      progress: t,
+                      selectedIndex: _selectedIndex,
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '\$${total.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              color: N.inkHi,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 18,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          'THIS MONTH',
-                          style: TextStyle(
-                            color: N.inkLow,
-                            fontSize: 9,
-                            letterSpacing: 1.4,
-                            fontWeight: FontWeight.w700,
+                          const SizedBox(height: 2),
+                          const Text(
+                            'THIS MONTH',
+                            style: TextStyle(
+                              color: N.inkLow,
+                              fontSize: 9,
+                              letterSpacing: 1.4,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

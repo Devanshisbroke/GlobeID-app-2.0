@@ -114,12 +114,14 @@ class _PremiumSparklineState extends State<PremiumSparkline>
             ],
             SizedBox(
               height: widget.height,
-              child: CustomPaint(
-                size: Size.infinite,
-                painter: _SparklinePainter(
-                  values: widget.values,
-                  tone: tone,
-                  progress: t,
+              child: RepaintBoundary(
+                child: CustomPaint(
+                  size: Size.infinite,
+                  painter: _SparklinePainter(
+                    values: widget.values,
+                    tone: tone,
+                    progress: t,
+                  ),
                 ),
               ),
             ),

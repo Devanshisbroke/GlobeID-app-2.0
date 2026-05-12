@@ -60,16 +60,18 @@ class _PremiumLoadingSequenceState extends State<PremiumLoadingSequence>
         SizedBox(
           height: widget.size,
           width: widget.size,
-          child: AnimatedBuilder(
-            animation: _sweep,
-            builder: (_, __) {
-              return CustomPaint(
-                painter: _PremiumLoadingPainter(
-                  sweep: reduce ? 0 : _sweep.value,
-                  tone: tone,
-                ),
-              );
-            },
+          child: RepaintBoundary(
+            child: AnimatedBuilder(
+              animation: _sweep,
+              builder: (_, __) {
+                return CustomPaint(
+                  painter: _PremiumLoadingPainter(
+                    sweep: reduce ? 0 : _sweep.value,
+                    tone: tone,
+                  ),
+                );
+              },
+            ),
           ),
         ),
         if (widget.caption != null) ...[

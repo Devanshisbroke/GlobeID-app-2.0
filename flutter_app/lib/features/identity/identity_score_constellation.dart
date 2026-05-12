@@ -55,42 +55,46 @@ class _IdentityScoreConstellationState extends State<IdentityScoreConstellation>
     return SizedBox(
       width: widget.size,
       height: widget.size,
-      child: AnimatedBuilder(
-        animation: _ticker,
-        builder: (_, __) {
-          final sf = SensorFusion.instance;
-          final tx = reduce ? 0.0 : sf.tiltY * 14;
-          final ty = reduce ? 0.0 : sf.tiltX * 14;
-          return Transform.translate(
-            offset: Offset(tx, ty),
-            child: CustomPaint(
-              painter: _ConstellationPainter(
-                progress: reduce ? 0 : _ticker.value,
-                score: widget.score / 1000,
-                tone: theme.colorScheme.primary,
-                glow: theme.colorScheme.secondary,
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      widget.score.toString(),
-                      style: AirportFontStack.board(context, size: 52)
-                          .copyWith(color: Colors.white),
-                    ),
-                    Text(
-                      widget.tier.toUpperCase(),
-                      style: AirportFontStack.gate(context, size: 11).copyWith(
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _ticker,
+          builder: (_, __) {
+            final sf = SensorFusion.instance;
+            final tx = reduce ? 0.0 : sf.tiltY * 14;
+            final ty = reduce ? 0.0 : sf.tiltX * 14;
+            return Transform.translate(
+              offset: Offset(tx, ty),
+              child: CustomPaint(
+                painter: _ConstellationPainter(
+                  progress: reduce ? 0 : _ticker.value,
+                  score: widget.score / 1000,
+                  tone: theme.colorScheme.primary,
+                  glow: theme.colorScheme.secondary,
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.score.toString(),
+                        style: AirportFontStack.board(context, size: 52)
+                            .copyWith(color: Colors.white),
+                      ),
+                      Text(
+                        widget.tier.toUpperCase(),
+                        style:
+                            AirportFontStack.gate(context, size: 11).copyWith(
                           color: Colors.white.withValues(alpha: 0.65),
-                          letterSpacing: 4),
-                    ),
-                  ],
+                          letterSpacing: 4,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
