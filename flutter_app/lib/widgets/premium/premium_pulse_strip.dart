@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../app/theme/app_theme.dart';
 import '../../app/theme/app_tokens.dart';
+import '../../nexus/nexus_tokens.dart';
 
 /// Premium pulse strip — a horizontal row of live system pulse pills
 /// used as a status banner ("Wallet · Identity · Globe · Boarding").
@@ -21,24 +21,17 @@ class PremiumPulseStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final glass = GlassExtension.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: AppTokens.space4,
         vertical: dense ? 8 : AppTokens.space3,
       ),
       decoration: BoxDecoration(
-        color: glass.reduceTransparency
-            ? glass.surface
-            : glass.surface.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+        color: N.surface,
+        borderRadius: BorderRadius.circular(N.rCard),
         border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.06)
-              : Colors.black.withValues(alpha: 0.06),
-          width: 0.6,
+          color: N.hairline,
+          width: N.strokeHair,
         ),
       ),
       child: Row(
@@ -47,11 +40,11 @@ class PremiumPulseStrip extends StatelessWidget {
             Expanded(child: _PulseTile(tile: pulses[i], dense: dense)),
             if (i != pulses.length - 1)
               Container(
-                width: 1,
+                width: 0.5,
                 height: dense ? 18 : 24,
                 margin:
                     const EdgeInsets.symmetric(horizontal: AppTokens.space2),
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.10),
+                color: N.hairline,
               ),
           ],
         ],
@@ -104,7 +97,6 @@ class _PulseTileState extends State<_PulseTile>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final reduce = MediaQuery.of(context).disableAnimations;
     return AnimatedBuilder(
       animation: _c,
@@ -115,17 +107,11 @@ class _PulseTileState extends State<_PulseTile>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              width: 8,
-              height: 8,
+              width: 6,
+              height: 6,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: widget.tile.tone.withValues(alpha: opacity),
-                boxShadow: [
-                  BoxShadow(
-                    color: widget.tile.tone.withValues(alpha: 0.55 * opacity),
-                    blurRadius: 8,
-                  ),
-                ],
               ),
             ),
             const SizedBox(width: 8),
@@ -136,11 +122,10 @@ class _PulseTileState extends State<_PulseTile>
                 children: [
                   Text(
                     widget.tile.label.toUpperCase(),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.62),
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
+                    style: TextStyle(
+                      color: N.inkLow,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.4,
                       fontSize: widget.dense ? 9 : 9.6,
                     ),
                     maxLines: 1,
@@ -148,9 +133,11 @@ class _PulseTileState extends State<_PulseTile>
                   ),
                   Text(
                     widget.tile.value,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
+                    style: TextStyle(
+                      color: N.inkHi,
+                      fontWeight: FontWeight.w600,
                       fontSize: widget.dense ? 12 : 13,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

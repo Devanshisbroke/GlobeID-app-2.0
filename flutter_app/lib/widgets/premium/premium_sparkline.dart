@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../nexus/nexus_tokens.dart';
 
 /// Premium sparkline — a one-line trend chart with a polished
 /// gradient fill, last-point glow, and an optional tweened reveal.
@@ -74,8 +75,7 @@ class _PremiumSparklineState extends State<PremiumSparkline>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final tone = widget.tone ?? theme.colorScheme.primary;
+    final tone = widget.tone ?? N.tierGold;
     final reduce = MediaQuery.of(context).disableAnimations;
     return AnimatedBuilder(
       animation: _ctrl,
@@ -90,27 +90,27 @@ class _PremiumSparklineState extends State<PremiumSparkline>
                   if (widget.label != null)
                     Text(
                       widget.label!.toUpperCase(),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.62),
-                        fontWeight: FontWeight.w800,
+                      style: const TextStyle(
+                        color: N.inkLow,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: 1.4,
+                        fontSize: 10,
                       ),
                     ),
                   const Spacer(),
                   if (widget.delta != null)
                     Text(
                       _fmtDelta(widget.delta!),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: widget.delta! >= 0
-                            ? const Color(0xFF10B981)
-                            : const Color(0xFFE11D48),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                        color: widget.delta! >= 0 ? N.success : N.critical,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
             ],
             SizedBox(
               height: widget.height,
@@ -120,7 +120,6 @@ class _PremiumSparklineState extends State<PremiumSparkline>
                   values: widget.values,
                   tone: tone,
                   progress: t,
-                  isDark: theme.brightness == Brightness.dark,
                 ),
               ),
             ),
@@ -141,12 +140,10 @@ class _SparklinePainter extends CustomPainter {
     required this.values,
     required this.tone,
     required this.progress,
-    required this.isDark,
   });
   final List<double> values;
   final Color tone;
   final double progress;
-  final bool isDark;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -179,39 +176,35 @@ class _SparklinePainter extends CustomPainter {
     fillPath.lineTo((visibleCount - 1) * stepX, h);
     fillPath.close();
 
-    // Fill gradient.
+    // Restrained tonal wash (no glow / no saturation spike).
     final fillPaint = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          tone.withValues(alpha: 0.32),
+          tone.withValues(alpha: 0.18),
           tone.withValues(alpha: 0.0),
         ],
       ).createShader(Rect.fromLTWH(0, 0, w, h));
     canvas.drawPath(fillPath, fillPaint);
 
-    // Line stroke.
+    // Line stroke (hairline thickness for restrained Lovable feel).
     final stroke = Paint()
       ..color = tone
-      ..strokeWidth = 2.2
+      ..strokeWidth = 1.6
       ..style = PaintingStyle.stroke
       ..strokeJoin = StrokeJoin.round
       ..strokeCap = StrokeCap.round;
     canvas.drawPath(path, stroke);
 
-    // Last-point glow.
+    // Solid last-point marker — no blur halo.
     final lastIdx = visibleCount - 1;
     final lx = lastIdx * stepX;
     final lyNorm = (values[lastIdx] - minV) / range;
     final ly = h - lyNorm * (h - 8) - 4;
-    final glow = Paint()
-      ..color = tone.withValues(alpha: 0.42)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-    canvas.drawCircle(Offset(lx, ly), 5, glow);
     canvas.drawCircle(
       Offset(lx, ly),
-      3.2,
+      2.5,
       Paint()..color = tone,
     );
   }
