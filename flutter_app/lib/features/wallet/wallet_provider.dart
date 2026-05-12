@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/storage/preferences.dart';
 import '../../data/api/api_provider.dart';
+import '../../data/api/demo_data.dart';
 import '../../data/api/globeid_api.dart';
 import '../../data/models/wallet_models.dart';
 
@@ -75,6 +76,23 @@ class WalletStateView {
         hydrated: false,
         loading: false,
       );
+
+  /// Synchronous fresh-install seed — keeps the Treasury card from
+  /// flashing $0.00 while the async wallet snapshot is in flight.
+  /// Mirrors the offline DemoData wallet payload so the UI is alive on
+  /// first paint regardless of network state.
+  static WalletStateView seed() {
+    final snap =
+        WalletSnapshot.fromJson(Map<String, dynamic>.from(DemoData.seedWallet()));
+    return WalletStateView(
+      balances: snap.balances,
+      transactions: snap.transactions,
+      defaultCurrency: snap.state.defaultCurrency,
+      activeCountry: snap.state.activeCountry,
+      hydrated: false,
+      loading: false,
+    );
+  }
 }
 
 class WalletController extends Notifier<WalletStateView> {
@@ -88,10 +106,23 @@ class WalletController extends Notifier<WalletStateView> {
     final j = Preferences.instance.readJson(_key);
     if (j != null) {
       try {
-        return WalletStateView.fromJson(j);
+        final cached = WalletStateView.fromJson(j);
+        // Defensive re-seed: an upgrade install with empty balances
+        // would render Treasury as $0.00 just like a cold install.
+        if (cached.balances.isEmpty) {
+          final seed = WalletStateView.seed();
+          return cached.copyWith(
+            balances: seed.balances,
+            transactions:
+                cached.transactions.isEmpty ? seed.transactions : null,
+          );
+        }
+        return cached;
       } catch (_) {/* ignore */}
     }
-    return WalletStateView.initial();
+    // Fresh install — seed Treasury balances + transactions from the
+    // canonical demo payload so the wallet card never reads $0.00.
+    return WalletStateView.seed();
   }
 
   Future<void> _persist() =>

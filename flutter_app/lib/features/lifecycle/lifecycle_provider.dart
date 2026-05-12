@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/storage/preferences.dart';
 import '../../data/api/api_provider.dart';
+import '../../data/api/demo_data.dart';
 import '../../data/api/globeid_api.dart';
 import '../../data/models/lifecycle.dart';
 
@@ -47,6 +48,17 @@ class LifecycleState {
 
   static LifecycleState initial() =>
       const LifecycleState(trips: [], hydrated: false, loading: false);
+
+  /// Synchronous fresh-install seed — populates the Travel tab and the
+  /// Pulse focal trip slab with realistic upcoming + past journeys so
+  /// the surface is never blank on cold install.
+  static LifecycleState seed() => LifecycleState(
+        trips: DemoData.seedLifecycleTrips()
+            .map((j) => TripLifecycle.fromJson(Map<String, dynamic>.from(j)))
+            .toList(growable: false),
+        hydrated: false,
+        loading: false,
+      );
 }
 
 class LifecycleController extends Notifier<LifecycleState> {
@@ -59,10 +71,18 @@ class LifecycleController extends Notifier<LifecycleState> {
     final j = Preferences.instance.readJson(_key);
     if (j != null) {
       try {
-        return LifecycleState.fromJson(j);
+        final cached = LifecycleState.fromJson(j);
+        // Defensive: an upgraded install with an empty cached trip list
+        // (e.g. a previous build that failed to persist its hydrate)
+        // would otherwise look identical to a fresh install. Re-seed in
+        // that edge case so the Travel tab is never blank.
+        if (cached.trips.isEmpty) return LifecycleState.seed();
+        return cached;
       } catch (_) {/* ignore */}
     }
-    return LifecycleState.initial();
+    // Fresh install — seed the Travel tab with the canonical demo trip
+    // ladder so it renders rich UI on first paint.
+    return LifecycleState.seed();
   }
 
   Future<void> hydrate() async {
