@@ -179,7 +179,7 @@ class _Os2OnboardingScreenState extends ConsumerState<Os2OnboardingScreen>
                 Expanded(
                   child: PageView.builder(
                     controller: _pageCtrl,
-                    physics: const ClampingScrollPhysics(),
+                    physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                     itemCount: _stages.length,
                     onPageChanged: (i) => setState(() => _index = i),
                     itemBuilder: (_, i) => _StagePage(stage: _stages[i]),

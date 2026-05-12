@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -70,8 +71,47 @@ class GlobeIdApp extends ConsumerWidget {
           theme: AppTheme.light(prefs),
           darkTheme: AppTheme.dark(prefs),
           routerConfig: router,
+          // Premium iOS-style bouncing scroll across all platforms,
+          // so every list / page in the app reads as buttery-smooth
+          // regardless of underlying device chassis.
+          scrollBehavior: const _GlobeScrollBehavior(),
         ),
       ),
     );
   }
+}
+
+/// Premium scroll behavior — bouncing physics + clean drag devices.
+/// Pinned at app level so every Scrollable / ListView / CustomScrollView
+/// inherits the same iOS-style buttery momentum.
+class _GlobeScrollBehavior extends ScrollBehavior {
+  const _GlobeScrollBehavior();
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const BouncingScrollPhysics(
+      decelerationRate: ScrollDecelerationRate.fast,
+      parent: AlwaysScrollableScrollPhysics(),
+    );
+  }
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    // Suppress Android's green glow overscroll — bouncing already
+    // gives the affordance.
+    return child;
+  }
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => <PointerDeviceKind>{
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.stylus,
+        PointerDeviceKind.invertedStylus,
+        PointerDeviceKind.trackpad,
+      };
 }

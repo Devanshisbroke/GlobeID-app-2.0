@@ -63,7 +63,7 @@ class _Os2BoardingPassScreenState extends ConsumerState<Os2BoardingPassScreen>
       body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           padding: const EdgeInsets.only(bottom: 60),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
