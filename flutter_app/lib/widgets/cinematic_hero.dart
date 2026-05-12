@@ -1,22 +1,28 @@
 import 'dart:async';
-import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 import '../app/theme/app_tokens.dart';
+import '../nexus/nexus_tokens.dart';
 
-/// Cinematic hero — a tall edge-to-edge banner with:
-///   • Layered gradient backdrop (deep parallax depth)
-///   • Soft animated noise / aurora wash
-///   • Accelerometer-driven parallax (clamped, motion-aware)
-///   • Optional badge cluster (rating, eta, distance, flag)
-///   • Optional CTA chip in the bottom-right
+/// Cinematic hero — **Nexus-aligned tall edge-to-edge banner.**
 ///
-/// Used by hotel / restaurant / flight / airport detail headers.
-/// Reuses the same render pipeline so the whole ecosystem feels
-/// like one cohesive surface treatment.
+/// Was a triple-layer aurora + star-dust + blur-badge surface with
+/// saturated tone-as-background and heavy MaskFilter blurs. After
+/// the Travel-OS / Wallet migration this primitive renders the
+/// Lovable canonical hero language across all 18 callers:
+///
+///   • Dark-to-black gradient backdrop (tone is used at low alpha
+///     as a subtle tonal bleed, not as a saturated fill)
+///   • Accelerometer-driven parallax on the optional glyph (clamped)
+///   • Champagne eyebrow pill (N.tierGold tint, hairline border)
+///   • Flat hairline badge pills (no BackdropFilter blur)
+///   • White title (no text shadow) + ink-mid subtitle
+///   • No aurora wash, no star dust — depth is conveyed by the
+///     tonal gradient alone (Nothing-OS / Linear restraint)
+///
+/// Public API preserved 1:1.
 class CinematicHero extends StatefulWidget {
   const CinematicHero({
     super.key,
@@ -45,15 +51,10 @@ class CinematicHero extends StatefulWidget {
   State<CinematicHero> createState() => _CinematicHeroState();
 }
 
-class _CinematicHeroState extends State<CinematicHero>
-    with SingleTickerProviderStateMixin {
+class _CinematicHeroState extends State<CinematicHero> {
   StreamSubscription<AccelerometerEvent>? _sub;
   double _tx = 0;
   double _ty = 0;
-  late final AnimationController _aurora = AnimationController(
-    vsync: this,
-    duration: const Duration(seconds: 14),
-  )..repeat();
 
   @override
   void initState() {
@@ -74,60 +75,49 @@ class _CinematicHeroState extends State<CinematicHero>
   @override
   void dispose() {
     _sub?.cancel();
-    _aurora.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final tone = widget.tone ?? theme.colorScheme.primary;
+    final tone = widget.tone ?? N.tierGold;
     final gradient = widget.gradient ??
         LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            tone,
-            tone.withValues(alpha: 0.55),
+            tone.withValues(alpha: 0.22),
+            N.bg,
           ],
         );
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(AppTokens.radius3xl),
+      borderRadius: BorderRadius.circular(N.rCardLg),
       child: SizedBox(
         height: widget.height,
         width: double.infinity,
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Base gradient
-            DecoratedBox(decoration: BoxDecoration(gradient: gradient)),
-
-            // Aurora wash — slow drifting radial gradients
-            RepaintBoundary(
-              child: AnimatedBuilder(
-                animation: _aurora,
-                builder: (_, __) => CustomPaint(
-                  painter: _AuroraPainter(
-                    t: _aurora.value,
-                    tone: tone,
-                  ),
+            // Base gradient (subtle tonal bleed, not saturated fill).
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: gradient,
+                border: Border.all(
+                  color: N.hairline,
+                  width: N.strokeHair,
                 ),
+                borderRadius: BorderRadius.circular(N.rCardLg),
               ),
             ),
 
-            // Star dust scatter (cheap, deterministic)
-            const RepaintBoundary(
-              child: CustomPaint(painter: _StarDustPainter()),
-            ),
-
-            // Parallax glyph
+            // Parallax glyph.
             if (widget.icon != null)
               Positioned(
                 right: -20 + _tx,
                 top: -20 + _ty,
                 child: Opacity(
-                  opacity: 0.18,
+                  opacity: 0.08,
                   child: Icon(
                     widget.icon,
                     size: 260,
@@ -136,7 +126,7 @@ class _CinematicHeroState extends State<CinematicHero>
                 ),
               ),
 
-            // Bottom dim
+            // Bottom dim for legibility.
             Positioned.fill(
               child: IgnorePointer(
                 child: DecoratedBox(
@@ -145,8 +135,8 @@ class _CinematicHeroState extends State<CinematicHero>
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withValues(alpha: 0.0),
-                        Colors.black.withValues(alpha: 0.32),
+                        Colors.transparent,
+                        N.bg.withValues(alpha: 0.65),
                       ],
                     ),
                   ),
@@ -154,7 +144,7 @@ class _CinematicHeroState extends State<CinematicHero>
               ),
             ),
 
-            // Content
+            // Content.
             Padding(
               padding: const EdgeInsets.all(AppTokens.space5),
               child: Column(
@@ -173,19 +163,21 @@ class _CinematicHeroState extends State<CinematicHero>
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.20),
+                            color: tone.withValues(alpha: 0.10),
                             borderRadius:
-                                BorderRadius.circular(AppTokens.radiusFull),
+                                BorderRadius.circular(N.rPill),
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.18),
+                              color: tone.withValues(alpha: 0.28),
+                              width: N.strokeHair,
                             ),
                           ),
                           child: Text(
-                            widget.eyebrow!,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.6,
+                            widget.eyebrow!.toUpperCase(),
+                            style: TextStyle(
+                              color: tone,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.4,
+                              fontSize: 10,
                             ),
                           ),
                         ),
@@ -199,18 +191,12 @@ class _CinematicHeroState extends State<CinematicHero>
                         widget.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.headlineMedium?.copyWith(
+                        style: const TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          height: 1.05,
-                          letterSpacing: -0.4,
-                          shadows: const [
-                            Shadow(
-                              color: Color(0x66000000),
-                              blurRadius: 12,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
+                          fontWeight: FontWeight.w700,
+                          fontSize: 26,
+                          height: 1.08,
+                          letterSpacing: -0.3,
                         ),
                       ),
                       if (widget.subtitle != null) ...[
@@ -219,8 +205,10 @@ class _CinematicHeroState extends State<CinematicHero>
                           widget.subtitle!,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.92),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.72),
+                            fontSize: 14,
+                            height: 1.35,
                           ),
                         ),
                       ],
@@ -252,107 +240,40 @@ class HeroBadge {
   final IconData? icon;
 }
 
+/// Badge pill — flat hairline, no BackdropFilter blur.
 class _Badge extends StatelessWidget {
   const _Badge({required this.badge});
   final HeroBadge badge;
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.22),
-            borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.32),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(N.rPill),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.14),
+          width: N.strokeHair,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (badge.icon != null) ...[
+            Icon(badge.icon, size: 13, color: N.inkHi),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            badge.label,
+            style: const TextStyle(
+              color: N.inkHi,
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              letterSpacing: 0.2,
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (badge.icon != null) ...[
-                Icon(badge.icon, size: 13, color: Colors.white),
-                const SizedBox(width: 4),
-              ],
-              Text(
-                badge.label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 11,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
-}
-
-class _AuroraPainter extends CustomPainter {
-  const _AuroraPainter({required this.t, required this.tone});
-  final double t;
-  final Color tone;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width * (0.5 + math.sin(t * math.pi * 2) * 0.18),
-        size.height * 0.4 + math.cos(t * math.pi * 2) * 18);
-    final paint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          Colors.white.withValues(alpha: 0.25),
-          tone.withValues(alpha: 0.0),
-        ],
-      ).createShader(Rect.fromCircle(center: center, radius: size.width * 0.7))
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 36);
-    canvas.drawCircle(center, size.width * 0.6, paint);
-
-    final paint2 = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          tone.withValues(alpha: 0.30),
-          tone.withValues(alpha: 0.0),
-        ],
-      ).createShader(
-        Rect.fromCircle(
-          center: Offset(size.width * 0.2, size.height * 0.85),
-          radius: size.width * 0.5,
-        ),
-      )
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 28);
-    canvas.drawCircle(
-      Offset(size.width * 0.2, size.height * 0.85),
-      size.width * 0.4,
-      paint2,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _AuroraPainter old) =>
-      old.t != t || old.tone != tone;
-}
-
-class _StarDustPainter extends CustomPainter {
-  const _StarDustPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rng = math.Random(42);
-    final paint = Paint()..color = Colors.white.withValues(alpha: 0.12);
-    for (var i = 0; i < 80; i++) {
-      final dx = rng.nextDouble() * size.width;
-      final dy = rng.nextDouble() * size.height;
-      final r = 0.4 + rng.nextDouble() * 1.4;
-      canvas.drawCircle(Offset(dx, dy), r, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _StarDustPainter old) => false;
 }

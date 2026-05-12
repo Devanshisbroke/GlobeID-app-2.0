@@ -3,12 +3,20 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../nexus/nexus_tokens.dart';
 import '../../widgets/pressable.dart';
 
-/// Animated spending donut chart with category breakdown.
+/// Spending donut chart — **Nexus-aligned restrained breakdown.**
 ///
-/// Shows monthly spend distribution by category. Each segment
-/// animates in, is tappable, and displays an inline legend.
+/// Was a saturated cyan / purple / green / amber / pink donut with
+/// bright-on-tinted legend labels. After the Travel-OS / Wallet
+/// migration the chart speaks the same restrained palette as the
+/// rest of the surface: flat hairline panel, ink ladder, champagne
+/// accent for the active segment, signal tones reserved for
+/// success / critical.
+///
+/// Each segment animates in, is tappable, and reveals an inline
+/// legend with tabular-figure dollar amounts.
 class SpendingChart extends StatefulWidget {
   const SpendingChart({
     super.key,
@@ -47,7 +55,6 @@ class _SpendingChartState extends State<SpendingChart>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final total = _total;
 
     return AnimatedBuilder(
@@ -57,15 +64,15 @@ class _SpendingChartState extends State<SpendingChart>
         return Container(
           padding: const EdgeInsets.all(AppTokens.space4),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.03),
+            borderRadius: BorderRadius.circular(N.rCard),
+            color: N.surface,
             border: Border.all(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
+              color: N.hairline,
+              width: N.strokeHair,
             ),
           ),
           child: Row(
             children: [
-              // Donut chart
               SizedBox(
                 width: widget.height * 0.55,
                 height: widget.height * 0.55,
@@ -82,16 +89,21 @@ class _SpendingChartState extends State<SpendingChart>
                       children: [
                         Text(
                           '\$${total.toStringAsFixed(0)}',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
+                          style: const TextStyle(
+                            color: N.inkHi,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18,
+                            fontFeatures: [FontFeature.tabularFigures()],
                           ),
                         ),
-                        Text(
-                          'this month',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.45),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'THIS MONTH',
+                          style: TextStyle(
+                            color: N.inkLow,
                             fontSize: 9,
+                            letterSpacing: 1.4,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -100,7 +112,6 @@ class _SpendingChartState extends State<SpendingChart>
                 ),
               ),
               const SizedBox(width: AppTokens.space4),
-              // Legend
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,21 +127,25 @@ class _SpendingChartState extends State<SpendingChart>
                           child: Row(
                             children: [
                               Container(
-                                width: 10,
-                                height: 10,
+                                width: 8,
+                                height: 8,
                                 decoration: BoxDecoration(
                                   color: widget.categories[i].color,
-                                  borderRadius: BorderRadius.circular(3),
+                                  shape: BoxShape.circle,
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   widget.categories[i].label,
-                                  style: theme.textTheme.labelSmall?.copyWith(
+                                  style: TextStyle(
+                                    color: _selectedIndex == i
+                                        ? N.inkHi
+                                        : N.inkMid,
+                                    fontSize: 12,
                                     fontWeight: _selectedIndex == i
-                                        ? FontWeight.w800
-                                        : FontWeight.w600,
+                                        ? FontWeight.w600
+                                        : FontWeight.w500,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -138,9 +153,15 @@ class _SpendingChartState extends State<SpendingChart>
                               ),
                               Text(
                                 '\$${widget.categories[i].amount.toStringAsFixed(0)}',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: widget.categories[i].color,
+                                style: TextStyle(
+                                  color: _selectedIndex == i
+                                      ? N.inkHi
+                                      : N.inkMid,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
                                 ),
                               ),
                             ],
@@ -175,32 +196,34 @@ class _DonutPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = math.min(size.width, size.height) / 2 - 4;
-    const strokeWidth = 14.0;
+    const strokeWidth = 10.0;
     var startAngle = -math.pi / 2;
+
+    // Hairline track behind the segments.
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = N.hairline
+        ..strokeWidth = strokeWidth
+        ..style = PaintingStyle.stroke,
+    );
 
     for (var i = 0; i < categories.length; i++) {
       final sweep = (categories[i].amount / total) * 2 * math.pi * progress;
       final isSelected = selectedIndex == i;
       final paint = Paint()
-        ..color = categories[i].color
-        ..strokeWidth = isSelected ? strokeWidth + 4 : strokeWidth
+        ..color = isSelected
+            ? categories[i].color
+            : categories[i].color.withValues(alpha: 0.80)
+        ..strokeWidth = isSelected ? strokeWidth + 3 : strokeWidth
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round;
-
-      if (isSelected) {
-        canvas.drawCircle(
-          center,
-          radius,
-          Paint()
-            ..color = categories[i].color.withValues(alpha: 0.08)
-            ..style = PaintingStyle.fill,
-        );
-      }
 
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
         startAngle,
-        sweep - 0.03, // small gap between segments
+        sweep - 0.025,
         false,
         paint,
       );
@@ -226,42 +249,44 @@ class SpendCategory {
   final Color color;
   final IconData? icon;
 
-  /// Demo categories.
+  /// Demo categories — using the restrained Nexus categorical palette
+  /// (ink ladder + steel + champagne + signal tokens) instead of the
+  /// previous saturated rainbow.
   static List<SpendCategory> demo() => const [
         SpendCategory(
           label: 'Transport',
           amount: 340,
-          color: Color(0xFF0EA5E9),
+          color: N.steel,
           icon: Icons.flight_rounded,
         ),
         SpendCategory(
           label: 'Hotels',
           amount: 520,
-          color: Color(0xFF8B5CF6),
+          color: N.tierGold,
           icon: Icons.hotel_rounded,
         ),
         SpendCategory(
           label: 'Food & Drink',
           amount: 180,
-          color: Color(0xFF22C55E),
+          color: N.success,
           icon: Icons.restaurant_rounded,
         ),
         SpendCategory(
           label: 'Shopping',
           amount: 95,
-          color: Color(0xFFF59E0B),
+          color: N.warning,
           icon: Icons.shopping_bag_rounded,
         ),
         SpendCategory(
           label: 'Activities',
           amount: 120,
-          color: Color(0xFFEC4899),
+          color: N.info,
           icon: Icons.local_activity_rounded,
         ),
         SpendCategory(
           label: 'Other',
           amount: 45,
-          color: Color(0xFF64748B),
+          color: N.inkFaint,
         ),
       ];
 }
