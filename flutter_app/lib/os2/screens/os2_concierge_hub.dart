@@ -48,7 +48,7 @@ class _Os2ConciergeHubState extends ConsumerState<Os2ConciergeHub> {
       body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           padding: const EdgeInsets.only(bottom: 80),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

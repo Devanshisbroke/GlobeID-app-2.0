@@ -118,6 +118,9 @@ class Os2Text extends StatelessWidget {
         letterSpacing: _track,
         height: height,
         color: color ?? Os2.inkHigh,
+        // Aviation HUD — tabular numerals so digits never jitter as
+        // counters / balances / readouts update.
+        fontFeatures: const [FontFeature.tabularFigures()],
       ),
     );
   }

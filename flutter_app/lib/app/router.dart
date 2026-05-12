@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../nexus/screens/nexus_passport_screen.dart';
+import '../nexus/screens/nexus_travel_os_screen.dart';
+import '../nexus/screens/nexus_wallet_screen.dart';
 import '../bible/screens/bible_arrival_screen.dart';
 import '../bible/screens/bible_boarding_screen.dart';
 import '../bible/screens/bible_home_screen.dart';
@@ -446,6 +449,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/os2/treasury', (_, __) => const Os2TreasuryHub()),
       _route('/os2/trust', (_, __) => const Os2TrustHub()),
       _route('/os2/concierge', (_, __) => const Os2ConciergeHub()),
+      // Nexus screens — the canonical Travel OS / Wallet / Passport.
+      _route('/nexus/os', (_, __) => const NexusTravelOsScreen()),
+      _route('/nexus/wallet', (_, __) => const NexusWalletScreen()),
+      _route('/nexus/passport', (_, __) => const NexusPassportScreen()),
       // Bible screens — the liquid-glass cinematic operating system.
       _route('/bible/lock', (_, __) => const BibleLockScreen()),
       _route('/bible/home', (_, __) => const BibleHomeScreen()),

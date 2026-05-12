@@ -31,18 +31,20 @@ class Os2 {
   // ───────────────────────────────────────────── world tones (signals)
   // Each world owns ONE tone. Used sparingly: halo, accent text,
   // active dock pill, breathing rim — never as a full background.
-  static const Color pulseTone = Color(0xFFE9C25A); // foil-gold (champagne)
+  // Tuned restrained — champagne / muted aviation tones, no neon.
+  static const Color pulseTone = Color(0xFFC9A961); // champagne gold
   static const Color identityTone = Color(0xFFB8902B); // foil-gold (deeper)
-  static const Color walletTone = Color(0xFF0E7A4F); // treasury green
-  static const Color travelTone = Color(0xFF0EA5E9); // jet cyan
-  static const Color discoverTone = Color(0xFF10B981); // equator teal
-  static const Color servicesTone = Color(0xFFE0A85B); // honey amber
+  static const Color walletTone = Color(0xFF3FB68B); // muted treasury
+  static const Color travelTone = Color(0xFF7280A8); // cool steel (not cyan)
+  static const Color discoverTone = Color(0xFF4FA88B); // muted equator
+  static const Color servicesTone = Color(0xFFC9A961); // champagne (unified)
 
   // ───────────────────────────────────────────────────── signal palette
-  static const Color signalLive = Color(0xFF22D3EE);
-  static const Color signalAttention = Color(0xFFF59E0B);
-  static const Color signalCritical = Color(0xFFEF4444);
-  static const Color signalSettled = Color(0xFF22C55E);
+  // Restrained signal tones — aviation HUD, not iOS notification badges.
+  static const Color signalLive = Color(0xFF6B8FB8); // info steel
+  static const Color signalAttention = Color(0xFFE0A85B); // amber
+  static const Color signalCritical = Color(0xFFD55656); // critical
+  static const Color signalSettled = Color(0xFF3FB68B); // success
 
   // ───────────────────────────────────────────────────── spatial ladder
   // 4-base scale. Every dimension in os2/ snaps to this grid.

@@ -62,7 +62,7 @@ class _Os2PassportBookScreenState extends ConsumerState<Os2PassportBookScreen>
       body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           padding: const EdgeInsets.only(bottom: 60),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
