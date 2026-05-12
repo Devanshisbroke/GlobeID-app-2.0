@@ -11,6 +11,7 @@ import '../../widgets/cinematic_hero.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/toast.dart';
 
 /// TripJournalScreen — cinematic memory feed for a current trip.
 ///
@@ -82,8 +83,6 @@ class TripJournalScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return PageScaffold(
       title: 'Trip journal',
       subtitle: '$trip · ${_entries.length} memories',
@@ -196,14 +195,12 @@ class TripJournalScreen extends StatelessWidget {
             ),
             onPressed: () {
               HapticFeedback.heavyImpact();
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                backgroundColor: tone,
-                content: Text(
-                  'Captured · stitched into ${_entries.first.day}',
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
-              ));
+              AppToast.show(
+                context,
+                title: 'Captured',
+                message: 'Stitched into ${_entries.first.day}',
+                tone: AppToastTone.success,
+              );
             },
           ),
           const SizedBox(height: AppTokens.space9),

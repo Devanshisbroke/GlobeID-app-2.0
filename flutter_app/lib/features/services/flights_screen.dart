@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../domain/airline_brand.dart';
 import '../../domain/airports.dart';
+import '../../nexus/nexus_tokens.dart';
 import '../../widgets/agentic_chip.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/cinematic_button.dart';
@@ -15,6 +16,7 @@ import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/toast.dart';
 import '_bespoke_scaffold.dart';
 
 /// Flights — Skyscanner-grade flight search with origin/destination
@@ -235,8 +237,14 @@ class _FlightsScreenState extends State<FlightsScreen> {
     final airports = kAirports;
     final result = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: N.surface,
+      barrierColor: Colors.black.withValues(alpha: 0.62),
       isScrollControlled: true,
+      elevation: 0,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(N.rSheet)),
+        side: BorderSide(color: N.hairline, width: N.strokeHair),
+      ),
       builder: (ctx) => _AirportPicker(airports: airports),
     );
     if (result != null) {
@@ -356,12 +364,11 @@ class _FlightsScreenState extends State<FlightsScreen> {
               onPressed: () {
                 HapticFeedback.heavyImpact();
                 Navigator.of(sheetCtx).maybePop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                        'Hold placed · ${fare.airline} ${fare.flightNumber}'),
-                    backgroundColor: brand.color,
-                  ),
+                AppToast.show(
+                  context,
+                  title: 'Hold placed',
+                  message: '${fare.airline} ${fare.flightNumber}',
+                  tone: AppToastTone.success,
                 );
               },
             ),

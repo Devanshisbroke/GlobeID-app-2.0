@@ -1,9 +1,8 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../nexus/nexus_tokens.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/page_scaffold.dart';
@@ -380,44 +379,40 @@ Future<void> showBespokeDetail({
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    barrierColor: Colors.black.withValues(alpha: 0.55),
+    barrierColor: Colors.black.withValues(alpha: 0.62),
+    elevation: 0,
     builder: (_) => DraggableScrollableSheet(
       initialChildSize: 0.78,
       minChildSize: 0.4,
       maxChildSize: 0.95,
       expand: false,
       builder: (sheetCtx, scroll) {
-        final theme = Theme.of(sheetCtx);
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(28),
+            top: Radius.circular(N.rSheet),
           ),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface.withValues(alpha: 0.86),
-                border: Border(
-                  top: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.10),
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              color: N.surface,
+              border: Border(
+                top: BorderSide(color: N.hairline, width: N.strokeHair),
+                left: BorderSide(color: N.hairline, width: N.strokeHair),
+                right: BorderSide(color: N.hairline, width: N.strokeHair),
+              ),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(top: 10, bottom: 6),
+                  decoration: BoxDecoration(
+                    color: N.hairlineHi,
+                    borderRadius: BorderRadius.circular(N.rPill),
                   ),
                 ),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 4,
-                    margin: const EdgeInsets.only(top: 10, bottom: 6),
-                    decoration: BoxDecoration(
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                    ),
-                  ),
-                  Expanded(child: builder(sheetCtx, scroll)),
-                ],
-              ),
+                Expanded(child: builder(sheetCtx, scroll)),
+              ],
             ),
           ),
         );
