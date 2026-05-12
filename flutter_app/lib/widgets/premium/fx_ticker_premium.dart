@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/airport_typography.dart';
 import '../../app/theme/app_tokens.dart';
+import '../../nexus/nexus_tokens.dart';
 import 'contextual_surface.dart';
 import 'departure_board_flap.dart';
 
@@ -34,7 +35,6 @@ class FxTickerPremium extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return SizedBox(
       height: height,
       child: ListView.separated(
@@ -46,7 +46,7 @@ class FxTickerPremium extends StatelessWidget {
         itemBuilder: (_, i) {
           final t = ticks[i];
           final up = t.changePercent >= 0;
-          final tone = up ? const Color(0xFF10B981) : const Color(0xFFEF4444);
+          final tone = up ? N.success : N.critical;
           return SizedBox(
             width: 168,
             child: ContextualSurface(
@@ -58,7 +58,8 @@ class FxTickerPremium extends StatelessWidget {
                   Row(
                     children: [
                       Text(t.pair.toUpperCase(),
-                          style: AirportFontStack.iata(context, size: 14)),
+                          style: AirportFontStack.iata(context, size: 14)
+                              .copyWith(color: N.inkHi)),
                       const Spacer(),
                       Icon(
                         up
@@ -69,11 +70,6 @@ class FxTickerPremium extends StatelessWidget {
                       ),
                     ],
                   ),
-                  // Solari numerals scaled to fit the 168-pt cell.
-                  // Without `FittedBox` the default 26-pt char width
-                  // overflows on 6+ digit pairs (e.g. "1.0892",
-                  // "156.42"); the previous build clipped the last
-                  // glyph against the cell stroke.
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerLeft,
@@ -81,14 +77,16 @@ class FxTickerPremium extends StatelessWidget {
                       text: t.rate.toStringAsFixed(t.rate >= 100 ? 2 : 4),
                       charWidth: 18,
                       style: AirportFontStack.board(context, size: 20),
-                      tone: theme.colorScheme.onSurface,
+                      tone: N.inkHi,
                     ),
                   ),
                   Text(
                     '${up ? '+' : ''}${t.changePercent.toStringAsFixed(2)}%',
-                    style: theme.textTheme.bodySmall?.copyWith(
+                    style: TextStyle(
                       color: tone,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      letterSpacing: 0.2,
                     ),
                   ),
                 ],

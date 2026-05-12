@@ -2,17 +2,26 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../app/theme/emotional_palette.dart';
-import '../../widgets/bible/bible.dart';
+import '../../nexus/nexus_tokens.dart';
 import '../../widgets/premium/premium.dart';
 
-/// Premium wallet hero — replaces the old plain balance row.
+/// Wallet hero card — **Nexus-aligned, modeled on the Lovable
+/// canonical Wallet hero.**
+///
+/// Was a `BibleHeroCard(material: glass)` with a treasury-green tone,
+/// specular highlight, multi-tier ambient shadow, and a tinted
+/// departure-board balance over a deep ink background. The new
+/// language drops the lacquered hero recipe in favour of the same
+/// flat hairline panel used everywhere else in the app — depth comes
+/// from contrast (champagne / white-on-black), not from lighting.
 ///
 /// Anatomy:
-///   • LiquidWaveSurface body, tinted to the active accent
-///   • DepartureBoardFlap balance — flips when the value changes
-///   • currency code in [AirportFontStack.iata] tracking
-///   • magnetic CTA row (Send / Convert / Pay)
-///   • optional emotional context that warms the wash
+///   • flat `N.surface` body, 0.5pt hairline border
+///   • "TOTAL BALANCE" eyebrow + inverted currency pill
+///   • DepartureBoardFlap balance, white on the substrate
+///   • LiquidWaveSurface progress, but the wave is now tone-restrained
+///   • 4-up CTA row — primary "Send" is the champagne pill, the rest
+///     are flat hairline buttons (cinematic compact size)
 class WalletHeroCard extends StatelessWidget {
   const WalletHeroCard({
     super.key,
@@ -39,21 +48,23 @@ class WalletHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext build) {
-    final theme = Theme.of(build);
-    final isDark = theme.brightness == Brightness.dark;
     final shift = emotion == null
         ? const EmotionalShift()
         : EmotionalPalette.shiftFor(emotion!);
-    final tone = shift.accentOverride ?? theme.colorScheme.primary;
+    final tone = shift.accentOverride ?? N.tierGold;
     final balanceText = balance
         .toStringAsFixed(balance >= 1000 ? 0 : 2)
         .padLeft(balance >= 1000 ? 5 : 6, ' ');
 
-    return BibleHeroCard(
-      material: BibleMaterial.glass,
-      tone: BibleTone.treasuryGreen,
-      elevation: BibleHeroElevation.cinematic,
-      radius: 32,
+    return Container(
+      decoration: BoxDecoration(
+        color: N.surface,
+        borderRadius: BorderRadius.circular(N.rCardLg),
+        border: Border.all(
+          color: N.hairline,
+          width: N.strokeHair,
+        ),
+      ),
       padding: const EdgeInsets.fromLTRB(
         AppTokens.space5,
         AppTokens.space5,
@@ -65,12 +76,13 @@ class WalletHeroCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(
+              const Text(
                 'TOTAL BALANCE',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                style: TextStyle(
+                  color: N.inkLow,
                   letterSpacing: 1.8,
                   fontWeight: FontWeight.w700,
+                  fontSize: 10,
                 ),
               ),
               const Spacer(),
@@ -80,16 +92,17 @@ class WalletHeroCard extends StatelessWidget {
                   vertical: AppTokens.space1,
                 ),
                 decoration: BoxDecoration(
-                  color: tone.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                  color: tone.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(N.rPill),
                   border: Border.all(
-                    color: tone.withValues(alpha: 0.4),
-                    width: 0.6,
+                    color: tone.withValues(alpha: 0.32),
+                    width: N.strokeHair,
                   ),
                 ),
                 child: Text(
                   currency.toUpperCase(),
-                  style: AirportFontStack.gate(build, size: 11),
+                  style: AirportFontStack.gate(build, size: 11)
+                      .copyWith(color: tone),
                 ),
               ),
             ],
@@ -97,11 +110,6 @@ class WalletHeroCard extends StatelessWidget {
           const SizedBox(height: AppTokens.space2),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: AppTokens.space2),
-            // Hero balance is wrapped in `FittedBox` so very long
-            // balances (e.g. "$ 1,234,567.89") shrink to fit instead
-            // of overflowing the card. This is a defensive guard —
-            // we don't expect long balances in demo data, but
-            // production users in JPY / VND will have many digits.
             child: FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
@@ -109,10 +117,8 @@ class WalletHeroCard extends StatelessWidget {
                 text: balanceText,
                 charWidth: 24,
                 style: AirportFontStack.board(build, size: 32),
-                tone: tone,
-                background: isDark
-                    ? const Color(0xFF06080F)
-                    : const Color(0xFF0D1322),
+                tone: N.inkHi,
+                background: N.bg,
               ),
             ),
           ),
@@ -120,8 +126,10 @@ class WalletHeroCard extends StatelessWidget {
             const SizedBox(height: AppTokens.space1),
             Text(
               subtitle!,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              style: const TextStyle(
+                color: N.inkMid,
+                fontSize: 13,
+                height: 1.35,
               ),
             ),
           ],
@@ -129,7 +137,7 @@ class WalletHeroCard extends StatelessWidget {
           LiquidWaveSurface(
             progress: progress.clamp(0.0, 1.0),
             tone: tone,
-            height: 26,
+            height: 22,
             radius: AppTokens.radiusFull,
           ),
           const SizedBox(height: AppTokens.space4),
@@ -144,59 +152,84 @@ class WalletHeroCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppTokens.space2),
-              Expanded(
-                child: MagneticButton(
-                  label: 'Receive',
-                  icon: Icons.arrow_downward_rounded,
-                  onPressed: onReceive,
-                  compact: true,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      tone.withValues(alpha: 0.30),
-                      tone.withValues(alpha: 0.10),
-                    ],
-                  ),
-                ),
-              ),
+              Expanded(child: _SecondaryAction(
+                label: 'Receive',
+                icon: Icons.arrow_downward_rounded,
+                onTap: onReceive,
+              )),
               const SizedBox(width: AppTokens.space2),
-              Expanded(
-                child: MagneticButton(
-                  label: 'Convert',
-                  icon: Icons.swap_horiz_rounded,
-                  onPressed: onConvert,
-                  compact: true,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      tone.withValues(alpha: 0.30),
-                      tone.withValues(alpha: 0.10),
-                    ],
-                  ),
-                ),
-              ),
+              Expanded(child: _SecondaryAction(
+                label: 'Convert',
+                icon: Icons.swap_horiz_rounded,
+                onTap: onConvert,
+              )),
               const SizedBox(width: AppTokens.space2),
-              Expanded(
-                child: MagneticButton(
-                  label: 'Scan',
-                  icon: Icons.qr_code_scanner_rounded,
-                  onPressed: onScanPay,
-                  compact: true,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      tone.withValues(alpha: 0.30),
-                      tone.withValues(alpha: 0.10),
-                    ],
-                  ),
-                ),
-              ),
+              Expanded(child: _SecondaryAction(
+                label: 'Scan',
+                icon: Icons.qr_code_scanner_rounded,
+                onTap: onScanPay,
+              )),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Secondary CTA — flat hairline pill, ink-on-black, used for the
+/// receive / convert / scan slots next to the champagne Send pill.
+class _SecondaryAction extends StatelessWidget {
+  const _SecondaryAction({
+    required this.label,
+    required this.icon,
+    this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(N.rPill),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppTokens.space2 + 2,
+          vertical: AppTokens.space2 + 2,
+        ),
+        decoration: BoxDecoration(
+          color: N.bg,
+          borderRadius: BorderRadius.circular(N.rPill),
+          border: Border.all(
+            color: N.hairlineHi,
+            width: N.strokeHair,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: N.inkHi, size: 16),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: N.inkHi,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  letterSpacing: 0.2,
+                  height: 1.1,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

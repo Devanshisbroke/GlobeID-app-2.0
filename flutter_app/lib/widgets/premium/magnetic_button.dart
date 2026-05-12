@@ -5,19 +5,31 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../motion/haptic_choreography.dart';
+import '../../nexus/nexus_tokens.dart';
 import 'magnetic_pressable.dart';
 
-/// Flagship CTA — magnetic, layered, breathing.
+/// Flagship CTA — **Nexus-aligned champagne pill.**
 ///
-/// Anatomy (back-to-front):
-///   1. accent gradient body
-///   2. radial halo glow that breathes (≤ 0.20 sigma)
-///   3. top-down sheen wash
-///   4. ripple-from-touch ring on tap
-///   5. icon + label row (Inter / 700)
+/// Was a multi-layer breathing gradient with a glow halo, sheen wash,
+/// and white-on-white touch ripple. After the canonical Travel-OS /
+/// Wallet migration this primitive renders the Lovable champagne CTA
+/// language across all 6+ callers (boarding, lock, passport, wallet
+/// hero, multi-currency pour, premium showcase):
 ///
-/// On tap fires [HapticPatterns.confirm]. Wraps the whole surface
-/// in a [MagneticPressable] for touch-following motion.
+///   - flat champagne fill (`N.tierGold`) with a 0.5pt `tierGoldHi`
+///     hairline border
+///   - inky black label (550 weight, +0.2 tracking)
+///   - icon at high contrast (no white-on-white)
+///   - subtle touch ripple still fires, but ink-coloured (not white)
+///     so it reads naturally on the gold body
+///   - magnetic touch follow + press scale 0.965 preserved
+///   - **no breathing halo / no shadow / no sheen** — depth is
+///     conveyed by contrast and the hairline alone (Nothing-OS
+///     / Linear language)
+///
+/// The `gradient` parameter is still honoured for legacy callers that
+/// pass a custom palette; in that case the label / icon falls back to
+/// white. Public API preserved 1:1.
 class MagneticButton extends StatefulWidget {
   const MagneticButton({
     super.key,
@@ -48,10 +60,6 @@ class MagneticButton extends StatefulWidget {
 
 class _MagneticButtonState extends State<MagneticButton>
     with TickerProviderStateMixin {
-  late final AnimationController _breathe = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2400),
-  )..repeat(reverse: true);
   late final AnimationController _ripple = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 520),
@@ -60,7 +68,6 @@ class _MagneticButtonState extends State<MagneticButton>
 
   @override
   void dispose() {
-    _breathe.dispose();
     _ripple.dispose();
     super.dispose();
   }
@@ -72,38 +79,41 @@ class _MagneticButtonState extends State<MagneticButton>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final reduce = MediaQuery.of(context).disableAnimations;
-    final accent = theme.colorScheme.primary;
-    final glow = theme.colorScheme.secondary;
-    final g = widget.gradient ??
-        LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [glow, accent],
-        );
-    final radius = BorderRadius.circular(AppTokens.radiusFull);
-    // Compact CTAs (4-up rows on the wallet hero, etc.) need much
-    // tighter horizontal padding so labels like "Convert" / "Receive"
-    // don't ellipsis on Pixel-class viewports (≈360-412 dp wide).
-    // Verified at 412×915 — was 16/10, now 10/10 = comfortable fit
-    // with no truncation.
+    final radius = BorderRadius.circular(N.rPill);
     final padH = widget.compact ? AppTokens.space2 + 2 : AppTokens.space6;
-    final padV = widget.compact ? AppTokens.space2 + 2 : AppTokens.space3 + 2;
+    final padV = widget.compact ? AppTokens.space2 + 2 : 14.0;
+
+    final hasGradient = widget.gradient != null;
+    final fillDecoration = hasGradient
+        ? BoxDecoration(
+            gradient: widget.gradient,
+            borderRadius: radius,
+            border: Border.all(
+              color: N.hairlineHi,
+              width: N.strokeHair,
+            ),
+          )
+        : BoxDecoration(
+            color: N.tierGold,
+            borderRadius: radius,
+            border: Border.all(
+              color: N.tierGoldHi.withValues(alpha: 0.72),
+              width: N.strokeHair,
+            ),
+          );
+
+    final iconColor = hasGradient ? Colors.white : N.bg;
+    final textColor = hasGradient ? Colors.white : N.bg;
 
     final body = Container(
       padding: EdgeInsets.symmetric(horizontal: padH, vertical: padV),
-      decoration: BoxDecoration(
-        gradient: g,
-        borderRadius: radius,
-      ),
+      decoration: fillDecoration,
       child: Row(
         mainAxisSize: widget.expand ? MainAxisSize.max : MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (widget.icon != null) ...[
-            Icon(widget.icon,
-                color: Colors.white, size: widget.compact ? 16 : 18),
+            Icon(widget.icon, color: iconColor, size: widget.compact ? 16 : 18),
             SizedBox(
                 width:
                     widget.compact ? AppTokens.space1 + 2 : AppTokens.space2),
@@ -111,11 +121,12 @@ class _MagneticButtonState extends State<MagneticButton>
           Flexible(
             child: Text(
               widget.label,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
+              style: TextStyle(
+                color: textColor,
+                fontWeight: FontWeight.w600,
                 letterSpacing: 0.2,
-                fontSize: widget.compact ? 13 : null,
+                fontSize: widget.compact ? 13 : 14,
+                height: 1.1,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -125,7 +136,7 @@ class _MagneticButtonState extends State<MagneticButton>
                 width:
                     widget.compact ? AppTokens.space1 + 2 : AppTokens.space2),
             Icon(widget.trailing,
-                color: Colors.white, size: widget.compact ? 14 : 16),
+                color: iconColor, size: widget.compact ? 14 : 16),
           ],
         ],
       ),
@@ -136,24 +147,6 @@ class _MagneticButtonState extends State<MagneticButton>
       child: Stack(
         children: [
           body,
-          // Sheen
-          Positioned.fill(
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.center,
-                    colors: [
-                      Colors.white.withValues(alpha: 0.18),
-                      Colors.white.withValues(alpha: 0),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          // Touch ripple
           Positioned.fill(
             child: IgnorePointer(
               child: AnimatedBuilder(
@@ -166,6 +159,7 @@ class _MagneticButtonState extends State<MagneticButton>
                     painter: _RipplePainter(
                       origin: _ripplePoint!,
                       progress: _ripple.value,
+                      tone: hasGradient ? Colors.white : N.bg,
                     ),
                   );
                 },
@@ -175,35 +169,6 @@ class _MagneticButtonState extends State<MagneticButton>
         ],
       ),
     );
-
-    final glowing = widget.glow && !reduce
-        ? AnimatedBuilder(
-            animation: _breathe,
-            builder: (_, child) {
-              final t = _breathe.value;
-              return DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: radius,
-                  boxShadow: [
-                    BoxShadow(
-                      color: accent.withValues(alpha: 0.30 + 0.18 * t),
-                      blurRadius: 24 + 16 * t,
-                      offset: const Offset(0, 14),
-                    ),
-                  ],
-                ),
-                child: child,
-              );
-            },
-            child: layered,
-          )
-        : DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: radius,
-              boxShadow: AppTokens.shadowMd(tint: accent),
-            ),
-            child: layered,
-          );
 
     return Listener(
       behavior: HitTestBehavior.translucent,
@@ -220,11 +185,11 @@ class _MagneticButtonState extends State<MagneticButton>
               },
         haptic: false,
         scale: 0.965,
-        magnetism: 6,
-        tilt: 0.03,
+        magnetism: 4,
+        tilt: 0.02,
         child: SizedBox(
           width: widget.expand ? double.infinity : null,
-          child: glowing,
+          child: layered,
         ),
       ),
     );
@@ -232,9 +197,14 @@ class _MagneticButtonState extends State<MagneticButton>
 }
 
 class _RipplePainter extends CustomPainter {
-  _RipplePainter({required this.origin, required this.progress});
+  _RipplePainter({
+    required this.origin,
+    required this.progress,
+    required this.tone,
+  });
   final Offset origin;
   final double progress;
+  final Color tone;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -242,14 +212,14 @@ class _RipplePainter extends CustomPainter {
     final r = math.sqrt(size.width * size.width + size.height * size.height);
     final radius = r * progress;
     final paint = Paint()
-      ..color = Colors.white.withValues(alpha: (1 - progress) * 0.36)
+      ..color = tone.withValues(alpha: (1 - progress) * 0.32)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..maskFilter = const ui.MaskFilter.blur(BlurStyle.normal, 1.2);
+      ..strokeWidth = 1.4
+      ..maskFilter = const ui.MaskFilter.blur(BlurStyle.normal, 1.0);
     canvas.drawCircle(origin, radius, paint);
 
     final fill = Paint()
-      ..color = Colors.white.withValues(alpha: (1 - progress) * 0.10);
+      ..color = tone.withValues(alpha: (1 - progress) * 0.08);
     canvas.drawCircle(origin, radius * 0.6, fill);
   }
 

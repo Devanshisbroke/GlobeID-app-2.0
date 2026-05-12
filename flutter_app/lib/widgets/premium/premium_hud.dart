@@ -1,9 +1,8 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../app/theme/airport_typography.dart';
+import '../../nexus/nexus_tokens.dart';
 
 /// Premium HUD overlay — a glass pill that floats above the current
 /// surface and broadcasts live system state. Used on cinematic/full-
@@ -35,58 +34,47 @@ class PremiumHud extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final accent = tone ?? theme.colorScheme.primary;
+    final accent = tone ?? N.tierGold;
     final hPad = dense ? 10.0 : AppTokens.space3;
     final vPad = dense ? 5.0 : 7.0;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.08)
-                : Colors.black.withValues(alpha: 0.04),
-            borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-            border: Border.all(
-              color: accent.withValues(alpha: 0.32),
-              width: 0.7,
-            ),
-            boxShadow: AppTokens.shadowXl(tint: accent),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (leadingPulse) ...[
-                _Pulse(tone: accent),
-                const SizedBox(width: 6),
-              ],
-              Text(
-                label.toUpperCase(),
-                style: AirportFontStack.caption(context).copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.92),
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.4,
-                  fontSize: dense ? 9.6 : 10.4,
-                ),
-              ),
-              if (trailing != null) ...[
-                const SizedBox(width: 8),
-                DefaultTextStyle.merge(
-                  style: AirportFontStack.flightNumber(
-                    context,
-                    size: dense ? 11 : 12,
-                  ).copyWith(color: accent),
-                  child: trailing!,
-                ),
-              ],
-            ],
-          ),
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
+      decoration: BoxDecoration(
+        color: N.surface,
+        borderRadius: BorderRadius.circular(N.rPill),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.28),
+          width: N.strokeHair,
         ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (leadingPulse) ...[
+            _Pulse(tone: accent),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            label.toUpperCase(),
+            style: AirportFontStack.caption(context).copyWith(
+              color: N.inkHi,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.4,
+              fontSize: dense ? 9.6 : 10.4,
+            ),
+          ),
+          if (trailing != null) ...[
+            const SizedBox(width: 8),
+            DefaultTextStyle.merge(
+              style: AirportFontStack.flightNumber(
+                context,
+                size: dense ? 11 : 12,
+              ).copyWith(color: accent),
+              child: trailing!,
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -132,12 +120,6 @@ class _PulseState extends State<_Pulse> with SingleTickerProviderStateMixin {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: widget.tone.withValues(alpha: opacity),
-            boxShadow: [
-              BoxShadow(
-                color: widget.tone.withValues(alpha: 0.55 * opacity),
-                blurRadius: 8 + t * 8,
-              ),
-            ],
           ),
         );
       },
