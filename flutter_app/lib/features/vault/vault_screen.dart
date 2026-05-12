@@ -69,6 +69,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen>
 
     if (!_unlocked) {
       return Scaffold(
+        backgroundColor: Colors.black,
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(AppTokens.space7),

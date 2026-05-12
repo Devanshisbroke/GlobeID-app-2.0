@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/airport_typography.dart';
 import '../../app/theme/app_tokens.dart';
+import '../../nexus/nexus_tokens.dart';
 import 'magnetic_pressable.dart';
-import 'sensor_pendulum.dart';
 
-/// InboxPremiumRow — a tactile, pressable notification row with
-/// gyroscope micro-tilt, magnetic touch affordance, and a coloured
-/// severity rail on the leading edge. Drop-in replacement for a
-/// regular ListTile inside an inbox-style list.
+/// InboxPremiumRow — **Nexus-aligned inbox row.**
+///
+/// Was a tactile multi-layer row with pendulum micro-tilt, magnetic
+/// affordance, and a glowing severity rail. After the canonical
+/// Travel-OS migration this row is now a flat hairline card with a
+/// tone-tinted severity rail, eyebrow + body pairing, and a
+/// mono-tracked timestamp. Public API preserved.
 class InboxPremiumRow extends StatelessWidget {
   const InboxPremiumRow({
     super.key,
@@ -31,91 +34,92 @@ class InboxPremiumRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SensorPendulum(
-      translation: 1.4,
-      rotation: 0.005,
-      child: MagneticPressable(
-        onTap: onTap,
-        scale: 0.98,
-        child: Container(
-          margin: const EdgeInsets.symmetric(
-            horizontal: AppTokens.space5,
-            vertical: AppTokens.space1 + 1,
+    return MagneticPressable(
+      onTap: onTap,
+      scale: 0.985,
+      child: Container(
+        margin: const EdgeInsets.symmetric(
+          horizontal: AppTokens.space5,
+          vertical: 4,
+        ),
+        padding: const EdgeInsets.all(AppTokens.space3),
+        decoration: BoxDecoration(
+          color: unread
+              ? Color.alphaBlend(
+                  tone.withValues(alpha: 0.04),
+                  N.surface,
+                )
+              : N.surface,
+          borderRadius: BorderRadius.circular(N.rCard),
+          border: Border.all(
+            color: unread ? tone.withValues(alpha: 0.22) : N.hairline,
+            width: 0.5,
           ),
-          padding: const EdgeInsets.all(AppTokens.space3),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppTokens.radiusXl),
-            border: Border.all(
-              color: theme.dividerColor.withValues(alpha: 0.5),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 3,
+              height: 40,
+              decoration: BoxDecoration(
+                color: unread ? tone : tone.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+              ),
             ),
-            boxShadow: unread
-                ? [
-                    BoxShadow(
-                      color: tone.withValues(alpha: 0.18),
-                      blurRadius: 18,
-                      offset: const Offset(0, 8),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 4,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: unread ? tone : tone.withValues(alpha: 0.32),
-                  borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+            const SizedBox(width: AppTokens.space3),
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: tone.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(N.rChip),
+                border: Border.all(
+                  color: tone.withValues(alpha: 0.24),
+                  width: 0.5,
                 ),
               ),
-              const SizedBox(width: AppTokens.space3),
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: tone.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                ),
-                child: Icon(icon, color: tone, size: 20),
-              ),
-              const SizedBox(width: AppTokens.space3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: unread ? FontWeight.w800 : FontWeight.w600,
-                      ),
+              child: Icon(icon, color: tone, size: 18),
+            ),
+            const SizedBox(width: AppTokens.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: N.inkHi,
+                      fontSize: 14,
+                      fontWeight: unread ? FontWeight.w600 : FontWeight.w500,
+                      letterSpacing: -0.1,
+                      height: 1.2,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (timestamp != null) ...[
-                const SizedBox(width: AppTokens.space2),
-                Text(
-                  timestamp!.toUpperCase(),
-                  style: AirportFontStack.caption(context).copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
                   ),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: N.inkMid,
+                      fontSize: 12,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (timestamp != null) ...[
+              const SizedBox(width: AppTokens.space2),
+              Text(
+                timestamp!.toUpperCase(),
+                style: AirportFontStack.caption(context).copyWith(
+                  color: N.inkLow,
                 ),
-              ],
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );

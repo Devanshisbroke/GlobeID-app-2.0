@@ -1,10 +1,9 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../motion/haptic_choreography.dart';
+import '../../nexus/nexus_tokens.dart';
 
 /// Magnetic premium bottom sheet.
 ///
@@ -83,9 +82,7 @@ class _PremiumSheetState extends State<_PremiumSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final accent = widget.tone ?? theme.colorScheme.primary;
+    final accent = widget.tone ?? N.tierGold;
 
     return DraggableScrollableSheet(
       initialChildSize: widget.snaps[1],
@@ -102,84 +99,85 @@ class _PremiumSheetState extends State<_PremiumSheet> {
           },
           child: ClipRRect(
             borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppTokens.radius3xl),
+              top: Radius.circular(N.rCardLg),
             ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xCC0B0F1A)
-                      : const Color(0xF2FFFFFF),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(AppTokens.radius3xl),
-                  ),
-                  border: Border(
-                    top: BorderSide(
-                      color: accent.withValues(alpha: 0.32),
-                      width: 0.8,
-                    ),
-                  ),
-                  boxShadow: AppTokens.shadowCinematic(tint: accent),
+            child: Container(
+              decoration: BoxDecoration(
+                color: N.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(N.rCardLg),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 10),
-                    // Drag handle.
-                    Container(
-                      width: 38,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.28),
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.radiusFull),
-                      ),
+                border: Border(
+                  top: BorderSide(
+                    color: N.hairlineHi,
+                    width: 0.5,
+                  ),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 10),
+                  Container(
+                    width: 36,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      color: N.inkLow,
+                      borderRadius:
+                          BorderRadius.circular(AppTokens.radiusFull),
                     ),
-                    const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppTokens.space5,
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (widget.eyebrow != null)
-                                  Text(
-                                    widget.eyebrow!.toUpperCase(),
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: accent,
-                                      letterSpacing: 1.2,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
+                  ),
+                  const SizedBox(height: 14),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppTokens.space5,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (widget.eyebrow != null)
                                 Text(
-                                  widget.title,
-                                  style: theme.textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.w800,
+                                  widget.eyebrow!.toUpperCase(),
+                                  style: TextStyle(
+                                    color: accent,
+                                    letterSpacing: 1.4,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 10,
                                   ),
                                 ),
-                              ],
-                            ),
+                              Text(
+                                widget.title,
+                                style: const TextStyle(
+                                  color: N.inkHi,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: -0.2,
+                                  height: 1.1,
+                                ),
+                              ),
+                            ],
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.close_rounded),
-                            onPressed: () {
-                              HapticFeedback.lightImpact();
-                              Navigator.of(ctx).maybePop();
-                            },
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.close_rounded,
+                            color: N.inkMid,
+                            size: 20,
                           ),
-                        ],
-                      ),
+                          onPressed: () {
+                            HapticFeedback.lightImpact();
+                            Navigator.of(ctx).maybePop();
+                          },
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: AppTokens.space2),
-                    Expanded(child: widget.builder(controller)),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: AppTokens.space2),
+                  Expanded(child: widget.builder(controller)),
+                ],
               ),
             ),
           ),

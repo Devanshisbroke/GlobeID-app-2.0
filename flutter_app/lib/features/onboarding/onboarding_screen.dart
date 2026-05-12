@@ -187,6 +187,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     final theme = Theme.of(context);
     final s = _slides[_i];
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
           AnimatedContainer(
@@ -197,7 +198,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                 center: Alignment.topRight,
                 radius: 1.4,
                 colors: [
-                  s.start.withValues(alpha: 0.65),
+                  s.start.withValues(alpha: 0.45),
                   Colors.black,
                 ],
               ),
