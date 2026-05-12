@@ -1,7 +1,7 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import '../nexus/nexus_tokens.dart';
 
 /// `motion.dart` — the GlobeID motion language.
 ///
@@ -118,46 +118,33 @@ class SoundCues {
 // PAGE TRANSITIONS
 // ─────────────────────────────────────────────────────────────────────
 
-/// Premium slide-up + scale + blur transition.
+/// Canonical Nexus page transition.
 ///
-/// On push:
-///   • Background blurs from σ=0 → σ=8
-///   • Incoming page slides up 6 % of height + fades + scales 0.96→1
-///   • Spring curve gives a tactile "land" at the end
-///
-/// On pop the reverse runs at 70 % duration so dismiss feels light.
+/// Pure fade + 16 px slide-up + 0.98→1.00 scale on push, eased with
+/// [N.ease]. No backdrop blur, no shadow — depth comes from contrast
+/// and the hairline-bordered substrate beneath. Cheap on the GPU,
+/// indistinguishable from the previous blur-based transition for the
+/// user, and consistent with the Travel-OS / Wallet reference.
 Widget premiumSlideTransition(
   BuildContext _,
   Animation<double> anim,
   Animation<double> __,
   Widget child,
 ) {
-  final t = CurvedAnimation(parent: anim, curve: GlobeMotion.spring);
+  final t = CurvedAnimation(parent: anim, curve: N.ease);
   return AnimatedBuilder(
     animation: t,
     builder: (_, c) {
       final v = t.value;
-      final blur = (1 - v) * 8.0;
-      return Stack(
-        children: [
-          if (blur > 0.05)
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-                child: const ColoredBox(color: Color(0x00000000)),
-              ),
-            ),
-          Opacity(
-            opacity: v.clamp(0.0, 1.0),
-            child: Transform.translate(
-              offset: Offset(0, (1 - v) * 24),
-              child: Transform.scale(
-                scale: 0.96 + 0.04 * v,
-                child: c,
-              ),
-            ),
+      return Opacity(
+        opacity: v.clamp(0.0, 1.0),
+        child: Transform.translate(
+          offset: Offset(0, (1 - v) * 16),
+          child: Transform.scale(
+            scale: 0.98 + 0.02 * v,
+            child: c,
           ),
-        ],
+        ),
       );
     },
     child: child,

@@ -52,24 +52,26 @@ class _HolographicFoilState extends State<HolographicFoil>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _ticker,
-      builder: (_, child) {
-        final sf = SensorFusion.instance;
-        return ClipRRect(
-          borderRadius:
-              widget.borderRadius ?? BorderRadius.circular(AppTokens.radiusLg),
-          child: CustomPaint(
-            foregroundPainter: _HolographicPainter(
-              tiltX: sf.tiltX,
-              tiltY: sf.tiltY,
-              intensity: widget.intensity,
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _ticker,
+        builder: (_, child) {
+          final sf = SensorFusion.instance;
+          return ClipRRect(
+            borderRadius: widget.borderRadius ??
+                BorderRadius.circular(AppTokens.radiusLg),
+            child: CustomPaint(
+              foregroundPainter: _HolographicPainter(
+                tiltX: sf.tiltX,
+                tiltY: sf.tiltY,
+                intensity: widget.intensity,
+              ),
+              child: child,
             ),
-            child: child,
-          ),
-        );
-      },
-      child: widget.child,
+          );
+        },
+        child: widget.child,
+      ),
     );
   }
 }
@@ -182,24 +184,27 @@ class _TiltShimmerState extends State<TiltShimmer>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _ticker,
-      builder: (_, child) {
-        final sf = SensorFusion.instance;
-        final normalizedTilt = (sf.tiltY / (math.pi / 18)).clamp(-1.0, 1.0);
-        return ClipRRect(
-          borderRadius:
-              widget.borderRadius ?? BorderRadius.circular(AppTokens.radiusLg),
-          child: CustomPaint(
-            foregroundPainter: _ShimmerPainter(
-              position: normalizedTilt,
-              intensity: widget.intensity,
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _ticker,
+        builder: (_, child) {
+          final sf = SensorFusion.instance;
+          final normalizedTilt =
+              (sf.tiltY / (math.pi / 18)).clamp(-1.0, 1.0);
+          return ClipRRect(
+            borderRadius: widget.borderRadius ??
+                BorderRadius.circular(AppTokens.radiusLg),
+            child: CustomPaint(
+              foregroundPainter: _ShimmerPainter(
+                position: normalizedTilt,
+                intensity: widget.intensity,
+              ),
+              child: child,
             ),
-            child: child,
-          ),
-        );
-      },
-      child: widget.child,
+          );
+        },
+        child: widget.child,
+      ),
     );
   }
 }

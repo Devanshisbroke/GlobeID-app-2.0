@@ -149,20 +149,22 @@ class _MagneticButtonState extends State<MagneticButton>
           body,
           Positioned.fill(
             child: IgnorePointer(
-              child: AnimatedBuilder(
-                animation: _ripple,
-                builder: (_, __) {
-                  if (_ripplePoint == null || _ripple.value == 0) {
-                    return const SizedBox.shrink();
-                  }
-                  return CustomPaint(
-                    painter: _RipplePainter(
-                      origin: _ripplePoint!,
-                      progress: _ripple.value,
-                      tone: hasGradient ? Colors.white : N.bg,
-                    ),
-                  );
-                },
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _ripple,
+                  builder: (_, __) {
+                    if (_ripplePoint == null || _ripple.value == 0) {
+                      return const SizedBox.shrink();
+                    }
+                    return CustomPaint(
+                      painter: _RipplePainter(
+                        origin: _ripplePoint!,
+                        progress: _ripple.value,
+                        tone: hasGradient ? Colors.white : N.bg,
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ),

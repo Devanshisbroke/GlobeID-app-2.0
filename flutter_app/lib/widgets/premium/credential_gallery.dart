@@ -202,8 +202,10 @@ class _CardSurface extends StatelessWidget {
         child: Stack(
           children: [
             Positioned.fill(
-              child: CustomPaint(
-                painter: _FoilPainter(tone: data.tone),
+              child: RepaintBoundary(
+                child: CustomPaint(
+                  painter: _FoilPainter(tone: data.tone),
+                ),
               ),
             ),
             Padding(

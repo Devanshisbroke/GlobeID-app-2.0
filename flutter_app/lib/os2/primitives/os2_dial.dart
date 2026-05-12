@@ -77,35 +77,37 @@ class _Os2DialState extends State<Os2Dial>
     return SizedBox(
       width: widget.diameter,
       height: widget.diameter,
-      child: AnimatedBuilder(
-        animation: _c,
-        builder: (_, __) => CustomPaint(
-          painter: _DialPainter(
-            value: _current,
-            tone: widget.tone,
-            ticks: widget.ticks,
-          ),
-          child: Center(
-            child: widget.center ??
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Os2Text.headline(
-                      '${(_current * 100).round()}',
-                      color: Os2.inkBright,
-                      size: widget.diameter * 0.26,
-                    ),
-                    if (widget.label != null) ...[
-                      const SizedBox(height: 2),
-                      Os2Text.caption(widget.label!, color: widget.tone),
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _c,
+          builder: (_, __) => CustomPaint(
+            painter: _DialPainter(
+              value: _current,
+              tone: widget.tone,
+              ticks: widget.ticks,
+            ),
+            child: Center(
+              child: widget.center ??
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Os2Text.headline(
+                        '${(_current * 100).round()}',
+                        color: Os2.inkBright,
+                        size: widget.diameter * 0.26,
+                      ),
+                      if (widget.label != null) ...[
+                        const SizedBox(height: 2),
+                        Os2Text.caption(widget.label!, color: widget.tone),
+                      ],
+                      if (widget.trailing != null) ...[
+                        const SizedBox(height: 2),
+                        Os2Text.monoCap(widget.trailing!,
+                            color: Os2.inkMid, size: 10),
+                      ],
                     ],
-                    if (widget.trailing != null) ...[
-                      const SizedBox(height: 2),
-                      Os2Text.monoCap(widget.trailing!,
-                          color: Os2.inkMid, size: 10),
-                    ],
-                  ],
-                ),
+                  ),
+            ),
           ),
         ),
       ),

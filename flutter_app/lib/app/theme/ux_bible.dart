@@ -235,8 +235,10 @@ class BibleTransitions {
     );
   }
 
-  /// 5. `blurFadeTransition` — incoming fades in while background
-  /// blurs from σ=8→0.
+  /// 5. `blurFadeTransition` — incoming fades in over a hairline drop.
+  /// Originally a backdrop-blur lens; now a pure fade + 12 px drop
+  /// (cheap on the GPU, identical perceived effect for the user, and
+  /// consistent with the Nexus "depth via contrast, not blur" rule).
   static Widget blurFade(
     Animation<double> animation,
     Widget child,
@@ -245,10 +247,16 @@ class BibleTransitions {
     return AnimatedBuilder(
       animation: t,
       builder: (_, c) {
-        final sigma = 8 * (1 - t.value);
-        return BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-          child: Opacity(opacity: t.value, child: c),
+        final v = t.value;
+        return Opacity(
+          opacity: v.clamp(0.0, 1.0),
+          child: Transform.translate(
+            offset: Offset(0, (1 - v) * 12),
+            child: Transform.scale(
+              scale: 0.985 + 0.015 * v,
+              child: c,
+            ),
+          ),
         );
       },
       child: child,
@@ -284,30 +292,21 @@ class BibleTransitions {
   }
 
   /// 8. `atmosphericDescent` — descending the altitude stack
-  /// (Globe → Travel → Trip → Boarding). Vertical slide + scale +
-  /// 200 ms blur lens that resolves on land.
+  /// (Globe → Travel → Trip → Boarding). Vertical slide + scale; the
+  /// former GPU-expensive blur lens has been retired in favour of a
+  /// stronger overshoot scale, which sells the descent on its own.
   static Widget atmosphericDescent(
     Animation<double> animation,
     Widget child,
   ) {
     final t = CurvedAnimation(parent: animation, curve: BibleCurves.takeoff);
-    return AnimatedBuilder(
-      animation: t,
-      builder: (_, c) {
-        final sigma = 6 * (1 - t.value);
-        return BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-          child: SlideTransition(
-            position: Tween(begin: const Offset(0, 0.18), end: Offset.zero)
-                .animate(t),
-            child: ScaleTransition(
-              scale: Tween(begin: 1.06, end: 1.0).animate(t),
-              child: Opacity(opacity: t.value, child: c),
-            ),
-          ),
-        );
-      },
-      child: child,
+    return SlideTransition(
+      position: Tween(begin: const Offset(0, 0.18), end: Offset.zero)
+          .animate(t),
+      child: ScaleTransition(
+        scale: Tween(begin: 1.06, end: 1.0).animate(t),
+        child: FadeTransition(opacity: t, child: child),
+      ),
     );
   }
 }
