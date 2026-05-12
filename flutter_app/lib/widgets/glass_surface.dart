@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../app/theme/app_tokens.dart';
-import 'bible/liquid_glass.dart';
+import '../nexus/nexus_tokens.dart';
 
-/// Frosted-glass card.
+/// Frosted-glass card — **Nexus-aligned hairline panel.**
 ///
-/// Now a thin wrapper over [LiquidGlass] with `thickness: regular`
-/// so every glass surface in the app shares the same Apple-grade
-/// material pipeline (saturate-then-blur, specular edge, hairline
-/// stroke, cinematic shadow, continuous-curve squircle corners,
-/// reduce-transparency fallback). The original `GlassSurface` API
-/// is preserved 1:1 so existing callers continue to work without
-/// any source changes.
+/// Was a LiquidGlass wrapper with saturate-then-blur, specular edge,
+/// cinematic shadow. After the canonical Travel-OS / Wallet migration
+/// this primitive is now a flat hairline panel on the OLED substrate
+/// — the same language as [PremiumCard], used across all 10 callers.
+/// Public API preserved 1:1.
 class GlassSurface extends StatelessWidget {
   const GlassSurface({
     super.key,
@@ -28,20 +26,38 @@ class GlassSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LiquidGlass(
-      thickness: LiquidGlassThickness.regular,
-      radius: radius,
-      tint: tint,
-      padding: padding,
-      shadow: LiquidGlassShadow.cinematic,
-      stroke: true,
-      specular: true,
-      child: child,
+    final Color background = tint == null
+        ? N.surface
+        : Color.alphaBlend(
+            tint!.withValues(alpha: 0.05),
+            N.surface,
+          );
+
+    final Color border = tint == null
+        ? N.hairline
+        : tint!.withValues(alpha: 0.28);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(
+          color: border,
+          width: 0.5,
+        ),
+      ),
+      child: Padding(
+        padding: padding,
+        child: child,
+      ),
     );
   }
 }
 
-/// Lightweight pill chip.
+/// Lightweight pill chip — **Nexus-aligned hairline chip.**
+///
+/// Previously alpha-fill + tonal border. Now: 6% tone wash + hairline
+/// stroke (matches the canonical Nexus chip language).
 class PillChip extends StatelessWidget {
   const PillChip({
     super.key,
@@ -56,30 +72,34 @@ class PillChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = tone ?? theme.colorScheme.primary;
+    final color = tone ?? N.tierGold;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppTokens.space3,
         vertical: AppTokens.space1 + 2,
       ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-        border: Border.all(color: color.withValues(alpha: 0.32), width: 0.5),
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(N.rChip),
+        border: Border.all(
+          color: color.withValues(alpha: 0.36),
+          width: 0.5,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 4),
+            Icon(icon, size: 13, color: color),
+            const SizedBox(width: 5),
           ],
           Text(
             label,
-            style: theme.textTheme.labelSmall?.copyWith(
+            style: TextStyle(
               color: color,
-              fontWeight: FontWeight.w700,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
             ),
           ),
         ],

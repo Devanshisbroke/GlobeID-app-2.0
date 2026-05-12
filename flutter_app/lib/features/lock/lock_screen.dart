@@ -91,7 +91,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
     final theme = Theme.of(context);
     final accent = theme.colorScheme.primary;
     return Scaffold(
-      backgroundColor: const Color(0xFF05060A),
+      backgroundColor: Colors.black,
       body: PullDownSummoner(
         triggerDistance: 96,
         overlayBuilder: (ctx) => _EmergencyOverlay(accent: accent),

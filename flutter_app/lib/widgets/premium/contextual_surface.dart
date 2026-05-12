@@ -2,27 +2,24 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../app/theme/emotional_palette.dart';
-import '../bible/liquid_glass.dart';
+import '../../nexus/nexus_tokens.dart';
 
-/// A morphing surface that adapts its tint, elevation, and shape to
-/// the surrounding emotional context.
+/// A morphing surface that adapts its tint to the surrounding
+/// emotional context — **Nexus-aligned hairline panel.**
 ///
-/// Now built on top of [LiquidGlass] (the unified Apple-grade material
-/// primitive). The previous bespoke `Stack`+`BackdropFilter` pipeline
-/// has been replaced by a single `LiquidGlass(thickness: regular)` so
-/// every surface in the app shares the same:
+/// Was a LiquidGlass wrapper with saturate-then-blur + specular edge
+/// + cinematic shadow. After the canonical Travel-OS / Wallet
+/// migration this primitive renders the flat hairline language:
 ///
-///   - saturate-then-blur composition (iOS-17 chrome trick)
-///   - 0.5-pt specular top edge
-///   - hairline stroke
-///   - cinematic ambient shadow
-///   - reduce-transparency accessibility fallback
+///   - flat `N.surface` (with optional tone wash at 5%)
+///   - 0.5pt `N.hairline` border (or tone-tinted hairline when
+///     `tint` is provided)
+///   - generous radius (defaults to `N.rCardLg`)
+///   - **no shadow, no specular, no blur**
 ///
-/// The emotional accent (gold/cool/warm depending on [EmotionalContext])
-/// is forwarded as the [LiquidGlass.tint] so it still inherits the
-/// screen's bible tone, but only as a low-alpha colour bleed — the
-/// glass body itself is luminosity-aware, not painted with a flat
-/// gradient.
+/// The emotional accent (gold/cool/warm depending on
+/// [EmotionalContext]) is still forwarded but only as a low-alpha
+/// colour bleed. Public API preserved 1:1.
 class ContextualSurface extends StatelessWidget {
   const ContextualSurface({
     super.key,
@@ -45,25 +42,36 @@ class ContextualSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext build) {
-    final theme = Theme.of(build);
     final shift = context == null
         ? const EmotionalShift()
         : EmotionalPalette.shiftFor(context!);
 
-    final accent = tint ?? shift.accentOverride ?? theme.colorScheme.primary;
+    final Color? accent = tint ?? shift.accentOverride;
 
-    return LiquidGlass(
-      thickness:
-          glass ? LiquidGlassThickness.regular : LiquidGlassThickness.ultraThin,
-      radius: radius,
-      tint: accent,
-      padding: padding,
-      shadow: outlined
-          ? LiquidGlassShadow.resting
-          : LiquidGlassShadow.cinematic,
-      stroke: true,
-      specular: true,
-      child: child,
+    final Color background = accent == null
+        ? N.surface
+        : Color.alphaBlend(
+            accent.withValues(alpha: 0.05),
+            N.surface,
+          );
+
+    final Color border = accent == null
+        ? N.hairline
+        : accent.withValues(alpha: 0.26);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(
+          color: border,
+          width: 0.5,
+        ),
+      ),
+      child: Padding(
+        padding: padding,
+        child: child,
+      ),
     );
   }
 }
