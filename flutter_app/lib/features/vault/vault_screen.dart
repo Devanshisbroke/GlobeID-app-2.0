@@ -6,13 +6,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/identity/selective_disclosure.dart';
+import '../../cinematic/identity/selective_disclosure_sheet.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../data/models/travel_document.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/toast.dart';
 import '../user/user_provider.dart';
 
 /// Premium vault — biometric gate, document grid with brand color
@@ -219,9 +222,40 @@ class _LockPulse extends CustomPainter {
   bool shouldRepaint(covariant _LockPulse old) => old.progress != progress;
 }
 
-class _VaultDocCard extends StatelessWidget {
+class _VaultDocCard extends StatefulWidget {
   const _VaultDocCard({required this.doc});
   final TravelDocument doc;
+  @override
+  State<_VaultDocCard> createState() => _VaultDocCardState();
+}
+
+class _VaultDocCardState extends State<_VaultDocCard> {
+  DisclosurePolicy _policy = DisclosurePolicy.defaults();
+
+  TravelDocument get doc => widget.doc;
+
+  Future<void> _openDisclosure() async {
+    HapticFeedback.lightImpact();
+    final next = await showSelectiveDisclosureSheet(
+      context: context,
+      initial: _policy,
+      credentialLabel: '${doc.label} · ${doc.country}',
+    );
+    if (next != null && mounted) {
+      setState(() => _policy = next);
+      AppToast.show(
+        context,
+        title: 'Disclosure saved',
+        message:
+            '${next.revealedCount(DisclosureAudience.airline)} '
+            'fields visible to AIRLINE · '
+            '${next.revealedCount(DisclosureAudience.hotel)} to HOTEL',
+        tone: AppToastTone.success,
+        icon: Icons.shield_rounded,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -230,9 +264,9 @@ class _VaultDocCard extends StatelessWidget {
     final expiringSoon = daysToExpiry != null && daysToExpiry < 90;
     return Pressable(
       scale: 0.99,
-      onTap: () {
-        HapticFeedback.lightImpact();
-      },
+      semanticLabel: 'Manage ${doc.label} disclosure',
+      semanticHint: 'opens the selective disclosure sheet',
+      onTap: _openDisclosure,
       child: PremiumCard(
         padding: const EdgeInsets.all(AppTokens.space5),
         gradient: LinearGradient(
