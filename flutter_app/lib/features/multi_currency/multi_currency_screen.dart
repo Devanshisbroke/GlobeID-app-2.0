@@ -3,12 +3,15 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/copilot/fx_advisor.dart';
+import '../../cinematic/copilot/fx_convert_now_rail.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../data/models/wallet_models.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/animated_number.dart';
-import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
@@ -22,6 +25,14 @@ class MultiCurrencyScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wallet = ref.watch(walletProvider);
+    // Copilot FX recommendations — pure-Dart engine, no network.
+    // Engine output is stable across runs for the same wallet shape.
+    final recs = wallet.balances.isEmpty
+        ? const <FxRecommendation>[]
+        : const FxAdvisor().recommend(
+            balances: wallet.balances,
+            defaultCurrency: wallet.defaultCurrency,
+          );
     return PageScaffold(
       title: 'Multi-currency',
       subtitle: 'Default ${wallet.defaultCurrency}',
@@ -35,6 +46,16 @@ class MultiCurrencyScreen extends ConsumerWidget {
           : ListView(
               physics: const BouncingScrollPhysics(),
               children: [
+                if (recs.isNotEmpty)
+                  AnimatedAppearance(
+                    child: FxConvertNowRail(
+                      recommendations: recs,
+                      onCardTap: (_) {
+                        HapticFeedback.lightImpact();
+                        context.push('/wallet/exchange');
+                      },
+                    ),
+                  ),
                 for (var i = 0; i < wallet.balances.length; i++)
                   AnimatedAppearance(
                     delay: Duration(milliseconds: 50 * i),
