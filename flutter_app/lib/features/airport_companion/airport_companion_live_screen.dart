@@ -99,7 +99,14 @@ class _AirportCompanionLiveScreenState
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  BreathingRing(tone: tone, size: 320),
+                  // Airport companion is in "armed" state — you're
+                  // moving through the airport, scanner primed, gates
+                  // not yet committed. Faster 2.2 s breathing.
+                  BreathingRing(
+                    tone: tone,
+                    size: 320,
+                    duration: LiveSurfaceState.armed.breathingPeriod,
+                  ),
                   _Radar(anim: _sweep, tone: tone),
                 ],
               ),

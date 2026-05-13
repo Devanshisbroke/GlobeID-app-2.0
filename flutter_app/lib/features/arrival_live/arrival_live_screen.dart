@@ -188,7 +188,13 @@ class _DescentBanner extends StatelessWidget {
           Stack(
             alignment: Alignment.center,
             children: [
-              BreathingRing(tone: tone, size: 78),
+              // Arrival is the "settled" cinematic state — you've
+              // landed, the city is yours. Calm 4.2 s breathing.
+              BreathingRing(
+                tone: tone,
+                size: 78,
+                duration: LiveSurfaceState.settled.breathingPeriod,
+              ),
               Container(
                 width: 64,
                 height: 64,
