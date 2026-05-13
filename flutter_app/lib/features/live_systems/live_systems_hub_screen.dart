@@ -290,7 +290,14 @@ class _HeroBlock extends StatelessWidget {
               Stack(
                 alignment: Alignment.center,
                 children: [
-                  BreathingRing(tone: tone, size: 86),
+                  // Hub is the "armed" cinematic state — every
+                  // Live system below is primed and waiting to be
+                  // entered. Faster 2.2 s breathing.
+                  BreathingRing(
+                    tone: tone,
+                    size: 86,
+                    duration: LiveSurfaceState.armed.breathingPeriod,
+                  ),
                   Container(
                     width: 64,
                     height: 64,

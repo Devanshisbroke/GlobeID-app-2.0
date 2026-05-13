@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,6 +51,27 @@ class _ImmigrationLiveScreenState extends ConsumerState<ImmigrationLiveScreen>
     super.dispose();
   }
 
+  /// Map the immigration step to its cinematic surface state:
+  ///   SCAN PASSPORT  → armed     (eGate primed, waiting to read)
+  ///   BIOMETRIC      → active    (camera + chip are reading)
+  ///   QUESTIONS      → active    (officer interview pending)
+  ///   STAMP          → committed (single pulse — passport stamped)
+  ///   EXIT           → settled   (cleared, walking out)
+  LiveSurfaceState _stateForStep(int step) {
+    switch (step) {
+      case 0:
+        return LiveSurfaceState.armed;
+      case 1:
+      case 2:
+        return LiveSurfaceState.active;
+      case 3:
+        return LiveSurfaceState.committed;
+      case 4:
+      default:
+        return LiveSurfaceState.settled;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     const tone = Color(0xFF06B6D4);
@@ -59,11 +82,12 @@ class _ImmigrationLiveScreenState extends ConsumerState<ImmigrationLiveScreen>
       _ImmStep('STAMP', Icons.approval_rounded),
       _ImmStep('EXIT', Icons.exit_to_app_rounded),
     ];
+    final liveState = _stateForStep(_step);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: LiveCanvas(
         tone: tone,
-        statusBar: _Header(tone: tone),
+        statusBar: _Header(tone: tone, liveState: liveState),
         bottomBar: Row(
           children: [
             Expanded(
@@ -97,13 +121,30 @@ class _ImmigrationLiveScreenState extends ConsumerState<ImmigrationLiveScreen>
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  HapticFeedback.selectionClick();
-                  setState(() => _step = (_step + 1) % steps.length);
+                  final next = (_step + 1) % steps.length;
+                  final nextState = _stateForStep(next);
+                  // The STAMP frame is the cinematic commit — signature
+                  // triple-pulse haptic so the user feels the passport
+                  // get stamped. Everything else is a soft selection.
+                  if (nextState == LiveSurfaceState.committed) {
+                    HapticFeedback.heavyImpact();
+                  } else {
+                    HapticFeedback.selectionClick();
+                  }
+                  setState(() => _step = next);
                 },
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    BreathingRing(tone: tone, size: 240),
+                    // Breathing cadence accelerates as the user steps
+                    // forward — armed 2.2 s → active 1.4 s → commit
+                    // 0.8 s → settled 4.2 s. Same primitive, the
+                    // surface state drives the period.
+                    BreathingRing(
+                      tone: tone,
+                      size: 240,
+                      duration: liveState.breathingPeriod,
+                    ),
                     // NFC pulse around the scanner — gives the eGate
                     // primed-to-read read instead of static prop.
                     NfcPulse(
@@ -135,8 +176,9 @@ class _ImmStep {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.tone});
+  const _Header({required this.tone, required this.liveState});
   final Color tone;
+  final LiveSurfaceState liveState;
 
   @override
   Widget build(BuildContext context) {
@@ -191,9 +233,17 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
-          const LiveStatusPill(
-            state: LiveSurfaceState.armed,
-            tone: Color(0xFF10B981),
+          // Status pill mirrors the actual scanner state — armed
+          // before scan, active during read, committed on stamp,
+          // settled on exit. Tone shifts with the bucket so the
+          // user can read progress at a glance.
+          LiveStatusPill(
+            state: liveState,
+            tone: liveState == LiveSurfaceState.committed
+                ? const Color(0xFFD4AF37)
+                : liveState == LiveSurfaceState.settled
+                    ? const Color(0xFF10B981)
+                    : tone,
           ),
         ],
       ),
@@ -427,42 +477,164 @@ class _PassportScanner extends StatelessWidget {
   }
 }
 
-class _QueueStrip extends StatelessWidget {
+/// Three semantic queue-depth buckets driving tone + cadence.
+///
+///   ≤ 5  min  → green   (lane is moving)
+///   6-15 min  → amber   (manageable wait)
+///   > 15 min  → red     (heavy queue, expect delay)
+///
+/// When the bucket changes (e.g. amber → red), the strip fires a
+/// cinematic `LiveDataPulse` and a `selectionClick` haptic so the
+/// shift in conditions reads as a real airport status update.
+enum _QueueBucket { fast, medium, heavy }
+
+_QueueBucket _bucketFor(int minutes) {
+  if (minutes <= 5) return _QueueBucket.fast;
+  if (minutes <= 15) return _QueueBucket.medium;
+  return _QueueBucket.heavy;
+}
+
+Color _toneFor(_QueueBucket b) {
+  switch (b) {
+    case _QueueBucket.fast:
+      return const Color(0xFF10B981); // signal green
+    case _QueueBucket.medium:
+      return const Color(0xFFF59E0B); // amber
+    case _QueueBucket.heavy:
+      return const Color(0xFFEF4444); // red
+  }
+}
+
+String _labelFor(_QueueBucket b) {
+  switch (b) {
+    case _QueueBucket.fast:
+      return 'FAST';
+    case _QueueBucket.medium:
+      return 'STEADY';
+    case _QueueBucket.heavy:
+      return 'HEAVY';
+  }
+}
+
+/// Live queue-time strip. Cycles deterministically through a curated
+/// schedule of queue depths (3, 5, 9, 16, 12, 6, 4, 3, 11, 18 min)
+/// at 7-second intervals; tone + label shift with the bucket so the
+/// user can read airport conditions at a glance.
+class _QueueStrip extends StatefulWidget {
   const _QueueStrip({required this.tone});
   final Color tone;
+
+  @override
+  State<_QueueStrip> createState() => _QueueStripState();
+}
+
+class _QueueStripState extends State<_QueueStrip> {
+  // Curated cadence — moves through every bucket so the user sees
+  // the alive system shift colors over time, never stuck on one
+  // value.
+  static const _schedule = [3, 5, 9, 16, 12, 6, 4, 3, 11, 18];
+  int _ix = 0;
+  Timer? _tick;
+  final _pulse = LiveDataPulseController();
+  late _QueueBucket _bucket;
+
+  @override
+  void initState() {
+    super.initState();
+    _bucket = _bucketFor(_schedule[0]);
+    _tick = Timer.periodic(const Duration(seconds: 7), (_) {
+      if (!mounted) return;
+      final nextIx = (_ix + 1) % _schedule.length;
+      final nextBucket = _bucketFor(_schedule[nextIx]);
+      final changed = nextBucket != _bucket;
+      setState(() {
+        _ix = nextIx;
+        _bucket = nextBucket;
+      });
+      if (changed) {
+        HapticFeedback.selectionClick();
+        _pulse.pulse();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    _pulse.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: tone.withValues(alpha: 0.10),
-        border: Border.all(color: tone.withValues(alpha: 0.32), width: 0.6),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.timer_outlined, color: tone, size: 16),
-          const SizedBox(width: 8),
-          const Text(
-            '4 MIN QUEUE',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              fontSize: 12,
-              letterSpacing: 1.4,
+    final minutes = _schedule[_ix];
+    final liveTone = _toneFor(_bucket);
+    final label = _labelFor(_bucket);
+    return LiveDataPulse(
+      controller: _pulse,
+      tone: liveTone,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 480),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: liveTone.withValues(alpha: 0.10),
+          border:
+              Border.all(color: liveTone.withValues(alpha: 0.32), width: 0.6),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.timer_outlined, color: liveTone, size: 16),
+            const SizedBox(width: 8),
+            // Mono-tabular numeric so the digit width doesn't dance
+            // as minutes mutate.
+            Text(
+              '$minutes MIN QUEUE',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 12,
+                letterSpacing: 1.4,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
             ),
-          ),
-          const Spacer(),
-          Text(
-            'LANE 2 · GATE 14',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
-              fontWeight: FontWeight.w800,
-              fontSize: 10,
-              letterSpacing: 1.4,
+            const SizedBox(width: 8),
+            // Tonal bucket label so the user can read conditions
+            // (FAST / STEADY / HEAVY) without parsing minutes.
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: liveTone.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: liveTone.withValues(alpha: 0.55),
+                  width: 0.5,
+                ),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: liveTone,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 8.5,
+                  letterSpacing: 1.6,
+                ),
+              ),
             ),
-          ),
-        ],
+            const Spacer(),
+            Text(
+              'LANE 2 · GATE 14',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w800,
+                fontSize: 10,
+                letterSpacing: 1.4,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

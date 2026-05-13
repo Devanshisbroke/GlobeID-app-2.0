@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../cinematic/live/live_primitives.dart';
 import '../../data/models/lifecycle.dart';
+import '../../motion/motion.dart';
 import '../../nexus/nexus_tokens.dart';
 import '../lifecycle/lifecycle_provider.dart';
 
@@ -43,6 +44,15 @@ class TripTimelineLiveScreen extends ConsumerStatefulWidget {
 class _TripTimelineLiveScreenState
     extends ConsumerState<TripTimelineLiveScreen> {
   int _activeIndex = 4; // default to BOARD
+  // Phase-commit broadcast controller. Pulses the stage detail card
+  // every time the user crosses a real travel boundary.
+  final _phasePulse = LiveDataPulseController();
+
+  @override
+  void dispose() {
+    _phasePulse.dispose();
+    super.dispose();
+  }
 
   static const _stages = [
     _Stage('PLAN', Icons.flag_rounded, 'Visa, hotels, transit ready'),
@@ -55,6 +65,36 @@ class _TripTimelineLiveScreenState
     _Stage('CUSTOMS', Icons.shield_rounded, 'eGate ready · 4 min queue'),
     _Stage('ARRIVAL', Icons.location_on_rounded, 'Aman Tokyo · 22:10'),
   ];
+
+  /// Cinematic phase-commit detection. The stages array maps to:
+  ///   0 PLAN · 1 PACK · 2 CHECK-IN · 3 LOUNGE · 4 BOARD
+  ///   5 CRUISE · 6 LAND · 7 CUSTOMS · 8 ARRIVAL
+  ///
+  /// The transitions that represent a real travel commit (you've
+  /// physically crossed a boundary) are:
+  ///   BOARD   → CRUISE   (4 → 5, plane has taken off)
+  ///   CRUISE  → LAND     (5 → 6, plane has landed)
+  ///   CUSTOMS → ARRIVAL  (7 → 8, cleared and out of the airport)
+  bool _isPhaseCommit(int from, int to) {
+    if (to <= from) return false; // moving backward is never a commit
+    if (from == 4 && to == 5) return true;
+    if (from == 5 && to == 6) return true;
+    if (from == 7 && to == 8) return true;
+    return false;
+  }
+
+  /// Map a stage index to its cinematic surface state. Earlier stages
+  /// breathe in "active" (mid cadence); the active stage itself
+  /// breathes "armed" (faster, anticipating). The arrival stage
+  /// settles into the calm "settled" cadence.
+  LiveSurfaceState _stateForStage(int index, int active) {
+    if (index < active) return LiveSurfaceState.committed;
+    if (index == active) return LiveSurfaceState.active;
+    if (index == _stages.length - 1 && active == _stages.length - 1) {
+      return LiveSurfaceState.settled;
+    }
+    return LiveSurfaceState.armed;
+  }
 
   TripLifecycle? _resolveTrip() {
     final lifecycle = ref.watch(lifecycleProvider);
@@ -88,12 +128,21 @@ class _TripTimelineLiveScreenState
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
             children: [
-              _StageDetailCard(
-                stage: _stages[_activeIndex],
-                index: _activeIndex,
-                count: _stages.length,
+              // Wrap the active-stage detail in a LiveDataPulse so
+              // the card visually broadcasts every phase commit
+              // (BOARD → CRUISE → LAND → ARRIVAL). The pulse is
+              // fired in `onTap` below.
+              LiveDataPulse(
+                controller: _phasePulse,
                 tone: tone,
-                trip: trip,
+                child: _StageDetailCard(
+                  stage: _stages[_activeIndex],
+                  index: _activeIndex,
+                  count: _stages.length,
+                  tone: tone,
+                  trip: trip,
+                  liveState: _stateForStage(_activeIndex, _activeIndex),
+                ),
               ),
               const SizedBox(height: N.s4),
               for (var i = 0; i < _stages.length; i++)
@@ -105,7 +154,20 @@ class _TripTimelineLiveScreenState
                   done: i < _activeIndex,
                   tone: tone,
                   onTap: () {
-                    HapticFeedback.selectionClick();
+                    // Phase commits get the cinematic signature
+                    // triple-pulse — the user has crossed a real
+                    // travel boundary (boarded, landed, cleared
+                    // customs). Soft selectionClick otherwise.
+                    final committing = _isPhaseCommit(_activeIndex, i);
+                    if (committing) {
+                      Haptics.signature();
+                      // Broadcast the commit to the stage detail
+                      // card so the user feels and sees the phase
+                      // shift land at the same time.
+                      _phasePulse.pulse();
+                    } else {
+                      HapticFeedback.selectionClick();
+                    }
                     setState(() => _activeIndex = i);
                   },
                 ),
@@ -208,12 +270,18 @@ class _StageDetailCard extends StatelessWidget {
     required this.count,
     required this.tone,
     required this.trip,
+    this.liveState = LiveSurfaceState.active,
   });
   final _Stage stage;
   final int index;
   final int count;
   final Color tone;
   final TripLifecycle? trip;
+
+  /// Cinematic state of the active stage. Drives the breathing ring
+  /// cadence so the user feels the trip's current phase intensity
+  /// (committed = single pulse, active = mid cadence, settled = calm).
+  final LiveSurfaceState liveState;
 
   String _nextEventLabel() {
     switch (stage.label) {
@@ -279,7 +347,11 @@ class _StageDetailCard extends StatelessWidget {
                 alignment: Alignment.center,
                 children: [
                   Positioned.fill(
-                    child: BreathingRing(tone: tone, size: 64),
+                    child: BreathingRing(
+                      tone: tone,
+                      size: 64,
+                      duration: liveState.breathingPeriod,
+                    ),
                   ),
                   Container(
                     width: 56,

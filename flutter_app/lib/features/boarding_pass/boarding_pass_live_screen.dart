@@ -53,6 +53,14 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
   bool _boost = false;
   Duration _remaining = Duration.zero;
 
+  /// Cinematic gate-change broadcast. When `resolvedLeg.gate` mutates
+  /// (provider returned a new gate string), we fire one full tonal
+  /// pulse over the boarding pass and emit a warning haptic so the
+  /// gate change reads as a real airport announcement, not a silent
+  /// data refresh.
+  final _gatePulse = LiveDataPulseController();
+  String? _lastGate;
+
   @override
   void initState() {
     super.initState();
@@ -80,7 +88,23 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
     _flip.dispose();
     _airplane.dispose();
     _tick?.cancel();
+    _gatePulse.dispose();
     super.dispose();
+  }
+
+  /// Compare the resolved gate to the last gate we rendered. If the
+  /// value mutated (e.g. `B22 → B27`), fire a single cinematic pulse
+  /// + a warning haptic on the next frame. We schedule via
+  /// `addPostFrameCallback` to avoid mutating state during build.
+  void _maybeBroadcastGateChange(String? gate) {
+    if (_lastGate != null && gate != null && gate != _lastGate) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        HapticFeedback.heavyImpact();
+        _gatePulse.pulse();
+      });
+    }
+    _lastGate = gate;
   }
 
   Duration _calcRemaining(String iso) {
@@ -219,6 +243,8 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
     final brand = resolveAirlineBrand(resolvedLeg.flightNumber);
     final fromAir = getAirport(resolvedLeg.from);
     final toAir = getAirport(resolvedLeg.to);
+    // A2 — broadcast any gate mutation as a cinematic pulse.
+    _maybeBroadcastGateChange(resolvedLeg.gate);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -326,7 +352,10 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
                     const SizedBox(height: 12),
                     Expanded(
                       child: Center(
-                        child: GestureDetector(
+                        child: LiveDataPulse(
+                          controller: _gatePulse,
+                          tone: const Color(0xFFE3C083),
+                          child: GestureDetector(
                           onTap: () {
                             // Boarding-pass flip is a hero reveal —
                             // when the pass turns to expose the live
@@ -376,6 +405,7 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
                               );
                             },
                           ),
+                        ),
                         ),
                       ),
                     ),
