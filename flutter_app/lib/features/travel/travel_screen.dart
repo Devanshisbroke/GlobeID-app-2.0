@@ -8,7 +8,7 @@ import '../../data/models/lifecycle.dart';
 import '../../domain/airline_brand.dart';
 import '../../widgets/app_chrome.dart';
 import '../../widgets/bible/bible.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
@@ -148,10 +148,11 @@ class _TravelScreenState extends ConsumerState<TravelScreen>
           if (visible.isEmpty)
             const Padding(
               padding: EdgeInsets.only(top: AppTokens.space7),
-              child: EmptyState(
+              child: Os2EmptyState(
+                eyebrow: 'TRAVEL · TRIPS',
                 title: 'No trips here',
                 message:
-                    'Plan a trip and we will set up boarding passes, packing, and reminders.',
+                    'Plan a trip and we will set up boarding passes, packing, and reminders — sealed and pinned to your wallet.',
                 icon: Icons.flight_takeoff_rounded,
               ),
             )

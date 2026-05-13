@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../data/models/travel_record.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
@@ -35,9 +35,10 @@ class _TimelineScreenState extends ConsumerState<TimelineScreen> {
       return const PageScaffold(
         title: 'Timeline',
         subtitle: '0 past trips',
-        body: EmptyState(
+        body: Os2EmptyState(
+          eyebrow: 'TRAVEL · TIMELINE',
           title: 'No past trips',
-          message: 'Travel records will appear here as you fly.',
+          message: 'Travel records will appear here as you fly. Each leg is verified, signed, and pinned to your timeline.',
           icon: Icons.history_rounded,
         ),
       );

@@ -7,7 +7,7 @@ import '../../data/api/api_provider.dart';
 import '../../domain/airports.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/cinematic_button.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
@@ -43,10 +43,11 @@ class PlannerScreen extends ConsumerWidget {
       ],
       body: asyncTrips.when(
         loading: () => const SkeletonList(count: 4, itemHeight: 96),
-        error: (e, _) => EmptyState(
+        error: (e, _) => Os2ErrorState(
+          eyebrow: 'TRIP · PLANNER',
           title: 'Planner unavailable',
-          message: e.toString(),
-          icon: Icons.cloud_off_rounded,
+          message: 'We couldn\'t reach the planner backbone. Retry to pull saved trips and suggestions.',
+          errorCode: e.toString(),
         ),
         data: (trips) {
           if (trips.isEmpty) {

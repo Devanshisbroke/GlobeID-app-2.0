@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/animated_number.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
@@ -587,10 +587,11 @@ class _PredictiveNextTripCard extends StatelessWidget {
         height: 130,
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (e, _) => EmptyState(
+      error: (e, _) => Os2ErrorState(
+        eyebrow: 'INTELLIGENCE · TRAVEL',
         title: 'Travel insights unavailable',
-        message: e.toString(),
-        icon: Icons.cloud_off_rounded,
+        message: 'We couldn\'t reach the analytics backbone. Your local snapshot is still here — retry when you\'re back online.',
+        errorCode: e.toString(),
       ),
       data: (m) {
         final routes = ((m['topRoutes'] as List?) ?? const [])
@@ -746,10 +747,11 @@ class _AlertsFeed extends StatelessWidget {
       ),
       error: (e, _) => Padding(
         padding: const EdgeInsets.symmetric(vertical: AppTokens.space3),
-        child: EmptyState(
+        child: Os2ErrorState(
+          eyebrow: 'INTELLIGENCE · ALERTS',
           title: 'Alerts unavailable',
-          message: e.toString(),
-          icon: Icons.cloud_off_rounded,
+          message: 'We couldn\'t reach the alerts backbone. Retry to refresh anomaly detection.',
+          errorCode: e.toString(),
         ),
       ),
       data: (raw) {
@@ -907,10 +909,11 @@ class _TopRoutesPanel extends StatelessWidget {
         height: 96,
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (e, _) => EmptyState(
+      error: (e, _) => Os2ErrorState(
+        eyebrow: 'INTELLIGENCE · ROUTES',
         title: 'Routes unavailable',
-        message: e.toString(),
-        icon: Icons.cloud_off_rounded,
+        message: 'We couldn\'t reach the routes backbone. Retry to pull the latest pattern detection.',
+        errorCode: e.toString(),
       ),
       data: (m) {
         final routes = ((m['topRoutes'] as List?) ?? const [])
@@ -1049,10 +1052,11 @@ class _SnapshotGrid extends StatelessWidget {
         height: 140,
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (e, _) => EmptyState(
+      error: (e, _) => Os2ErrorState(
+        eyebrow: 'INTELLIGENCE · SNAPSHOT',
         title: 'Snapshot unavailable',
-        message: e.toString(),
-        icon: Icons.cloud_off_rounded,
+        message: 'We couldn\'t reach the snapshot backbone. Retry to refresh distance, countries, and continent totals.',
+        errorCode: e.toString(),
       ),
       data: (m) {
         final distance = (m['totalDistance'] as num?) ?? 0;

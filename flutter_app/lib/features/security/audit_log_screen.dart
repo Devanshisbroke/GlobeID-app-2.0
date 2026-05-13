@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../domain/audit_log.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
@@ -108,10 +108,11 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
           const SizedBox(height: AppTokens.space4),
 
           if (filtered.isEmpty)
-            const EmptyState(
+            const Os2EmptyState(
+              eyebrow: 'IDENTITY · AUDIT',
               title: 'No entries',
               message:
-                  'Open the vault, scan a document, or convert currency to start the trail.',
+                  'Open the vault, scan a document, or convert currency to start the trail. Every action is signed and timestamped.',
               icon: Icons.history_rounded,
             )
           else

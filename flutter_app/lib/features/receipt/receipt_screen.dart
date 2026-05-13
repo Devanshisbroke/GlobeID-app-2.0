@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/animated_number.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
@@ -26,9 +26,10 @@ class ReceiptScreen extends ConsumerWidget {
       return const PageScaffold(
         title: 'Receipt',
         subtitle: 'Latest scanned transaction',
-        body: EmptyState(
+        body: Os2EmptyState(
+          eyebrow: 'WALLET · RECEIPT',
           title: 'No receipts yet',
-          message: 'Scan a paper receipt to capture line items.',
+          message: 'Scan a paper receipt to capture line items, merchant, and tax — GlobeID signs each scan and pins it to your trip.',
           icon: Icons.receipt_long_rounded,
         ),
       );

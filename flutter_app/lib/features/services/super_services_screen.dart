@@ -12,7 +12,7 @@ import '../../domain/currency_engine.dart';
 import '../../domain/service_engine.dart';
 import '../../domain/visa_requirements.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
@@ -753,10 +753,11 @@ class _ScorePanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return score.when(
       loading: () => const _LoadingPanel(label: 'Loading score graph'),
-      error: (e, _) => EmptyState(
+      error: (e, _) => Os2ErrorState(
+        eyebrow: 'SERVICES · TRAVEL SCORE',
         title: 'Score unavailable',
-        message: e.toString(),
-        icon: Icons.cloud_off_rounded,
+        message: 'We couldn\'t reach the score backbone. Retry to recompute your travel score.',
+        errorCode: e.toString(),
       ),
       data: (snapshot) {
         final theme = Theme.of(context);

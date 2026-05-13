@@ -6,7 +6,7 @@ import '../../cinematic/sheets/apple_sheet.dart';
 import '../../nexus/nexus_tokens.dart';
 import '../../motion/haptic_refresh.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/shimmer.dart';
@@ -138,10 +138,11 @@ class _BespokeServiceShellState<T> extends State<BespokeServiceShell<T>> {
                   if (snap.hasError) {
                     return SliverFillRemaining(
                       hasScrollBody: false,
-                      child: EmptyState(
+                      child: Os2ErrorState(
+                        eyebrow: 'SERVICES · ${widget.title.toUpperCase()}',
                         title: '${widget.title} unavailable',
-                        message: snap.error.toString(),
-                        icon: Icons.cloud_off_rounded,
+                        message: 'We couldn\'t reach this surface right now. Retry to pull a fresh feed.',
+                        errorCode: snap.error.toString(),
                       ),
                     );
                   }
@@ -149,7 +150,8 @@ class _BespokeServiceShellState<T> extends State<BespokeServiceShell<T>> {
                   if (items.isEmpty) {
                     return SliverFillRemaining(
                       hasScrollBody: false,
-                      child: EmptyState(
+                      child: Os2EmptyState(
+                        eyebrow: 'SERVICES · ${widget.title.toUpperCase()}',
                         title: 'Nothing nearby',
                         message:
                             'Tell us where you\'re heading and we\'ll find ${widget.title.toLowerCase()}.',

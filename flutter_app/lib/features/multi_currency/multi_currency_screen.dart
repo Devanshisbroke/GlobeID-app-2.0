@@ -8,7 +8,7 @@ import '../../app/theme/app_tokens.dart';
 import '../../data/models/wallet_models.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/animated_number.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
@@ -26,9 +26,10 @@ class MultiCurrencyScreen extends ConsumerWidget {
       title: 'Multi-currency',
       subtitle: 'Default ${wallet.defaultCurrency}',
       body: wallet.balances.isEmpty
-          ? const EmptyState(
+          ? const Os2EmptyState(
+              eyebrow: 'WALLET · MULTI-CURRENCY',
               title: 'No balances yet',
-              message: 'Convert from your default currency to begin.',
+              message: 'Convert from your default currency to begin. Every conversion is signed and pinned to your ledger.',
               icon: Icons.currency_exchange_rounded,
             )
           : ListView(
