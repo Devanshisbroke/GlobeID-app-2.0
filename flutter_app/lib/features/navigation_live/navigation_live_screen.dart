@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../cinematic/live/live_primitives.dart';
 import '../../cinematic/live/live_substrates.dart';
+import '../../motion/motion.dart';
 import '../../nexus/nexus_tokens.dart';
 
 /// NavigationLive — cinematic turn-by-turn / intermodal handoff.
@@ -34,6 +36,36 @@ class _NavigationLiveScreenState extends ConsumerState<NavigationLiveScreen>
   late final AnimationController _heading;
   late final AnimationController _stripScroll;
 
+  // Live distance to next maneuver, in metres. Counts down on a
+  // 1 Hz timer; when it crosses 0 the system fires a signature
+  // haptic + LiveDataPulse on the turn disc and cycles to the next
+  // maneuver.
+  static const _maneuvers = <String>[
+    'ONTO NARITA EXPRESS · PLATFORM 4',
+    'BOARD NARITA EXPRESS · CAR 6',
+    'OFF AT TOKYO STATION · MARUNOUCHI EXIT',
+    'WALK 240 M TO AMAN TOKYO',
+  ];
+  static const _maneuverStarts = <int>[120, 90, 60, 240];
+  int _maneuverIdx = 0;
+  int _distance = 120;
+  int _eta = 64;
+  Timer? _tick;
+  final _turnPulse = LiveDataPulseController();
+
+  /// Cinematic state of the navigation card. The state ladder
+  /// derives from [_distance]:
+  ///   >500 m → armed     (cruising, no imminent turn)
+  ///   50–500 m → active  (approaching maneuver)
+  ///   1–50 m → committed (turn imminent — focus the eye)
+  ///    ≤0 m → settled    (turn executed — brief beat then armed)
+  LiveSurfaceState get _navState {
+    if (_distance <= 0) return LiveSurfaceState.settled;
+    if (_distance > 500) return LiveSurfaceState.armed;
+    if (_distance > 50) return LiveSurfaceState.active;
+    return LiveSurfaceState.committed;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -45,13 +77,46 @@ class _NavigationLiveScreenState extends ConsumerState<NavigationLiveScreen>
       vsync: this,
       duration: const Duration(seconds: 3),
     )..repeat();
+    _tick = Timer.periodic(const Duration(seconds: 1), _onTick);
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+  }
+
+  void _onTick(Timer _) {
+    if (!mounted) return;
+    setState(() {
+      // Distance closes at ~5 m/s walking + intermodal scaling.
+      _distance = math.max(_distance - 5, 0);
+      // ETA closes at 1 min every 18 s so the user sees a real-world
+      // descent of ETA without feeling fake.
+      if (_distance % 18 == 0 && _eta > 0) _eta -= 1;
+    });
+
+    if (_distance == 0) {
+      // Cinematic maneuver-commit moment — signature haptic +
+      // LiveDataPulse over the turn disc, then advance to the
+      // next maneuver after a 1-second settle.
+      Haptics.signature();
+      _turnPulse.pulse();
+      Future.delayed(const Duration(seconds: 1), () {
+        if (!mounted) return;
+        setState(() {
+          _maneuverIdx = (_maneuverIdx + 1) % _maneuvers.length;
+          _distance = _maneuverStarts[_maneuverIdx];
+        });
+      });
+    } else if (_distance == 50 || _distance == 25) {
+      // Selection-tick at threshold crossings (entering the
+      // committed band, then the final approach).
+      Haptics.snapDetent();
+    }
   }
 
   @override
   void dispose() {
+    _tick?.cancel();
     _heading.dispose();
     _stripScroll.dispose();
+    _turnPulse.dispose();
     super.dispose();
   }
 
@@ -62,7 +127,7 @@ class _NavigationLiveScreenState extends ConsumerState<NavigationLiveScreen>
       value: SystemUiOverlayStyle.light,
       child: LiveCanvas(
         tone: tone,
-        statusBar: _Header(tone: tone),
+        statusBar: _Header(tone: tone, state: _navState),
         bottomBar: Row(
           children: [
             Expanded(
@@ -94,11 +159,17 @@ class _NavigationLiveScreenState extends ConsumerState<NavigationLiveScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _TurnDisc(tone: tone, heading: _heading),
+              _TurnDisc(
+                tone: tone,
+                heading: _heading,
+                distance: _distance,
+                maneuver: _maneuvers[_maneuverIdx],
+                pulse: _turnPulse,
+              ),
               const SizedBox(height: N.s4),
               _NavStrip(tone: tone, scroll: _stripScroll),
               const SizedBox(height: N.s4),
-              _RouteSummary(tone: tone),
+              _RouteSummary(tone: tone, etaMinutes: _eta),
               const SizedBox(height: N.s4),
               _ModesRow(tone: tone),
             ],
@@ -110,8 +181,9 @@ class _NavigationLiveScreenState extends ConsumerState<NavigationLiveScreen>
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.tone});
+  const _Header({required this.tone, required this.state});
   final Color tone;
+  final LiveSurfaceState state;
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -166,7 +238,7 @@ class _Header extends StatelessWidget {
             ),
           ),
           LiveStatusPill(
-            state: LiveSurfaceState.active,
+            state: state,
             tone: tone,
           ),
         ],
@@ -176,78 +248,100 @@ class _Header extends StatelessWidget {
 }
 
 class _TurnDisc extends StatelessWidget {
-  const _TurnDisc({required this.tone, required this.heading});
+  const _TurnDisc({
+    required this.tone,
+    required this.heading,
+    required this.distance,
+    required this.maneuver,
+    required this.pulse,
+  });
   final Color tone;
   final AnimationController heading;
+  final int distance;
+  final String maneuver;
+  final LiveDataPulseController pulse;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(N.rCardLg),
-        color: Colors.white.withValues(alpha: 0.04),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.10),
-          width: 0.5,
+    final urgent = distance > 0 && distance <= 50;
+    return LiveDataPulse(
+      controller: pulse,
+      tone: tone,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(N.rCardLg),
+          color: Colors.white.withValues(alpha: 0.04),
+          border: Border.all(
+            color: urgent
+                ? tone.withValues(alpha: 0.42)
+                : Colors.white.withValues(alpha: 0.10),
+            width: urgent ? 0.8 : 0.5,
+          ),
         ),
-      ),
-      child: Column(
-        children: [
-          SizedBox(
-            width: 180,
-            height: 180,
-            child: AnimatedBuilder(
-              animation: heading,
-              builder: (_, __) {
-                return CustomPaint(
-                  painter: _CompassPainter(
-                      heading: heading.value * math.pi * 2, tone: tone),
-                  child: Center(
-                    child: Transform.rotate(
-                      angle: math.sin(heading.value * math.pi * 2) * 0.18,
-                      child: Icon(
-                        Icons.turn_right_rounded,
-                        color: tone,
-                        size: 76,
+        child: Column(
+          children: [
+            SizedBox(
+              width: 180,
+              height: 180,
+              child: AnimatedBuilder(
+                animation: heading,
+                builder: (_, __) {
+                  return CustomPaint(
+                    painter: _CompassPainter(
+                        heading: heading.value * math.pi * 2, tone: tone),
+                    child: Center(
+                      child: Transform.rotate(
+                        angle: math.sin(heading.value * math.pi * 2) * 0.18,
+                        child: Icon(
+                          Icons.turn_right_rounded,
+                          color: tone,
+                          size: 76,
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'TURN RIGHT IN',
-            style: TextStyle(
-              color: Colors.white70,
-              fontWeight: FontWeight.w900,
-              fontSize: 10,
-              letterSpacing: 1.6,
+            const SizedBox(height: 14),
+            Text(
+              distance <= 0 ? 'TURN NOW' : 'TURN RIGHT IN',
+              style: TextStyle(
+                color: distance <= 0
+                    ? tone
+                    : urgent
+                        ? tone.withValues(alpha: 0.95)
+                        : Colors.white70,
+                fontWeight: FontWeight.w900,
+                fontSize: 10,
+                letterSpacing: 1.6,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            '120 m',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              fontSize: 32,
-              letterSpacing: 1.0,
-              fontFeatures: [FontFeature.tabularFigures()],
+            const SizedBox(height: 4),
+            Text(
+              distance <= 0 ? 'GO' : '$distance m',
+              style: TextStyle(
+                color: urgent || distance <= 0 ? tone : Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 32,
+                letterSpacing: 1.0,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'ONTO NARITA EXPRESS · PLATFORM 4',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.62),
-              fontWeight: FontWeight.w800,
-              fontSize: 10,
-              letterSpacing: 1.4,
+            const SizedBox(height: 4),
+            Text(
+              maneuver,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.62),
+                fontWeight: FontWeight.w800,
+                fontSize: 10,
+                letterSpacing: 1.4,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -365,8 +459,9 @@ class _NavStrip extends StatelessWidget {
 }
 
 class _RouteSummary extends StatelessWidget {
-  const _RouteSummary({required this.tone});
+  const _RouteSummary({required this.tone, required this.etaMinutes});
   final Color tone;
+  final int etaMinutes;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -398,12 +493,13 @@ class _RouteSummary extends StatelessWidget {
                 ),
               ),
               Text(
-                'ETA 64m',
+                etaMinutes <= 0 ? 'ARRIVED' : 'ETA ${etaMinutes}m',
                 style: TextStyle(
                   color: tone,
                   fontWeight: FontWeight.w900,
                   fontSize: 11,
                   letterSpacing: 1.2,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ],

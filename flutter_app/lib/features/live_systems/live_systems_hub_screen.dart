@@ -51,6 +51,7 @@ class _LiveSystemsHubScreenState extends ConsumerState<LiveSystemsHubScreen>
       icon: Icons.book_rounded,
       tone: Color(0xFF1E3A8A),
       route: '/passport-live',
+      state: LiveSurfaceState.armed,
     ),
     _LiveTileMeta(
       label: 'BOARDING PASS',
@@ -58,6 +59,7 @@ class _LiveSystemsHubScreenState extends ConsumerState<LiveSystemsHubScreen>
       icon: Icons.qr_code_2_rounded,
       tone: Color(0xFF0EA5E9),
       route: '/boarding-pass-live',
+      state: LiveSurfaceState.active,
     ),
     _LiveTileMeta(
       label: 'VISA',
@@ -65,6 +67,7 @@ class _LiveSystemsHubScreenState extends ConsumerState<LiveSystemsHubScreen>
       icon: Icons.shield_rounded,
       tone: Color(0xFFE11D48),
       route: '/visa-live/JP',
+      state: LiveSurfaceState.armed,
     ),
     _LiveTileMeta(
       label: 'FOREX',
@@ -72,6 +75,7 @@ class _LiveSystemsHubScreenState extends ConsumerState<LiveSystemsHubScreen>
       icon: Icons.currency_exchange_rounded,
       tone: Color(0xFF10B981),
       route: '/forex-live',
+      state: LiveSurfaceState.active,
     ),
     _LiveTileMeta(
       label: 'TRIP TIMELINE',
@@ -79,6 +83,7 @@ class _LiveSystemsHubScreenState extends ConsumerState<LiveSystemsHubScreen>
       icon: Icons.timeline_rounded,
       tone: Color(0xFF6366F1),
       route: '/trip-timeline-live',
+      state: LiveSurfaceState.active,
     ),
     _LiveTileMeta(
       label: 'IMMIGRATION',
@@ -86,6 +91,7 @@ class _LiveSystemsHubScreenState extends ConsumerState<LiveSystemsHubScreen>
       icon: Icons.how_to_reg_rounded,
       tone: Color(0xFF06B6D4),
       route: '/immigration-live',
+      state: LiveSurfaceState.armed,
     ),
     _LiveTileMeta(
       label: 'AIRPORT COMPANION',
@@ -93,6 +99,7 @@ class _LiveSystemsHubScreenState extends ConsumerState<LiveSystemsHubScreen>
       icon: Icons.radar_rounded,
       tone: Color(0xFF60A5FA),
       route: '/airport-companion-live',
+      state: LiveSurfaceState.active,
     ),
     _LiveTileMeta(
       label: 'ARRIVAL',
@@ -100,6 +107,7 @@ class _LiveSystemsHubScreenState extends ConsumerState<LiveSystemsHubScreen>
       icon: Icons.flight_land_rounded,
       tone: Color(0xFF10B981),
       route: '/arrival-live',
+      state: LiveSurfaceState.idle,
     ),
     _LiveTileMeta(
       label: 'TRANSIT PASSES',
@@ -107,6 +115,7 @@ class _LiveSystemsHubScreenState extends ConsumerState<LiveSystemsHubScreen>
       icon: Icons.nfc_rounded,
       tone: Color(0xFF8B5CF6),
       route: '/transit-passes-live',
+      state: LiveSurfaceState.armed,
     ),
     _LiveTileMeta(
       label: 'LOUNGE',
@@ -114,6 +123,7 @@ class _LiveSystemsHubScreenState extends ConsumerState<LiveSystemsHubScreen>
       icon: Icons.weekend_rounded,
       tone: Color(0xFFD4A574),
       route: '/lounge-live',
+      state: LiveSurfaceState.armed,
     ),
     _LiveTileMeta(
       label: 'COUNTRY INTEL',
@@ -121,6 +131,7 @@ class _LiveSystemsHubScreenState extends ConsumerState<LiveSystemsHubScreen>
       icon: Icons.public_rounded,
       tone: Color(0xFFF59E0B),
       route: '/country-live/JP',
+      state: LiveSurfaceState.active,
     ),
     _LiveTileMeta(
       label: 'NAVIGATION',
@@ -128,6 +139,7 @@ class _LiveSystemsHubScreenState extends ConsumerState<LiveSystemsHubScreen>
       icon: Icons.alt_route_rounded,
       tone: Color(0xFF2DD4BF),
       route: '/navigation-live',
+      state: LiveSurfaceState.active,
     ),
   ];
 
@@ -186,12 +198,20 @@ class _LiveTileMeta {
     required this.icon,
     required this.tone,
     required this.route,
+    this.state = LiveSurfaceState.armed,
   });
   final String label;
   final String subtitle;
   final IconData icon;
   final Color tone;
   final String route;
+
+  /// Hub-level reference state. Each tile broadcasts its current
+  /// cinematic posture so the user can scan the hub and see which
+  /// surfaces are armed / active / committed without entering them.
+  /// The state is hub-level only — once the user opens the surface,
+  /// the live screen owns its own state machine.
+  final LiveSurfaceState state;
 }
 
 class _Header extends StatelessWidget {
@@ -451,18 +471,25 @@ class _LiveTileState extends State<_LiveTile>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: m.tone.withValues(alpha: 0.20),
-                            border: Border.all(
-                              color: m.tone.withValues(alpha: 0.55),
-                              width: 0.6,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: m.tone.withValues(alpha: 0.20),
+                                border: Border.all(
+                                  color: m.tone.withValues(alpha: 0.55),
+                                  width: 0.6,
+                                ),
+                              ),
+                              child: Icon(m.icon, color: m.tone, size: 18),
                             ),
-                          ),
-                          child: Icon(m.icon, color: m.tone, size: 18),
+                            const Spacer(),
+                            LiveStatusPill(state: m.state, tone: m.tone),
+                          ],
                         ),
                         const Spacer(),
                         Text(
