@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/user/user_provider.dart';
+import '../../data/models/wallet_models.dart';
 import '../../features/wallet/wallet_provider.dart';
 import '../../features/inbox/inbox_provider.dart';
 import '../../features/score/score_provider.dart';
@@ -193,6 +194,47 @@ class PulseWorld extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: Os2.space3),
+            // ─── ALIVE SYSTEMS — every credential / ticket / journey
+            //     rendered as a living, tappable object. This is the
+            //     index into the Live systems ecosystem.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Os2Text.monoCap(
+                    'ALIVE SYSTEMS',
+                    color: Os2.identityTone,
+                    size: 10,
+                  ),
+                  const SizedBox(width: Os2.space2),
+                  Expanded(
+                    child: Container(
+                      height: Os2.strokeFine,
+                      color: Os2.hairline,
+                    ),
+                  ),
+                  const SizedBox(width: Os2.space2),
+                  Os2Magnetic(
+                    onTap: () => GoRouter.of(context).push('/live'),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
+                      child: Os2Text.monoCap(
+                        'OPEN HUB',
+                        color: Os2.identityTone,
+                        size: 10,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: Os2.space3),
+            const _AliveSystemsRail(),
+            const SizedBox(height: Os2.space4),
             // 1. Active/upcoming trip slab — FOCAL.
             if (activeLeg != null || nextLeg != null) ...[
               Padding(
@@ -711,7 +753,7 @@ class _WalletPulse extends StatelessWidget {
     required this.defaultCurrency,
   });
 
-  final List<dynamic> balances; // List<WalletBalance>
+  final List<WalletBalance> balances;
   final String defaultCurrency;
 
   @override
@@ -719,12 +761,12 @@ class _WalletPulse extends StatelessWidget {
     final primary = balances.isEmpty
         ? null
         : balances.firstWhere(
-            (b) => (b.currency as String) == defaultCurrency,
+            (b) => b.currency == defaultCurrency,
             orElse: () => balances.first,
           );
     final total = balances.fold<double>(0, (acc, b) {
-      final rate = (b.rate as num).toDouble();
-      final amount = (b.amount as num).toDouble();
+      final rate = b.rate.toDouble();
+      final amount = b.amount.toDouble();
       return acc + (rate > 0 ? amount / rate : amount);
     });
     return Os2Magnetic(
@@ -772,13 +814,13 @@ class _WalletPulse extends StatelessWidget {
               Row(
                 children: [
                   Os2Text.body(
-                    '${primary.flag as String} ${primary.currency as String}',
+                    '${primary.flag} ${primary.currency}',
                     color: Os2.inkMid,
                     size: 13,
                   ),
                   const Spacer(),
                   Os2Text.title(
-                    '${primary.symbol as String}${_fmt((primary.amount as num).toDouble())}',
+                    '${primary.symbol}${_fmt(primary.amount)}',
                     color: Os2.inkBright,
                     size: 15,
                   ),
@@ -863,6 +905,201 @@ class _ConciergeHandoff extends StatelessWidget {
             const SizedBox(height: 2),
             Os2Text.caption('OPEN FLOOR', color: Os2.servicesTone),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// _AliveSystemsRail — horizontal rail of 12 living credential tiles.
+//
+// This is the canonical surface for the Live systems ecosystem on the
+// Pulse home. Every tile is a tappable Os2Slab with a tonal disc, a
+// terse label, and a holographic shimmer. Each routes to its own
+// custom-painted Live screen (Passport / Boarding / Visa / Forex / …).
+// ─────────────────────────────────────────────────────────────────────
+
+class _AliveSystemsRail extends StatelessWidget {
+  const _AliveSystemsRail();
+
+  static const _systems = <_AliveTileMeta>[
+    _AliveTileMeta(
+      label: 'Passport',
+      hint: 'Live booklet',
+      icon: Icons.book_rounded,
+      tone: Color(0xFFC9A961), // pulse / foil gold
+      route: '/passport-live',
+    ),
+    _AliveTileMeta(
+      label: 'Boarding',
+      hint: 'Gate B14',
+      icon: Icons.qr_code_2_rounded,
+      tone: Color(0xFF0EA5E9),
+      route: '/boarding-pass-live',
+    ),
+    _AliveTileMeta(
+      label: 'Trip',
+      hint: 'LH 408 timeline',
+      icon: Icons.timeline_rounded,
+      tone: Color(0xFF6366F1),
+      route: '/trip-timeline-live',
+    ),
+    _AliveTileMeta(
+      label: 'Visa',
+      hint: 'JP · 90 days',
+      icon: Icons.shield_rounded,
+      tone: Color(0xFFE11D48),
+      route: '/visa-live/JP',
+    ),
+    _AliveTileMeta(
+      label: 'Forex',
+      hint: 'Multi-currency',
+      icon: Icons.currency_exchange_rounded,
+      tone: Color(0xFF10B981),
+      route: '/forex-live',
+    ),
+    _AliveTileMeta(
+      label: 'Lounge',
+      hint: 'Priority Pass',
+      icon: Icons.weekend_rounded,
+      tone: Color(0xFFD4A574),
+      route: '/lounge-live',
+    ),
+    _AliveTileMeta(
+      label: 'Immigration',
+      hint: 'eGate ready',
+      icon: Icons.how_to_reg_rounded,
+      tone: Color(0xFF06B6D4),
+      route: '/immigration-live',
+    ),
+    _AliveTileMeta(
+      label: 'Airport',
+      hint: 'Companion',
+      icon: Icons.radar_rounded,
+      tone: Color(0xFF60A5FA),
+      route: '/airport-companion-live',
+    ),
+    _AliveTileMeta(
+      label: 'Arrival',
+      hint: 'Descent',
+      icon: Icons.flight_land_rounded,
+      tone: Color(0xFF34D399),
+      route: '/arrival-live',
+    ),
+    _AliveTileMeta(
+      label: 'Transit',
+      hint: 'NFC pass',
+      icon: Icons.nfc_rounded,
+      tone: Color(0xFF8B5CF6),
+      route: '/transit-passes-live',
+    ),
+    _AliveTileMeta(
+      label: 'Intel',
+      hint: 'Country dossier',
+      icon: Icons.public_rounded,
+      tone: Color(0xFFF59E0B),
+      route: '/country-live/JP',
+    ),
+    _AliveTileMeta(
+      label: 'Navigate',
+      hint: 'Turn-by-turn',
+      icon: Icons.alt_route_rounded,
+      tone: Color(0xFF2DD4BF),
+      route: '/navigation-live',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 132,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+        itemCount: _systems.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (_, i) => _AliveTile(meta: _systems[i]),
+      ),
+    );
+  }
+}
+
+class _AliveTileMeta {
+  const _AliveTileMeta({
+    required this.label,
+    required this.hint,
+    required this.icon,
+    required this.tone,
+    required this.route,
+  });
+  final String label;
+  final String hint;
+  final IconData icon;
+  final Color tone;
+  final String route;
+}
+
+class _AliveTile extends StatelessWidget {
+  const _AliveTile({required this.meta});
+  final _AliveTileMeta meta;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 124,
+      child: Os2Magnetic(
+        onTap: () {
+          NHaptics.tap();
+          GoRouter.of(context).push(meta.route);
+        },
+        child: Os2Slab(
+          tone: meta.tone,
+          radius: Os2.rCard,
+          halo: Os2SlabHalo.corner,
+          elevation: Os2SlabElevation.resting,
+          padding: const EdgeInsets.fromLTRB(
+            Os2.space3,
+            Os2.space3,
+            Os2.space3,
+            Os2.space3,
+          ),
+          breath: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Tonal disc with icon.
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: meta.tone.withValues(alpha: 0.16),
+                  border: Border.all(
+                    color: meta.tone.withValues(alpha: 0.42),
+                    width: 0.6,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Icon(meta.icon, size: 16, color: meta.tone),
+              ),
+              const SizedBox(height: 6),
+              Os2Text.title(
+                meta.label,
+                color: Os2.inkBright,
+                size: 14,
+                weight: FontWeight.w600,
+                maxLines: 1,
+              ),
+              Os2Text.caption(
+                meta.hint,
+                color: Os2.inkLow,
+                maxLines: 1,
+              ),
+            ],
+          ),
         ),
       ),
     );
