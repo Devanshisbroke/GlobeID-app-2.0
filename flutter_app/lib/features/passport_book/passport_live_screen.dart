@@ -443,13 +443,34 @@ class _Cover extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 18,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(2),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFD4AF37), Color(0xFF8E7128)],
+                    // Biometric chip — pulses on a heart-rate cadence
+                    // so the chip reads as a live secure element
+                    // rather than a printed icon.
+                    const NfcPulse(
+                      tone: Color(0xFFD4AF37),
+                      size: 32,
+                      rings: 2,
+                      maxAlpha: 0.45,
+                      child: SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: Center(
+                          child: SizedBox(
+                            width: 18,
+                            height: 14,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(2)),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Color(0xFFD4AF37),
+                                    Color(0xFF8E7128),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),

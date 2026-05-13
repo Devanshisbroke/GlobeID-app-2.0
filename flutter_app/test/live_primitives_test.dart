@@ -564,4 +564,111 @@ void main() {
       expect(w.alpha, lessThan(0.10));
     });
   });
+
+  group('BreathingHalo — state-driven ambient pulse', () {
+    testWidgets('mounts with a child and stays interactive',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            backgroundColor: Colors.black,
+            body: Center(
+              child: BreathingHalo(
+                tone: Color(0xFFE15B5B),
+                state: LiveSurfaceState.active,
+                child: SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: ColoredBox(color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.byType(BreathingHalo), findsOneWidget);
+      // Halo paints its glow inside an IgnorePointer so taps fall
+      // through to the child below.
+      expect(find.byType(IgnorePointer), findsWidgets);
+    });
+
+    testWidgets('cadence updates smoothly when state changes',
+        (tester) async {
+      Widget halo(LiveSurfaceState s) => MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: BreathingHalo(
+                  tone: const Color(0xFF66B7FF),
+                  state: s,
+                  child: const SizedBox(width: 40, height: 40),
+                ),
+              ),
+            ),
+          );
+      await tester.pumpWidget(halo(LiveSurfaceState.idle));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpWidget(halo(LiveSurfaceState.active));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(BreathingHalo), findsOneWidget);
+    });
+
+    test('default maxAlpha never exceeds opaque', () {
+      const w = BreathingHalo(
+        tone: Color(0xFFE15B5B),
+        child: SizedBox(),
+      );
+      expect(w.maxAlpha, lessThan(1.0));
+      expect(w.maxAlpha, greaterThan(0.0));
+    });
+  });
+
+  group('HolographicFoil — radial sweep', () {
+    testWidgets('radial: true mounts a RepaintBoundary + ShaderMask',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 200,
+                height: 100,
+                child: HolographicFoil(
+                  radial: true,
+                  style: HolographicFoilStyle.iridescent,
+                  child: ColoredBox(color: Colors.transparent),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.byType(HolographicFoil), findsOneWidget);
+      expect(find.byType(ShaderMask), findsOneWidget);
+    });
+
+    testWidgets('radial + secondarySweep does not stack twice',
+        (tester) async {
+      // When radial is true, the secondarySweep counter-band is
+      // intentionally suppressed (radial focal already orbits).
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 100,
+              height: 100,
+              child: HolographicFoil(
+                radial: true,
+                secondarySweep: true,
+                child: ColoredBox(color: Colors.transparent),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byType(ShaderMask), findsOneWidget);
+    });
+  });
 }

@@ -334,6 +334,17 @@ class _TransitCard extends StatelessWidget {
           tone: card.tone,
           child: Stack(
             children: [
+              // Subliminal GLOBE·ID watermark drift on the PETG
+              // surface — 44 s cycle, alpha 0.04. Cooler aurora
+              // tone so it reads under the digital-credential foil.
+              Positioned.fill(
+                child: GlobeIdWatermarkDrift(
+                  tone: card.tone,
+                  alpha: 0.04,
+                  fontSize: 46,
+                  period: const Duration(seconds: 44),
+                ),
+              ),
               // Transit cards are digital credentials — aurora foil
               // (cyan + violet + gold) makes the active card read as
               // a live NFC chip rather than printed plastic.
