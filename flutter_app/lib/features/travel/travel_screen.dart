@@ -513,10 +513,68 @@ class _TravelSystemsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tiles = <(_TravelTileData, _TravelTileData)>[
+      // ── Live alive surfaces (lead the rail) ──────────────────
+      (
+        const _TravelTileData(
+          label: 'Live trip',
+          icon: Icons.timeline_rounded,
+          accent: Color(0xFF6366F1),
+          route: '/trip-timeline-live',
+        ),
+        const _TravelTileData(
+          label: 'Boarding',
+          icon: Icons.qr_code_2_rounded,
+          accent: Color(0xFF0EA5E9),
+          route: '/boarding-pass-live',
+        ),
+      ),
+      (
+        const _TravelTileData(
+          label: 'Airport',
+          icon: Icons.radar_rounded,
+          accent: Color(0xFF60A5FA),
+          route: '/airport-companion-live',
+        ),
+        const _TravelTileData(
+          label: 'Immigration',
+          icon: Icons.how_to_reg_rounded,
+          accent: Color(0xFF06B6D4),
+          route: '/immigration-live',
+        ),
+      ),
+      (
+        const _TravelTileData(
+          label: 'Arrival',
+          icon: Icons.flight_land_rounded,
+          accent: Color(0xFF10B981),
+          route: '/arrival-live',
+        ),
+        const _TravelTileData(
+          label: 'Lounge',
+          icon: Icons.weekend_rounded,
+          accent: Color(0xFFD4A574),
+          route: '/lounge-live',
+        ),
+      ),
+      (
+        const _TravelTileData(
+          label: 'Navigate',
+          icon: Icons.alt_route_rounded,
+          accent: Color(0xFF2DD4BF),
+          route: '/navigation-live',
+        ),
+        const _TravelTileData(
+          label: 'All alive',
+          icon: Icons.auto_awesome_rounded,
+          accent: Color(0xFFC9A961),
+          route: '/live',
+        ),
+      ),
+      // ── Tools rail ────────────────────────────────────────────
       (
         const _TravelTileData(
           label: 'Timeline',
-          icon: Icons.timeline_rounded,
+          icon: Icons.event_note_rounded,
           accent: Color(0xFF06B6D4),
           route: '/timeline',
         ),

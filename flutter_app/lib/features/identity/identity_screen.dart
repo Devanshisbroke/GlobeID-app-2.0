@@ -162,12 +162,12 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
         SectionHeader(
           title: 'Travel readiness',
           dense: true,
-          action: 'Visa detail',
-          onAction: () => context.push('/visa'),
+          action: 'Live visa',
+          onAction: () => context.push('/visa-live/JP'),
         ),
         InkWell(
           borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-          onTap: () => context.push('/visa'),
+          onTap: () => context.push('/visa-live/JP'),
           child: ContextualSurface(
               child: Row(
                 children: [
@@ -721,18 +721,60 @@ class _IdentitySystemsGrid extends StatelessWidget {
         accent: Color(0xFFF59E0B),
       ),
       const _SystemTileData(
-        label: 'Multi-currency',
-        sub: 'Live rates · convert',
-        icon: Icons.currency_exchange_rounded,
-        route: '/multi-currency',
-        accent: Color(0xFFEC4899),
+        label: 'Live visa',
+        sub: 'Sealed booklet · MRZ',
+        icon: Icons.shield_rounded,
+        route: '/visa-live/JP',
+        accent: Color(0xFFE11D48),
       ),
       const _SystemTileData(
-        label: 'Intelligence',
-        sub: 'Patterns & nudges',
-        icon: Icons.insights_rounded,
-        route: '/intelligence',
-        accent: Color(0xFF3B82F6),
+        label: 'Live forex',
+        sub: 'Polymer vault',
+        icon: Icons.currency_exchange_rounded,
+        route: '/forex-live',
+        accent: Color(0xFF10B981),
+      ),
+      const _SystemTileData(
+        label: 'Live boarding',
+        sub: 'Holographic pass',
+        icon: Icons.qr_code_2_rounded,
+        route: '/boarding-pass-live',
+        accent: Color(0xFF0EA5E9),
+      ),
+      const _SystemTileData(
+        label: 'Transit pass',
+        sub: 'NFC tap deck',
+        icon: Icons.nfc_rounded,
+        route: '/transit-passes-live',
+        accent: Color(0xFF8B5CF6),
+      ),
+      const _SystemTileData(
+        label: 'Lounge',
+        sub: 'Embossed leather',
+        icon: Icons.weekend_rounded,
+        route: '/lounge-live',
+        accent: Color(0xFFD4A574),
+      ),
+      const _SystemTileData(
+        label: 'Country',
+        sub: 'Dossier · advisory',
+        icon: Icons.public_rounded,
+        route: '/country-live/JP',
+        accent: Color(0xFFF59E0B),
+      ),
+      const _SystemTileData(
+        label: 'Immigration',
+        sub: 'eGate scanner',
+        icon: Icons.how_to_reg_rounded,
+        route: '/immigration-live',
+        accent: Color(0xFF06B6D4),
+      ),
+      const _SystemTileData(
+        label: 'Alive hub',
+        sub: 'Every live surface',
+        icon: Icons.auto_awesome_rounded,
+        route: '/live',
+        accent: Color(0xFFC9A961),
       ),
     ];
     return GridView.count(

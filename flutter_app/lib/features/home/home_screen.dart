@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -198,6 +199,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
               ),
             ),
+          SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'Alive systems',
+              subtitle: 'Every credential, ticket, and journey — alive',
+              action: 'Open hub',
+              onAction: () => context.push('/live'),
+            ),
+          ),
+          const SliverToBoxAdapter(
+            child: SafeBoundary(
+              debugLabel: 'home.alive_rail',
+              fallbackHeight: 132,
+              child: _AliveRail(),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppTokens.space2)),
           SliverToBoxAdapter(
             child: SectionHeader(
               title: 'Next trip',
@@ -727,6 +744,193 @@ class _SmartSuggestionsStrip extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// _AliveRail — horizontal carousel of the 12 alive systems.
+//
+// Visually matches Pulse home rail rhythm (132h, 16px page padding,
+// 12px gutters). Each tile is a hairline panel with a tonal disc,
+// label, and "open" affordance. Holographic shimmer is intentionally
+// subtle here — we don't want to compete with the FlightStatusCard.
+// ─────────────────────────────────────────────────────────────────────
+
+class _AliveRail extends StatelessWidget {
+  const _AliveRail();
+
+  static const _systems = <_AliveTileMeta>[
+    _AliveTileMeta(
+      label: 'Passport',
+      icon: Icons.book_rounded,
+      tone: Color(0xFF1E3A8A),
+      route: '/passport-live',
+    ),
+    _AliveTileMeta(
+      label: 'Boarding',
+      icon: Icons.qr_code_2_rounded,
+      tone: Color(0xFF0EA5E9),
+      route: '/boarding-pass-live',
+    ),
+    _AliveTileMeta(
+      label: 'Trip',
+      icon: Icons.timeline_rounded,
+      tone: Color(0xFF6366F1),
+      route: '/trip-timeline-live',
+    ),
+    _AliveTileMeta(
+      label: 'Visa',
+      icon: Icons.shield_rounded,
+      tone: Color(0xFFE11D48),
+      route: '/visa-live/JP',
+    ),
+    _AliveTileMeta(
+      label: 'Forex',
+      icon: Icons.currency_exchange_rounded,
+      tone: Color(0xFF10B981),
+      route: '/forex-live',
+    ),
+    _AliveTileMeta(
+      label: 'Lounge',
+      icon: Icons.weekend_rounded,
+      tone: Color(0xFFD4A574),
+      route: '/lounge-live',
+    ),
+    _AliveTileMeta(
+      label: 'Immigration',
+      icon: Icons.how_to_reg_rounded,
+      tone: Color(0xFF06B6D4),
+      route: '/immigration-live',
+    ),
+    _AliveTileMeta(
+      label: 'Airport',
+      icon: Icons.radar_rounded,
+      tone: Color(0xFF60A5FA),
+      route: '/airport-companion-live',
+    ),
+    _AliveTileMeta(
+      label: 'Arrival',
+      icon: Icons.flight_land_rounded,
+      tone: Color(0xFF10B981),
+      route: '/arrival-live',
+    ),
+    _AliveTileMeta(
+      label: 'Transit',
+      icon: Icons.nfc_rounded,
+      tone: Color(0xFF8B5CF6),
+      route: '/transit-passes-live',
+    ),
+    _AliveTileMeta(
+      label: 'Intel',
+      icon: Icons.public_rounded,
+      tone: Color(0xFFF59E0B),
+      route: '/country-live/JP',
+    ),
+    _AliveTileMeta(
+      label: 'Navigate',
+      icon: Icons.alt_route_rounded,
+      tone: Color(0xFF2DD4BF),
+      route: '/navigation-live',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 132,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+        itemCount: _systems.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (_, i) => _AliveTile(meta: _systems[i]),
+      ),
+    );
+  }
+}
+
+class _AliveTileMeta {
+  const _AliveTileMeta({
+    required this.label,
+    required this.icon,
+    required this.tone,
+    required this.route,
+  });
+  final String label;
+  final IconData icon;
+  final Color tone;
+  final String route;
+}
+
+class _AliveTile extends StatelessWidget {
+  const _AliveTile({required this.meta});
+  final _AliveTileMeta meta;
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        context.push(meta.route);
+      },
+      child: Container(
+        width: 110,
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              meta.tone.withValues(alpha: 0.20),
+              meta.tone.withValues(alpha: 0.04),
+            ],
+          ),
+          border: Border.all(
+            color: meta.tone.withValues(alpha: 0.32),
+            width: 0.5,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: meta.tone.withValues(alpha: 0.22),
+                border: Border.all(
+                  color: meta.tone.withValues(alpha: 0.55),
+                  width: 0.6,
+                ),
+              ),
+              child: Icon(meta.icon, color: meta.tone, size: 18),
+            ),
+            const Spacer(),
+            Text(
+              meta.label.toUpperCase(),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.w900,
+                fontSize: 11,
+                letterSpacing: 1.4,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'OPEN',
+              style: TextStyle(
+                color: meta.tone,
+                fontWeight: FontWeight.w900,
+                fontSize: 9,
+                letterSpacing: 1.6,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

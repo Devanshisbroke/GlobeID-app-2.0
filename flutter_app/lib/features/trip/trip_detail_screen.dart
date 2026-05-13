@@ -176,6 +176,11 @@ class TripDetailScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
+                const SizedBox(height: AppTokens.space4),
+                AnimatedAppearance(
+                  delay: const Duration(milliseconds: 140),
+                  child: _TripLiveActions(tripId: trip.id),
+                ),
                 const SizedBox(height: AppTokens.space5),
                 AnimatedAppearance(
                   delay: const Duration(milliseconds: 160),
@@ -413,7 +418,7 @@ class _VisaCard extends StatelessWidget {
     final t = Theme.of(context);
     return InkWell(
       borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-      onTap: () => context.push('/visa'),
+      onTap: () => context.push('/visa-live/JP'),
       child: PremiumCard(
         padding: const EdgeInsets.all(AppTokens.space4),
         child: Column(
@@ -594,9 +599,12 @@ class _LoungeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    return PremiumCard(
-      padding: const EdgeInsets.all(AppTokens.space4),
-      child: Column(
+    return InkWell(
+      borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+      onTap: () => context.push('/lounge-live'),
+      child: PremiumCard(
+        padding: const EdgeInsets.all(AppTokens.space4),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
@@ -629,6 +637,7 @@ class _LoungeCard extends StatelessWidget {
           _MetaRow(label: 'Capacity', value: 'Light · 32%'),
           _MetaRow(label: 'Showers', value: '4 available'),
         ],
+      ),
       ),
     );
   }
@@ -1192,3 +1201,84 @@ int _offsetHoursFor(String iata) {
     _ => 0,
   };
 }
+
+// ─────────────────────────────────────────────────────────────────────
+// _TripLiveActions — horizontal row of buttons that open the Live
+// surfaces scoped to this trip (boarding, live trip timeline, airport
+// companion, immigration, lounge, arrival, navigation, country intel).
+// Matches the Pulse home Alive rail but anchored to the trip context.
+// ─────────────────────────────────────────────────────────────────────
+class _TripLiveActions extends StatelessWidget {
+  const _TripLiveActions({required this.tripId});
+  final String tripId;
+
+  static const _items = <({String label, IconData icon, Color tone, String route})>[
+    (label: 'Boarding', icon: Icons.qr_code_2_rounded, tone: Color(0xFF0EA5E9), route: '/boarding-pass-live'),
+    (label: 'Live trip', icon: Icons.timeline_rounded, tone: Color(0xFF6366F1), route: '/trip-timeline-live'),
+    (label: 'Airport', icon: Icons.radar_rounded, tone: Color(0xFF60A5FA), route: '/airport-companion-live'),
+    (label: 'Immigration', icon: Icons.how_to_reg_rounded, tone: Color(0xFF06B6D4), route: '/immigration-live'),
+    (label: 'Lounge', icon: Icons.weekend_rounded, tone: Color(0xFFD4A574), route: '/lounge-live'),
+    (label: 'Arrival', icon: Icons.flight_land_rounded, tone: Color(0xFF10B981), route: '/arrival-live'),
+    (label: 'Navigate', icon: Icons.alt_route_rounded, tone: Color(0xFF2DD4BF), route: '/navigation-live'),
+    (label: 'Country', icon: Icons.public_rounded, tone: Color(0xFFF59E0B), route: '/country-live/JP'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 76,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.zero,
+        itemCount: _items.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final it = _items[i];
+          final route = it.label == 'Live trip'
+              ? '/trip-timeline-live/$tripId'
+              : it.route;
+          return GestureDetector(
+            onTap: () => context.push(route),
+            child: Container(
+              width: 100,
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    it.tone.withValues(alpha: 0.20),
+                    it.tone.withValues(alpha: 0.04),
+                  ],
+                ),
+                border: Border.all(
+                  color: it.tone.withValues(alpha: 0.32),
+                  width: 0.5,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(it.icon, color: it.tone, size: 18),
+                  const Spacer(),
+                  Text(
+                    it.label.toUpperCase(),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 10.5,
+                      letterSpacing: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
