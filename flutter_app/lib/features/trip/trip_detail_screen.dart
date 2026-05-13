@@ -13,7 +13,7 @@ import '../../domain/packing_list.dart';
 import '../../domain/predictive_departure.dart';
 import '../../nexus/chrome/nexus_legacy_scaffold.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
@@ -141,9 +141,10 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
         eyebrow: 'GLOBE ID · TRAVEL',
         title: 'Trip not found',
         subtitle: 'This trip may have been removed.',
-        body: EmptyState(
+        body: Os2EmptyState(
+          eyebrow: 'TRIP · NOT FOUND',
           title: 'Trip not found',
-          message: 'This trip may have been removed.',
+          message: 'This trip may have been removed. Pull a fresh copy from your timeline or start a new plan.',
           icon: Icons.search_off_rounded,
         ),
       );

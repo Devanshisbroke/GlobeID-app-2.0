@@ -8,7 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../cinematic/sheets/apple_sheet.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/premium_effects.dart';
@@ -51,20 +51,22 @@ class _PassportBookScreenState extends ConsumerState<PassportBookScreen> {
       ],
       body: loyalty.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => EmptyState(
+        error: (e, _) => Os2ErrorState(
+          eyebrow: 'IDENTITY · LOYALTY',
           title: 'Loyalty unavailable',
-          message: e.toString(),
-          icon: Icons.cloud_off_rounded,
+          message: 'We couldn\'t reach the loyalty backbone. Your local stamps are still here — pull to refresh once you\'re back online.',
+          errorCode: e.toString(),
         ),
         data: (data) {
           final stamps = ((data['stamps'] as List?) ?? const [])
               .cast<Map<String, dynamic>>();
           final tier = (data['tier'] as String?) ?? 'Citizen';
           if (stamps.isEmpty) {
-            return const EmptyState(
+            return const Os2EmptyState(
+              eyebrow: 'IDENTITY · STAMPS',
               title: 'No stamps yet',
               message:
-                  'Complete your first verified trip to earn your first stamp.',
+                  'Complete your first verified trip to earn your first stamp. Each one is sealed, dated, and pinned to your passport.',
               icon: Icons.workspace_premium_rounded,
             );
           }

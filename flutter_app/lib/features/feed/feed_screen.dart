@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
@@ -74,10 +74,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             ),
             children: [
               const SizedBox(height: 64),
-              EmptyState(
+              Os2ErrorState(
+                eyebrow: 'GLOBEID · ACTIVITY',
                 title: 'Activity unavailable',
-                message: e.toString(),
-                icon: Icons.cloud_off_rounded,
+                message: 'We couldn\'t reach the activity feed. Retry to pull fresh signed events.',
+                errorCode: e.toString(),
               ),
             ],
           ),
@@ -91,9 +92,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 ),
                 children: const [
                   SizedBox(height: 64),
-                  EmptyState(
+                  Os2EmptyState(
+                    eyebrow: 'GLOBEID · ACTIVITY',
                     title: 'No activity yet',
-                    message: 'Your scans, trips, and bookings live here.',
+                    message: 'Your scans, trips, and bookings live here. Every event is signed and pinned to your timeline.',
                     icon: Icons.bolt_rounded,
                   ),
                 ],
@@ -136,10 +138,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 if (filtered.isEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 64),
-                    child: EmptyState(
+                    child: Os2EmptyState(
+                      eyebrow: 'GLOBEID · ${_labelFor(_filter).toUpperCase()}',
                       title: 'No matches',
                       message:
-                          'No activity matches the “${_labelFor(_filter)}” filter.',
+                          'No activity matches the “${_labelFor(_filter)}” filter. Try a different category.',
                       icon: Icons.filter_list_rounded,
                     ),
                   ),

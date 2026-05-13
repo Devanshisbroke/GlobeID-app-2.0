@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../cinematic/states/cinematic_states.dart';
 import '../../data/models/wallet_models.dart';
 import '../../os2/os2_tokens.dart';
 import '../../os2/primitives/os2_chip.dart';
@@ -279,27 +280,13 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Os2Slab(
+    return const Os2EmptyState(
+      eyebrow: 'WALLET · SCHEDULED',
+      title: 'Nothing scheduled',
+      message:
+          'When you set up a recurring payment it will appear here with the next run date and a signed audit trail.',
+      icon: Icons.event_busy_rounded,
       tone: Os2.walletTone,
-      tier: Os2SlabTier.floor1,
-      radius: Os2.rCard,
-      halo: Os2SlabHalo.corner,
-      elevation: Os2SlabElevation.flat,
-      padding: const EdgeInsets.all(Os2.space5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.event_busy_rounded, size: 20, color: Os2.walletTone),
-          const SizedBox(height: Os2.space3),
-          Os2Text.title('Nothing scheduled', color: Os2.inkBright, size: Os2.textLg),
-          const SizedBox(height: 4),
-          Os2Text.body(
-            'When you set up a recurring payment it will appear here with the next run date.',
-            color: Os2.inkMid,
-            size: 13,
-          ),
-        ],
-      ),
     );
   }
 }

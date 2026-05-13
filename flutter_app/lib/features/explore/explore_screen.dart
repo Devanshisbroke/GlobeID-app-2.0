@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
@@ -248,10 +248,11 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               padding: EdgeInsets.all(AppTokens.space5),
               child: Center(child: CircularProgressIndicator()),
             ),
-            error: (e, _) => EmptyState(
+            error: (e, _) => Os2ErrorState(
+              eyebrow: 'DISCOVER · RECOMMENDATIONS',
               title: 'Recommendations unavailable',
-              message: e.toString(),
-              icon: Icons.cloud_off_rounded,
+              message: 'We couldn\'t reach the recommendations backbone. Retry to pull fresh picks for your journey.',
+              errorCode: e.toString(),
             ),
             data: (data) {
               final items = ((data['items'] as List?) ?? const [])
@@ -269,10 +270,11 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   padding: const EdgeInsets.symmetric(
                     vertical: AppTokens.space5,
                   ),
-                  child: EmptyState(
+                  child: Os2EmptyState(
+                    eyebrow: 'DISCOVER · ${_labelFor(_category).toUpperCase()}',
                     title: 'No matches yet',
                     message:
-                        'No “${_labelFor(_category)}” suggestions for now.',
+                        'No “${_labelFor(_category)}” suggestions for now. Try a different category or check back later.',
                     icon: Icons.travel_explore_rounded,
                   ),
                 );

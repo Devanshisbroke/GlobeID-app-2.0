@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../cinematic/states/cinematic_states.dart';
 import '../../data/models/wallet_models.dart';
 import '../../os2/os2_tokens.dart';
 import '../../os2/primitives/os2_chip.dart';
@@ -297,27 +298,13 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Os2Slab(
+    return const Os2EmptyState(
+      eyebrow: 'WALLET · STATEMENTS',
+      title: 'No statements yet',
+      message:
+          'Your monthly ledger appears here as transactions settle. Each statement is signed by GlobeID and exports as a sealed PDF.',
+      icon: Icons.receipt_long_rounded,
       tone: Os2.walletTone,
-      tier: Os2SlabTier.floor1,
-      radius: Os2.rCard,
-      halo: Os2SlabHalo.corner,
-      elevation: Os2SlabElevation.flat,
-      padding: const EdgeInsets.all(Os2.space5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.receipt_long_rounded, size: 20, color: Os2.walletTone),
-          const SizedBox(height: Os2.space3),
-          Os2Text.title('No statements yet', color: Os2.inkBright, size: Os2.textLg),
-          const SizedBox(height: 4),
-          Os2Text.body(
-            'Your monthly ledger appears here as transactions settle.',
-            color: Os2.inkMid,
-            size: 13,
-          ),
-        ],
-      ),
     );
   }
 }

@@ -8,7 +8,7 @@ import 'package:local_auth/local_auth.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../data/models/travel_document.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
@@ -172,10 +172,11 @@ class _VaultScreenState extends ConsumerState<VaultScreen>
         physics: const BouncingScrollPhysics(),
         children: [
           if (user.documents.isEmpty)
-            const EmptyState(
+            const Os2EmptyState(
+              eyebrow: 'IDENTITY · VAULT',
               title: 'No documents yet',
               message:
-                  'Add a passport, visa, or boarding pass to keep it secure.',
+                  'Add a passport, visa, or boarding pass and GlobeID will hold the encrypted copy — ready to seal, scan, or share with a tap.',
               icon: Icons.shield_outlined,
             )
           else ...[

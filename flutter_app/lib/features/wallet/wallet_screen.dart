@@ -9,13 +9,13 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../data/models/travel_document.dart';
 import '../../data/models/wallet_models.dart';
 import '../../domain/airline_brand.dart';
 import '../../widgets/animated_number.dart';
 import '../../widgets/app_chrome.dart';
 import '../../widgets/bible/bible.dart';
-import '../../widgets/empty_state.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/pressable.dart';
@@ -280,11 +280,13 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
             child: const SectionHeader(title: 'Recent transactions'),
           ),
           if (wallet.transactions.isEmpty)
-            SliverFillRemaining(
+            const SliverFillRemaining(
               hasScrollBody: false,
-              child: const EmptyState(
+              child: Os2EmptyState(
+                eyebrow: 'WALLET · LEDGER',
                 title: 'No transactions yet',
-                message: 'Scan a receipt or record a payment to see history.',
+                message:
+                    'Scan a receipt or record a payment and it will appear here, signed, timestamped, and tied back to your trip.',
                 icon: Icons.receipt_long_rounded,
               ),
             )

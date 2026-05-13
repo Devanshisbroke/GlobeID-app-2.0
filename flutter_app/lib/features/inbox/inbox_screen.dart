@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../nexus/chrome/nexus_legacy_scaffold.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/pressable.dart';
@@ -110,9 +110,10 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
           if (filtered.isEmpty)
             const SliverFillRemaining(
               hasScrollBody: false,
-              child: EmptyState(
+              child: Os2EmptyState(
+                eyebrow: 'GLOBEID · INBOX',
                 title: 'All caught up',
-                message: 'New notifications will appear here.',
+                message: 'New notifications will appear here — boarding calls, gate changes, advisories, and signed receipts.',
                 icon: Icons.notifications_off_rounded,
               ),
             ),
