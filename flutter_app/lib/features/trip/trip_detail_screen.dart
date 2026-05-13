@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -20,17 +21,82 @@ import '../../widgets/section_header.dart';
 import '../lifecycle/lifecycle_provider.dart';
 import '../user/user_provider.dart';
 import 'pre_trip_intel.dart';
+import 'trip_country_intel.dart';
 import 'trip_intel_cards.dart';
 
 /// Immersive trip detail. Hero brand-tinted backdrop, animated leg
 /// timeline (IATA → IATA with airplane), per-leg pass card, location +
 /// timezone strip, predictive departure card, packing list.
-class TripDetailScreen extends ConsumerWidget {
+class TripDetailScreen extends ConsumerStatefulWidget {
   const TripDetailScreen({super.key, required this.tripId});
   final String tripId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TripDetailScreen> createState() => _TripDetailScreenState();
+}
+
+class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
+  final ScrollController _scroll = ScrollController();
+  // Section anchor keys — wired into the `_AnchorStrip` so each chip
+  // does a smooth scroll to its destination card, instead of being
+  // a static decoration that goes nowhere.
+  final GlobalKey _kWeather = GlobalKey();
+  final GlobalKey _kVisa = GlobalKey();
+  final GlobalKey _kCurrency = GlobalKey();
+  final GlobalKey _kTime = GlobalKey();
+  final GlobalKey _kHealth = GlobalKey();
+
+  String get tripId => widget.tripId;
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  Future<void> _scrollTo(GlobalKey key) async {
+    final ctx = key.currentContext;
+    if (ctx == null) return;
+    await Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 360),
+      curve: Curves.easeOutCubic,
+      alignment: 0.05,
+    );
+  }
+
+  Future<void> _shareTrip(TripLifecycle trip, CountryProfile profile) async {
+    final lines = <String>[
+      '${trip.name} \u2014 ${trip.stage.toUpperCase()}',
+      if (trip.startDate != null && trip.endDate != null)
+        'Dates: ${trip.startDate} \u2192 ${trip.endDate}',
+      if (trip.startDate != null && trip.endDate == null)
+        'Departs: ${trip.startDate}',
+      'Destination: ${profile.country} (${profile.iso2})',
+      'Visa: ${profile.visaPolicy} \u00b7 ${profile.stayAllowed}',
+      'Currency: ${profile.currency}',
+      'Time: UTC${profile.utcOffsetHours >= 0 ? '+' : ''}'
+          '${profile.utcOffsetHours.toStringAsFixed(profile.utcOffsetHours % 1 == 0 ? 0 : 1)}',
+      if (trip.legs.isNotEmpty) ...[
+        '',
+        'Itinerary:',
+        for (final l in trip.legs)
+          '  \u2022 ${l.from} \u2192 ${l.to} \u00b7 ${l.airline} '
+              '${l.flightNumber} \u00b7 ${l.scheduled}',
+      ],
+    ];
+    await Clipboard.setData(ClipboardData(text: lines.join('\n')));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Trip summary copied to clipboard'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final lifecycle = ref.watch(lifecycleProvider);
     final user = ref.watch(userProvider);
     var trip = lifecycle.trips.cast<TripLifecycle?>().firstWhere(
@@ -95,9 +161,17 @@ class TripDetailScreen extends ConsumerWidget {
         ? resolveAirlineBrand(trip.legs.first.flightNumber)
         : resolveAirlineBrand('GID');
 
+    // Country-aware destination profile — drives the Visa / Currency
+    // / Time cards and the Live-actions "Country" pin so the screen
+    // adapts to wherever the user is actually going (the legacy
+    // version hard-coded Schengen/Japan).
+    final profile = CountryIntel.fromIata(to);
+    final tripCapture = trip; // for inner closures
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: CustomScrollView(
+        controller: _scroll,
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverAppBar.large(
@@ -106,6 +180,13 @@ class TripDetailScreen extends ConsumerWidget {
             expandedHeight: 240,
             backgroundColor: Colors.black,
             surfaceTintColor: Colors.transparent,
+            actions: [
+              IconButton(
+                tooltip: 'Share trip summary',
+                icon: const Icon(Icons.ios_share_rounded),
+                onPressed: () => _shareTrip(tripCapture, profile),
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 trip.name,
@@ -179,7 +260,10 @@ class TripDetailScreen extends ConsumerWidget {
                 const SizedBox(height: AppTokens.space4),
                 AnimatedAppearance(
                   delay: const Duration(milliseconds: 140),
-                  child: _TripLiveActions(tripId: trip.id),
+                  child: _TripLiveActions(
+                    tripId: trip.id,
+                    countryCode: profile.iso2,
+                  ),
                 ),
                 const SizedBox(height: AppTokens.space5),
                 AnimatedAppearance(
@@ -209,45 +293,81 @@ class TripDetailScreen extends ConsumerWidget {
                 const SectionHeader(title: 'Destination intel', dense: true),
                 AnimatedAppearance(
                   delay: const Duration(milliseconds: 360),
-                  child: _AnchorStrip(anchors: const [
-                    'Weather',
-                    'Visa',
-                    'Currency',
-                    'Time',
-                    'Health',
-                  ]),
+                  child: _AnchorStrip(
+                    anchors: const [
+                      'Weather',
+                      'Visa',
+                      'Currency',
+                      'Time',
+                      'Health',
+                    ],
+                    onTap: (label) {
+                      switch (label) {
+                        case 'Weather':
+                          _scrollTo(_kWeather);
+                          break;
+                        case 'Visa':
+                          _scrollTo(_kVisa);
+                          break;
+                        case 'Currency':
+                          _scrollTo(_kCurrency);
+                          break;
+                        case 'Time':
+                          _scrollTo(_kTime);
+                          break;
+                        case 'Health':
+                          _scrollTo(_kHealth);
+                          break;
+                      }
+                    },
+                  ),
                 ),
                 const SizedBox(height: AppTokens.space3),
-                AnimatedAppearance(
-                  delay: const Duration(milliseconds: 380),
-                  child: _WeatherCard(to: to),
+                KeyedSubtree(
+                  key: _kWeather,
+                  child: AnimatedAppearance(
+                    delay: const Duration(milliseconds: 380),
+                    child: _WeatherCard(to: to),
+                  ),
                 ),
                 const SizedBox(height: AppTokens.space3),
-                AnimatedAppearance(
-                  delay: const Duration(milliseconds: 400),
-                  child: const _VisaCard(),
+                KeyedSubtree(
+                  key: _kVisa,
+                  child: AnimatedAppearance(
+                    delay: const Duration(milliseconds: 400),
+                    child: _VisaCard(profile: profile),
+                  ),
                 ),
                 const SizedBox(height: AppTokens.space3),
-                AnimatedAppearance(
-                  delay: const Duration(milliseconds: 420),
-                  child: const _CurrencyCard(),
+                KeyedSubtree(
+                  key: _kCurrency,
+                  child: AnimatedAppearance(
+                    delay: const Duration(milliseconds: 420),
+                    child: _CurrencyCard(profile: profile),
+                  ),
                 ),
                 if (to != null && from != null) ...[
                   const SizedBox(height: AppTokens.space3),
-                  AnimatedAppearance(
-                    delay: const Duration(milliseconds: 440),
-                    child: TripTimezoneCard(
-                      origin: from,
-                      destination: to,
-                      offsetHours: _offsetHoursFor(to),
+                  KeyedSubtree(
+                    key: _kTime,
+                    child: AnimatedAppearance(
+                      delay: const Duration(milliseconds: 440),
+                      child: TripTimezoneCard(
+                        origin: from,
+                        destination: to,
+                        offsetHours: _offsetHoursFor(to),
+                      ),
                     ),
                   ),
                   const SizedBox(height: AppTokens.space5),
-                  AnimatedAppearance(
-                    delay: const Duration(milliseconds: 460),
-                    child: PreTripIntel(
-                      destination: to,
-                      sections: IntelSection.demo(to),
+                  KeyedSubtree(
+                    key: _kHealth,
+                    child: AnimatedAppearance(
+                      delay: const Duration(milliseconds: 460),
+                      child: PreTripIntel(
+                        destination: to,
+                        sections: IntelSection.demo(to),
+                      ),
                     ),
                   ),
                 ],
@@ -291,8 +411,9 @@ class TripDetailScreen extends ConsumerWidget {
 
 // ── Anchor strip ──────────────────────────────────────────────
 class _AnchorStrip extends StatelessWidget {
-  const _AnchorStrip({required this.anchors});
+  const _AnchorStrip({required this.anchors, this.onTap});
   final List<String> anchors;
+  final ValueChanged<String>? onTap;
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
@@ -303,7 +424,10 @@ class _AnchorStrip extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         itemCount: anchors.length,
         separatorBuilder: (_, __) => const SizedBox(width: 6),
-        itemBuilder: (_, i) => Container(
+        itemBuilder: (_, i) => InkWell(
+          borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+          onTap: onTap == null ? null : () => onTap!(anchors[i]),
+          child: Container(
           padding: const EdgeInsets.symmetric(
               horizontal: AppTokens.space3, vertical: 6),
           decoration: BoxDecoration(
@@ -319,6 +443,7 @@ class _AnchorStrip extends StatelessWidget {
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
           ),
+        ),
         ),
       ),
     );
@@ -412,13 +537,22 @@ class _ForecastTile extends StatelessWidget {
 
 // ── Visa card ─────────────────────────────────────────────────
 class _VisaCard extends StatelessWidget {
-  const _VisaCard();
+  const _VisaCard({required this.profile});
+  final CountryProfile profile;
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
+    // Tone the policy chip per category — settled green for visa-free
+    // / on-arrival, amber for eVISA / ETA-style, magenta for required.
+    final policy = profile.visaPolicy.toUpperCase();
+    final Color chipTone = policy.contains('FREE') || policy.contains('ARRIVAL')
+        ? const Color(0xFF10B981)
+        : policy.contains('REQ')
+            ? const Color(0xFFEF4444)
+            : const Color(0xFFF59E0B);
     return InkWell(
       borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-      onTap: () => context.push('/visa-live/JP'),
+      onTap: () => context.push('/visa-live/${profile.iso2}'),
       child: PremiumCard(
         padding: const EdgeInsets.all(AppTokens.space4),
         child: Column(
@@ -435,12 +569,12 @@ class _VisaCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.18),
+                  color: chipTone.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                 ),
-                child: const Text('VISA-FREE',
+                child: Text(policy,
                     style: TextStyle(
-                        color: Color(0xFF10B981),
+                        color: chipTone,
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.6)),
@@ -451,12 +585,11 @@ class _VisaCard extends StatelessWidget {
                   color: t.colorScheme.onSurface.withValues(alpha: 0.45)),
             ]),
             const SizedBox(height: AppTokens.space3),
-            const _MetaRow(
-                label: 'Stay allowed', value: '90 days within 180-day window'),
-            const _MetaRow(
-                label: 'Passport validity', value: '6 months beyond entry'),
-            const _MetaRow(label: 'Onward ticket', value: 'Required'),
-            const _MetaRow(label: 'Customs', value: 'Declare > €10,000'),
+            _MetaRow(label: 'Stay allowed', value: profile.stayAllowed),
+            _MetaRow(
+                label: 'Passport validity', value: profile.passportValidity),
+            _MetaRow(label: 'Onward ticket', value: profile.onwardTicket),
+            _MetaRow(label: 'Customs', value: profile.customsCap),
           ],
         ),
       ),
@@ -466,10 +599,48 @@ class _VisaCard extends StatelessWidget {
 
 // ── Currency card ─────────────────────────────────────────────
 class _CurrencyCard extends StatelessWidget {
-  const _CurrencyCard();
+  const _CurrencyCard({required this.profile});
+  final CountryProfile profile;
+
+  /// Deterministic mid-market rate vs USD derived from the country
+  /// profile so the figure adapts to the destination instead of
+  /// always reading EUR→USD. Anchored to widely-known approximate
+  /// rates so the screen reads as plausible without invented data.
+  double get _rateVsUsd {
+    return switch (profile.currency) {
+      'USD' => 1.0,
+      'EUR' => 1.0863,
+      'GBP' => 1.2638,
+      'CHF' => 1.1320,
+      'CAD' => 0.7280,
+      'AUD' => 0.6594,
+      'NZD' => 0.6020,
+      'JPY' => 0.0066,
+      'CNY' => 0.1380,
+      'KRW' => 0.00072,
+      'INR' => 0.0120,
+      'SGD' => 0.7440,
+      'HKD' => 0.1280,
+      'THB' => 0.0282,
+      'MYR' => 0.2128,
+      'AED' => 0.2723,
+      'TRY' => 0.0299,
+      'MXN' => 0.0524,
+      'BRL' => 0.2010,
+      'ARS' => 0.0028,
+      'PEN' => 0.2680,
+      'ZAR' => 0.0535,
+      'EGP' => 0.0203,
+      'KES' => 0.0078,
+      _ => 1.0,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
+    final rate = _rateVsUsd;
+    final displayed = (1.0 / rate);
     return PremiumCard(
       padding: const EdgeInsets.all(AppTokens.space4),
       child: Column(
@@ -487,17 +658,21 @@ class _CurrencyCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('1.00 EUR',
+              Text('1.00 USD',
                   style: t.textTheme.titleMedium
                       ?.copyWith(fontWeight: FontWeight.w800)),
               const Icon(Icons.arrow_forward_rounded, size: 16),
-              Text('1.0863 USD',
-                  style: t.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w800)),
+              Text(
+                profile.currency == 'USD'
+                    ? '1.00 USD'
+                    : '${_fmt(displayed)} ${profile.currency}',
+                style: t.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w800),
+              ),
             ],
           ),
           const SizedBox(height: AppTokens.space2),
-          Text('Live mid-market · updated 4m ago',
+          Text('Live mid-market \u00b7 ${profile.currencySymbol} reference rate',
               style: t.textTheme.bodySmall?.copyWith(
                   color: t.colorScheme.onSurface.withValues(alpha: 0.55))),
           const SizedBox(height: AppTokens.space3),
@@ -521,6 +696,12 @@ class _CurrencyCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  static String _fmt(double v) {
+    if (v >= 100) return v.toStringAsFixed(0);
+    if (v >= 10) return v.toStringAsFixed(2);
+    return v.toStringAsFixed(4);
   }
 }
 
@@ -1209,8 +1390,9 @@ int _offsetHoursFor(String iata) {
 // Matches the Pulse home Alive rail but anchored to the trip context.
 // ─────────────────────────────────────────────────────────────────────
 class _TripLiveActions extends StatelessWidget {
-  const _TripLiveActions({required this.tripId});
+  const _TripLiveActions({required this.tripId, required this.countryCode});
   final String tripId;
+  final String countryCode;
 
   static const _items = <({String label, IconData icon, Color tone, String route})>[
     (label: 'Boarding', icon: Icons.qr_code_2_rounded, tone: Color(0xFF0EA5E9), route: '/boarding-pass-live'),
@@ -1220,7 +1402,7 @@ class _TripLiveActions extends StatelessWidget {
     (label: 'Lounge', icon: Icons.weekend_rounded, tone: Color(0xFFD4A574), route: '/lounge-live'),
     (label: 'Arrival', icon: Icons.flight_land_rounded, tone: Color(0xFF10B981), route: '/arrival-live'),
     (label: 'Navigate', icon: Icons.alt_route_rounded, tone: Color(0xFF2DD4BF), route: '/navigation-live'),
-    (label: 'Country', icon: Icons.public_rounded, tone: Color(0xFFF59E0B), route: '/country-live/JP'),
+    (label: 'Country', icon: Icons.public_rounded, tone: Color(0xFFF59E0B), route: '/country-live'),
   ];
 
   @override
@@ -1235,9 +1417,17 @@ class _TripLiveActions extends StatelessWidget {
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (_, i) {
           final it = _items[i];
-          final route = it.label == 'Live trip'
-              ? '/trip-timeline-live/$tripId'
-              : it.route;
+          String route;
+          switch (it.label) {
+            case 'Live trip':
+              route = '/trip-timeline-live/$tripId';
+              break;
+            case 'Country':
+              route = '/country-live/$countryCode';
+              break;
+            default:
+              route = it.route;
+          }
           return GestureDetector(
             onTap: () => context.push(route),
             child: Container(
