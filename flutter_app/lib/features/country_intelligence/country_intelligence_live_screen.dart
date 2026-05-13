@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../cinematic/live/live_primitives.dart';
 import '../../cinematic/live/live_substrates.dart';
+import '../../motion/motion.dart';
 import '../../nexus/nexus_tokens.dart';
 
 /// CountryIntelligenceLive — declassified dossier substrate.
@@ -85,6 +89,117 @@ extension _AdvisoryTierTone on _AdvisoryTier {
   }
 }
 
+extension _AdvisoryTierCadence on _AdvisoryTier {
+  /// Tier → cinematic state ladder. Drives breathing cadence on the
+  /// advisory chip + OVI seal: low/moderate breathe slowly (calm),
+  /// high accelerates, extreme breathes hardest (urgent).
+  LiveSurfaceState get liveState {
+    switch (this) {
+      case _AdvisoryTier.low:
+        return LiveSurfaceState.idle;
+      case _AdvisoryTier.moderate:
+        return LiveSurfaceState.armed;
+      case _AdvisoryTier.high:
+        return LiveSurfaceState.active;
+      case _AdvisoryTier.extreme:
+        return LiveSurfaceState.committed;
+    }
+  }
+}
+
+/// Country → local UTC offset in hours (rough; matches the iso
+/// list in [_seedAdvisoryFor]). Used by the local-time strip so the
+/// dossier feels rooted in the country's actual clock.
+int _utcOffsetFor(String iso) {
+  switch (iso.toUpperCase()) {
+    case 'JP':
+      return 9;
+    case 'CH':
+    case 'FR':
+    case 'DE':
+    case 'NO':
+      return 1;
+    case 'SG':
+      return 8;
+    case 'IS':
+    case 'GB':
+      return 0;
+    case 'US':
+      return -5;
+    case 'IN':
+      return 5;
+    case 'AE':
+      return 4;
+    case 'EG':
+      return 2;
+    case 'TR':
+      return 3;
+    case 'PK':
+      return 5;
+    case 'AF':
+      return 4;
+    case 'SY':
+      return 3;
+    case 'YE':
+      return 3;
+    default:
+      return 0;
+  }
+}
+
+/// Local time-of-day phase — drives the time chip icon, accent tone,
+/// and copy. Each phase carries its own atmospheric signal so the
+/// dossier reads "alive with the place" rather than out-of-context.
+enum _TimePhase { dawn, day, dusk, night }
+
+extension _TimePhaseTokens on _TimePhase {
+  String get label {
+    switch (this) {
+      case _TimePhase.dawn:
+        return 'DAWN';
+      case _TimePhase.day:
+        return 'DAY';
+      case _TimePhase.dusk:
+        return 'DUSK';
+      case _TimePhase.night:
+        return 'NIGHT';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case _TimePhase.dawn:
+        return Icons.wb_twilight_rounded;
+      case _TimePhase.day:
+        return Icons.wb_sunny_rounded;
+      case _TimePhase.dusk:
+        return Icons.brightness_4_rounded;
+      case _TimePhase.night:
+        return Icons.nightlight_round;
+    }
+  }
+
+  Color get accent {
+    switch (this) {
+      case _TimePhase.dawn:
+        return const Color(0xFFF5B27A);
+      case _TimePhase.day:
+        return const Color(0xFFFFD27A);
+      case _TimePhase.dusk:
+        return const Color(0xFFE17A2A);
+      case _TimePhase.night:
+        return const Color(0xFF8FA4D8);
+    }
+  }
+}
+
+_TimePhase _phaseForHour(int hour) {
+  if (hour >= 5 && hour < 8) return _TimePhase.dawn;
+  if (hour >= 8 && hour < 17) return _TimePhase.day;
+  if (hour >= 17 && hour < 20) return _TimePhase.dusk;
+  return _TimePhase.night;
+}
+
 /// Initial tier inference per country. Used as the seed advisory
 /// tier so countries render at a believable level on first open.
 _AdvisoryTier _seedAdvisoryFor(String iso) {
@@ -140,17 +255,39 @@ class _CountryIntelligenceLiveScreenState
   }
 
   /// Tap-to-escalate — cycles tier up; when at EXTREME wraps back
-  /// to LOW. Each escalation fires a tonal pulse so the user feels
-  /// the mood shift, plus a one-shot LiveDataPulse on the entire
-  /// dossier so the change reads as a real advisory escalation.
+  /// to LOW. Each escalation fires a tier-keyed haptic so the user
+  /// feels the mood shift, plus a one-shot LiveDataPulse on the
+  /// entire dossier so the change reads as a real advisory shift.
+  ///
+  /// Haptic ladder:
+  ///   • de-escalate (wrap to LOW)  → selectionClick
+  ///   • escalate to MODERATE       → lightImpact
+  ///   • escalate to HIGH           → mediumImpact
+  ///   • escalate to EXTREME        → Haptics.signature (cinematic)
   void _cycleTier() {
     final next = _AdvisoryTier
         .values[(_tier.index + 1) % _AdvisoryTier.values.length];
     final escalating = next.index > _tier.index;
-    if (escalating) {
-      HapticFeedback.heavyImpact();
-    } else {
+    if (!escalating) {
       HapticFeedback.selectionClick();
+    } else {
+      switch (next) {
+        case _AdvisoryTier.moderate:
+          HapticFeedback.lightImpact();
+          break;
+        case _AdvisoryTier.high:
+          HapticFeedback.mediumImpact();
+          break;
+        case _AdvisoryTier.extreme:
+          // EXTREME earns the signature triple-pulse — same haptic
+          // we use for visa stamp commit and NFC tap. The user feels
+          // a genuine "this is serious" beat.
+          unawaited(Haptics.signature());
+          break;
+        case _AdvisoryTier.low:
+          HapticFeedback.selectionClick();
+          break;
+      }
     }
     setState(() => _tier = next);
     // Pulse the full dossier substrate so the mood shift is
@@ -225,6 +362,20 @@ class _CountryIntelligenceLiveScreenState
                         period: const Duration(seconds: 56),
                       ),
                     ),
+                    // Classified stamp — drops in when the advisory
+                    // tier is HIGH or EXTREME. Slight angle, faded
+                    // red ink, with a stamp-down scale animation so
+                    // it lands like a physical seal rather than
+                    // fading in.
+                    if (_tier == _AdvisoryTier.high ||
+                        _tier == _AdvisoryTier.extreme)
+                      Positioned(
+                        right: 8,
+                        bottom: 14,
+                        child: _ClassifiedStamp(
+                          extreme: _tier == _AdvisoryTier.extreme,
+                        ),
+                      ),
                     Padding(
                   padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
                   child: Column(
@@ -250,13 +401,15 @@ class _CountryIntelligenceLiveScreenState
                                       ),
                                     ),
                                     const SizedBox(width: 10),
-                                    // Live state pill — country
-                                    // intelligence stays LIVE while
-                                    // open, signalling the dossier
-                                    // is hydrated with real-time
-                                    // data, not a static fact sheet.
+                                    // Live state pill — now keyed
+                                    // to the advisory tier so the
+                                    // dossier's nervous system reads
+                                    // calm at LOW, armed at MODERATE,
+                                    // active at HIGH, committed at
+                                    // EXTREME. The breathing cadence
+                                    // accelerates with the tier.
                                     LiveStatusPill(
-                                      state: LiveSurfaceState.active,
+                                      state: _tier.liveState,
                                       tone: tone,
                                     ),
                                   ],
@@ -288,12 +441,32 @@ class _CountryIntelligenceLiveScreenState
                         ],
                       ),
                       const SizedBox(height: 18),
+                      // Local-time strip — country's actual clock +
+                      // time-of-day phase. Lives between the country
+                      // meta tile and the advisory chip; gives the
+                      // dossier a "rooted in the place" feel.
+                      _LocalContextStrip(
+                        iso: widget.countryCode,
+                        tone: tone,
+                      ),
+                      const SizedBox(height: 12),
                       // Advisory tier chip — tap to escalate. Tone
                       // and body text shift smoothly between tiers
-                      // via the parent _TonalShift wrapper.
+                      // via the parent _TonalShift wrapper. The chip
+                      // breathes harder as the tier escalates
+                      // (idle → committed cadence).
                       GestureDetector(
                         onTap: _cycleTier,
-                        child: AnimatedContainer(
+                        child: BreathingHalo(
+                          tone: tone,
+                          state: _tier.liveState,
+                          maxAlpha: _tier == _AdvisoryTier.extreme
+                              ? 0.42
+                              : _tier == _AdvisoryTier.high
+                                  ? 0.30
+                                  : 0.18,
+                          expand: 6,
+                          child: AnimatedContainer(
                           duration: const Duration(milliseconds: 600),
                           curve: Curves.easeOutCubic,
                           padding: const EdgeInsets.symmetric(
@@ -355,6 +528,7 @@ class _CountryIntelligenceLiveScreenState
                               ),
                             ],
                           ),
+                        ),
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -623,6 +797,203 @@ class _TonalShift extends StatelessWidget {
       curve: Curves.easeOutCubic,
       tween: ColorTween(end: tone),
       builder: (context, value, _) => builder(context, value ?? tone),
+    );
+  }
+}
+
+/// Local-time strip — country's actual clock + time-of-day phase
+/// (DAWN / DAY / DUSK / NIGHT) + a small accent dot. Self-ticking
+/// every 30 seconds so the minute roll feels live.
+class _LocalContextStrip extends StatefulWidget {
+  const _LocalContextStrip({required this.iso, required this.tone});
+  final String iso;
+  final Color tone;
+
+  @override
+  State<_LocalContextStrip> createState() => _LocalContextStripState();
+}
+
+class _LocalContextStripState extends State<_LocalContextStrip> {
+  Timer? _tick;
+  late DateTime _localNow;
+
+  @override
+  void initState() {
+    super.initState();
+    _localNow = _computeLocalNow();
+    // 30s tick — granular enough to see the minute roll over
+    // without burning frames.
+    _tick = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (!mounted) return;
+      setState(() => _localNow = _computeLocalNow());
+    });
+  }
+
+  DateTime _computeLocalNow() {
+    final offset = _utcOffsetFor(widget.iso);
+    return DateTime.now().toUtc().add(Duration(hours: offset));
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final phase = _phaseForHour(_localNow.hour);
+    final hh = _localNow.hour.toString().padLeft(2, '0');
+    final mm = _localNow.minute.toString().padLeft(2, '0');
+    final offset = _utcOffsetFor(widget.iso);
+    final sign = offset >= 0 ? '+' : '−';
+    final off = offset.abs();
+    return Container(
+      padding:
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.black.withValues(alpha: 0.06),
+        border: Border.all(
+          color: Colors.black.withValues(alpha: 0.12),
+          width: 0.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          // Phase glyph in its phase accent — dawn amber, day gold,
+          // dusk burnt-orange, night cool blue.
+          Icon(phase.icon, color: phase.accent, size: 16),
+          const SizedBox(width: 8),
+          Text(
+            phase.label,
+            style: TextStyle(
+              color: phase.accent.withValues(alpha: 0.95),
+              fontWeight: FontWeight.w900,
+              fontSize: 10,
+              letterSpacing: 1.6,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            width: 1,
+            height: 12,
+            color: Colors.black.withValues(alpha: 0.16),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            'LOCAL · $hh:$mm',
+            style: TextStyle(
+              color: Colors.black.withValues(alpha: 0.78),
+              fontWeight: FontWeight.w900,
+              fontSize: 11,
+              letterSpacing: 1.4,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          const Spacer(),
+          Text(
+            'UTC $sign${off.toString().padLeft(2, '0')}',
+            style: TextStyle(
+              color: widget.tone.withValues(alpha: 0.84),
+              fontWeight: FontWeight.w800,
+              fontSize: 9,
+              letterSpacing: 1.6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// CLASSIFIED stamp — drops onto the dossier when advisory tier
+/// crosses into HIGH or EXTREME. Stamp-down animation (scale 1.3 →
+/// 1.0, opacity 0 → final, slight angle) so it lands as a physical
+/// seal rather than a fade. EXTREME paints with a heavier ink and
+/// double-stroked border.
+class _ClassifiedStamp extends StatefulWidget {
+  const _ClassifiedStamp({required this.extreme});
+  final bool extreme;
+
+  @override
+  State<_ClassifiedStamp> createState() => _ClassifiedStampState();
+}
+
+class _ClassifiedStampState extends State<_ClassifiedStamp>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 360),
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = widget.extreme
+        ? const Color(0xFFC8302E)
+        : const Color(0xFFB13A36);
+    final finalOpacity = widget.extreme ? 0.78 : 0.62;
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) {
+        final t = Curves.easeOutCubic.transform(_ctrl.value);
+        final scale = 1.30 - 0.30 * t;
+        final opacity = finalOpacity * t;
+        return Opacity(
+          opacity: opacity,
+          child: Transform.rotate(
+            angle: -8 * math.pi / 180,
+            child: Transform.scale(
+              scale: scale,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  border: Border.all(color: color, width: 2.6),
+                  borderRadius: BorderRadius.circular(6),
+                  color: color.withValues(alpha: 0.04),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'CLASSIFIED',
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                        letterSpacing: 2.6,
+                      ),
+                    ),
+                    if (widget.extreme)
+                      Text(
+                        '◆ DO NOT TRAVEL ◆',
+                        style: TextStyle(
+                          color: color.withValues(alpha: 0.85),
+                          fontWeight: FontWeight.w800,
+                          fontSize: 8.5,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

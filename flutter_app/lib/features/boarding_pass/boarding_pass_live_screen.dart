@@ -61,6 +61,11 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
   final _gatePulse = LiveDataPulseController();
   String? _lastGate;
 
+  /// Boarding window phase tracker — captures the previous phase so
+  /// we can emit a single signature haptic + tonal pulse the moment
+  /// the user crosses into BOARDING / FINAL CALL.
+  _BoardingPhase? _lastPhase;
+
   @override
   void initState() {
     super.initState();
@@ -92,6 +97,52 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
     super.dispose();
   }
 
+  /// Derive the boarding phase from time remaining. Drives the
+  /// LiveStatusPill state ladder + the boarding-window crossing
+  /// haptic.
+  _BoardingPhase _phaseFor(Duration d) {
+    if (d.isNegative) return _BoardingPhase.departed;
+    final mins = d.inMinutes;
+    if (mins <= 5) return _BoardingPhase.finalCall;
+    if (mins <= 30) return _BoardingPhase.boarding;
+    if (mins <= 120) return _BoardingPhase.soon;
+    return _BoardingPhase.early;
+  }
+
+  LiveSurfaceState _stateFor(_BoardingPhase p) {
+    switch (p) {
+      case _BoardingPhase.early:
+        return LiveSurfaceState.armed;
+      case _BoardingPhase.soon:
+        return LiveSurfaceState.active;
+      case _BoardingPhase.boarding:
+        return LiveSurfaceState.committed;
+      case _BoardingPhase.finalCall:
+        return LiveSurfaceState.committed;
+      case _BoardingPhase.departed:
+        return LiveSurfaceState.settled;
+    }
+  }
+
+  /// Detect crossings into BOARDING and FINAL CALL. Each crossing
+  /// is a cinematic moment — signature haptic + a pulse on the
+  /// boarding HUD so the user feels the airport announcement.
+  void _maybeBroadcastPhaseChange(_BoardingPhase current) {
+    if (_lastPhase != null && current != _lastPhase) {
+      final escalated = current.index > _lastPhase!.index;
+      if (escalated &&
+          (current == _BoardingPhase.boarding ||
+              current == _BoardingPhase.finalCall)) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          unawaited(Haptics.signature());
+          _gatePulse.pulse();
+        });
+      }
+    }
+    _lastPhase = current;
+  }
+
   /// Compare the resolved gate to the last gate we rendered. If the
   /// value mutated (e.g. `B22 → B27`), fire a single cinematic pulse
   /// + a warning haptic on the next frame. We schedule via
@@ -119,22 +170,6 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
     final m = (d.inMinutes % 60).toString().padLeft(2, '0');
     final s = (d.inSeconds % 60).toString().padLeft(2, '0');
     return '${h.toString().padLeft(2, '0')}:$m:$s';
-  }
-
-  /// Map the time-to-departure into the cinematic state ladder. The
-  /// pass's surface state evolves as the boarding window approaches:
-  ///
-  ///   >2h         → armed     (chip primed, still calm)
-  ///   30 m – 2 h  → active    (boarding announced, paying attention)
-  ///   5 m – 30 m  → committed (in the boarding window — go!)
-  ///   ≤5 m / <0   → settled   (gate closed / departed)
-  LiveSurfaceState _stateForRemaining(Duration d) {
-    if (d.isNegative) return LiveSurfaceState.settled;
-    final mins = d.inMinutes;
-    if (mins > 120) return LiveSurfaceState.armed;
-    if (mins > 30) return LiveSurfaceState.active;
-    if (mins >= 5) return LiveSurfaceState.committed;
-    return LiveSurfaceState.settled;
   }
 
   /// Pick the most relevant leg from the lifecycle store.
@@ -228,23 +263,16 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
     final TripLifecycle resolvedTrip = trip;
 
     _remaining = _calcRemaining(resolvedLeg.scheduled);
-    // Time-driven cinematic state. Drives the HUD label + tone so
-    // the boarding pass evolves on its own as the boarding window
-    // approaches — armed → active → committed → settled.
-    final liveState = _stateForRemaining(_remaining);
-    final hudLabel = liveState == LiveSurfaceState.settled &&
-            _remaining.isNegative
-        ? 'DEPARTED'
-        : liveState == LiveSurfaceState.committed
-            ? 'BOARDING NOW'
-            : liveState == LiveSurfaceState.active
-                ? 'BOARDING SOON'
-                : 'BOARDING';
     final brand = resolveAirlineBrand(resolvedLeg.flightNumber);
     final fromAir = getAirport(resolvedLeg.from);
     final toAir = getAirport(resolvedLeg.to);
     // A2 — broadcast any gate mutation as a cinematic pulse.
     _maybeBroadcastGateChange(resolvedLeg.gate);
+    // Phase ladder — derive boarding phase + broadcast any
+    // window-crossing as a signature haptic + pulse.
+    final phase = _phaseFor(_remaining);
+    _maybeBroadcastPhaseChange(phase);
+    final boardingState = _stateFor(phase);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -307,10 +335,34 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
                           ),
                         ),
                         const Spacer(),
-                        PremiumHud(
-                          label: hudLabel,
-                          tone: brand.primary,
-                          trailing: Text('GATE ${resolvedLeg.gate}'),
+                        // Boarding phase HUD + LiveStatusPill stack.
+                        // Phase copy (EARLY / SOON / BOARDING / FINAL
+                        // CALL / DEPARTED) drives the brand-tinted
+                        // HUD; the pill below mirrors the state
+                        // ladder so the user feels the cadence.
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            PremiumHud(
+                              label: phase.label,
+                              tone: phase == _BoardingPhase.finalCall
+                                  ? const Color(0xFFE15B5B)
+                                  : phase == _BoardingPhase.boarding
+                                      ? const Color(0xFFE9C75D)
+                                      : brand.primary,
+                              trailing: Text('GATE ${resolvedLeg.gate}'),
+                            ),
+                            const SizedBox(height: 6),
+                            LiveStatusPill(
+                              state: boardingState,
+                              tone: phase == _BoardingPhase.finalCall
+                                  ? const Color(0xFFE15B5B)
+                                  : phase == _BoardingPhase.boarding
+                                      ? const Color(0xFFE9C75D)
+                                      : null,
+                            ),
+                          ],
                         ),
                         const Spacer(),
                         Pressable(
@@ -1168,4 +1220,28 @@ String _aircraftFor(String flightNo) {
     h = (h * 31 + c) & 0x7fffffff;
   }
   return fleet[h % fleet.length];
+}
+
+/// Boarding phase ladder — drives the LiveStatusPill state, the
+/// PremiumHud copy + tone, and the window-crossing cinematic
+/// commit haptic. Index ordering MUST progress monotonically from
+/// "early" to "departed" so [_maybeBroadcastPhaseChange] can detect
+/// forward escalation.
+enum _BoardingPhase { early, soon, boarding, finalCall, departed }
+
+extension _BoardingPhaseLabel on _BoardingPhase {
+  String get label {
+    switch (this) {
+      case _BoardingPhase.early:
+        return 'EARLY · CHECK-IN';
+      case _BoardingPhase.soon:
+        return 'BOARDING SOON';
+      case _BoardingPhase.boarding:
+        return 'BOARDING NOW';
+      case _BoardingPhase.finalCall:
+        return 'FINAL CALL';
+      case _BoardingPhase.departed:
+        return 'DEPARTED';
+    }
+  }
 }

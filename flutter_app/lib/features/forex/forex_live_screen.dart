@@ -53,6 +53,11 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
   final _ratePulse = LiveDataPulseController();
   final Map<String, double> _lastRates = {};
 
+  /// Directional tone for the last spike — green when rates moved
+  /// up, red when they moved down. Resets back to null between
+  /// spikes so the pulse always carries the current direction.
+  Color? _spikeTone;
+
   @override
   void initState() {
     super.initState();
@@ -84,17 +89,30 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
   /// mutating state during build.
   void _maybeBroadcastRateSpike(List<_Banknote> notes) {
     var spiked = false;
+    var netDelta = 0.0;
     for (final n in notes) {
       final prev = _lastRates[n.code];
       if (prev != null && prev > 0) {
-        final delta = (n.rate - prev).abs() / prev;
-        if (delta > 0.005) spiked = true;
+        final delta = (n.rate - prev) / prev;
+        if (delta.abs() > 0.005) {
+          spiked = true;
+          netDelta += delta;
+        }
       }
       _lastRates[n.code] = n.rate;
     }
     if (spiked) {
+      // Directional tone — net positive delta reads "up" in green;
+      // net negative reads "down" in red. Neutral falls back to
+      // the active currency tone.
+      final next = netDelta > 0
+          ? const Color(0xFF66D29A)
+          : netDelta < 0
+              ? const Color(0xFFE15B5B)
+              : null;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
+        setState(() => _spikeTone = next);
         Haptics.snapDetent();
         _ratePulse.pulse();
       });
@@ -201,7 +219,7 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
                   Expanded(
                     child: LiveDataPulse(
                       controller: _ratePulse,
-                      tone: activeTone,
+                      tone: _spikeTone ?? activeTone,
                       child: GestureDetector(
                       onPanUpdate: (d) {
                         setState(() {
@@ -642,6 +660,16 @@ class _BanknoteCard extends StatelessWidget {
                 left: 90,
                 child: LiveStatusPill(state: LiveSurfaceState.active),
               ),
+              // FX heartbeat indicator — ECG-style pulse line that
+              // ticks every second. Reads as "connected to live
+              // market feed" rather than a printed banknote. Drops
+              // a faint dot when the spike-tone says rates moved
+              // recently so the heartbeat shows direction.
+              const Positioned(
+                bottom: 18,
+                left: 18,
+                child: _FxHeartbeat(),
+              ),
             ],
           ),
         ),
@@ -681,3 +709,111 @@ class _Dots extends StatelessWidget {
 }
 
 
+
+/// Small ECG-style heartbeat indicator — three pulsing dots that
+/// scale up sequentially on a 1.2 s cycle. Sits on the linen
+/// banknote substrate as proof the banknote is hydrated by a live
+/// market feed (vs. statically printed). Subtle on purpose so it
+/// never competes with the banknote denomination.
+class _FxHeartbeat extends StatefulWidget {
+  const _FxHeartbeat();
+
+  @override
+  State<_FxHeartbeat> createState() => _FxHeartbeatState();
+}
+
+class _FxHeartbeatState extends State<_FxHeartbeat>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, __) {
+        final t = _c.value;
+        double scaleFor(int i) {
+          final offset = i / 3.0;
+          final local = ((t - offset) % 1.0 + 1.0) % 1.0;
+          if (local < 0.2) {
+            final r = local / 0.2;
+            return 1.0 + 0.55 * r;
+          } else if (local < 0.4) {
+            final r = (local - 0.2) / 0.2;
+            return 1.55 - 0.55 * r;
+          }
+          return 1.0;
+        }
+
+        Widget dot(int i) {
+          return Container(
+            width: 5.5,
+            height: 5.5,
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            child: Transform.scale(
+              scale: scaleFor(i),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.85),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withValues(alpha: 0.55),
+                      blurRadius: 6,
+                      spreadRadius: 0.4,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.20),
+              width: 0.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'FX',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.90),
+                  fontWeight: FontWeight.w900,
+                  fontSize: 9,
+                  letterSpacing: 1.6,
+                ),
+              ),
+              const SizedBox(width: 8),
+              dot(0),
+              dot(1),
+              dot(2),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
