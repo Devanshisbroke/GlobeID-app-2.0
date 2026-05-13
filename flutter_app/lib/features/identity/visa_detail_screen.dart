@@ -165,6 +165,29 @@ class VisaDetailScreen extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: AppTokens.space3),
+          // Copilot-launched renewal entry point. Only renders when
+          // the visa is inside the renewal window (≤ 90 days).
+          if (daysToExpiry <= 90)
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTokens.space5,
+              ),
+              child: AnimatedAppearance(
+                delay: const Duration(milliseconds: 200),
+                child: CinematicButton(
+                  label: 'Renew with Copilot',
+                  icon: Icons.auto_awesome_rounded,
+                  onPressed: () => context.push(
+                    '/visa/renew'
+                    '?country=${Uri.encodeQueryComponent(country)}'
+                    '&flag=${Uri.encodeQueryComponent(flag)}'
+                    '&days=$daysToExpiry'
+                    '&visaType=${Uri.encodeQueryComponent(visaType)}',
+                  ),
+                ),
+              ),
+            ),
           const SizedBox(height: AppTokens.space9),
         ],
       ),

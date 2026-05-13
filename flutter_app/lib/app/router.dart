@@ -39,6 +39,7 @@ import '../features/passport_book/passport_live_screen.dart';
 import '../features/transit_passes/transit_passes_live_screen.dart';
 import '../features/trip_timeline/trip_timeline_live_screen.dart';
 import '../features/visa/visa_live_screen.dart';
+import '../features/visa/visa_renewal_ceremony.dart';
 import '../features/planner/planner_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/receipt/receipt_screen.dart';
@@ -560,6 +561,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/sensors-lab', (_, __) => const SensorsLabScreen()),
       _route('/premium-showcase', (_, __) => const PremiumShowcaseScreen()),
       _route('/visa', (_, __) => const VisaDetailScreen()),
+      // Visa renewal ceremony — the Copilot-launched cinematic flow.
+      // Optional query: ?country=Schengen Area&days=11&flag=🇪🇺
+      _sheetRoute(
+        '/visa/renew',
+        (_, state) {
+          final q = state.uri.queryParameters;
+          final country = q['country'];
+          final flag = q['flag'];
+          final daysRaw = q['days'];
+          final days = daysRaw == null ? null : int.tryParse(daysRaw);
+          final visaType = q['visaType'];
+          return VisaRenewalCeremony(
+            country: country ?? 'Schengen Area',
+            flag: flag ?? '🇪🇺',
+            daysToExpiry: days ?? 11,
+            visaType: visaType ?? 'Schengen short-stay',
+          );
+        },
+      ),
       _route('/lounge', (_, __) => const LoungeScreen()),
       _route('/esim', (_, __) => const EsimScreen()),
       _route('/phrasebook', (_, __) => const PhrasebookScreen()),
