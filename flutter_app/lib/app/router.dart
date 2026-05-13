@@ -49,6 +49,7 @@ import '../features/arrival/arrival_welcome_screen.dart';
 import '../features/connectivity/esim_screen.dart';
 import '../features/country/country_profile_screen.dart';
 import '../features/customs/customs_declaration_screen.dart';
+import '../features/debug/error_log_screen.dart';
 import '../features/emergency/emergency_screen.dart';
 import '../features/itinerary/itinerary_builder_screen.dart';
 import '../features/journal/trip_journal_screen.dart';
@@ -258,6 +259,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Gate routes (full-screen, no shell)
       _route('/lock', (_, __) => const LockScreen()),
       _route('/onboarding', (_, __) => const OnboardingScreen()),
+      // Debug — error log viewer. Surfaces the in-memory
+      // `ErrorTelemetry` buffer for triage. Safe to keep on all
+      // builds; capture is no-op in release.
+      _route('/debug/errors', (_, __) => const ErrorLogScreen()),
 
       // OS 2.0 — the six worlds share `Os2Shell`. Every screen here
       // is a rebuilt-from-scratch surface in `lib/os2/worlds/`.
