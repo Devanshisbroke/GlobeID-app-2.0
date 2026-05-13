@@ -218,23 +218,28 @@ class _HolographicFoilState extends State<HolographicFoil>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _c,
-      builder: (_, child) {
-        final t = _c.value;
-        return ShaderMask(
-          blendMode: BlendMode.srcATop,
-          shaderCallback: (bounds) {
-            return LinearGradient(
-              begin: Alignment(-1.4 + t * 2.8, -0.3),
-              end: Alignment(-0.4 + t * 2.8, 0.3),
-              colors: widget.colors,
-            ).createShader(bounds);
-          },
-          child: child,
-        );
-      },
-      child: widget.child,
+    // Isolate the per-frame shader pass in its own repaint layer so
+    // siblings (text, decoration, icons) don't repaint at the holo
+    // sweep cadence.
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (_, child) {
+          final t = _c.value;
+          return ShaderMask(
+            blendMode: BlendMode.srcATop,
+            shaderCallback: (bounds) {
+              return LinearGradient(
+                begin: Alignment(-1.4 + t * 2.8, -0.3),
+                end: Alignment(-0.4 + t * 2.8, 0.3),
+                colors: widget.colors,
+              ).createShader(bounds);
+            },
+            child: child,
+          );
+        },
+        child: widget.child,
+      ),
     );
   }
 }
@@ -601,20 +606,25 @@ class _BreathingRingState extends State<BreathingRing>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _c,
-      builder: (_, __) {
-        final t = (math.sin(_c.value * math.pi * 2) + 1) / 2;
-        final extra = 14.0 * t;
-        return CustomPaint(
-          size: Size(widget.size + extra, widget.size + extra),
-          painter: _RingPainter(
-            tone: widget.tone,
-            strokeWidth: widget.strokeWidth,
-            alpha: 0.20 + 0.40 * t,
-          ),
-        );
-      },
+    // Breathing ring repaints every frame on the AnimationController
+    // tick. Isolate it so the surrounding hero / chrome stays static
+    // and we only flush this small dirty rect.
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (_, __) {
+          final t = (math.sin(_c.value * math.pi * 2) + 1) / 2;
+          final extra = 14.0 * t;
+          return CustomPaint(
+            size: Size(widget.size + extra, widget.size + extra),
+            painter: _RingPainter(
+              tone: widget.tone,
+              strokeWidth: widget.strokeWidth,
+              alpha: 0.20 + 0.40 * t,
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -689,41 +699,47 @@ class _LiveTickerState extends State<LiveTicker>
   @override
   Widget build(BuildContext context) {
     final text = widget.items.join('   ·   ');
-    return SizedBox(
-      height: widget.height,
-      child: ClipRect(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return AnimatedBuilder(
-              animation: _c,
-              builder: (_, __) {
-                final offset = -(_c.value * constraints.maxWidth * 1.5);
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned(
-                      left: offset,
-                      top: 0,
-                      child: Row(
-                        children: [
-                          Text(
-                            '$text   ·   $text   ·   $text',
-                            style: TextStyle(
-                              color: widget.tone.withValues(alpha: 0.85),
-                              fontWeight: FontWeight.w700,
-                              fontSize: 11,
-                              letterSpacing: 1.4,
-                              fontFeatures: const [FontFeature.tabularFigures()],
+    // Isolate the marquee's translation in its own repaint layer so
+    // surrounding chrome doesn't repaint at the scroll cadence.
+    return RepaintBoundary(
+      child: SizedBox(
+        height: widget.height,
+        child: ClipRect(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return AnimatedBuilder(
+                animation: _c,
+                builder: (_, __) {
+                  final offset = -(_c.value * constraints.maxWidth * 1.5);
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned(
+                        left: offset,
+                        top: 0,
+                        child: Row(
+                          children: [
+                            Text(
+                              '$text   ·   $text   ·   $text',
+                              style: TextStyle(
+                                color: widget.tone.withValues(alpha: 0.85),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11,
+                                letterSpacing: 1.4,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures()
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
+                    ],
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
     );

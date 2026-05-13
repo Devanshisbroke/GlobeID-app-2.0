@@ -174,7 +174,8 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
             if (v < -300 && !_isOpen) _toggleOpen();
             if (v > 300 && _isOpen) _toggleOpen();
           },
-          child: AnimatedBuilder(
+          child: RepaintBoundary(
+            child: AnimatedBuilder(
             animation: _open,
             builder: (_, __) {
               final t = Curves.easeOutCubic.transform(_open.value);
@@ -240,6 +241,7 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
                 ),
               );
             },
+          ),
           ),
         ),
       ),

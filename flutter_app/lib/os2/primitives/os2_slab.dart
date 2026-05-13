@@ -163,61 +163,71 @@ class _Os2SlabState extends State<Os2Slab>
       borderRadius: BorderRadius.circular(widget.radius),
     );
 
-    return AnimatedBuilder(
-      animation: _breath,
-      builder: (context, _) {
-        final t = widget.breath
-            ? Curves.easeInOut.transform(_breath.value)
-            : 0.0;
-        return DecoratedBox(
-          decoration: ShapeDecoration(
-            color: _floor,
-            shape: shape,
-            shadows: _shadows,
-          ),
-          child: ClipPath(
-            clipper: ShapeBorderClipper(shape: shape),
-            child: Stack(
-              children: [
-                if (widget.halo != Os2SlabHalo.none)
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: CustomPaint(
-                        painter: _HaloPainter(
-                          tone: widget.tone,
-                          halo: widget.halo,
-                          breath: t,
-                        ),
-                      ),
-                    ),
-                  ),
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: CustomPaint(
-                      painter: _SpecularPainter(tone: widget.tone),
+    // Static parts of the slab — shape, shadows, specular, content,
+    // hairline. These should never rebuild on the breath tick.
+    final staticChild = DecoratedBox(
+      decoration: ShapeDecoration(
+        color: _floor,
+        shape: shape,
+        shadows: _shadows,
+      ),
+      child: ClipPath(
+        clipper: ShapeBorderClipper(shape: shape),
+        child: Stack(
+          children: [
+            // Halo: animated by the breath controller. Isolated below in
+            // its own RepaintBoundary + AnimatedBuilder so the rest of
+            // the slab — including the child subtree — never repaints
+            // on the breath tick.
+            if (widget.halo != Os2SlabHalo.none)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: RepaintBoundary(
+                    child: AnimatedBuilder(
+                      animation: _breath,
+                      builder: (context, _) {
+                        final t = widget.breath
+                            ? Curves.easeInOut.transform(_breath.value)
+                            : 0.0;
+                        return CustomPaint(
+                          painter: _HaloPainter(
+                            tone: widget.tone,
+                            halo: widget.halo,
+                            breath: t,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
-                Padding(
-                  padding: widget.padding,
-                  child: widget.child,
+              ),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: CustomPaint(
+                  painter: _SpecularPainter(tone: widget.tone),
                 ),
-                if (widget.onTap != null)
-                  Positioned.fill(
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        customBorder: shape,
-                        onTap: widget.onTap,
-                      ),
-                    ),
-                  ),
-              ],
+              ),
             ),
-          ),
-        ).withHairline(widget.tone, widget.radius);
-      },
-    );
+            Padding(
+              padding: widget.padding,
+              child: widget.child,
+            ),
+            if (widget.onTap != null)
+              Positioned.fill(
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    customBorder: shape,
+                    onTap: widget.onTap,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    ).withHairline(widget.tone, widget.radius);
+
+    return staticChild;
   }
 }
 

@@ -118,36 +118,50 @@ class SoundCues {
 // PAGE TRANSITIONS
 // ─────────────────────────────────────────────────────────────────────
 
-/// Canonical Nexus page transition.
+/// Canonical Nexus page transition — Apple-grade smoothness.
 ///
-/// Pure fade + 16 px slide-up + 0.98→1.00 scale on push, eased with
-/// [N.ease]. No backdrop blur, no shadow — depth comes from contrast
-/// and the hairline-bordered substrate beneath. Cheap on the GPU,
-/// indistinguishable from the previous blur-based transition for the
-/// user, and consistent with the Travel-OS / Wallet reference.
+/// Cross-fades the incoming and outgoing screens simultaneously while
+/// applying a 12 px slide-up + 0.985 → 1.00 scale to the new screen
+/// and a 1.00 → 0.985 scale + soft fade to 0.0 on the outgoing screen.
+/// No BackdropFilter, no ImageFiltered — those are GPU killers that
+/// cause the lingering "ghost" effect.
+///
+/// Both layers are wrapped in [RepaintBoundary] so they composite as
+/// independent surfaces, eliminating ghost frames on push/pop.
 Widget premiumSlideTransition(
   BuildContext _,
   Animation<double> anim,
-  Animation<double> __,
+  Animation<double> secondary,
   Widget child,
 ) {
-  final t = CurvedAnimation(parent: anim, curve: N.ease);
+  final inCurve = CurvedAnimation(parent: anim, curve: N.ease);
+  final outCurve = CurvedAnimation(parent: secondary, curve: N.ease);
   return AnimatedBuilder(
-    animation: t,
+    animation: Listenable.merge([inCurve, outCurve]),
     builder: (_, c) {
-      final v = t.value;
-      return Opacity(
-        opacity: v.clamp(0.0, 1.0),
-        child: Transform.translate(
-          offset: Offset(0, (1 - v) * 16),
-          child: Transform.scale(
-            scale: 0.98 + 0.02 * v,
-            child: c,
+      final i = inCurve.value;
+      final o = outCurve.value;
+      // Outgoing: subtle scale down + fade. Quick + decisive.
+      final outOpacity = (1.0 - o * 0.85).clamp(0.0, 1.0);
+      final outScale = 1.0 - o * 0.02;
+      // Incoming: fade in fast (front-loaded), slide up 12 px, scale 0.985→1.0
+      final inOpacity = i.clamp(0.0, 1.0);
+      final inScale = 0.985 + 0.015 * i;
+      final inOffsetY = (1 - i) * 12;
+      return RepaintBoundary(
+        child: Opacity(
+          opacity: inOpacity * outOpacity,
+          child: Transform.translate(
+            offset: Offset(0, inOffsetY),
+            child: Transform.scale(
+              scale: inScale * outScale,
+              child: c,
+            ),
           ),
         ),
       );
     },
-    child: child,
+    child: RepaintBoundary(child: child),
   );
 }
 
