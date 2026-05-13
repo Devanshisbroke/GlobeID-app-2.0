@@ -70,6 +70,8 @@ import '../features/services/super_services_screen.dart';
 import '../features/services/transport_screen.dart';
 import '../features/travel_os/travel_os_screen.dart';
 import '../features/wallet/wallet_flows_screen.dart';
+import '../features/wallet/wallet_scheduled_screen.dart';
+import '../features/wallet/wallet_statements_screen.dart';
 import '../features/wallet/trip_wallet_screen.dart';
 import '../features/security/audit_log_screen.dart';
 import '../features/security/session_lock_provider.dart';
@@ -550,6 +552,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route(
         '/wallet/exchange',
         (_, __) => const WalletFlowScreen(flow: WalletFlow.exchange),
+      ),
+      _route(
+        '/wallet/scheduled',
+        (_, __) => const WalletScheduledScreen(),
+      ),
+      _route(
+        '/wallet/statements',
+        (_, __) => const WalletStatementsScreen(),
       ),
       // OS2 screens — cinematic primary surfaces.
       _route('/os2/onboarding', (_, __) => const Os2OnboardingScreen()),
