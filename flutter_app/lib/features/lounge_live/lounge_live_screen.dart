@@ -106,15 +106,20 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                 child: TiltParallax(
                   tilt: _tilt,
                   depth: 6,
-                  child: AspectRatio(
+                  child: LiveLift(
+                    tone: tone,
+                    child: AspectRatio(
                     aspectRatio: 1.58,
                     child: LoungeCardSubstrate(
                       tone: tone,
                       child: Stack(
                         children: [
+                          // Lounge member card foil — iridescent
+                          // for the brushed-foil member tier.
                           Positioned.fill(
                             child: HolographicFoil(
                               duration: const Duration(seconds: 5),
+                              style: HolographicFoilStyle.iridescent,
                               child: Container(color: Colors.transparent),
                             ),
                           ),
@@ -135,9 +140,30 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                                       ),
                                     ),
                                     const Spacer(),
-                                    OviSeal(
-                                      icon: Icons.weekend_rounded,
+                                    // OVI seal with NFC pulse +
+                                    // orbiting perk dots — signals the
+                                    // card is "live and ready to tap"
+                                    // and broadcasts the active perks
+                                    // (shower / dining / spa /
+                                    // fast-track) as a quiet orbit
+                                    // around the seal.
+                                    NfcPulse(
                                       tone: tone,
+                                      size: 64,
+                                      child: OrbitalPerks(
+                                        radius: 30,
+                                        dotSize: 3.2,
+                                        tones: [
+                                          tone,
+                                          tone.withValues(alpha: 0.78),
+                                          const Color(0xFF66B7FF),
+                                          const Color(0xFFE9C75D),
+                                        ],
+                                        child: OviSeal(
+                                          icon: Icons.weekend_rounded,
+                                          tone: tone,
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -189,8 +215,25 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                               ],
                             ),
                           ),
+                          // GlobeID signature — discreet hairline
+                          // gold rule + 9 px monogram pressed into
+                          // the corner. Says "manufactured by
+                          // GlobeID" without competing for the eye.
+                          const GlobeIdSignature(
+                            alignment: Alignment.bottomLeft,
+                          ),
+                          // Live state pill — cinematic ladder
+                          // status. Pulses with the state glow.
+                          const Positioned(
+                            top: 12,
+                            right: 12,
+                            child: LiveStatusPill(
+                              state: LiveSurfaceState.active,
+                            ),
+                          ),
                         ],
                       ),
+                    ),
                     ),
                   ),
                 ),

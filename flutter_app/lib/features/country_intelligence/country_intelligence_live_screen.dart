@@ -114,14 +114,28 @@ class _CountryIntelligenceLiveScreenState
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  widget.country.toUpperCase(),
-                                  style: const TextStyle(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 22,
-                                    letterSpacing: 2.6,
-                                  ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      widget.country.toUpperCase(),
+                                      style: const TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 22,
+                                        letterSpacing: 2.6,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    // Live state pill — country
+                                    // intelligence stays LIVE while
+                                    // open, signalling the dossier
+                                    // is hydrated with real-time
+                                    // data, not a static fact sheet.
+                                    LiveStatusPill(
+                                      state: LiveSurfaceState.active,
+                                      tone: tone,
+                                    ),
+                                  ],
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -136,7 +150,17 @@ class _CountryIntelligenceLiveScreenState
                               ],
                             ),
                           ),
-                          OviSeal(icon: Icons.shield_rounded, tone: tone),
+                          // OVI seal pulses softly at heart-rate
+                          // cadence — dossier reads as actively
+                          // monitored, not statically printed.
+                          NfcPulse(
+                            tone: tone,
+                            size: 50,
+                            child: OviSeal(
+                              icon: Icons.shield_rounded,
+                              tone: tone,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 18),

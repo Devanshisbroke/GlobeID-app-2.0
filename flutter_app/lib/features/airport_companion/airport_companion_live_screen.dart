@@ -181,11 +181,9 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
-          StatusPill(
-            icon: Icons.radar_rounded,
-            label: 'LIVE',
+          LiveStatusPill(
+            state: LiveSurfaceState.active,
             tone: tone,
-            dense: true,
           ),
         ],
       ),

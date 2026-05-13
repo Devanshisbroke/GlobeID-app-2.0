@@ -464,15 +464,21 @@ class _BanknoteCard extends StatelessWidget {
       padding: const EdgeInsets.all(6),
       child: AspectRatio(
         aspectRatio: 0.62,
-        child: BanknoteSubstrate(
+        child: LiveLift(
+          tone: note.tone,
+          depth: 18,
+          child: BanknoteSubstrate(
           tone: note.tone,
           serial: 'GBL · ${note.code} · A${note.amount.toInt().toString().padLeft(6, '0')}',
           child: Stack(
             children: [
-              // Foil sweep — only on the active currency.
+              // Foil sweep — only on the active currency. Banknotes
+              // get the iridescent preset (ice + amber security ink)
+              // so the active note reads as authentic currency.
               Positioned.fill(
                 child: HolographicFoil(
                   duration: const Duration(seconds: 5),
+                  style: HolographicFoilStyle.iridescent,
                   child: Container(color: Colors.transparent),
                 ),
               ),
@@ -541,12 +547,21 @@ class _BanknoteCard extends StatelessWidget {
                   ),
                 ),
               ),
-              // Bottom denomination — corner.
+              // Bottom denomination — corner. Rolls up from 0 on
+              // activation so the banknote "comes alive" when the
+              // user pins it (Apple-Wallet card-number reveal feel).
               Positioned(
                 bottom: 30,
                 right: 18,
-                child: Text(
-                  '${(note.amount > 1000 ? note.amount / 1000 : note.amount).toStringAsFixed(0)}${note.amount > 1000 ? 'K' : ''}',
+                child: RollingDigits(
+                  key: ValueKey('forex-corner-${note.code}'),
+                  target: (note.amount > 1000
+                          ? note.amount / 1000
+                          : note.amount)
+                      .toInt(),
+                  digits: 1,
+                  suffix: note.amount > 1000 ? 'K' : '',
+                  duration: const Duration(milliseconds: 620),
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.55),
                     fontWeight: FontWeight.w900,
@@ -555,8 +570,16 @@ class _BanknoteCard extends StatelessWidget {
                   ),
                 ),
               ),
+              // Live state pill — banknote stays in ACTIVE while
+              // pinned. Mono-cap glow against the linen substrate.
+              const Positioned(
+                top: 14,
+                left: 90,
+                child: LiveStatusPill(state: LiveSurfaceState.active),
+              ),
             ],
           ),
+        ),
         ),
       ),
     );

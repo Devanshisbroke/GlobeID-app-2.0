@@ -11,6 +11,7 @@ import '../../app/theme/app_tokens.dart';
 import '../../data/models/lifecycle.dart';
 import '../../domain/airline_brand.dart';
 import '../../domain/airports.dart';
+import '../../motion/motion.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/pressable.dart';
 import '../lifecycle/lifecycle_provider.dart';
@@ -298,10 +299,16 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
                       child: Center(
                         child: GestureDetector(
                           onTap: () {
-                            HapticFeedback.lightImpact();
+                            // Boarding-pass flip is a hero reveal —
+                            // when the pass turns to expose the live
+                            // QR code, fire the signature triple-pulse
+                            // so the moment lands as a cinematic
+                            // commit. Closing it is a soft close.
                             if (_flipped) {
+                              Haptics.close();
                               _flip.reverse();
                             } else {
+                              Haptics.signature();
                               _flip.forward();
                             }
                             setState(() => _flipped = !_flipped);

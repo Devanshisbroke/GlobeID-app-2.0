@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../cinematic/document_substrate.dart';
+import '../../cinematic/live/live_primitives.dart';
 import '../../data/models/user_profile.dart';
+import '../../motion/motion.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/pressable.dart';
 import '../insights/insights_provider.dart';
@@ -64,10 +66,16 @@ class _PassportLiveScreenState extends ConsumerState<PassportLiveScreen>
   }
 
   void _toggleOpen() {
-    HapticFeedback.mediumImpact();
     if (_isOpen) {
+      // Closing the passport — soft close haptic, cover folds back.
+      Haptics.close();
       _open.reverse();
     } else {
+      // Opening the passport is the hero reveal of the entire Live
+      // family — the bearer page (photo, name, DOB, MRZ) materialises.
+      // Signature triple-pulse so the moment lands cinematic, not
+      // utilitarian.
+      Haptics.signature();
       _open.forward();
     }
     setState(() => _isOpen = !_isOpen);
@@ -157,6 +165,22 @@ class _PassportLiveScreenState extends ConsumerState<PassportLiveScreen>
                                 ),
                               ),
                             ),
+                            // ── Silk bookmark ribbon (only while open) ──
+                            // Hangs off the top-right edge of the open
+                            // passport, ~6° flutter. Tells the eye this
+                            // is a real bound book.
+                            if (t > 0.6)
+                              Positioned(
+                                top: 0,
+                                right: 28,
+                                child: Opacity(
+                                  opacity: ((t - 0.6) / 0.4).clamp(0.0, 1.0),
+                                  child: const PassportRibbonBookmark(
+                                    length: 64,
+                                    width: 8,
+                                  ),
+                                ),
+                              ),
                             // ── Cover (flips up on open) ────────────────
                             Positioned.fill(
                               child: Transform(
@@ -166,7 +190,12 @@ class _PassportLiveScreenState extends ConsumerState<PassportLiveScreen>
                                   ..rotateX(-math.pi * t),
                                 child: Opacity(
                                   opacity: 1 - (t * 0.95).clamp(0.0, 1.0),
-                                  child: _Cover(foil: _foil),
+                                  child: _Cover(
+                                    foil: _foil,
+                                    liveState: _isOpen
+                                        ? LiveSurfaceState.active
+                                        : LiveSurfaceState.armed,
+                                  ),
                                 ),
                               ),
                             ),
@@ -300,8 +329,12 @@ int _stampPages(List<Map<String, dynamic>> stamps) =>
 // ─────────────────────────────────────────────────────────────────────
 
 class _Cover extends StatelessWidget {
-  const _Cover({required this.foil});
+  const _Cover({
+    required this.foil,
+    this.liveState = LiveSurfaceState.armed,
+  });
   final AnimationController foil;
+  final LiveSurfaceState liveState;
 
   @override
   Widget build(BuildContext context) {
@@ -358,6 +391,14 @@ class _Cover extends StatelessWidget {
               isComplex: true,
               painter: _GrainPainter(),
             ),
+          ),
+          // ── Subliminal GLOBE·ID watermark drift ──────────────────
+          // 40s drift cycle, alpha 0.04 — subliminal proof of
+          // "manufactured by GlobeID" without ever competing with the
+          // foil or crest. Below conscious threshold.
+          const GlobeIdWatermarkDrift(
+            alpha: 0.04,
+            fontSize: 56,
           ),
           // ── Crest / title ────────────────────────────────────────
           Center(
@@ -418,6 +459,14 @@ class _Cover extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          // Live state pill — driven by the actual gesture state.
+          // ARMED before user taps; ACTIVE while the passport is
+          // open. Signature triple-pulse fires on _toggleOpen.
+          Positioned(
+            top: 24,
+            right: 24,
+            child: LiveStatusPill(state: liveState),
           ),
         ],
       ),

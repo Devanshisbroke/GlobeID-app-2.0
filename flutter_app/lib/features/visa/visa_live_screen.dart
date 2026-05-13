@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../cinematic/live/live_primitives.dart';
 import '../../cinematic/live/live_substrates.dart';
+import '../../motion/motion.dart';
 import '../../nexus/nexus_tokens.dart';
 
 /// VisaLive — a digital twin of a real government-issued visa.
@@ -100,16 +101,21 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
   }
 
   void _toggleOpen() {
-    HapticFeedback.mediumImpact();
     if (_isOpen) {
+      // Closing the booklet — soft close haptic.
+      Haptics.close();
       _open.reverse();
       setState(() => _isOpen = false);
     } else {
+      // Opening the visa booklet is a hero reveal — pages turning,
+      // foil catching light. Signature triple-pulse on the open,
+      // then heavy confirm when the consular stamp drops.
+      Haptics.signature();
       _open.forward().then((_) {
         if (mounted && !_stamped) {
           _stamped = true;
           _stampDrop.forward();
-          HapticFeedback.heavyImpact();
+          Haptics.confirm();
         }
       });
       setState(() => _isOpen = true);
@@ -217,6 +223,12 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
                             visaNumber: widget.visaNumber,
                             stampAnim: _stampDrop,
                             foilAnim: _foil,
+                            // Inner page state ladder — ACTIVE while
+                            // the consular stamp is still in flight,
+                            // COMMITTED once it lands.
+                            liveState: _stamped
+                                ? LiveSurfaceState.committed
+                                : LiveSurfaceState.active,
                           ),
                         ),
                       ),
@@ -233,6 +245,12 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
                             flag: widget.flag,
                             tone: widget.tone,
                             foilAnim: _foil,
+                            // Cover state ladder — IDLE before user
+                            // intent, ARMED once the booklet starts
+                            // animating open.
+                            liveState: _isOpen
+                                ? LiveSurfaceState.active
+                                : LiveSurfaceState.armed,
                           ),
                         ),
                       ),
@@ -350,11 +368,13 @@ class _Cover extends StatelessWidget {
     required this.flag,
     required this.tone,
     required this.foilAnim,
+    this.liveState = LiveSurfaceState.armed,
   });
   final String country;
   final String flag;
   final Color tone;
   final AnimationController foilAnim;
+  final LiveSurfaceState liveState;
 
   @override
   Widget build(BuildContext context) {
@@ -379,8 +399,14 @@ class _Cover extends StatelessWidget {
           ),
           // Leather grain.
           CustomPaint(painter: _LeatherGrainPainter()),
-          // Foil shimmer.
-          HolographicFoil(child: Container(color: Colors.transparent)),
+          // Foil shimmer — passport-grade iridescent + secondary
+          // counter-sweep so the booklet cover reads as authentic
+          // optically-variable security ink.
+          HolographicFoil(
+            style: HolographicFoilStyle.iridescent,
+            secondarySweep: true,
+            child: Container(color: Colors.transparent),
+          ),
           // Embossed border.
           Positioned.fill(
             child: Padding(
@@ -511,6 +537,14 @@ class _Cover extends StatelessWidget {
               },
             ),
           ),
+          // Live state pill — driven by the booklet's actual
+          // gesture state. ARMED when closed, ACTIVE while open
+          // and animating, COMMITTED on the inner page.
+          Positioned(
+            top: 20,
+            right: 24,
+            child: LiveStatusPill(state: liveState),
+          ),
         ],
       ),
     );
@@ -544,6 +578,7 @@ class _VisaPage extends StatelessWidget {
     required this.country,
     required this.flag,
     required this.tone,
+    this.liveState = LiveSurfaceState.active,
     required this.visaType,
     required this.maxStay,
     required this.issueDate,
@@ -570,6 +605,7 @@ class _VisaPage extends StatelessWidget {
   final String visaNumber;
   final AnimationController stampAnim;
   final AnimationController foilAnim;
+  final LiveSurfaceState liveState;
 
   String _mrz1() {
     final hLast = holder.split(' ').last;
@@ -736,11 +772,17 @@ class _VisaPage extends StatelessWidget {
                     opacity: t.clamp(0.0, 1.0),
                     child: Transform.rotate(
                       angle: -math.pi / 14,
-                      child: OviSeal(
-                        icon: Icons.verified_rounded,
+                      child: NfcPulse(
                         tone: tone,
                         size: 70,
-                        label: 'SEALED',
+                        rings: 2,
+                        maxAlpha: 0.42,
+                        child: OviSeal(
+                          icon: Icons.verified_rounded,
+                          tone: tone,
+                          size: 70,
+                          label: 'SEALED',
+                        ),
                       ),
                     ),
                   ),
@@ -772,6 +814,7 @@ class _VisaPage extends StatelessWidget {
                 Expanded(
                   child: HolographicFoil(
                     duration: const Duration(seconds: 4),
+                    style: HolographicFoilStyle.iridescent,
                     child: Container(
                       height: 22,
                       decoration: BoxDecoration(
@@ -799,6 +842,14 @@ class _VisaPage extends StatelessWidget {
               lines: [_mrz1(), _mrz2()],
               tone: Colors.black.withValues(alpha: 0.9),
             ),
+          ),
+          // Cinematic state pill — visa booklet promotes from
+          // ARMED on the cover to ACTIVE on first open, then
+          // COMMITTED once the consular stamp drops on the page.
+          Positioned(
+            top: 12,
+            right: 14,
+            child: LiveStatusPill(state: liveState),
           ),
         ],
       ),
