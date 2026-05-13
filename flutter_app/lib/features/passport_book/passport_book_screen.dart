@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/sheets/apple_sheet.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/page_scaffold.dart';
@@ -242,11 +243,18 @@ class _PassportBookScreenState extends ConsumerState<PassportBookScreen> {
 
   Future<void> _openDetail(Map<String, dynamic> stamp) async {
     HapticFeedback.lightImpact();
-    await showModalBottomSheet<void>(
+    final country = stamp['country']?.toString() ?? '';
+    final title = stamp['title']?.toString() ?? 'Stamp';
+    await showAppleSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _StampDetailSheet(stamp: stamp),
+      eyebrow: country.isEmpty
+          ? 'PASSPORT · STAMP'
+          : 'PASSPORT · ${country.toUpperCase()}',
+      title: title,
+      tone: const Color(0xFFD4AF37),
+      detents: const [0.40, 0.55, 0.85],
+      builder: (controller) =>
+          _StampDetailSheet(stamp: stamp, controller: controller),
     );
   }
 
@@ -588,42 +596,24 @@ class _StampTileState extends State<_StampTile> {
 }
 
 class _StampDetailSheet extends StatelessWidget {
-  const _StampDetailSheet({required this.stamp});
+  const _StampDetailSheet({required this.stamp, this.controller});
   final Map<String, dynamic> stamp;
+  final ScrollController? controller;
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final flag = stamp['flag']?.toString() ?? '🌍';
-    final title = stamp['title']?.toString() ?? 'Stamp';
     final issued = stamp['issuedAt']?.toString() ?? '';
     final country = stamp['country']?.toString() ?? '';
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.55,
-      minChildSize: 0.35,
-      maxChildSize: 0.85,
-      builder: (_, scroll) => Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(AppTokens.radiusXl),
-          ),
-        ),
-        child: ListView(
-          controller: scroll,
-          padding: const EdgeInsets.all(AppTokens.space5),
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: AppTokens.space3),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                ),
-              ),
-            ),
+    return ListView(
+      controller: controller,
+      padding: const EdgeInsets.fromLTRB(
+        AppTokens.space5,
+        AppTokens.space2,
+        AppTokens.space5,
+        AppTokens.space5,
+      ),
+      children: [
             Center(
               child: Container(
                 width: 96,
@@ -644,14 +634,6 @@ class _StampDetailSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppTokens.space4),
-            Center(
-              child: Text(
-                title,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
             if (country.isNotEmpty)
               Center(
                 child: Text(
@@ -705,9 +687,7 @@ class _StampDetailSheet extends StatelessWidget {
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 }

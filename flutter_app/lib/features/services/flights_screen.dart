@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/sheets/apple_sheet.dart';
 import '../../domain/airline_brand.dart';
 import '../../domain/airports.dart';
 import '../../nexus/nexus_tokens.dart';
@@ -234,17 +235,13 @@ class _FlightsScreenState extends State<FlightsScreen> {
 
   Future<void> _pickAirport(bool isFrom) async {
     final airports = kAirports;
-    final result = await showModalBottomSheet<String>(
+    final result = await showAppleSheet<String>(
       context: context,
-      backgroundColor: N.surface,
-      barrierColor: Colors.black.withValues(alpha: 0.62),
-      isScrollControlled: true,
-      elevation: 0,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(N.rSheet)),
-        side: BorderSide(color: N.hairline, width: N.strokeHair),
-      ),
-      builder: (ctx) => _AirportPicker(airports: airports),
+      eyebrow: isFrom ? 'DEPARTING FROM' : 'ARRIVING AT',
+      title: 'Choose airport',
+      detents: const [0.45, 0.70, 0.92],
+      builder: (controller) =>
+          _AirportPicker(airports: airports, controller: controller),
     );
     if (result != null) {
       setState(() {
@@ -1337,81 +1334,65 @@ class _AmenitiesGrid extends StatelessWidget {
 }
 
 class _AirportPicker extends StatelessWidget {
-  const _AirportPicker({required this.airports});
+  const _AirportPicker({required this.airports, this.controller});
   final List<Airport> airports;
+  final ScrollController? controller;
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTokens.space5),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 36,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: AppTokens.space3),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-              ),
-            ),
-            Text('Choose airport', style: theme.textTheme.titleLarge),
-            const SizedBox(height: AppTokens.space3),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 360),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: airports.length,
-                itemBuilder: (_, i) => InkWell(
-                  onTap: () => Navigator.of(context).pop(airports[i].iata),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: AppTokens.space2 + 2),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: theme.colorScheme.primary
-                                .withValues(alpha: 0.14),
-                          ),
-                          child: Text(
-                            airports[i].iata,
-                            style: TextStyle(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppTokens.space3),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(airports[i].name,
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  )),
-                              Text(
-                                  '${airports[i].city} · ${airports[i].country}',
-                                  style: theme.textTheme.bodySmall),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+    return ListView.builder(
+      controller: controller,
+      padding: const EdgeInsets.fromLTRB(
+        AppTokens.space5,
+        AppTokens.space2,
+        AppTokens.space5,
+        AppTokens.space5,
+      ),
+      itemCount: airports.length,
+      itemBuilder: (_, i) => InkWell(
+        onTap: () => Navigator.of(context).pop(airports[i].iata),
+        child: Padding(
+          padding:
+              const EdgeInsets.symmetric(vertical: AppTokens.space2 + 2),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.colorScheme.primary
+                      .withValues(alpha: 0.14),
+                ),
+                child: Text(
+                  airports[i].iata,
+                  style: TextStyle(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
                   ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: AppTokens.space3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      airports[i].name,
+                      style: theme.textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    Text(
+                      '${airports[i].city} · ${airports[i].country}',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
