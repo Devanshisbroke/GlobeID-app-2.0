@@ -137,6 +137,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/ambient'),
                   ),
                   _SettingsRow(
+                    icon: Icons.currency_exchange_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'FX adapter',
+                    sub: 'Frankfurter (ECB) · demo drift · STALE',
+                    onTap: () => context.push('/lab/fx-adapter'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
