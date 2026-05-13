@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/sheets/apple_sheet.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
@@ -137,11 +138,12 @@ class _SocialScreenState extends State<SocialScreen> {
 
   Future<void> _openCreatePost() async {
     HapticFeedback.lightImpact();
-    final result = await showModalBottomSheet<_NewPostDraft>(
+    final result = await showAppleSheet<_NewPostDraft>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const _CreatePostSheet(),
+      eyebrow: 'SOCIAL · POST',
+      title: 'Share something',
+      detents: const [0.55, 0.80, 0.95],
+      builder: (controller) => _CreatePostSheet(controller: controller),
     );
     if (result == null) return;
     if (!mounted) return;
@@ -853,7 +855,8 @@ class _NewPostDraft {
 }
 
 class _CreatePostSheet extends StatefulWidget {
-  const _CreatePostSheet();
+  const _CreatePostSheet({this.controller});
+  final ScrollController? controller;
   @override
   State<_CreatePostSheet> createState() => _CreatePostSheetState();
 }
@@ -899,38 +902,21 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final inset = MediaQuery.of(context).viewInsets.bottom;
-    return Padding(
-      padding: EdgeInsets.only(bottom: inset),
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(AppTokens.radiusXl),
-          ),
-        ),
-        padding: const EdgeInsets.all(AppTokens.space5),
-        child: Column(
+    // AppleSheet provides drag handle + gold hairline + eyebrow +
+    // title; the body only needs the form widgets.
+    return ListView(
+      controller: widget.controller,
+      padding: EdgeInsets.fromLTRB(
+        AppTokens.space5,
+        AppTokens.space2,
+        AppTokens.space5,
+        AppTokens.space5 + inset,
+      ),
+      children: [
+        Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: AppTokens.space3),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                ),
-              ),
-            ),
-            Text(
-              'Share something',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: AppTokens.space3),
             TextField(
               controller: _ctrl,
               maxLines: 4,
@@ -1069,7 +1055,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 }
