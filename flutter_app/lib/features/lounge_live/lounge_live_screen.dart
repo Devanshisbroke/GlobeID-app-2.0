@@ -89,7 +89,8 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
             ),
           ],
         ),
-        child: SingleChildScrollView(
+        child: LiveMaterialize(
+          child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
@@ -126,11 +127,15 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                             ),
                           ),
                           // Lounge member card foil — iridescent
-                          // for the brushed-foil member tier.
+                          // for the brushed-foil member tier. The
+                          // sweep is tilt-driven so the highlight
+                          // follows the user's pan, matching how a
+                          // real brushed-foil card catches light.
                           Positioned.fill(
                             child: HolographicFoil(
                               duration: const Duration(seconds: 5),
                               style: HolographicFoilStyle.iridescent,
+                              tilt: _tilt,
                               child: Container(color: Colors.transparent),
                             ),
                           ),
@@ -266,6 +271,7 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
               ),
             ],
           ),
+        ),
         ),
       ),
     );

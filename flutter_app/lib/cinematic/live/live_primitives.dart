@@ -253,6 +253,7 @@ class HolographicFoil extends StatefulWidget {
     this.style = HolographicFoilStyle.gold,
     this.secondarySweep = false,
     this.radial = false,
+    this.tilt = Offset.zero,
   });
 
   final Widget child;
@@ -277,6 +278,17 @@ class HolographicFoil extends StatefulWidget {
   /// stamp, passport bearer page) where the foil should read as a
   /// concentrated holographic seal rather than a sweep.
   final bool radial;
+
+  /// Device / gesture tilt offset (typically `dx,dy` in `[-1, 1]`).
+  /// When non-zero, the sweep direction rotates with the tilt — the
+  /// foil reads as "catching the light" because the highlight follows
+  /// the user's physical tilt, matching how a real holographic
+  /// security ink looks when you tilt a passport.
+  ///
+  /// For linear sweeps, `tilt.dx` shifts the sweep phase and
+  /// `tilt.dy` rotates the sweep axis. For radial sweeps, the tilt
+  /// nudges the focal-point orbit offset.
+  final Offset tilt;
 
   @override
   State<HolographicFoil> createState() => _HolographicFoilState();
@@ -309,21 +321,30 @@ class _HolographicFoilState extends State<HolographicFoil>
         animation: _c,
         builder: (_, child) {
           final t = _c.value;
+          // Tilt influence — small magnitudes so a calm tilt nudges
+          // the sweep, an aggressive tilt swings it noticeably. Both
+          // axes are clamped because gesture deltas occasionally
+          // overshoot the design `[-1, 1]` range.
+          final tx = widget.tilt.dx.clamp(-1.0, 1.0);
+          final ty = widget.tilt.dy.clamp(-1.0, 1.0);
           Widget sweep;
           if (widget.radial) {
             // Radial holographic sweep — the focal point orbits the
             // credential's center on a small circle so the highlight
             // reads as a concentrated optically-variable seal instead
             // of a linear sweep. Used for hero credentials.
+            //
+            // Tilt nudges the orbit's offset so when the user tilts
+            // the device, the focal highlight follows the tilt.
             final theta = t * 2 * math.pi;
-            final fx = math.cos(theta) * 0.35;
-            final fy = math.sin(theta) * 0.35;
+            final fx = math.cos(theta) * 0.35 + tx * 0.20;
+            final fy = math.sin(theta) * 0.35 + ty * 0.20;
             sweep = ShaderMask(
               blendMode: BlendMode.srcATop,
               shaderCallback: (bounds) {
                 return RadialGradient(
                   center: const Alignment(0, 0),
-                  focal: Alignment(fx, fy),
+                  focal: Alignment(fx.clamp(-0.6, 0.6), fy.clamp(-0.6, 0.6)),
                   focalRadius: 0.05,
                   radius: 0.9,
                   colors: stops,
@@ -332,12 +353,18 @@ class _HolographicFoilState extends State<HolographicFoil>
               child: child,
             );
           } else {
+            // Linear sweep with tilt — tx shifts the phase forward
+            // along the sweep axis (so the highlight appears to move
+            // toward where the user has tilted), ty rotates the axis
+            // slightly off-horizontal so vertical tilt is also felt.
+            final phase = t * 2.8 + tx * 0.45;
+            final yawDelta = ty * 0.30;
             sweep = ShaderMask(
               blendMode: BlendMode.srcATop,
               shaderCallback: (bounds) {
                 return LinearGradient(
-                  begin: Alignment(-1.4 + t * 2.8, -0.3),
-                  end: Alignment(-0.4 + t * 2.8, 0.3),
+                  begin: Alignment(-1.4 + phase, -0.3 + yawDelta),
+                  end: Alignment(-0.4 + phase, 0.3 + yawDelta),
                   colors: stops,
                 ).createShader(bounds);
               },
@@ -349,14 +376,18 @@ class _HolographicFoilState extends State<HolographicFoil>
             // foil a second highlight band so credentials read as
             // genuinely holographic instead of a single linear
             // wipe. Both sweeps share the same color stack so the
-            // tonal floor stays calm.
+            // tonal floor stays calm. Counter-sweep also follows
+            // the tilt, but mirrored, so the two highlights split
+            // around the tilt center.
             final t2 = (t * 0.55 + 0.5) % 1.0;
+            final phase2 = t2 * 2.8 - tx * 0.45;
+            final yawDelta2 = -ty * 0.30;
             sweep = ShaderMask(
               blendMode: BlendMode.srcATop,
               shaderCallback: (bounds) {
                 return LinearGradient(
-                  begin: Alignment(1.4 - t2 * 2.8, 0.4),
-                  end: Alignment(0.4 - t2 * 2.8, -0.4),
+                  begin: Alignment(1.4 - phase2, 0.4 + yawDelta2),
+                  end: Alignment(0.4 - phase2, -0.4 + yawDelta2),
                   colors: stops,
                 ).createShader(bounds);
               },
@@ -2003,6 +2034,76 @@ class _LiveEntranceState extends State<LiveEntrance>
           ],
         );
       },
+    );
+  }
+}
+
+/// One-shot "credential is materializing" wrapper for an existing
+/// Live screen body. Wraps any single child and animates substrate →
+/// content → foil cinematic stages purely as alpha + tiny rise:
+///
+///   0.00 → 0.45  substrate band  (alpha 0 → 1, no rise)
+///   0.20 → 0.70  content band    (alpha 0 → 1, rise from 8 px)
+///   0.50 → 1.00  foil band       (alpha 0 → 1, no rise)
+///
+/// Use when the screen already composes substrate + content + foil
+/// inline (most Live screens do) and you only want the cinematic
+/// reveal feel without restructuring the layout into three slots.
+class LiveMaterialize extends StatefulWidget {
+  const LiveMaterialize({
+    super.key,
+    required this.child,
+    this.duration = const Duration(milliseconds: 820),
+    this.autoStart = true,
+    this.rise = 8.0,
+  });
+
+  final Widget child;
+  final Duration duration;
+  final bool autoStart;
+
+  /// Vertical translation in pixels at t=0 — the credential settles
+  /// downward into its final position as it materializes.
+  final double rise;
+
+  @override
+  State<LiveMaterialize> createState() => _LiveMaterializeState();
+}
+
+class _LiveMaterializeState extends State<LiveMaterialize>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.autoStart) _c.forward();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, child) {
+        final t = Curves.easeOutCubic.transform(_c.value);
+        return Opacity(
+          opacity: t,
+          child: Transform.translate(
+            offset: Offset(0, (1 - t) * widget.rise),
+            child: child,
+          ),
+        );
+      },
+      child: widget.child,
     );
   }
 }

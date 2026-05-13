@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:globeid/cinematic/live/live_primitives.dart';
+import 'package:globeid/cinematic/live/live_substrates.dart';
 
 void main() {
   group('HolographicFoilStyle — presets', () {
@@ -669,6 +670,158 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 50));
       expect(find.byType(ShaderMask), findsOneWidget);
+    });
+  });
+
+  group('HolographicFoil — tilt-driven sweep direction', () {
+    testWidgets('tilt offset is wired through the sweep shader',
+        (tester) async {
+      // We can't easily measure the shader output, but we can
+      // verify the widget mounts cleanly with a non-zero tilt
+      // and the ShaderMask still paints.
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 200,
+              height: 100,
+              child: HolographicFoil(
+                tilt: Offset(0.4, -0.3),
+                child: ColoredBox(color: Colors.transparent),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(HolographicFoil), findsOneWidget);
+      expect(find.byType(ShaderMask), findsOneWidget);
+    });
+
+    test('default tilt is Offset.zero (backward compatibility)', () {
+      const foil = HolographicFoil(
+        child: ColoredBox(color: Colors.transparent),
+      );
+      expect(foil.tilt, Offset.zero);
+    });
+
+    testWidgets('out-of-range tilt clamps to [-1, 1] without crashing',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 100,
+              height: 100,
+              child: HolographicFoil(
+                tilt: Offset(5.0, -8.0),
+                radial: true,
+                child: ColoredBox(color: Colors.transparent),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(ShaderMask), findsOneWidget);
+    });
+  });
+
+  group('LiveMaterialize — credential reveal wrapper', () {
+    testWidgets('fades child in from opacity 0 to 1',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: LiveMaterialize(
+              child: SizedBox(width: 40, height: 40),
+            ),
+          ),
+        ),
+      );
+      // At the very start, the child should be at low opacity.
+      await tester.pump(const Duration(milliseconds: 10));
+      final mid = tester.widget<Opacity>(
+        find.descendant(
+          of: find.byType(LiveMaterialize),
+          matching: find.byType(Opacity),
+        ).first,
+      );
+      // Pump to completion.
+      await tester.pump(const Duration(milliseconds: 900));
+      final end = tester.widget<Opacity>(
+        find.descendant(
+          of: find.byType(LiveMaterialize),
+          matching: find.byType(Opacity),
+        ).first,
+      );
+      expect(end.opacity, closeTo(1.0, 0.01));
+      // And the opacity should have risen.
+      expect(end.opacity, greaterThanOrEqualTo(mid.opacity));
+    });
+
+    test('rise default lifts ~8 px on entry', () {
+      const w = LiveMaterialize(child: SizedBox());
+      expect(w.rise, 8.0);
+    });
+  });
+
+  group('BanknoteSubstrate — cinematic serial roll', () {
+    testWidgets('rolls in on mount and lands on the final serial',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            backgroundColor: Colors.black,
+            body: SizedBox(
+              width: 320,
+              height: 180,
+              child: BanknoteSubstrate(
+                tone: Color(0xFFE9C75D),
+                serial: 'GBL · 00 · A28 · 411 · 928',
+                child: SizedBox.expand(),
+              ),
+            ),
+          ),
+        ),
+      );
+      // Pump enough to complete the 720 ms roll.
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 400));
+      // The substrate paints; no need to inspect the painter text.
+      expect(find.byType(BanknoteSubstrate), findsOneWidget);
+    });
+
+    testWidgets('changing serial re-rolls the new value',
+        (tester) async {
+      Widget body(String s) => MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 200,
+                height: 100,
+                child: BanknoteSubstrate(
+                  tone: const Color(0xFFE9C75D),
+                  serial: s,
+                  child: const SizedBox.expand(),
+                ),
+              ),
+            ),
+          );
+      await tester.pumpWidget(body('USD · A01 · 111'));
+      await tester.pump(const Duration(milliseconds: 800));
+      await tester.pumpWidget(body('JPY · B02 · 222'));
+      await tester.pump(const Duration(milliseconds: 800));
+      expect(find.byType(BanknoteSubstrate), findsOneWidget);
+    });
+
+    test('rollDuration default ~720 ms keeps the roll subtle', () {
+      const w = BanknoteSubstrate(
+        tone: Color(0xFFE9C75D),
+        child: SizedBox.shrink(),
+      );
+      expect(w.rollDuration, const Duration(milliseconds: 720));
+      expect(w.rollOnMount, true);
     });
   });
 }

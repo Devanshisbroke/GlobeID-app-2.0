@@ -157,7 +157,8 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
                 'No currencies in wallet',
                 style: TextStyle(color: Colors.white),
               )
-            : Column(
+            : LiveMaterialize(
+                child: Column(
                 children: [
                   _TotalsBlock(notes: notes, tone: activeTone),
                   const SizedBox(height: N.s4),
@@ -220,6 +221,7 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
                             child: _BanknoteCard(
                               note: note,
                               foilAnim: _foil,
+                              tilt: _tilt,
                             ),
                           ),
                           );
@@ -230,6 +232,7 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
                   const SizedBox(height: N.s4),
                   _Dots(count: notes.length, active: _index, tone: activeTone),
                 ],
+              ),
               ),
       ),
     );
@@ -447,9 +450,18 @@ class _Banknote {
 }
 
 class _BanknoteCard extends StatelessWidget {
-  const _BanknoteCard({required this.note, required this.foilAnim});
+  const _BanknoteCard({
+    required this.note,
+    required this.foilAnim,
+    this.tilt = Offset.zero,
+  });
   final _Banknote note;
   final AnimationController foilAnim;
+
+  /// Gesture pan offset — plumbed into the iridescent foil so the
+  /// highlight catches the user's tilt instead of sweeping on a
+  /// pure timer.
+  final Offset tilt;
 
   String get _formatted {
     if (note.code == 'JPY' || note.code == 'INR') {
@@ -484,11 +496,14 @@ class _BanknoteCard extends StatelessWidget {
               ),
               // Foil sweep — only on the active currency. Banknotes
               // get the iridescent preset (ice + amber security ink)
-              // so the active note reads as authentic currency.
+              // so the active note reads as authentic currency. The
+              // sweep follows the user's tilt so the highlight reads
+              // as a real banknote being rotated under a light.
               Positioned.fill(
                 child: HolographicFoil(
                   duration: const Duration(seconds: 5),
                   style: HolographicFoilStyle.iridescent,
+                  tilt: tilt,
                   child: Container(color: Colors.transparent),
                 ),
               ),

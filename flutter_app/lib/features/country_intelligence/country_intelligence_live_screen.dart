@@ -119,6 +119,7 @@ class _CountryIntelligenceLiveScreenState
     with TickerProviderStateMixin {
   late final AnimationController _foil;
   late _AdvisoryTier _tier;
+  final _pulseController = LiveDataPulseController();
 
   @override
   void initState() {
@@ -134,12 +135,14 @@ class _CountryIntelligenceLiveScreenState
   @override
   void dispose() {
     _foil.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
   /// Tap-to-escalate — cycles tier up; when at EXTREME wraps back
   /// to LOW. Each escalation fires a tonal pulse so the user feels
-  /// the mood shift.
+  /// the mood shift, plus a one-shot LiveDataPulse on the entire
+  /// dossier so the change reads as a real advisory escalation.
   void _cycleTier() {
     final next = _AdvisoryTier
         .values[(_tier.index + 1) % _AdvisoryTier.values.length];
@@ -150,6 +153,9 @@ class _CountryIntelligenceLiveScreenState
       HapticFeedback.selectionClick();
     }
     setState(() => _tier = next);
+    // Pulse the full dossier substrate so the mood shift is
+    // visually broadcast, not just locally on the chip.
+    _pulseController.pulse();
   }
 
   @override
@@ -196,11 +202,15 @@ class _CountryIntelligenceLiveScreenState
             ),
           ],
         ),
-        child: SingleChildScrollView(
+        child: LiveMaterialize(
+          child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
-              DossierSubstrate(
+              LiveDataPulse(
+                controller: _pulseController,
+                tone: tone,
+                child: DossierSubstrate(
                 tone: tone,
                 child: Stack(
                   children: [
@@ -362,6 +372,7 @@ class _CountryIntelligenceLiveScreenState
                   ],
                 ),
               ),
+              ),
               const SizedBox(height: N.s4),
               _EmergencyStrip(tone: tone),
               const SizedBox(height: N.s4),
@@ -377,6 +388,7 @@ class _CountryIntelligenceLiveScreenState
               ),
             ],
           ),
+        ),
         ),
       ),
     );
