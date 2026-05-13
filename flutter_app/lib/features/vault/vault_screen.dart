@@ -3,12 +3,13 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../data/models/travel_document.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
@@ -230,8 +231,11 @@ class _VaultDocCard extends StatelessWidget {
     final expiringSoon = daysToExpiry != null && daysToExpiry < 90;
     return Pressable(
       scale: 0.99,
+      semanticLabel: 'Open ${doc.label} details',
+      semanticHint: 'sensitive fields are biometric gated',
       onTap: () {
         HapticFeedback.lightImpact();
+        context.push('/vault/credential/${doc.id}');
       },
       child: PremiumCard(
         padding: const EdgeInsets.all(AppTokens.space5),

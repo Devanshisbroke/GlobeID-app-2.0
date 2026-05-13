@@ -1,5 +1,6 @@
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:globeid/widgets/empty_state.dart';
@@ -45,7 +46,7 @@ void main() {
         expect(find.bySemanticsLabel('Open passport'), findsOneWidget);
 
         final node = t.getSemantics(find.bySemanticsLabel('Open passport'));
-        expect(node.hasFlag(SemanticsFlag.isButton), isTrue);
+        expect(node.flagsCollection.isButton, isTrue);
         expect(node.hint, 'opens the bearer page');
 
         handle.dispose();
@@ -68,8 +69,7 @@ void main() {
         );
 
         final node = t.getSemantics(find.bySemanticsLabel('Disabled action'));
-        expect(node.hasFlag(SemanticsFlag.hasEnabledState), isTrue);
-        expect(node.hasFlag(SemanticsFlag.isEnabled), isFalse);
+        expect(node.flagsCollection.isEnabled, Tristate.isFalse);
         handle.dispose();
       },
     );
@@ -98,7 +98,7 @@ void main() {
         );
 
         final node = t.getSemantics(find.bySemanticsLabel('Premium service'));
-        expect(node.hasFlag(SemanticsFlag.isButton), isTrue);
+        expect(node.flagsCollection.isButton, isTrue);
         expect(node.hint, 'opens the service detail');
         handle.dispose();
       },
