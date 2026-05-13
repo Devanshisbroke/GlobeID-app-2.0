@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/sheets/apple_sheet.dart';
 import '../../nexus/nexus_tokens.dart';
 import '../../motion/haptic_refresh.dart';
 import '../../widgets/animated_appearance.dart';
@@ -477,53 +478,14 @@ class BespokeDetailHeader extends StatelessWidget {
 
 /// Open a polished bottom-sheet detail view. Receives a builder that
 /// renders the body — the sheet handles backdrop blur, drag handle,
-/// and theming.
+/// detent snapping, and brand-aligned chrome via [showAppleSheet].
 Future<void> showBespokeDetail({
   required BuildContext context,
   required Widget Function(BuildContext, ScrollController) builder,
 }) async {
-  await showModalBottomSheet<void>(
+  await showAppleSheet<void>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: Colors.black.withValues(alpha: 0.62),
-    elevation: 0,
-    builder: (_) => DraggableScrollableSheet(
-      initialChildSize: 0.78,
-      minChildSize: 0.4,
-      maxChildSize: 0.95,
-      expand: false,
-      builder: (sheetCtx, scroll) {
-        return ClipRRect(
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(N.rSheet),
-          ),
-          child: DecoratedBox(
-            decoration: const BoxDecoration(
-              color: N.surface,
-              border: Border(
-                top: BorderSide(color: N.hairline, width: N.strokeHair),
-                left: BorderSide(color: N.hairline, width: N.strokeHair),
-                right: BorderSide(color: N.hairline, width: N.strokeHair),
-              ),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: 36,
-                  height: 4,
-                  margin: const EdgeInsets.only(top: 10, bottom: 6),
-                  decoration: BoxDecoration(
-                    color: N.hairlineHi,
-                    borderRadius: BorderRadius.circular(N.rPill),
-                  ),
-                ),
-                Expanded(child: builder(sheetCtx, scroll)),
-              ],
-            ),
-          ),
-        );
-      },
-    ),
+    builder: (controller) =>
+        Builder(builder: (innerCtx) => builder(innerCtx, controller)),
   );
 }
