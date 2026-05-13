@@ -824,4 +824,130 @@ void main() {
       expect(w.rollOnMount, true);
     });
   });
+
+  // ───────────────────────────────────────────────────────────────────
+  // Phase 3d — alive systems: state-driven cadence + data pulse
+  // controller contract
+  // ───────────────────────────────────────────────────────────────────
+
+  group('LiveDataPulseController — pulse broadcast', () {
+    test('pulse() does not throw with no listeners', () {
+      final c = LiveDataPulseController();
+      c.pulse(); // safe — listeners attach later
+      c.dispose();
+    });
+
+    test('pulse() notifies attached listeners', () {
+      final c = LiveDataPulseController();
+      var fires = 0;
+      c.addListener(() => fires++);
+      c.pulse();
+      c.pulse();
+      c.pulse();
+      expect(fires, 3);
+      c.dispose();
+    });
+  });
+
+  group('LiveSurfaceState — breathing cadence ladder', () {
+    test('breathingPeriod accelerates idle → committed', () {
+      final idle = LiveSurfaceState.idle.breathingPeriod;
+      final armed = LiveSurfaceState.armed.breathingPeriod;
+      final active = LiveSurfaceState.active.breathingPeriod;
+      final committed = LiveSurfaceState.committed.breathingPeriod;
+      // Each subsequent state should breathe faster (shorter
+      // duration) until commit, where the cadence is shortest.
+      expect(idle.inMilliseconds, greaterThan(armed.inMilliseconds));
+      expect(armed.inMilliseconds, greaterThan(active.inMilliseconds));
+      expect(active.inMilliseconds, greaterThan(committed.inMilliseconds));
+    });
+
+    test('settled cadence is slowest (calm after commit)', () {
+      final settled = LiveSurfaceState.settled.breathingPeriod;
+      // Settled is the most relaxed state — must be slower than
+      // every cinematic state, including idle.
+      for (final state in LiveSurfaceState.values) {
+        if (state == LiveSurfaceState.settled) continue;
+        expect(
+          settled.inMilliseconds,
+          greaterThanOrEqualTo(state.breathingPeriod.inMilliseconds),
+          reason:
+              'settled (${settled.inMilliseconds}ms) must be >= ${state.name} '
+              '(${state.breathingPeriod.inMilliseconds}ms)',
+        );
+      }
+    });
+  });
+
+  group('BreathingRing — state-driven duration', () {
+    testWidgets('default duration is 2.4 s (mid cadence)', (tester) async {
+      const w = BreathingRing(tone: Color(0xFF06B6D4));
+      expect(w.duration, const Duration(milliseconds: 2400));
+      await tester.pumpWidget(
+        const MaterialApp(home: Scaffold(body: w)),
+      );
+      expect(find.byType(BreathingRing), findsOneWidget);
+    });
+
+    testWidgets('rebuild with a new duration mounts cleanly',
+        (tester) async {
+      Widget body(Duration d) => MaterialApp(
+            home: Scaffold(
+              body: BreathingRing(
+                tone: const Color(0xFF06B6D4),
+                duration: d,
+              ),
+            ),
+          );
+      await tester.pumpWidget(
+        body(LiveSurfaceState.armed.breathingPeriod),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pumpWidget(
+        body(LiveSurfaceState.committed.breathingPeriod),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.byType(BreathingRing), findsOneWidget);
+    });
+  });
+
+  group('LiveDataPulse — wrapping a child', () {
+    testWidgets('mounts child unconditionally', (tester) async {
+      final c = LiveDataPulseController();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LiveDataPulse(
+              controller: c,
+              tone: const Color(0xFFD4AF37),
+              child: const Text('GLOBEID'),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('GLOBEID'), findsOneWidget);
+      c.dispose();
+    });
+
+    testWidgets('firing pulse() does not unmount the child',
+        (tester) async {
+      final c = LiveDataPulseController();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LiveDataPulse(
+              controller: c,
+              tone: const Color(0xFFD4AF37),
+              child: const Text('LIVE'),
+            ),
+          ),
+        ),
+      );
+      c.pulse();
+      await tester.pump(const Duration(milliseconds: 80));
+      await tester.pump(const Duration(milliseconds: 320));
+      expect(find.text('LIVE'), findsOneWidget);
+      c.dispose();
+    });
+  });
 }

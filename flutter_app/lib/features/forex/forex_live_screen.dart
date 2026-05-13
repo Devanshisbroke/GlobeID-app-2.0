@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../cinematic/live/live_primitives.dart';
 import '../../cinematic/live/live_substrates.dart';
 import '../../data/api/demo_data.dart';
+import '../../motion/motion.dart';
 import '../../nexus/nexus_tokens.dart';
 import '../wallet/wallet_provider.dart';
 
@@ -44,6 +45,14 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
   int _index = 0;
   Offset _tilt = Offset.zero;
 
+  /// A3 — rate-spike detector. We remember each currency's last-seen
+  /// rate; when a fresh `build` brings a rate that moved more than
+  /// 0.5 % since the last frame we pulse the live banknote stack
+  /// and emit a "snap detent" haptic so the user feels the market
+  /// move land like a physical detent.
+  final _ratePulse = LiveDataPulseController();
+  final Map<String, double> _lastRates = {};
+
   @override
   void initState() {
     super.initState();
@@ -64,7 +73,32 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
     _foil.dispose();
     _flip.dispose();
     _pages.dispose();
+    _ratePulse.dispose();
     super.dispose();
+  }
+
+  /// Compare each banknote's rate to the last-seen rate for that
+  /// currency. If any rate moved by more than 0.5 % since last
+  /// frame, fire one pulse + a `snapDetent` haptic on the next
+  /// frame. We schedule via `addPostFrameCallback` to avoid
+  /// mutating state during build.
+  void _maybeBroadcastRateSpike(List<_Banknote> notes) {
+    var spiked = false;
+    for (final n in notes) {
+      final prev = _lastRates[n.code];
+      if (prev != null && prev > 0) {
+        final delta = (n.rate - prev).abs() / prev;
+        if (delta > 0.005) spiked = true;
+      }
+      _lastRates[n.code] = n.rate;
+    }
+    if (spiked) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Haptics.snapDetent();
+        _ratePulse.pulse();
+      });
+    }
   }
 
   List<_Banknote> _seed() {
@@ -120,6 +154,8 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
     final notes = _seed();
     final active = notes.isEmpty ? null : notes[_index.clamp(0, notes.length - 1)];
     final activeTone = active?.tone ?? N.tierGold;
+    // A3 — broadcast any > 0.5 % rate jump as a cinematic pulse.
+    _maybeBroadcastRateSpike(notes);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -163,7 +199,10 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
                   _TotalsBlock(notes: notes, tone: activeTone),
                   const SizedBox(height: N.s4),
                   Expanded(
-                    child: GestureDetector(
+                    child: LiveDataPulse(
+                      controller: _ratePulse,
+                      tone: activeTone,
+                      child: GestureDetector(
                       onPanUpdate: (d) {
                         setState(() {
                           _tilt = Offset(
@@ -227,6 +266,7 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
                           );
                         },
                       ),
+                    ),
                     ),
                   ),
                   const SizedBox(height: N.s4),

@@ -757,6 +757,20 @@ class _BreathingRingState extends State<BreathingRing>
   }
 
   @override
+  void didUpdateWidget(covariant BreathingRing old) {
+    super.didUpdateWidget(old);
+    // Allow the cadence to evolve with the surface's LiveSurfaceState
+    // — `duration` is read from `LiveSurfaceStateCadence.breathingPeriod`
+    // by call sites, so a state ladder armed → active → committed
+    // gracefully accelerates / decelerates the breathing.
+    if (old.duration != widget.duration) {
+      _c.stop();
+      _c.duration = widget.duration;
+      _c.repeat();
+    }
+  }
+
+  @override
   void dispose() {
     _c.dispose();
     super.dispose();
