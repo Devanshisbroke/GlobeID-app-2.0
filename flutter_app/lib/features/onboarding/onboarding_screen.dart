@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/live/live_primitives.dart';
+import '../../motion/motion.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/pressable.dart';
@@ -167,6 +169,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   void initState() {
     super.initState();
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+    // Cinematic welcome — signature haptic on first paint so the
+    // user feels the moment they cross into GlobeID. Fires once,
+    // post-frame so it doesn't clash with the route transition.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Haptics.signature();
+    });
   }
 
   @override
@@ -177,7 +185,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   }
 
   Future<void> _finish() async {
-    HapticFeedback.mediumImpact();
+    // Completion is a signature moment — the user is crossing from
+    // onboarding into the live app. Same haptic the rest of the
+    // app uses for cinematic commits.
+    await Haptics.signature();
     await ref.read(onboardingProvider.notifier).complete();
     if (mounted) context.go('/');
   }
@@ -190,6 +201,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
+          // ── Substrate ambient gradient ────────────────────────────────
           AnimatedContainer(
             duration: const Duration(milliseconds: 600),
             curve: Curves.easeOutCubic,
@@ -224,6 +236,24 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
               ),
             ),
           ),
+          // Brand watermark — quiet GLOBE·ID monogram in the corner.
+          // 9 px caps, 18% white, never readable at a glance but
+          // always there if you look. Same chrome thread the Live
+          // credentials use.
+          Positioned(
+            top: 56,
+            right: 24,
+            child: Text(
+              'GLOBE·ID',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.18),
+                fontSize: 9,
+                letterSpacing: 2.4,
+                fontWeight: FontWeight.w700,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
           SafeArea(
             child: Column(
               children: [
@@ -231,7 +261,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   child: PageView.builder(
                     controller: _ctrl,
                     onPageChanged: (i) {
-                      HapticFeedback.selectionClick();
+                      Haptics.navigate();
                       setState(() => _i = i);
                     },
                     itemCount: _slides.length,
@@ -247,19 +277,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                               child: SensorPendulum(
                                 translation: 5,
                                 rotation: 0.025,
-                                child: Container(
-                                  width: 120,
-                                  height: 120,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      colors: [slide.start, slide.end],
-                                    ),
-                                    boxShadow:
-                                        AppTokens.shadowLg(tint: slide.start),
-                                  ),
-                                  child: Icon(slide.icon,
-                                      size: 64, color: Colors.white),
+                                child: _OnboardingGlyph(
+                                  icon: slide.icon,
+                                  start: slide.start,
+                                  end: slide.end,
+                                  // Hero slides (welcome + final) earn
+                                  // an iridescent foil ring; the rest
+                                  // stay clean so the special moments
+                                  // pop.
+                                  foil: i == 0 || i == _slides.length - 1,
                                 ),
                               ),
                             ),
@@ -363,7 +389,25 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                       ),
                   ],
                 ),
-                const SizedBox(height: AppTokens.space5),
+                const SizedBox(height: AppTokens.space4),
+                // Brand DNA — quiet gold hairline under the page dots.
+                // Tells the user this isn't a generic onboarding flow;
+                // it's a GlobeID-engineered one.
+                Container(
+                  height: 0.6,
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: AppTokens.space7),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Color(0x6BD4AF37),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppTokens.space4),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
                     AppTokens.space5,
@@ -448,4 +492,45 @@ class _Slide {
   final Color start;
   final Color end;
   final List<(String, IconData)> features;
+}
+
+/// Onboarding hero glyph — the 120 px gradient orb that anchors every
+/// slide. Hero slides (welcome + final completion) earn an iridescent
+/// holographic foil ring; the rest stay clean so the special moments
+/// pop. The drop shadow is always rendered so the glyph lifts off the
+/// OLED substrate instead of sitting flat on it.
+class _OnboardingGlyph extends StatelessWidget {
+  const _OnboardingGlyph({
+    required this.icon,
+    required this.start,
+    required this.end,
+    required this.foil,
+  });
+
+  final IconData icon;
+  final Color start;
+  final Color end;
+  final bool foil;
+
+  @override
+  Widget build(BuildContext context) {
+    final core = Container(
+      width: 120,
+      height: 120,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(colors: [start, end]),
+        boxShadow: AppTokens.shadowLg(tint: start),
+      ),
+      child: Icon(icon, size: 64, color: Colors.white),
+    );
+    if (!foil) return core;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(60),
+      child: HolographicFoil(
+        style: HolographicFoilStyle.iridescent,
+        child: core,
+      ),
+    );
+  }
 }
