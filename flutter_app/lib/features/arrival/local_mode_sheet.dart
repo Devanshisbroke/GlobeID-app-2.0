@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/sheets/apple_sheet.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/premium_card.dart';
@@ -10,21 +11,31 @@ import '../../widgets/pressable.dart';
 /// Local Mode — activated on arrival at a new city.
 /// Shows welcome hero, local time, weather, FX, transport, phrasebook quick-access.
 class LocalModeSheet extends StatelessWidget {
-  const LocalModeSheet(
-      {super.key,
-      this.city = 'Tokyo',
-      this.country = 'Japan',
-      this.flag = '🇯🇵'});
+  const LocalModeSheet({
+    super.key,
+    this.city = 'Tokyo',
+    this.country = 'Japan',
+    this.flag = '🇯🇵',
+    this.controller,
+  });
   final String city, country, flag;
+  final ScrollController? controller;
 
   static Future<void> show(BuildContext context,
       {String city = 'Tokyo', String country = 'Japan', String flag = '🇯🇵'}) {
     HapticFeedback.heavyImpact();
-    return showModalBottomSheet(
+    return showAppleSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => LocalModeSheet(city: city, country: country, flag: flag),
+      eyebrow: 'ARRIVAL · LOCAL MODE',
+      title: 'Welcome to $city',
+      tone: const Color(0xFF0EA5E9),
+      detents: const [0.55, 0.82, 0.95],
+      builder: (controller) => LocalModeSheet(
+        city: city,
+        country: country,
+        flag: flag,
+        controller: controller,
+      ),
     );
   }
 
@@ -32,32 +43,15 @@ class LocalModeSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final now = DateTime.now();
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.82,
-      minChildSize: 0.5,
-      maxChildSize: 0.95,
-      builder: (_, scroll) => Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppTokens.radiusXl)),
-        ),
-        child: ListView(
-            controller: scroll,
-            padding: const EdgeInsets.all(AppTokens.space5),
+    return ListView(
+            controller: controller,
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.space5,
+              AppTokens.space2,
+              AppTokens.space5,
+              AppTokens.space5,
+            ),
             children: [
-              Center(
-                  child: Container(
-                      width: 36,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: AppTokens.space4),
-                      decoration: BoxDecoration(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.18),
-                          borderRadius:
-                              BorderRadius.circular(AppTokens.radiusFull)))),
-
               // ── Welcome hero ─────────────────────────────────────
               AnimatedAppearance(
                   child: Center(
@@ -240,9 +234,7 @@ class LocalModeSheet extends StatelessWidget {
                                   fontSize: 16))),
                     ),
                   )),
-            ]),
-      ),
-    );
+            ]);
   }
 }
 

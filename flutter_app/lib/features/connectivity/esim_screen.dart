@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/sheets/apple_sheet.dart';
 import '../../widgets/agentic_chip.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/cinematic_button.dart';
@@ -63,29 +64,34 @@ class _EsimScreenState extends State<EsimScreen>
     await _activate.forward(from: 0);
     if (!mounted) return;
     HapticFeedback.lightImpact();
-    showModalBottomSheet<void>(
+    final activatedCountry = _countries[_country].name;
+    final activatedData = _plans[_plan].data;
+    final activatedDuration = _plans[_plan].duration;
+    showAppleSheet<void>(
       context: context,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(AppTokens.space5),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.check_circle_rounded,
-                color: Color(0xFF10B981), size: 48),
-            const SizedBox(height: AppTokens.space3),
-            Text('eSIM activated',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    )),
-            const SizedBox(height: 6),
-            Text(
-              '${_countries[_country].name} · ${_plans[_plan].data} · ${_plans[_plan].duration}',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: AppTokens.space4),
-          ],
+      eyebrow: 'CONNECTIVITY · eSIM',
+      title: 'eSIM activated',
+      tone: const Color(0xFF10B981),
+      detents: const [0.32, 0.45, 0.55],
+      builder: (controller) => ListView(
+        controller: controller,
+        padding: const EdgeInsets.fromLTRB(
+          AppTokens.space5,
+          AppTokens.space2,
+          AppTokens.space5,
+          AppTokens.space5,
         ),
+        children: [
+          const Icon(Icons.check_circle_rounded,
+              color: Color(0xFF10B981), size: 48),
+          const SizedBox(height: AppTokens.space3),
+          Text(
+            '$activatedCountry · $activatedData · $activatedDuration',
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppTokens.space4),
+        ],
       ),
     );
   }
