@@ -84,6 +84,7 @@ import '../features/trip/trip_detail_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
+import '../motion/motion_tokens.dart';
 import '../os2/screens/os2_airport_orchestrator.dart';
 import '../os2/screens/os2_boarding_pass.dart';
 import '../os2/screens/os2_concierge_hub.dart';
@@ -108,8 +109,8 @@ import 'theme/ux_bible.dart';
 CustomTransitionPage<void> _slideFade(LocalKey key, Widget child) {
   return CustomTransitionPage<void>(
     key: key,
-    transitionDuration: const Duration(milliseconds: 320),
-    reverseTransitionDuration: const Duration(milliseconds: 240),
+    transitionDuration: Motion.dPage,
+    reverseTransitionDuration: Motion.dQuickReverse,
     opaque: true,
     barrierColor: const Color(0xFF000000),
     transitionsBuilder: premiumSlideTransition,
@@ -133,8 +134,8 @@ GoRoute _route(
 CustomTransitionPage<void> _atmosphericDescent(LocalKey key, Widget child) {
   return CustomTransitionPage<void>(
     key: key,
-    transitionDuration: const Duration(milliseconds: 360),
-    reverseTransitionDuration: const Duration(milliseconds: 260),
+    transitionDuration: Motion.dPage,
+    reverseTransitionDuration: Motion.dQuickReverse,
     opaque: true,
     barrierColor: const Color(0xFF000000),
     transitionsBuilder: (_, animation, secondary, c) =>
@@ -158,8 +159,8 @@ GoRoute _descentRoute(
 CustomTransitionPage<void> _blurFade(LocalKey key, Widget child) {
   return CustomTransitionPage<void>(
     key: key,
-    transitionDuration: const Duration(milliseconds: 280),
-    reverseTransitionDuration: const Duration(milliseconds: 220),
+    transitionDuration: Motion.dModal,
+    reverseTransitionDuration: Motion.dQuickReverse,
     opaque: true,
     barrierColor: const Color(0xFF000000),
     transitionsBuilder: (_, animation, secondary, c) =>
@@ -181,8 +182,8 @@ GoRoute _blurFadeRoute(
 CustomTransitionPage<void> _drop(LocalKey key, Widget child) {
   return CustomTransitionPage<void>(
     key: key,
-    transitionDuration: const Duration(milliseconds: 280),
-    reverseTransitionDuration: const Duration(milliseconds: 220),
+    transitionDuration: Motion.dModal,
+    reverseTransitionDuration: Motion.dQuickReverse,
     opaque: true,
     barrierColor: const Color(0xFF000000),
     transitionsBuilder: (_, animation, secondary, c) =>
@@ -199,13 +200,39 @@ GoRoute _dropRoute(
   );
 }
 
+/// `sheetTransition` — Apple-grade sheet presentation.
+///
+/// Slides up from the bottom with a soft spring and scales the
+/// previous content very slightly. Used for surfaces the user
+/// expects to swipe down on (statements, scheduled, flows).
+/// Pairs with [Motion.dSheet] (320 ms in, 220 ms out).
+CustomTransitionPage<void> _sheet(LocalKey key, Widget child) {
+  return CustomTransitionPage<void>(
+    key: key,
+    transitionDuration: Motion.dSheet,
+    reverseTransitionDuration: Motion.dQuickReverse,
+    opaque: true,
+    barrierColor: const Color(0xFF000000),
+    transitionsBuilder: premiumSheetTransition,
+    child: RepaintBoundary(child: child),
+  );
+}
+
+GoRoute _sheetRoute(
+    String path, Widget Function(BuildContext, GoRouterState) build) {
+  return GoRoute(
+    path: path,
+    pageBuilder: (ctx, state) => _sheet(state.pageKey, build(ctx, state)),
+  );
+}
+
 /// `slideLateralTransition` — iOS push from right with parallax
 /// depth on exit. Used for back-navigable detail flows (settings).
 CustomTransitionPage<void> _slideLateral(LocalKey key, Widget child) {
   return CustomTransitionPage<void>(
     key: key,
-    transitionDuration: const Duration(milliseconds: 320),
-    reverseTransitionDuration: const Duration(milliseconds: 240),
+    transitionDuration: Motion.dSheet,
+    reverseTransitionDuration: Motion.dQuickReverse,
     opaque: true,
     barrierColor: const Color(0xFF000000),
     transitionsBuilder: (_, animation, secondary, c) =>
@@ -429,10 +456,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           key: state.pageKey,
           opaque: false,
           barrierColor: Colors.transparent,
-          transitionDuration: const Duration(milliseconds: 420),
-          reverseTransitionDuration: const Duration(milliseconds: 320),
+          transitionDuration: Motion.dCruise,
+          reverseTransitionDuration: Motion.dSheet,
           transitionsBuilder: (_, anim, __, child) => FadeTransition(
-            opacity: anim,
+            opacity: CurvedAnimation(parent: anim, curve: Motion.cStandard),
             child: child,
           ),
           child: PassDetailScreen(passId: state.pathParameters['passId']!),
@@ -542,27 +569,31 @@ final routerProvider = Provider<GoRouter>((ref) {
       _route('/packing', (_, __) => const PackingChecklistScreen()),
       _route('/customs', (_, __) => const CustomsDeclarationScreen()),
       _route('/journal', (_, __) => const TripJournalScreen()),
-      _route(
+      // Wallet flows + ledger sub-surfaces present as Apple-grade
+      // sheets — slide up from the bottom on a soft spring, light
+      // scale on the previous content. Matches user intuition that
+      // these are temporary surfaces. See `_sheetRoute`.
+      _sheetRoute(
         '/wallet/send',
         (_, __) => const WalletFlowScreen(flow: WalletFlow.send),
       ),
-      _route(
+      _sheetRoute(
         '/wallet/receive',
         (_, __) => const WalletFlowScreen(flow: WalletFlow.receive),
       ),
-      _route(
+      _sheetRoute(
         '/wallet/scan',
         (_, __) => const WalletFlowScreen(flow: WalletFlow.scanPay),
       ),
-      _route(
+      _sheetRoute(
         '/wallet/exchange',
         (_, __) => const WalletFlowScreen(flow: WalletFlow.exchange),
       ),
-      _route(
+      _sheetRoute(
         '/wallet/scheduled',
         (_, __) => const WalletScheduledScreen(),
       ),
-      _route(
+      _sheetRoute(
         '/wallet/statements',
         (_, __) => const WalletStatementsScreen(),
       ),
