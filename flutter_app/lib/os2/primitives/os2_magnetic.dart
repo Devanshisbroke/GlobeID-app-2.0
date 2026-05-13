@@ -21,6 +21,7 @@ class Os2Magnetic extends StatefulWidget {
     this.onLongPress,
     this.pressedScale = 0.97,
     this.disabled = false,
+    this.semanticLabel,
   });
 
   final Widget child;
@@ -28,6 +29,12 @@ class Os2Magnetic extends StatefulWidget {
   final VoidCallback? onLongPress;
   final double pressedScale;
   final bool disabled;
+
+  /// Optional accessibility label exposed to screen readers. When
+  /// provided, the press surface announces as a button with this
+  /// label. When null, the underlying child's existing semantics
+  /// propagate untouched.
+  final String? semanticLabel;
 
   @override
   State<Os2Magnetic> createState() => _Os2MagneticState();
@@ -73,7 +80,7 @@ class _Os2MagneticState extends State<Os2Magnetic>
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
+    final tree = MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
       cursor: widget.disabled
@@ -108,6 +115,14 @@ class _Os2MagneticState extends State<Os2Magnetic>
           child: widget.child,
         ),
       ),
+    );
+    final label = widget.semanticLabel;
+    if (label == null || label.isEmpty) return tree;
+    return Semantics(
+      button: true,
+      enabled: !widget.disabled,
+      label: label,
+      child: tree,
     );
   }
 }

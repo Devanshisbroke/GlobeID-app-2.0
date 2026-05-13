@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +12,7 @@ import 'app/app_boot.dart';
 import 'app/deep_link_controller.dart';
 import 'app/router.dart';
 import 'app/theme/app_theme.dart';
+import 'core/error_telemetry.dart';
 import 'core/performance_overlay.dart';
 import 'features/settings/theme_prefs_provider.dart';
 import 'widgets/inline_error_widget.dart';
@@ -53,10 +56,17 @@ Future<void> main() async {
   };
 
   // Mirror Flutter framework errors to console so we can surface
-  // paint-phase exceptions during development / web profile builds.
+  // paint-phase exceptions during development / web profile builds,
+  // and capture them in the app-level error telemetry buffer.
   final defaultOnError = FlutterError.onError;
   FlutterError.onError = (FlutterErrorDetails details) {
     defaultOnError?.call(details);
+    ErrorTelemetry.instance.record(
+      summary: details.exceptionAsString(),
+      library: details.library ?? 'flutter',
+      stack: details.stack?.toString() ?? '',
+      kind: 'framework',
+    );
     if (kDebugMode || kProfileMode) {
       // ignore: avoid_print
       print('▶▶ FlutterError: ${details.exceptionAsString()}');
@@ -67,6 +77,26 @@ Future<void> main() async {
         print('   context: ${details.context}');
       }
     }
+  };
+
+  // Catch unhandled async errors that bypass the framework's build /
+  // paint phase (e.g. an awaited Future throws inside a provider's
+  // .hydrate()). PlatformDispatcher.onError is the official escape
+  // valve for these.
+  ui.PlatformDispatcher.instance.onError = (Object e, StackTrace s) {
+    ErrorTelemetry.instance.record(
+      summary: e.toString(),
+      library: 'async',
+      stack: s.toString(),
+      kind: 'async',
+    );
+    if (kDebugMode || kProfileMode) {
+      // ignore: avoid_print
+      print('▶▶ AsyncError: $e\n$s');
+    }
+    // Returning true marks the error as handled, preventing the
+    // process from being torn down by the platform.
+    return true;
   };
   await AppBoot.bootstrap();
   // Frame-timing FPS sampler — only active in debug mode.
