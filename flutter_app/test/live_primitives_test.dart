@@ -1066,4 +1066,122 @@ void main() {
       c.dispose();
     });
   });
+
+  // ─────────────────────────────────────────────────────────────────
+  // Phase 3f — broader alive systems: navigation + airport companion
+  // cinematic ladders, hub state mapping.
+  // ─────────────────────────────────────────────────────────────────
+
+  group('LiveSurfaceState — navigation distance ladder', () {
+    // Helper mirroring the private _navState in the navigation live
+    // screen. Mirrored here so the contract is independently
+    // verifiable against the cinematic state ladder.
+    LiveSurfaceState stateForDistance(int distance) {
+      if (distance <= 0) return LiveSurfaceState.settled;
+      if (distance > 500) return LiveSurfaceState.armed;
+      if (distance > 50) return LiveSurfaceState.active;
+      return LiveSurfaceState.committed;
+    }
+
+    test('>500 m → armed (cruising)', () {
+      expect(stateForDistance(1200), LiveSurfaceState.armed);
+    });
+    test('50–500 m → active (approaching maneuver)', () {
+      expect(stateForDistance(400), LiveSurfaceState.active);
+      expect(stateForDistance(60), LiveSurfaceState.active);
+    });
+    test('1–50 m → committed (turn imminent)', () {
+      expect(stateForDistance(40), LiveSurfaceState.committed);
+      expect(stateForDistance(5), LiveSurfaceState.committed);
+    });
+    test('0 m → settled (turn executed)', () {
+      expect(stateForDistance(0), LiveSurfaceState.settled);
+      expect(stateForDistance(-5), LiveSurfaceState.settled);
+    });
+    test('ladder accelerates breathing armed → committed', () {
+      final armed = stateForDistance(1200).breathingPeriod;
+      final active = stateForDistance(200).breathingPeriod;
+      final committed = stateForDistance(25).breathingPeriod;
+      expect(armed.inMilliseconds, greaterThan(active.inMilliseconds));
+      expect(active.inMilliseconds, greaterThan(committed.inMilliseconds));
+    });
+  });
+
+  group('LiveSurfaceState — airport companion dwell ladder', () {
+    // Helper mirroring the private _dwellState in the airport
+    // companion live screen.
+    LiveSurfaceState stateForDwell(int minutes) {
+      if (minutes <= 5) return LiveSurfaceState.settled;
+      if (minutes <= 30) return LiveSurfaceState.committed;
+      if (minutes <= 60) return LiveSurfaceState.active;
+      return LiveSurfaceState.armed;
+    }
+
+    test('>60 m → armed (terminal cruising)', () {
+      expect(stateForDwell(120), LiveSurfaceState.armed);
+    });
+    test('30–60 m → active (head to the gate)', () {
+      expect(stateForDwell(45), LiveSurfaceState.active);
+      expect(stateForDwell(31), LiveSurfaceState.active);
+    });
+    test('5–30 m → committed (boarding window)', () {
+      expect(stateForDwell(20), LiveSurfaceState.committed);
+      expect(stateForDwell(6), LiveSurfaceState.committed);
+    });
+    test('≤5 m → settled (final call)', () {
+      expect(stateForDwell(5), LiveSurfaceState.settled);
+      expect(stateForDwell(0), LiveSurfaceState.settled);
+    });
+    test('dwell ladder accelerates breathing through commit', () {
+      final armed = stateForDwell(120).breathingPeriod;
+      final active = stateForDwell(45).breathingPeriod;
+      final committed = stateForDwell(15).breathingPeriod;
+      expect(armed.inMilliseconds, greaterThan(active.inMilliseconds));
+      expect(active.inMilliseconds, greaterThan(committed.inMilliseconds));
+    });
+  });
+
+  group('NfcPulse — chip-bearing surfaces stay mounted under pulse', () {
+    testWidgets('mounts and renders its child', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: NfcPulse(
+              tone: Color(0xFFD4AF37),
+              child: Icon(Icons.nfc_rounded, size: 24),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.byType(NfcPulse), findsOneWidget);
+      expect(find.byIcon(Icons.nfc_rounded), findsOneWidget);
+    });
+  });
+
+  group('HolographicFoil — radial + iridescent on hero credentials', () {
+    testWidgets('iridescent + radial + secondarySweep mounts cleanly',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            backgroundColor: Colors.black,
+            body: HolographicFoil(
+              style: HolographicFoilStyle.iridescent,
+              radial: true,
+              secondarySweep: true,
+              child: SizedBox(
+                width: 200,
+                height: 26,
+                child: Text('GLOBEID · BIOMETRIC'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.byType(HolographicFoil), findsOneWidget);
+      expect(find.text('GLOBEID · BIOMETRIC'), findsOneWidget);
+    });
+  });
 }

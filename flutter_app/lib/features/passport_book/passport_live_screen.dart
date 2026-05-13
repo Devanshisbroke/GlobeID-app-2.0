@@ -896,16 +896,20 @@ class _BioPage extends StatelessWidget {
           ),
           const Spacer(),
           // ── Holographic GlobeID strip ───────────────────────────────
-          AnimatedBuilder(
-            animation: foil,
-            builder: (_, __) => Container(
+          // Iridescent foil + radial sweep + secondary counter-sweep.
+          // The bearer strip is the most cinematic element on the bio
+          // page — passport-grade security holography that reads as
+          // manufactured-by-GlobeID.
+          HolographicFoil(
+            style: HolographicFoilStyle.iridescent,
+            secondarySweep: true,
+            radial: true,
+            child: Container(
               height: 26,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
-                gradient: LinearGradient(
-                  begin: Alignment(-1 + foil.value * 2, 0),
-                  end: Alignment(1 + foil.value * 2, 0),
-                  colors: const [
+                gradient: const LinearGradient(
+                  colors: [
                     Color(0xFFD4AF37),
                     Color(0xFFE9C75D),
                     Color(0xFFE9F1F9),

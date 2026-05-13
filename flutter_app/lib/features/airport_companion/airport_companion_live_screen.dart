@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../cinematic/live/live_primitives.dart';
+import '../../motion/motion.dart';
 import '../../nexus/nexus_tokens.dart';
 
 /// AirportCompanionLive — alive terminal radar.
@@ -34,6 +36,26 @@ class _AirportCompanionLiveScreenState
     with TickerProviderStateMixin {
   late final AnimationController _sweep;
 
+  // Cinematic dwell countdown — minutes-to-boarding. As the value
+  // drops, the screen progresses through the state ladder:
+  //   >60 m → armed  (cruising the terminal, lounge time)
+  //   30–60 → active (you should be heading to the gate)
+  //   5–30  → committed (boarding window — get to the gate)
+  //   ≤5    → settled  (final call / departing)
+  // This drives both the LiveStatusPill in the header and the
+  // dwell-countdown HUD that brightens near boarding.
+  int _dwellMinutes = 64;
+  Timer? _dwellTick;
+  bool _windowAnnounced = false;
+  final _dwellPulse = LiveDataPulseController();
+
+  LiveSurfaceState get _dwellState {
+    if (_dwellMinutes <= 5) return LiveSurfaceState.settled;
+    if (_dwellMinutes <= 30) return LiveSurfaceState.committed;
+    if (_dwellMinutes <= 60) return LiveSurfaceState.active;
+    return LiveSurfaceState.armed;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -41,11 +63,38 @@ class _AirportCompanionLiveScreenState
       vsync: this,
       duration: const Duration(seconds: 4),
     )..repeat();
+    // Tick once every 8 s wall-clock to map to roughly 1 min of
+    // simulated dwell descent (so the user perceptibly sees the
+    // countdown move during a demo session).
+    _dwellTick = Timer.periodic(const Duration(seconds: 8), (_) {
+      if (!mounted) return;
+      final prev = _dwellState;
+      setState(() {
+        if (_dwellMinutes > 0) _dwellMinutes -= 1;
+      });
+      // Cinematic threshold crossings — one signature haptic
+      // when the boarding window opens (active → committed),
+      // one when final call begins (committed → settled).
+      final now = _dwellState;
+      if (prev != now &&
+          (now == LiveSurfaceState.committed ||
+              now == LiveSurfaceState.settled)) {
+        _dwellPulse.pulse();
+        if (now == LiveSurfaceState.committed && !_windowAnnounced) {
+          _windowAnnounced = true;
+          Haptics.signature();
+        } else if (now == LiveSurfaceState.settled) {
+          Haptics.warning();
+        }
+      }
+    });
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
   }
 
   @override
   void dispose() {
+    _dwellTick?.cancel();
+    _dwellPulse.dispose();
     _sweep.dispose();
     super.dispose();
   }
@@ -64,7 +113,7 @@ class _AirportCompanionLiveScreenState
       value: SystemUiOverlayStyle.light,
       child: LiveCanvas(
         tone: tone,
-        statusBar: _Header(tone: tone),
+        statusBar: _Header(tone: tone, state: _dwellState),
         bottomBar: Row(
           children: [
             Expanded(
@@ -94,18 +143,26 @@ class _AirportCompanionLiveScreenState
         child: Column(
           children: [
             _CompassRow(tone: tone),
-            const SizedBox(height: N.s4),
+            const SizedBox(height: N.s3),
+            _DwellHud(
+              tone: tone,
+              minutes: _dwellMinutes,
+              state: _dwellState,
+              pulse: _dwellPulse,
+            ),
+            const SizedBox(height: N.s3),
             Expanded(
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Airport companion is in "armed" state — you're
-                  // moving through the airport, scanner primed, gates
-                  // not yet committed. Faster 2.2 s breathing.
+                  // Breathing period derives from the live dwell
+                  // state: armed (>60 min) at 2.2 s → committed
+                  // (5–30 min) at 1.4 s → settled (≤5 min, final
+                  // call) at the longest 4.2 s exhale.
                   BreathingRing(
                     tone: tone,
                     size: 320,
-                    duration: LiveSurfaceState.armed.breathingPeriod,
+                    duration: _dwellState.breathingPeriod,
                   ),
                   _Radar(anim: _sweep, tone: tone),
                 ],
@@ -133,8 +190,9 @@ class _AirportCompanionLiveScreenState
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.tone});
+  const _Header({required this.tone, required this.state});
   final Color tone;
+  final LiveSurfaceState state;
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -189,10 +247,112 @@ class _Header extends StatelessWidget {
             ),
           ),
           LiveStatusPill(
-            state: LiveSurfaceState.active,
+            state: state,
             tone: tone,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Dwell HUD — the cinematic countdown that brightens as boarding
+/// approaches. Idle/armed at >60 min reads as a calm reference card;
+/// 30–60 min lights up; <30 min sits in the warm warning band; <5 min
+/// burns gold for the final-call moment.
+class _DwellHud extends StatelessWidget {
+  const _DwellHud({
+    required this.tone,
+    required this.minutes,
+    required this.state,
+    required this.pulse,
+  });
+  final Color tone;
+  final int minutes;
+  final LiveSurfaceState state;
+  final LiveDataPulseController pulse;
+
+  @override
+  Widget build(BuildContext context) {
+    // Intensity tracks the state ladder so the card glows brighter
+    // as boarding approaches. Settled (≤5 min) burns the warmest
+    // because that's "FINAL CALL — go to the gate now."
+    final double intensity = switch (state) {
+      LiveSurfaceState.idle => 0.08,
+      LiveSurfaceState.armed => 0.12,
+      LiveSurfaceState.active => 0.22,
+      LiveSurfaceState.committed => 0.40,
+      LiveSurfaceState.settled => 0.62,
+    };
+    final Color hudTone = state == LiveSurfaceState.settled
+        ? const Color(0xFFE9C75D)
+        : state == LiveSurfaceState.committed
+            ? const Color(0xFFF59E0B)
+            : tone;
+    final label = state == LiveSurfaceState.settled
+        ? 'FINAL CALL'
+        : state == LiveSurfaceState.committed
+            ? 'BOARDING IN'
+            : 'DEPARTURE IN';
+    return LiveDataPulse(
+      controller: pulse,
+      tone: hudTone,
+      child: Container(
+        height: 64,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(N.rCardLg),
+          color: hudTone.withValues(alpha: 0.06 + intensity * 0.06),
+          border: Border.all(
+            color: hudTone.withValues(alpha: 0.22 + intensity * 0.32),
+            width: 0.6,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              state == LiveSurfaceState.settled
+                  ? Icons.directions_run_rounded
+                  : Icons.flight_takeoff_rounded,
+              color: hudTone.withValues(alpha: 0.75 + intensity * 0.25),
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: Colors.white.withValues(
+                          alpha: 0.55 + intensity * 0.30),
+                      fontWeight: FontWeight.w900,
+                      fontSize: 9,
+                      letterSpacing: 1.6,
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    minutes <= 0 ? 'DEPARTED' : '$minutes MIN',
+                    style: TextStyle(
+                      color:
+                          hudTone.withValues(alpha: 0.85 + intensity * 0.15),
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                      letterSpacing: 1.4,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Inline state pill — mirrors the header pill so the HUD
+            // is self-contained for users scanning the bottom area.
+            LiveStatusPill(state: state, tone: hudTone),
+          ],
+        ),
       ),
     );
   }

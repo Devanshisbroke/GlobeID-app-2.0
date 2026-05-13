@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/live/live_primitives.dart';
+import '../../motion/motion.dart';
 import '../../widgets/agentic_chip.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/cinematic_hero.dart';
@@ -40,6 +42,20 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
   final TextEditingController _addr =
       TextEditingController(text: 'Aman Tokyo · 1-5-6 Otemachi');
   final TextEditingController _stay = TextEditingController(text: '9 days');
+
+  // Cinematic seal state — when the user commits the declaration
+  // (Save & finish), the review card pulses gold and the QR stamp
+  // reveals a "GLOBEID · SEALED" overlay. Signature haptic fires at
+  // the commit frame.
+  bool _isSealed = false;
+  final LiveDataPulseController _sealPulse = LiveDataPulseController();
+
+  void _commitSeal() {
+    if (_isSealed) return;
+    setState(() => _isSealed = true);
+    Haptics.signature();
+    _sealPulse.pulse();
+  }
 
   void _onTextChanged() {
     if (mounted) setState(() {});
@@ -88,6 +104,7 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
     _stay
       ..removeListener(_onTextChanged)
       ..dispose();
+    _sealPulse.dispose();
     super.dispose();
   }
 
@@ -186,14 +203,21 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
                   onPressed: !_canAdvance()
                       ? null
                       : () {
-                          HapticFeedback.lightImpact();
                           if (_onReview) {
+                            // Cinematic commit — signature haptic
+                            // + sealed overlay + gold pulse on the
+                            // review card. Toast follows so the
+                            // user sees both the cinematic and
+                            // the system confirmation.
+                            _commitSeal();
                             AppToast.show(
                               context,
                               title: 'Form saved offline',
                               message: 'Show kiosk on arrival.',
                               tone: AppToastTone.success,
                             );
+                          } else {
+                            HapticFeedback.lightImpact();
                           }
                           setState(() {
                             if (_onReview) {
@@ -207,7 +231,7 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
                       ? Icons.qr_code_2_rounded
                       : Icons.arrow_forward_rounded),
                   label: Text(_onReview
-                      ? 'Save & finish'
+                      ? (_isSealed ? 'Sealed · GlobeID' : 'Save & finish')
                       : _onPersonal
                           ? 'Start questions'
                           : 'Next'),
@@ -383,47 +407,86 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
 
   Widget _reviewCard(ThemeData theme) {
     final flagged = _answers.values.where((v) => v == true).length;
-    return PremiumCard(
-      padding: const EdgeInsets.all(AppTokens.space4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 200,
-            height: 200,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  widget.tone,
-                  widget.tone.withValues(alpha: 0.55),
-                ],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: widget.tone.withValues(alpha: 0.32),
-                  blurRadius: 28,
-                  spreadRadius: -8,
-                  offset: const Offset(0, 14),
+    return LiveDataPulse(
+      controller: _sealPulse,
+      tone: const Color(0xFFD4AF37),
+      child: PremiumCard(
+        padding: const EdgeInsets.all(AppTokens.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 200,
+                  height: 200,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppTokens.radius2xl),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: _isSealed
+                          ? [
+                              const Color(0xFFD4AF37),
+                              const Color(0xFFE9C75D).withValues(alpha: 0.72),
+                            ]
+                          : [
+                              widget.tone,
+                              widget.tone.withValues(alpha: 0.55),
+                            ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (_isSealed
+                                ? const Color(0xFFD4AF37)
+                                : widget.tone)
+                            .withValues(alpha: 0.32),
+                        blurRadius: 28,
+                        spreadRadius: -8,
+                        offset: const Offset(0, 14),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _isSealed
+                            ? Icons.verified_rounded
+                            : Icons.qr_code_2_rounded,
+                        color: Colors.white,
+                        size: 84,
+                      ),
+                      Text(
+                        _isSealed
+                            ? 'GLOBE·ID · SEALED'
+                            : 'Ready · stamp',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                if (_isSealed)
+                  Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: NfcPulse(
+                      tone: const Color(0xFFD4AF37),
+                      child: Icon(
+                        Icons.nfc_rounded,
+                        color: Colors.white.withValues(alpha: 0.85),
+                        size: 22,
+                      ),
+                    ),
+                  ),
               ],
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.qr_code_2_rounded, color: Colors.white, size: 84),
-                Text('Ready · stamp',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.4,
-                    )),
-              ],
-            ),
-          ),
           const SizedBox(height: AppTokens.space4),
           Text('Summary',
               style: theme.textTheme.titleSmall?.copyWith(
@@ -465,6 +528,7 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
               ),
             ),
         ],
+      ),
       ),
     );
   }
