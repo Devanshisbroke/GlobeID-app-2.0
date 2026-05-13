@@ -6,7 +6,6 @@ import '../../nexus/nexus_tokens.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/page_scaffold.dart';
-import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/shimmer.dart';
 
@@ -68,14 +67,13 @@ class _BespokeServiceShellState<T> extends State<BespokeServiceShell<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return PageScaffold(
       title: widget.title,
       subtitle: widget.subtitle,
       body: RefreshIndicator(
         onRefresh: _refresh,
         color: widget.tone,
+        backgroundColor: N.surface,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(
             parent: BouncingScrollPhysics(),
@@ -83,53 +81,11 @@ class _BespokeServiceShellState<T> extends State<BespokeServiceShell<T>> {
           slivers: [
             SliverToBoxAdapter(
               child: AnimatedAppearance(
-                child: PremiumCard.hero(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      widget.tone.withValues(alpha: 0.42),
-                      (widget.heroAccent ?? widget.tone)
-                          .withValues(alpha: 0.18),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withValues(alpha: 0.20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.18),
-                              blurRadius: 12,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: Icon(widget.icon, color: Colors.white, size: 28),
-                      ),
-                      const SizedBox(width: AppTokens.space4),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(widget.title,
-                                style: theme.textTheme.headlineSmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                )),
-                            Text(widget.subtitle,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.85),
-                                )),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                child: _BespokeHero(
+                  title: widget.title,
+                  subtitle: widget.subtitle,
+                  icon: widget.icon,
+                  tone: widget.tone,
                 ),
               ),
             ),
@@ -233,6 +189,79 @@ class BespokeFilter {
   final IconData? icon;
 }
 
+/// Nexus-grade service hero — hairline panel, tonal icon disc, no
+/// shadows, no gradient halo. Sits at the top of every bespoke
+/// service vertical and replaces the legacy gradient `PremiumCard.hero`.
+class _BespokeHero extends StatelessWidget {
+  const _BespokeHero({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.tone,
+  });
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color tone;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: N.surface,
+        borderRadius: BorderRadius.circular(N.rCard),
+        border: Border.all(color: N.hairline, width: N.strokeHair),
+      ),
+      padding: const EdgeInsets.fromLTRB(N.s5, N.s5, N.s5, N.s5),
+      child: Row(
+        children: [
+          // Tonal icon disc — flat fill, hairline ring, no shadow.
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: tone.withValues(alpha: 0.14),
+              border: Border.all(
+                color: tone.withValues(alpha: 0.36),
+                width: N.strokeHair,
+              ),
+            ),
+            child: Icon(icon, color: tone, size: 24),
+          ),
+          const SizedBox(width: N.s4),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title.toUpperCase(),
+                  style: const TextStyle(
+                    color: N.inkLow,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 10,
+                    letterSpacing: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: N.inkHi,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                    height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _FilterPill extends StatelessWidget {
   const _FilterPill({
     required this.filter,
@@ -247,57 +276,44 @@ class _FilterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Pressable(
       scale: 0.96,
       onTap: onTap,
       child: AnimatedContainer(
-        duration: AppTokens.durationSm,
-        curve: AppTokens.easeOutSoft,
+        duration: N.dQuick,
+        curve: N.ease,
         padding: const EdgeInsets.symmetric(
-          horizontal: AppTokens.space3,
-          vertical: AppTokens.space2,
+          horizontal: N.s4,
+          vertical: N.s2,
         ),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-          color: active
-              ? tone.withValues(alpha: 0.20)
-              : theme.colorScheme.surface.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(N.rPill),
+          color: active ? tone.withValues(alpha: 0.16) : N.surface,
           border: Border.all(
             color: active
                 ? tone.withValues(alpha: 0.55)
-                : theme.colorScheme.onSurface.withValues(alpha: 0.10),
-            width: 0.7,
+                : N.hairline,
+            width: N.strokeHair,
           ),
-          boxShadow: active
-              ? [
-                  BoxShadow(
-                    color: tone.withValues(alpha: 0.20),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : const [],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (filter.icon != null) ...[
-              Icon(filter.icon,
-                  size: 14,
-                  color: active
-                      ? tone
-                      : theme.colorScheme.onSurface.withValues(alpha: 0.7)),
-              const SizedBox(width: 5),
+              Icon(
+                filter.icon,
+                size: 13,
+                color: active ? tone : N.inkMid,
+              ),
+              const SizedBox(width: 6),
             ],
             Text(
               filter.label,
-              style: theme.textTheme.labelMedium?.copyWith(
+              style: TextStyle(
                 fontWeight: active ? FontWeight.w800 : FontWeight.w600,
-                color: active
-                    ? tone
-                    : theme.colorScheme.onSurface.withValues(alpha: 0.78),
-                letterSpacing: 0.1,
+                color: active ? tone : N.inkMid,
+                fontSize: 12,
+                letterSpacing: 0.2,
               ),
             ),
           ],
@@ -311,29 +327,32 @@ class _BespokeSkeleton extends StatelessWidget {
   const _BespokeSkeleton();
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final base = theme.colorScheme.onSurface.withValues(alpha: 0.06);
+    const base = Color(0xFF14141A);
     return Shimmer(
-      child: PremiumCard(
-        padding: const EdgeInsets.all(AppTokens.space4),
-        glass: false,
+      child: Container(
+        padding: const EdgeInsets.all(N.s4),
+        decoration: BoxDecoration(
+          color: N.surface,
+          borderRadius: BorderRadius.circular(N.rCard),
+          border: Border.all(color: N.hairline, width: N.strokeHair),
+        ),
         child: Row(
           children: [
             Container(
-              width: 60,
-              height: 60,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
                 color: base,
-                borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+                borderRadius: BorderRadius.circular(N.rSmall),
               ),
             ),
-            const SizedBox(width: AppTokens.space3),
+            const SizedBox(width: N.s3),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    height: 14,
+                    height: 12,
                     width: 180,
                     decoration: BoxDecoration(
                       color: base,
@@ -363,6 +382,93 @@ class _BespokeSkeleton extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Nexus-grade detail header used inside service bottom sheets.
+///
+/// Replaces the legacy `PremiumCard.hero` with a hairline panel +
+/// tonal icon disc so the sheet body matches the OLED substrate
+/// instead of glowing as a saturated gradient block.
+class BespokeDetailHeader extends StatelessWidget {
+  const BespokeDetailHeader({
+    super.key,
+    required this.icon,
+    required this.tone,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+  });
+
+  final IconData icon;
+  final Color tone;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(N.s5, N.s5, N.s5, N.s5),
+      decoration: BoxDecoration(
+        color: N.surface,
+        borderRadius: BorderRadius.circular(N.rCardLg),
+        border: Border.all(color: N.hairline, width: N.strokeHair),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: tone.withValues(alpha: 0.14),
+              border: Border.all(
+                color: tone.withValues(alpha: 0.36),
+                width: N.strokeHair,
+              ),
+            ),
+            child: Icon(icon, color: tone, size: 26),
+          ),
+          const SizedBox(width: N.s4),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: N.inkHi,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    height: 1.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle!,
+                    style: const TextStyle(
+                      color: N.inkMid,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (trailing != null) ...[
+            const SizedBox(width: N.s3),
+            trailing!,
+          ],
+        ],
       ),
     );
   }
