@@ -48,11 +48,15 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
   // reveals a "GLOBEID · SEALED" overlay. Signature haptic fires at
   // the commit frame.
   bool _isSealed = false;
+  DateTime? _sealedAt;
   final LiveDataPulseController _sealPulse = LiveDataPulseController();
 
   void _commitSeal() {
     if (_isSealed) return;
-    setState(() => _isSealed = true);
+    setState(() {
+      _isSealed = true;
+      _sealedAt = DateTime.now();
+    });
     Haptics.signature();
     _sealPulse.pulse();
   }
@@ -469,6 +473,28 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
                           letterSpacing: 1.4,
                         ),
                       ),
+                      // SEALED · hh:mm receipt caption — mono-cap
+                      // tabular figures, only paints once the seal
+                      // commits. Mirrors the visa stamp caption so
+                      // the cinematic commits across alive surfaces
+                      // share a consistent paper-trail feel.
+                      if (_isSealed && _sealedAt != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'SEALED · '
+                          '${_sealedAt!.hour.toString().padLeft(2, '0')}'
+                          ':${_sealedAt!.minute.toString().padLeft(2, '0')}',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.84),
+                            fontWeight: FontWeight.w800,
+                            fontSize: 9,
+                            letterSpacing: 1.6,
+                            fontFeatures: const [
+                              FontFeature.tabularFigures(),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

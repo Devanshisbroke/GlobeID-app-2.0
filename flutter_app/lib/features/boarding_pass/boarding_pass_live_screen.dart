@@ -61,6 +61,14 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
   final _gatePulse = LiveDataPulseController();
   String? _lastGate;
 
+  /// Tracks the timestamp of the most recent gate change so we can
+  /// surface a "GATE CHANGED · B22 → B27" attention caption under
+  /// the gate value for a few seconds. Mirrors how a real airport
+  /// announcement persists past the chime.
+  String? _gateChangeFrom;
+  String? _gateChangeTo;
+  Timer? _gateChangeClear;
+
   /// Boarding window phase tracker — captures the previous phase so
   /// we can emit a single signature haptic + tonal pulse the moment
   /// the user crosses into BOARDING / FINAL CALL.
@@ -94,6 +102,7 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
     _airplane.dispose();
     _tick?.cancel();
     _gatePulse.dispose();
+    _gateChangeClear?.cancel();
     super.dispose();
   }
 
@@ -149,10 +158,26 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
   /// `addPostFrameCallback` to avoid mutating state during build.
   void _maybeBroadcastGateChange(String? gate) {
     if (_lastGate != null && gate != null && gate != _lastGate) {
+      final from = _lastGate;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         HapticFeedback.heavyImpact();
         _gatePulse.pulse();
+        setState(() {
+          _gateChangeFrom = from;
+          _gateChangeTo = gate;
+        });
+        _gateChangeClear?.cancel();
+        // Caption persists for 6 s — long enough for the user to
+        // notice and read, then quietly clears so the pass returns
+        // to its calm phase reading.
+        _gateChangeClear = Timer(const Duration(seconds: 6), () {
+          if (!mounted) return;
+          setState(() {
+            _gateChangeFrom = null;
+            _gateChangeTo = null;
+          });
+        });
       });
     }
     _lastGate = gate;
@@ -383,6 +408,48 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
                                       ? const Color(0xFFE9C75D)
                                       : null,
                             ),
+                            // Gate-change attention caption — paints
+                            // for 6 s after the gate string mutates.
+                            // Reads "GATE CHANGED · B22 → B27" in a
+                            // warning-amber chip so the user catches
+                            // the announcement even if they missed the
+                            // haptic. Vanishes back to nothing after
+                            // the timer clears.
+                            if (_gateChangeFrom != null &&
+                                _gateChangeTo != null) ...[
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius:
+                                      BorderRadius.circular(999),
+                                  color: const Color(0xFFE9C75D)
+                                      .withValues(alpha: 0.18),
+                                  border: Border.all(
+                                    color: const Color(0xFFE9C75D)
+                                        .withValues(alpha: 0.55),
+                                    width: 0.6,
+                                  ),
+                                ),
+                                child: Text(
+                                  'GATE CHANGED · '
+                                  '$_gateChangeFrom → $_gateChangeTo',
+                                  style: TextStyle(
+                                    color: const Color(0xFFE9C75D)
+                                        .withValues(alpha: 0.95),
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.4,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                         const Spacer(),

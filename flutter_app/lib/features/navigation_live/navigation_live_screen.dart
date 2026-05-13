@@ -261,12 +261,40 @@ class _TurnDisc extends StatelessWidget {
   final String maneuver;
   final LiveDataPulseController pulse;
 
+  /// Derives the cinematic state for the turn disc from the live
+  /// distance, mirroring the parent's _navState ladder. Drives the
+  /// breathing halo cadence so the disc breathes harder the closer
+  /// we get to the maneuver.
+  LiveSurfaceState get _state {
+    if (distance <= 0) return LiveSurfaceState.settled;
+    if (distance > 500) return LiveSurfaceState.armed;
+    if (distance > 50) return LiveSurfaceState.active;
+    return LiveSurfaceState.committed;
+  }
+
+  /// Halo intensity ramp keyed to distance:
+  ///   >500 m → calm 0.12
+  ///   50–500 m → noticed 0.22
+  ///   1–50 m → urgent 0.42
+  ///   ≤0 m → bright commit 0.50
+  double get _haloAlpha {
+    if (distance <= 0) return 0.50;
+    if (distance > 500) return 0.12;
+    if (distance > 50) return 0.22;
+    return 0.42;
+  }
+
   @override
   Widget build(BuildContext context) {
     final urgent = distance > 0 && distance <= 50;
     return LiveDataPulse(
       controller: pulse,
       tone: tone,
+      child: BreathingHalo(
+        state: _state,
+        tone: tone,
+        maxAlpha: _haloAlpha,
+        expand: 4,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 18),
         decoration: BoxDecoration(
@@ -342,6 +370,7 @@ class _TurnDisc extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

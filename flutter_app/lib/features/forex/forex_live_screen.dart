@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,6 +60,14 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
   /// spikes so the pulse always carries the current direction.
   Color? _spikeTone;
 
+  /// Spike magnitude — biggest relative move across all banknotes
+  /// during the most recent detected spike (e.g. 0.012 = 1.2 %).
+  /// Drives BreathingHalo brightness so a large jump glows brighter
+  /// than a small jump. Decays toward 0 between spikes via the
+  /// `_decay` timer so the halo doesn't stick on stale data.
+  double _spikeMagnitude = 0;
+  Timer? _decay;
+
   @override
   void initState() {
     super.initState();
@@ -79,6 +89,7 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
     _flip.dispose();
     _pages.dispose();
     _ratePulse.dispose();
+    _decay?.cancel();
     super.dispose();
   }
 
@@ -90,6 +101,7 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
   void _maybeBroadcastRateSpike(List<_Banknote> notes) {
     var spiked = false;
     var netDelta = 0.0;
+    var maxMag = 0.0;
     for (final n in notes) {
       final prev = _lastRates[n.code];
       if (prev != null && prev > 0) {
@@ -97,6 +109,8 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
         if (delta.abs() > 0.005) {
           spiked = true;
           netDelta += delta;
+          final m = delta.abs();
+          if (m > maxMag) maxMag = m;
         }
       }
       _lastRates[n.code] = n.rate;
@@ -112,12 +126,29 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
               : null;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        setState(() => _spikeTone = next);
+        setState(() {
+          _spikeTone = next;
+          // Clamp magnitude into 0…1 — a 5 % move tops out the
+          // glow. Holds the biggest spike across a 1.6 s decay
+          // window so the user reads the magnitude before it
+          // fades.
+          _spikeMagnitude = (maxMag * 20).clamp(0.0, 1.0);
+        });
         Haptics.snapDetent();
         _ratePulse.pulse();
+        _decay?.cancel();
+        _decay = Timer(const Duration(milliseconds: 1600), () {
+          if (!mounted) return;
+          setState(() => _spikeMagnitude = 0);
+        });
       });
     }
   }
+
+  /// Halo alpha for the active banknote — scales linearly with the
+  /// most-recent spike magnitude. A calm market reads 0.06 idle
+  /// glow; a 5 %+ move reads 0.42 commit-tier glow.
+  double get _spikeHaloAlpha => 0.06 + 0.36 * _spikeMagnitude;
 
   List<_Banknote> _seed() {
     final wallet = ref.watch(walletProvider);
@@ -275,12 +306,34 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
                                 ),
                               );
                             },
-                            child: _BanknoteCard(
-                              note: note,
-                              foilAnim: _foil,
-                              tilt: _tilt,
-                              isActive: i == _index,
-                            ),
+                            child: i == _index
+                                ? BreathingHalo(
+                                    // Active banknote glows with the
+                                    // magnitude of the most recent rate
+                                    // spike. Calm market → barely-there
+                                    // ambient halo; big move → urgent
+                                    // glow that fades over 1.6 s.
+                                    tone: _spikeTone ?? note.tone,
+                                    state: _spikeMagnitude > 0.5
+                                        ? LiveSurfaceState.committed
+                                        : _spikeMagnitude > 0.2
+                                            ? LiveSurfaceState.active
+                                            : LiveSurfaceState.armed,
+                                    maxAlpha: _spikeHaloAlpha,
+                                    expand: 8,
+                                    child: _BanknoteCard(
+                                      note: note,
+                                      foilAnim: _foil,
+                                      tilt: _tilt,
+                                      isActive: i == _index,
+                                    ),
+                                  )
+                                : _BanknoteCard(
+                                    note: note,
+                                    foilAnim: _foil,
+                                    tilt: _tilt,
+                                    isActive: i == _index,
+                                  ),
                           ),
                           );
                         },

@@ -1718,19 +1718,44 @@ class _RibbonPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Rect.fromLTWH(0, 0, width, length);
-    // Silk gradient — slightly darker in the center for a shadow
-    // fold.
+
+    // Cast shadow behind the ribbon — sells the silk lifting off
+    // the page substrate. Painted first so the ribbon body sits
+    // over it.
+    final shadowRect = Rect.fromLTWH(0.6, 1.4, width, length);
+    canvas.drawRect(
+      shadowRect,
+      Paint()
+        ..color = Colors.black.withValues(alpha: 0.32)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.8),
+    );
+
+    // Silk weave — three-stop gradient with a darker center fold
+    // and a brighter highlight near the right edge so the ribbon
+    // reads as a curved cylindrical fabric, not a flat rectangle.
     final gradient = LinearGradient(
       colors: [
-        tone.withValues(alpha: 0.92),
+        _shade(tone, 0.78),
         tone,
-        tone.withValues(alpha: 0.72),
-        tone,
+        _shade(tone, 0.62),
+        _shade(tone, 0.94),
       ],
-      stops: const [0.0, 0.35, 0.65, 1.0],
+      stops: const [0.0, 0.30, 0.62, 1.0],
     );
     final paint = Paint()..shader = gradient.createShader(rect);
     canvas.drawRect(rect, paint);
+
+    // Hairline highlight on the left edge — catches light like real
+    // silk woven over a curved spine.
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, 0.5, length),
+      Paint()..color = Colors.white.withValues(alpha: 0.32),
+    );
+    // Hairline shadow on the right edge — opposite the highlight.
+    canvas.drawRect(
+      Rect.fromLTWH(width - 0.5, 0, 0.5, length),
+      Paint()..color = Colors.black.withValues(alpha: 0.28),
+    );
 
     // Forked V-cut at the bottom for a real ribbon end.
     final path = Path()
@@ -1742,6 +1767,13 @@ class _RibbonPainter extends CustomPainter {
       ..close();
     canvas.drawPath(
         path, Paint()..color = Colors.black.withValues(alpha: 0.55));
+  }
+
+  Color _shade(Color base, double factor) {
+    final r = (base.r * 255 * factor).clamp(0, 255).round();
+    final g = (base.g * 255 * factor).clamp(0, 255).round();
+    final b = (base.b * 255 * factor).clamp(0, 255).round();
+    return Color.fromARGB((base.a * 255).round(), r, g, b);
   }
 
   @override
