@@ -175,26 +175,100 @@ class _StarDustPainter extends CustomPainter {
       old.t != t || old.density != density || old.tone != tone;
 }
 
+/// Foil styling style — used to pick the holo sweep gradient.
+///
+/// Each style stays inside the calm cinematic palette — gold remains
+/// dominant in every preset, the variants only introduce a *subtle*
+/// hue shift so the foil reads as authentic security holography
+/// rather than a flat single-stop sweep.
+enum HolographicFoilStyle {
+  /// Classic gold sweep — the default. Backwards-compatible.
+  gold,
+
+  /// Gold with subtle ice / amber hue shifts at the edges. Used for
+  /// passport-grade credentials where the foil should suggest
+  /// optically-variable security ink.
+  iridescent,
+
+  /// Cooler aurora variant — gold core with cyan and violet
+  /// highlights. Reserved for digital-only credentials (transit
+  /// passes, eVisas, NFC seals).
+  aurora,
+}
+
+/// Resolves a [HolographicFoilStyle] to a gradient color stack.
+List<Color> _foilStops(HolographicFoilStyle style) {
+  switch (style) {
+    case HolographicFoilStyle.gold:
+      return const [
+        Color(0x00FFFFFF),
+        Color(0x33D4AF37),
+        Color(0x55E3C083),
+        Color(0x33D4AF37),
+        Color(0x00FFFFFF),
+      ];
+    case HolographicFoilStyle.iridescent:
+      // Gold-dominant but with a hint of ice at the leading edge and
+      // amber at the trailing edge so the sweep reads as security
+      // foil that catches light at multiple angles.
+      return const [
+        Color(0x00FFFFFF),
+        Color(0x1A66B7FF), // ice highlight
+        Color(0x44D4AF37), // primary gold
+        Color(0x60E9C75D), // hot gold core
+        Color(0x44D4AF37),
+        Color(0x1AE3C083), // warm amber tail
+        Color(0x00FFFFFF),
+      ];
+    case HolographicFoilStyle.aurora:
+      // Cooler variant for digital credentials. Gold still leads but
+      // cyan + violet bookend the sweep so the foil reads as digital
+      // holography rather than printed gold.
+      return const [
+        Color(0x00FFFFFF),
+        Color(0x2266B7FF), // cyan
+        Color(0x44D4AF37), // gold
+        Color(0x55E9C75D),
+        Color(0x44D4AF37),
+        Color(0x229B6FE3), // violet
+        Color(0x00FFFFFF),
+      ];
+  }
+}
+
 /// A persistent horizontal foil sweep that animates left-to-right over
 /// any child. Used for the holographic mark on visa pages, banknotes
 /// and credentials.
+///
+/// Provide either an explicit [colors] gradient (full control) or pick
+/// a preset [style]. When both are omitted the default is
+/// [HolographicFoilStyle.gold] — identical to the pre-refinement
+/// behavior.
 class HolographicFoil extends StatefulWidget {
   const HolographicFoil({
     super.key,
     required this.child,
     this.duration = const Duration(seconds: 6),
-    this.colors = const [
-      Color(0x00FFFFFF),
-      Color(0x33D4AF37),
-      Color(0x55E3C083),
-      Color(0x33D4AF37),
-      Color(0x00FFFFFF),
-    ],
+    this.colors,
+    this.style = HolographicFoilStyle.gold,
+    this.secondarySweep = false,
   });
 
   final Widget child;
   final Duration duration;
-  final List<Color> colors;
+
+  /// Explicit gradient stops. When non-null overrides [style].
+  final List<Color>? colors;
+
+  /// One of [HolographicFoilStyle.gold] / [iridescent] / [aurora].
+  /// Ignored when [colors] is provided.
+  final HolographicFoilStyle style;
+
+  /// When true, paints a second, slower, counter-direction sweep on
+  /// top of the primary one. Doubles the GPU cost of the foil layer
+  /// so reserve it for hero credentials (passport bearer page,
+  /// premium boarding pass).
+  final bool secondarySweep;
 
   @override
   State<HolographicFoil> createState() => _HolographicFoilState();
@@ -218,6 +292,7 @@ class _HolographicFoilState extends State<HolographicFoil>
 
   @override
   Widget build(BuildContext context) {
+    final stops = widget.colors ?? _foilStops(widget.style);
     // Isolate the per-frame shader pass in its own repaint layer so
     // siblings (text, decoration, icons) don't repaint at the holo
     // sweep cadence.
@@ -226,17 +301,37 @@ class _HolographicFoilState extends State<HolographicFoil>
         animation: _c,
         builder: (_, child) {
           final t = _c.value;
-          return ShaderMask(
+          Widget sweep = ShaderMask(
             blendMode: BlendMode.srcATop,
             shaderCallback: (bounds) {
               return LinearGradient(
                 begin: Alignment(-1.4 + t * 2.8, -0.3),
                 end: Alignment(-0.4 + t * 2.8, 0.3),
-                colors: widget.colors,
+                colors: stops,
               ).createShader(bounds);
             },
             child: child,
           );
+          if (widget.secondarySweep) {
+            // Counter-sweep at a slower, offset phase — gives the
+            // foil a second highlight band so credentials read as
+            // genuinely holographic instead of a single linear
+            // wipe. Both sweeps share the same color stack so the
+            // tonal floor stays calm.
+            final t2 = (t * 0.55 + 0.5) % 1.0;
+            sweep = ShaderMask(
+              blendMode: BlendMode.srcATop,
+              shaderCallback: (bounds) {
+                return LinearGradient(
+                  begin: Alignment(1.4 - t2 * 2.8, 0.4),
+                  end: Alignment(0.4 - t2 * 2.8, -0.4),
+                  colors: stops,
+                ).createShader(bounds);
+              },
+              child: sweep,
+            );
+          }
+          return sweep;
         },
         child: widget.child,
       ),
@@ -772,5 +867,231 @@ class TiltParallax extends StatelessWidget {
       alignment: Alignment.center,
       child: child,
     );
+  }
+}
+
+/// One layer in a [LayeredParallax] stack. Each layer translates at
+/// its own `depth` so the entire scene reads as a 3D stack rather
+/// than a single flat plane.
+class ParallaxLayer {
+  const ParallaxLayer({required this.child, this.depth = 8});
+
+  /// The widget painted at this depth. The list order = paint order
+  /// (first child = back, last child = front).
+  final Widget child;
+
+  /// Translation magnitude in logical px per unit of tilt. Suggested
+  /// values: 2-4 for background substrates, 6-10 for primary
+  /// content, 12-18 for hero seals / glyphs. Deeper layers move
+  /// more, which reads as "closer to the viewer".
+  final double depth;
+}
+
+/// Multi-depth parallax stack — translates each layer at its own
+/// depth so the scene reads as a 3D stack instead of a single flat
+/// plane.
+///
+/// The whole stack rotates together (subtle perspective tilt) but
+/// each layer slides at its own magnitude — so foil, text and seal
+/// drift at different speeds when the user tilts the device. Drop-in
+/// next to [TiltParallax]; that single-layer wrapper stays for
+/// callers that don't need depth stacking.
+class LayeredParallax extends StatelessWidget {
+  const LayeredParallax({
+    super.key,
+    required this.tilt,
+    required this.layers,
+    this.perspective = 0.001,
+    this.rotateScale = 0.06,
+  });
+
+  /// Tilt offset (typically derived from gyroscope x/y deltas).
+  final Offset tilt;
+
+  /// Layers, back-to-front (first child painted first).
+  final List<ParallaxLayer> layers;
+
+  /// Perspective entry for the shared Matrix4. Lower = flatter
+  /// scene. Default 0.001 (matches [TiltParallax]).
+  final double perspective;
+
+  /// Rotation magnitude applied to the whole stack. Default 0.06 —
+  /// slightly subtler than [TiltParallax]'s 0.08 because the layer
+  /// drift already does most of the depth work.
+  final double rotateScale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform(
+      transform: Matrix4.identity()
+        ..setEntry(3, 2, perspective)
+        ..rotateY(tilt.dx * rotateScale)
+        ..rotateX(-tilt.dy * rotateScale),
+      alignment: Alignment.center,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          for (final layer in layers)
+            Transform.translate(
+              offset: Offset(
+                tilt.dx * layer.depth,
+                tilt.dy * layer.depth,
+              ),
+              child: layer.child,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// GLOBEID SIGNATURE MARK
+// ─────────────────────────────────────────────────────────────────────
+
+/// Discreet GlobeID signature mark — a hairline gold rule + 9 px
+/// mono-cap watermark — pressed into every Live credential so the
+/// object reads as "manufactured by GlobeID" rather than a generic
+/// digital card.
+///
+/// Drop this into the corner of any Live substrate (passport, visa,
+/// banknote, transit card, lounge pass, dossier). Stays subtle so
+/// it never competes with the credential's primary content — the
+/// gold accent is alpha 0.55, the text alpha 0.62.
+class GlobeIdSignature extends StatelessWidget {
+  const GlobeIdSignature({
+    super.key,
+    this.label = 'GLOBE\u00B7ID',
+    this.serial,
+    this.alignment = Alignment.bottomRight,
+    this.scale = 1.0,
+    this.tone,
+  });
+
+  /// Watermark label. Defaults to the canonical `GLOBE·ID` glyph.
+  final String label;
+
+  /// Optional micro-serial appended after the label — e.g.
+  /// `GBL-7Q3·24M`. Mono, tabular figures.
+  final String? serial;
+
+  /// Where the mark sits relative to its parent (corner).
+  final Alignment alignment;
+
+  /// Size multiplier. 1.0 ≈ 9 px text; bump for hero credentials.
+  final double scale;
+
+  /// Override the accent rule tone. Defaults to GlobeID gold.
+  final Color? tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = (tone ?? const Color(0xFFD4AF37)).withValues(alpha: 0.55);
+    final textColor = Colors.white.withValues(alpha: 0.62);
+    final fontSize = 9.0 * scale;
+    return Align(
+      alignment: alignment,
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Hairline gold rule.
+            Container(
+              width: 14 * scale,
+              height: 1,
+              color: accent,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              serial == null ? label : '$label  $serial',
+              style: TextStyle(
+                color: textColor,
+                fontFeatures: const [FontFeature.tabularFigures()],
+                fontSize: fontSize,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.6,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// LIVE SURFACE STATE
+// ─────────────────────────────────────────────────────────────────────
+
+/// State that any "live" surface (Live Passport, Live Boarding, Live
+/// Visa, Live Forex, Live Transit, Live Lounge, Live Country Intel)
+/// may be in at a given moment.
+///
+/// The states form a small ladder. They are *expressive*, not
+/// behavioral — a surface may move between them visually (e.g. via a
+/// [LiveStateBeacon]) without changing what it functionally does.
+enum LiveSurfaceState {
+  /// Default. The surface is hydrated and showing live data but the
+  /// user has not interacted with it yet.
+  idle,
+
+  /// User intent has been detected (long-press began, scroll-to-arm
+  /// crossed a threshold, NFC field detected). Visual cue: soft
+  /// tonal pulse, ring brighten.
+  armed,
+
+  /// The committing transition is in flight — the surface has
+  /// accepted the gesture and is rendering its consequential state
+  /// (boarding gate live, immigration eGate primed, forex pinned).
+  active,
+
+  /// The commit has just landed. Reserved for the brief reveal
+  /// frames after [active]. Used to drive signature haptics + a
+  /// single hero pulse.
+  committed,
+
+  /// Steady-state after [committed]. The surface stays alive but
+  /// the cinematic reveal has settled.
+  settled,
+}
+
+/// Semantic descriptor of a [LiveSurfaceState]. Lets call sites read
+/// e.g. `state.label` for the mono-cap chip text without sprinkling
+/// switches across the codebase.
+extension LiveSurfaceStateX on LiveSurfaceState {
+  /// Mono-cap label suitable for a hairline chip ("IDLE" / "ARMED"
+  /// / "LIVE" / "COMMITTED" / "SETTLED").
+  String get label {
+    switch (this) {
+      case LiveSurfaceState.idle:
+        return 'IDLE';
+      case LiveSurfaceState.armed:
+        return 'ARMED';
+      case LiveSurfaceState.active:
+        return 'LIVE';
+      case LiveSurfaceState.committed:
+        return 'COMMITTED';
+      case LiveSurfaceState.settled:
+        return 'SETTLED';
+    }
+  }
+
+  /// Alpha multiplier for the state's accent glow. Lets a beacon
+  /// derive its current intensity without a switch in the caller.
+  double get glowAlpha {
+    switch (this) {
+      case LiveSurfaceState.idle:
+        return 0.18;
+      case LiveSurfaceState.armed:
+        return 0.42;
+      case LiveSurfaceState.active:
+        return 0.62;
+      case LiveSurfaceState.committed:
+        return 0.78;
+      case LiveSurfaceState.settled:
+        return 0.32;
+    }
   }
 }

@@ -469,10 +469,13 @@ class _BanknoteCard extends StatelessWidget {
           serial: 'GBL · ${note.code} · A${note.amount.toInt().toString().padLeft(6, '0')}',
           child: Stack(
             children: [
-              // Foil sweep — only on the active currency.
+              // Foil sweep — only on the active currency. Banknotes
+              // get the iridescent preset (ice + amber security ink)
+              // so the active note reads as authentic currency.
               Positioned.fill(
                 child: HolographicFoil(
                   duration: const Duration(seconds: 5),
+                  style: HolographicFoilStyle.iridescent,
                   child: Container(color: Colors.transparent),
                 ),
               ),

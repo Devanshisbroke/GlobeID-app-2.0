@@ -328,9 +328,13 @@ class _TransitCard extends StatelessWidget {
           tone: card.tone,
           child: Stack(
             children: [
+              // Transit cards are digital credentials — aurora foil
+              // (cyan + violet + gold) makes the active card read as
+              // a live NFC chip rather than printed plastic.
               Positioned.fill(
                 child: HolographicFoil(
                   duration: const Duration(seconds: 5),
+                  style: HolographicFoilStyle.aurora,
                   child: Container(color: Colors.transparent),
                 ),
               ),

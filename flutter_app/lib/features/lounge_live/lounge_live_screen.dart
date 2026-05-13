@@ -112,9 +112,12 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                       tone: tone,
                       child: Stack(
                         children: [
+                          // Lounge member card foil — iridescent
+                          // for the brushed-foil member tier.
                           Positioned.fill(
                             child: HolographicFoil(
                               duration: const Duration(seconds: 5),
+                              style: HolographicFoilStyle.iridescent,
                               child: Container(color: Colors.transparent),
                             ),
                           ),

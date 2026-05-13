@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../cinematic/live/live_primitives.dart';
 import '../../cinematic/live/live_substrates.dart';
+import '../../motion/motion.dart';
 import '../../nexus/nexus_tokens.dart';
 
 /// VisaLive — a digital twin of a real government-issued visa.
@@ -100,16 +101,21 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
   }
 
   void _toggleOpen() {
-    HapticFeedback.mediumImpact();
     if (_isOpen) {
+      // Closing the booklet — soft close haptic.
+      Haptics.close();
       _open.reverse();
       setState(() => _isOpen = false);
     } else {
+      // Opening the visa booklet is a hero reveal — pages turning,
+      // foil catching light. Signature triple-pulse on the open,
+      // then heavy confirm when the consular stamp drops.
+      Haptics.signature();
       _open.forward().then((_) {
         if (mounted && !_stamped) {
           _stamped = true;
           _stampDrop.forward();
-          HapticFeedback.heavyImpact();
+          Haptics.confirm();
         }
       });
       setState(() => _isOpen = true);
@@ -379,8 +385,14 @@ class _Cover extends StatelessWidget {
           ),
           // Leather grain.
           CustomPaint(painter: _LeatherGrainPainter()),
-          // Foil shimmer.
-          HolographicFoil(child: Container(color: Colors.transparent)),
+          // Foil shimmer — passport-grade iridescent + secondary
+          // counter-sweep so the booklet cover reads as authentic
+          // optically-variable security ink.
+          HolographicFoil(
+            style: HolographicFoilStyle.iridescent,
+            secondarySweep: true,
+            child: Container(color: Colors.transparent),
+          ),
           // Embossed border.
           Positioned.fill(
             child: Padding(
@@ -772,6 +784,7 @@ class _VisaPage extends StatelessWidget {
                 Expanded(
                   child: HolographicFoil(
                     duration: const Duration(seconds: 4),
+                    style: HolographicFoilStyle.iridescent,
                     child: Container(
                       height: 22,
                       decoration: BoxDecoration(
