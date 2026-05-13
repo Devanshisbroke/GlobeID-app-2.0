@@ -200,6 +200,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/boarding-printed'),
                   ),
                   _SettingsRow(
+                    icon: Icons.folder_special_outlined,
+                    tone: const Color(0xFFB73E3E),
+                    label: 'Country DECLASSIFIED dossier',
+                    sub: 'Cover lift · 3 CLASSIFIED strikes · reveal',
+                    onTap: () => context.push('/lab/declassified'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
