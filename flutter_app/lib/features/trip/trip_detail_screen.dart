@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../data/models/lifecycle.dart';
+import '../../data/models/travel_record.dart';
 import '../../domain/airline_brand.dart';
 import '../../domain/airports.dart';
 import '../../domain/connection_detector.dart';
@@ -17,6 +18,7 @@ import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
 import '../lifecycle/lifecycle_provider.dart';
+import '../user/user_provider.dart';
 import 'pre_trip_intel.dart';
 import 'trip_intel_cards.dart';
 
@@ -30,10 +32,42 @@ class TripDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lifecycle = ref.watch(lifecycleProvider);
-    final trip = lifecycle.trips.cast<TripLifecycle?>().firstWhere(
+    final user = ref.watch(userProvider);
+    var trip = lifecycle.trips.cast<TripLifecycle?>().firstWhere(
           (t) => t?.id == tripId,
           orElse: () => null,
         );
+
+    // Travel history records (the `userProvider.records` list) are a
+    // superset of the lifecycle store — past flights live there only.
+    // If the requested trip isn't in the lifecycle store, derive a
+    // minimal TripLifecycle from the matching record so the screen
+    // still renders correctly instead of bouncing to an empty state.
+    if (trip == null) {
+      final TravelRecord? record =
+          user.records.cast<TravelRecord?>().firstWhere(
+                (r) => r?.id == tripId,
+                orElse: () => null,
+              );
+      if (record != null) {
+        trip = TripLifecycle(
+          id: record.id,
+          name: '${record.from} → ${record.to}',
+          stage: record.type == 'past' ? 'past' : 'upcoming',
+          legs: [
+            FlightLeg(
+              id: 'leg-${record.id}',
+              from: record.from,
+              to: record.to,
+              airline: record.airline,
+              flightNumber: record.flightNumber ?? '',
+              scheduled: '${record.date}T00:00:00Z',
+            ),
+          ],
+          startDate: record.date,
+        );
+      }
+    }
     final theme = Theme.of(context);
 
     if (trip == null) {

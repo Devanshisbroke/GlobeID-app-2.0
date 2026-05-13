@@ -307,9 +307,8 @@ class _DepartureStage extends StatelessWidget {
                 _StageChip(
                   icon: Icons.qr_code_2_rounded,
                   label: 'Boarding',
-                  onTap: () => GoRouter.of(context).push(
-                    '/boarding/${record.id}/leg-1',
-                  ),
+                  onTap: () =>
+                      GoRouter.of(context).push('/boarding-pass-live'),
                 ),
                 const SizedBox(width: 8),
                 _StageChip(
@@ -534,9 +533,7 @@ class _BoardingPassSlab extends StatelessWidget {
     final from = _airportCode(record.from);
     final to = _airportCode(record.to);
     return Os2Magnetic(
-      onTap: () => GoRouter.of(context).push(
-        '/boarding/${record.id}/leg-1',
-      ),
+      onTap: () => GoRouter.of(context).push('/boarding-pass-live'),
       child: Os2Slab(
         tone: Os2.travelTone,
         tier: Os2SlabTier.floor1,
