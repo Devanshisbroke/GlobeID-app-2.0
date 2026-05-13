@@ -121,6 +121,22 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
     return '${h.toString().padLeft(2, '0')}:$m:$s';
   }
 
+  /// Map the time-to-departure into the cinematic state ladder. The
+  /// pass's surface state evolves as the boarding window approaches:
+  ///
+  ///   >2h         → armed     (chip primed, still calm)
+  ///   30 m – 2 h  → active    (boarding announced, paying attention)
+  ///   5 m – 30 m  → committed (in the boarding window — go!)
+  ///   ≤5 m / <0   → settled   (gate closed / departed)
+  LiveSurfaceState _stateForRemaining(Duration d) {
+    if (d.isNegative) return LiveSurfaceState.settled;
+    final mins = d.inMinutes;
+    if (mins > 120) return LiveSurfaceState.armed;
+    if (mins > 30) return LiveSurfaceState.active;
+    if (mins >= 5) return LiveSurfaceState.committed;
+    return LiveSurfaceState.settled;
+  }
+
   /// Pick the most relevant leg from the lifecycle store.
   ///
   /// Preference order:
@@ -212,6 +228,18 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
     final TripLifecycle resolvedTrip = trip;
 
     _remaining = _calcRemaining(resolvedLeg.scheduled);
+    // Time-driven cinematic state. Drives the HUD label + tone so
+    // the boarding pass evolves on its own as the boarding window
+    // approaches — armed → active → committed → settled.
+    final liveState = _stateForRemaining(_remaining);
+    final hudLabel = liveState == LiveSurfaceState.settled &&
+            _remaining.isNegative
+        ? 'DEPARTED'
+        : liveState == LiveSurfaceState.committed
+            ? 'BOARDING NOW'
+            : liveState == LiveSurfaceState.active
+                ? 'BOARDING SOON'
+                : 'BOARDING';
     final brand = resolveAirlineBrand(resolvedLeg.flightNumber);
     final fromAir = getAirport(resolvedLeg.from);
     final toAir = getAirport(resolvedLeg.to);
@@ -280,7 +308,7 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
                         ),
                         const Spacer(),
                         PremiumHud(
-                          label: 'BOARDING',
+                          label: hudLabel,
                           tone: brand.primary,
                           trailing: Text('GATE ${resolvedLeg.gate}'),
                         ),
