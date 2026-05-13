@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
-import '../../nexus/nexus_tokens.dart';
+import '../../cinematic/sheets/apple_sheet.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/page_scaffold.dart';
@@ -294,52 +294,44 @@ class _TripWalletScreenState extends ConsumerState<TripWalletScreen>
   }
 
   void _showBudgetPicker(BuildContext context) {
-    showModalBottomSheet(
+    showAppleSheet<void>(
       context: context,
-      backgroundColor: N.surface,
-      barrierColor: Colors.black.withValues(alpha: 0.62),
-      elevation: 0,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(N.rSheet)),
-        side: BorderSide(color: N.hairline, width: N.strokeHair),
-      ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(AppTokens.space5),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Set Trip Budget',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w800)),
-            const SizedBox(height: AppTokens.space4),
-            StatefulBuilder(builder: (ctx, setLocal) {
-              return Column(
-                children: [
-                  Text('€${_totalBudget.toStringAsFixed(0)}',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineLarge
-                          ?.copyWith(fontWeight: FontWeight.w900)),
-                  Slider.adaptive(
-                    value: _totalBudget,
-                    min: 200,
-                    max: 10000,
-                    divisions: 98,
-                    onChanged: (v) {
-                      HapticFeedback.selectionClick();
-                      setLocal(() {});
-                      setState(() => _totalBudget = v);
-                    },
-                  ),
-                ],
-              );
-            }),
-            const SizedBox(height: AppTokens.space4),
-          ],
+      eyebrow: 'TRIP · BUDGET',
+      title: 'Set trip budget',
+      detents: const [0.40, 0.55, 0.85],
+      builder: (controller) => ListView(
+        controller: controller,
+        padding: const EdgeInsets.fromLTRB(
+          AppTokens.space5,
+          AppTokens.space2,
+          AppTokens.space5,
+          AppTokens.space5,
         ),
+        children: [
+          StatefulBuilder(builder: (ctx, setLocal) {
+            return Column(
+              children: [
+                Text('€${_totalBudget.toStringAsFixed(0)}',
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineLarge
+                        ?.copyWith(fontWeight: FontWeight.w900)),
+                Slider.adaptive(
+                  value: _totalBudget,
+                  min: 200,
+                  max: 10000,
+                  divisions: 98,
+                  onChanged: (v) {
+                    HapticFeedback.selectionClick();
+                    setLocal(() {});
+                    setState(() => _totalBudget = v);
+                  },
+                ),
+              ],
+            );
+          }),
+          const SizedBox(height: AppTokens.space4),
+        ],
       ),
     );
   }

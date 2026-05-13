@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/sheets/apple_sheet.dart';
 import '../../motion/haptic_choreography.dart';
 import '../../widgets/premium/premium.dart';
 
@@ -43,17 +44,23 @@ class PaymentConfirmSheet extends StatefulWidget {
     String? note,
     Color? tone,
   }) {
-    return showModalBottomSheet<PaymentConfirmResult>(
+    return showAppleSheet<PaymentConfirmResult>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => PaymentConfirmSheet(
-        amount: amount,
-        currency: currency,
-        recipient: recipient,
-        methodLabel: methodLabel,
-        note: note,
-        tone: tone,
+      eyebrow: 'PAYMENT · CONFIRM',
+      title: 'To $recipient',
+      tone: tone,
+      detents: const [0.55, 0.72, 0.92],
+      builder: (controller) => SingleChildScrollView(
+        controller: controller,
+        physics: const NeverScrollableScrollPhysics(),
+        child: PaymentConfirmSheet(
+          amount: amount,
+          currency: currency,
+          recipient: recipient,
+          methodLabel: methodLabel,
+          note: note,
+          tone: tone,
+        ),
       ),
     );
   }
@@ -101,55 +108,22 @@ class _PaymentConfirmSheetState extends State<PaymentConfirmSheet>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final tone = widget.tone ?? theme.colorScheme.primary;
-    final mq = MediaQuery.of(context);
     final amountText = widget.amount.toStringAsFixed(2);
 
+    // AppleSheet already paints the drag handle, gold hairline,
+    // eyebrow, title, and OLED gradient substrate — this widget
+    // only needs to render the payment-specific body.
     return Padding(
-      padding: EdgeInsets.only(
-        bottom: mq.viewInsets.bottom + AppTokens.space5,
+      padding: const EdgeInsets.fromLTRB(
+        AppTokens.space5,
+        AppTokens.space3,
+        AppTokens.space5,
+        AppTokens.space5,
       ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4),
-          child: ContextualSurface(
-            padding: const EdgeInsets.fromLTRB(
-              AppTokens.space5,
-              AppTokens.space5,
-              AppTokens.space5,
-              AppTokens.space4,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 44,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppTokens.space4),
-                Text(
-                  'Confirm payment',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-                const SizedBox(height: AppTokens.space1),
-                Text(
-                  'To ${widget.recipient}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
-                  ),
-                ),
-                const SizedBox(height: AppTokens.space5),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
                 Center(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -170,6 +144,7 @@ class _PaymentConfirmSheetState extends State<PaymentConfirmSheet>
                     ],
                   ),
                 ),
+
                 const SizedBox(height: AppTokens.space2),
                 Center(
                   child: Text(
@@ -223,9 +198,6 @@ class _PaymentConfirmSheetState extends State<PaymentConfirmSheet>
                   ),
                 ),
               ],
-            ),
-          ),
-        ),
       ),
     );
   }
