@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +9,7 @@ import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/sheets/apple_sheet.dart';
 import '../../domain/voice_intents.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/toast.dart';
@@ -30,12 +30,12 @@ class VoiceCommandOrb extends StatelessWidget {
         scale: 0.92,
         onTap: () {
           HapticFeedback.mediumImpact();
-          showModalBottomSheet<void>(
+          showAppleSheet<void>(
             context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            barrierColor: Colors.black.withValues(alpha: 0.48),
-            builder: (_) => const _VoiceCommandSheet(),
+            eyebrow: 'COPILOT · VOICE',
+            title: 'Voice command',
+            detents: const [0.55, 0.78, 0.95],
+            builder: (controller) => _VoiceCommandSheet(controller: controller),
           );
         },
         child: Container(
@@ -76,7 +76,8 @@ class VoiceCommandOrb extends StatelessWidget {
 }
 
 class _VoiceCommandSheet extends ConsumerStatefulWidget {
-  const _VoiceCommandSheet();
+  const _VoiceCommandSheet({this.controller});
+  final ScrollController? controller;
 
   @override
   ConsumerState<_VoiceCommandSheet> createState() => _VoiceCommandSheetState();
@@ -242,57 +243,26 @@ class _VoiceCommandSheetState extends ConsumerState<_VoiceCommandSheet>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final bottom = MediaQuery.of(context).viewInsets.bottom;
     final intent = _intent;
     final tone = _toneFor(intent, theme);
     final level = ((_level + 2) / 18).clamp(0.0, 1.0);
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottom),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(AppTokens.radius2xl),
-        ),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
-          child: Container(
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.78)
-                  : Colors.white.withValues(alpha: 0.88),
-              border: Border(
-                top: BorderSide(
-                  color: tone.withValues(alpha: 0.32),
-                  width: 0.8,
-                ),
-              ),
-            ),
-            padding: const EdgeInsets.fromLTRB(
-              AppTokens.space5,
-              AppTokens.space4,
-              AppTokens.space5,
-              AppTokens.space5,
-            ),
-            child: SafeArea(
-              top: false,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 36,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.18),
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.radiusFull),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppTokens.space4),
+    // AppleSheet provides the substrate, drag handle, gold hairline,
+    // eyebrow, and title; only the voice command body lives here.
+    return ListView(
+      controller: widget.controller,
+      padding: EdgeInsets.fromLTRB(
+        AppTokens.space5,
+        AppTokens.space2,
+        AppTokens.space5,
+        AppTokens.space5 + bottom,
+      ),
+      children: [
+        Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
                   Row(
                     children: [
                       _ListeningOrb(
@@ -303,33 +273,16 @@ class _VoiceCommandSheetState extends ConsumerState<_VoiceCommandSheet>
                       ),
                       const SizedBox(width: AppTokens.space3),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Voice command',
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              _status,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.62),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          _status,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.62),
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        tooltip: 'Close',
-                        onPressed: () => Navigator.of(context).maybePop(),
-                        icon: const Icon(Icons.close_rounded),
                       ),
                     ],
                   ),
@@ -451,10 +404,7 @@ class _VoiceCommandSheetState extends ConsumerState<_VoiceCommandSheet>
                   ),
                 ],
               ),
-            ),
-          ),
-        ),
-      ),
+      ],
     );
   }
 

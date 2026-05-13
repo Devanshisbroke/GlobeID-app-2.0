@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../cinematic/sheets/apple_sheet.dart';
 import '../features/lifecycle/lifecycle_provider.dart';
 import '../features/security/session_lock_provider.dart';
 import '../features/user/user_provider.dart';
@@ -698,12 +699,12 @@ void _showCommandPalette(BuildContext context) {
   // Delegates to the full CommandPalette overlay in
   // features/home/command_palette.dart.
   // Imported lazily to avoid a circular dependency with the shell.
-  showModalBottomSheet<void>(
+  showAppleSheet<void>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: Colors.black.withValues(alpha: 0.55),
-    builder: (_) => const _LegacyCommandPalette(),
+    eyebrow: 'GLOBEID · COMMAND',
+    title: 'Jump anywhere',
+    detents: const [0.55, 0.78, 0.95],
+    builder: (controller) => _LegacyCommandPalette(controller: controller),
   );
 }
 
@@ -711,7 +712,8 @@ void _showCommandPalette(BuildContext context) {
 /// lives in [CommandPalette] (features/home/command_palette.dart)
 /// and is invoked via [CommandPalette.show(context)].
 class _LegacyCommandPalette extends StatefulWidget {
-  const _LegacyCommandPalette();
+  const _LegacyCommandPalette({this.controller});
+  final ScrollController? controller;
   @override
   State<_LegacyCommandPalette> createState() => _LegacyCommandPaletteState();
 }
@@ -932,46 +934,21 @@ class _LegacyCommandPaletteState extends State<_LegacyCommandPalette> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final padding = MediaQuery.of(context).viewInsets;
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(
-        top: Radius.circular(AppTokens.radius2xl),
+    // AppleSheet provides drag handle + eyebrow + title + gold hairline.
+    return ListView(
+      controller: widget.controller,
+      padding: EdgeInsets.fromLTRB(
+        AppTokens.space4,
+        AppTokens.space2,
+        AppTokens.space4,
+        padding.bottom + AppTokens.space5,
       ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-        child: Container(
-          padding: EdgeInsets.only(
-            left: AppTokens.space4,
-            right: AppTokens.space4,
-            top: AppTokens.space3,
-            bottom: padding.bottom + AppTokens.space5,
-          ),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.72)
-                : Colors.white.withValues(alpha: 0.78),
-            border: Border(
-              top: BorderSide(
-                color: theme.colorScheme.primary.withValues(alpha: 0.18),
-              ),
-            ),
-          ),
-          child: Column(
+      children: [
+        Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppTokens.space3),
               TextField(
                 controller: _ctrl,
                 autofocus: true,
@@ -1002,8 +979,8 @@ class _LegacyCommandPaletteState extends State<_LegacyCommandPalette> {
                   shrinkWrap: true,
                   itemCount: _filtered.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 4),
-                  itemBuilder: (_, i) {
-                    final c = _filtered[i];
+                  itemBuilder: (_, j) {
+                    final c = _filtered[j];
                     return Material(
                       color: Colors.transparent,
                       child: InkWell(
@@ -1064,8 +1041,7 @@ class _LegacyCommandPaletteState extends State<_LegacyCommandPalette> {
               ),
             ],
           ),
-        ),
-      ),
+      ],
     );
   }
 }
