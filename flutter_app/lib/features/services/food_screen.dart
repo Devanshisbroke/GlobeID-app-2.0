@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../data/api/api_provider.dart';
+import '../../nexus/nexus_tokens.dart';
 import '../../widgets/cinematic_button.dart';
-import '../../widgets/premium_card.dart';
 import '_bespoke_scaffold.dart';
 import 'restaurant_detail_screen.dart';
 
@@ -54,7 +54,6 @@ class FoodScreen extends ConsumerWidget {
     showBespokeDetail(
       context: context,
       builder: (sheetCtx, scroll) {
-        final theme = Theme.of(sheetCtx);
         final title = item['title']?.toString() ?? 'Restaurant';
         final cuisine = item['cuisine']?.toString() ?? 'Modern';
         final eta = item['eta']?.toString() ?? '25 min';
@@ -66,86 +65,49 @@ class FoodScreen extends ConsumerWidget {
             vertical: AppTokens.space3,
           ),
           children: [
-            PremiumCard.hero(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFFE11D48), Color(0xFFFB923C)],
+            BespokeDetailHeader(
+              icon: Icons.restaurant_rounded,
+              tone: _tone,
+              title: title,
+              subtitle: '$cuisine · ETA $eta · $price',
+            ),
+            const SizedBox(height: AppTokens.space5),
+            const Text(
+              'MENU HIGHLIGHTS',
+              style: TextStyle(
+                color: N.inkLow,
+                fontWeight: FontWeight.w700,
+                fontSize: 10,
+                letterSpacing: 1.4,
               ),
-              child: Row(
+            ),
+            const SizedBox(height: N.s3),
+            Container(
+              decoration: BoxDecoration(
+                color: N.surface,
+                borderRadius: BorderRadius.circular(N.rCard),
+                border: Border.all(color: N.hairline, width: N.strokeHair),
+              ),
+              child: Column(
                 children: [
-                  const Icon(Icons.restaurant_rounded,
-                      color: Colors.white, size: 32),
-                  const SizedBox(width: AppTokens.space3),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(title,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                            )),
-                        Text('$cuisine · ETA $eta · $price',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.85),
-                            )),
-                      ],
+                  for (final entry in const [
+                    ('Tasting plate', 'Chef\'s rotating selection', '\$32',
+                        false),
+                    ('Wagyu burger', 'Brioche · truffle aioli · fries', '\$22',
+                        false),
+                    ('Garden bowl', 'Quinoa · roasted veg · feta', '\$16',
+                        false),
+                    ('Citrus mocktail', 'Yuzu · lime · soda', '\$8', true),
+                  ])
+                    _MenuRow(
+                      title: entry.$1,
+                      subtitle: entry.$2,
+                      price: entry.$3,
+                      isLast: entry.$4,
                     ),
-                  ),
                 ],
               ),
             ),
-            const SizedBox(height: AppTokens.space5),
-            Text('Menu highlights', style: theme.textTheme.titleSmall),
-            const SizedBox(height: AppTokens.space3),
-            for (final dish in const [
-              ('Tasting plate', 'Chef\'s rotating selection', '\$32'),
-              ('Wagyu burger', 'Brioche · truffle aioli · fries', '\$22'),
-              ('Garden bowl', 'Quinoa · roasted veg · feta', '\$16'),
-              ('Citrus mocktail', 'Yuzu · lime · soda', '\$8'),
-            ])
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppTokens.space2),
-                child: PremiumCard(
-                  padding: const EdgeInsets.all(AppTokens.space4),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          borderRadius:
-                              BorderRadius.circular(AppTokens.radiusLg),
-                          color:
-                              const Color(0xFFE11D48).withValues(alpha: 0.16),
-                        ),
-                        child: const Icon(Icons.restaurant_menu_rounded,
-                            color: Color(0xFFE11D48)),
-                      ),
-                      const SizedBox(width: AppTokens.space3),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(dish.$1,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                )),
-                            Text(dish.$2, style: theme.textTheme.bodySmall),
-                          ],
-                        ),
-                      ),
-                      Text(dish.$3,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: const Color(0xFFE11D48),
-                            fontWeight: FontWeight.w800,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          )),
-                    ],
-                  ),
-                ),
-              ),
             const SizedBox(height: AppTokens.space5),
             Row(
               children: [
@@ -202,90 +164,192 @@ class _FoodCard extends StatelessWidget {
   final Color tone;
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final title = item['title']?.toString() ?? 'Restaurant';
     final cuisine = item['cuisine']?.toString() ?? '';
     final rating = (item['rating'] as num?)?.toDouble();
     final eta = item['eta']?.toString() ?? '25 min';
     final price = item['price']?.toString() ?? '\$\$';
-    return PremiumCard(
-      padding: const EdgeInsets.all(AppTokens.space4),
+    return Container(
+      padding: const EdgeInsets.all(N.s4),
+      decoration: BoxDecoration(
+        color: N.surface,
+        borderRadius: BorderRadius.circular(N.rCard),
+        border: Border.all(color: N.hairline, width: N.strokeHair),
+      ),
       child: Row(
         children: [
           Container(
-            width: 56,
-            height: 56,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-              gradient: LinearGradient(
-                colors: [tone, tone.withValues(alpha: 0.55)],
+              borderRadius: BorderRadius.circular(N.rSmall),
+              color: tone.withValues(alpha: 0.14),
+              border: Border.all(
+                color: tone.withValues(alpha: 0.36),
+                width: N.strokeHair,
               ),
             ),
-            child: const Icon(Icons.restaurant_rounded,
-                color: Colors.white, size: 26),
+            child: Icon(Icons.restaurant_rounded, color: tone, size: 22),
           ),
-          const SizedBox(width: AppTokens.space3),
+          const SizedBox(width: N.s3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: N.inkHi,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    height: 1.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 if (cuisine.isNotEmpty) ...[
                   const SizedBox(height: 2),
-                  Text(cuisine,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                      )),
+                  Text(
+                    cuisine,
+                    style: const TextStyle(
+                      color: N.inkMid,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                      height: 1.3,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
-                const SizedBox(height: AppTokens.space2),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     if (rating != null) ...[
                       const Icon(Icons.star_rounded,
-                          size: 14, color: Color(0xFFF59E0B)),
+                          size: 12, color: N.tierGold),
                       const SizedBox(width: 2),
-                      Text(rating.toStringAsFixed(1),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          )),
-                      const SizedBox(width: AppTokens.space3),
+                      Text(
+                        rating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          color: N.inkHi,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 2,
+                        height: 2,
+                        decoration: const BoxDecoration(
+                          color: N.inkLow,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                     ],
-                    Icon(Icons.access_time_rounded,
-                        size: 13,
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                    const Icon(Icons.access_time_rounded,
+                        size: 11, color: N.inkLow),
                     const SizedBox(width: 2),
-                    Text(eta,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w600,
-                        )),
+                    Text(
+                      eta,
+                      style: const TextStyle(
+                        color: N.inkLow,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                        fontFeatures: [FontFeature.tabularFigures()],
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
           ),
+          const SizedBox(width: N.s2),
           Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppTokens.space3, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-              color: tone.withValues(alpha: 0.14),
-              border: Border.all(color: tone.withValues(alpha: 0.32)),
+              borderRadius: BorderRadius.circular(N.rPill),
+              border: Border.all(color: N.hairline, width: N.strokeHair),
             ),
-            child: Text(price,
-                style: TextStyle(
-                  color: tone,
-                  fontWeight: FontWeight.w800,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                )),
+            child: Text(
+              price,
+              style: const TextStyle(
+                color: N.inkHi,
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Menu row used inside the food detail-sheet receipt block.
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({
+    required this.title,
+    required this.subtitle,
+    required this.price,
+    required this.isLast,
+  });
+
+  final String title;
+  final String subtitle;
+  final String price;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: N.s4, vertical: N.s3),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: isLast ? Colors.transparent : N.hairline,
+            width: N.strokeHair,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: N.inkHi,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: N.inkMid,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 11,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            price,
+            style: const TextStyle(
+              color: N.inkHi,
+              fontWeight: FontWeight.w800,
+              fontSize: 13,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
           ),
         ],
       ),

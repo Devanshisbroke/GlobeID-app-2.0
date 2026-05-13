@@ -10,7 +10,6 @@ import '../../nexus/nexus_tokens.dart';
 import '../../widgets/agentic_chip.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/cinematic_button.dart';
-import '../../widgets/cinematic_hero.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
@@ -269,30 +268,43 @@ class _FlightsScreenState extends State<FlightsScreen> {
           padding: const EdgeInsets.symmetric(
               horizontal: AppTokens.space5, vertical: AppTokens.space3),
           children: [
-            CinematicHero(
-              eyebrow: '${fare.airline} · ${fare.flightNumber}',
-              title: '$_from → $_to',
-              subtitle:
-                  '${fare.duration} · ${fare.stops == 0 ? 'Non-stop' : '${fare.stops} stop'} · ${fare.aircraft}',
+            BespokeDetailHeader(
               icon: Icons.flight_takeoff_rounded,
               tone: brand.color,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [brand.color, brand.color.withValues(alpha: 0.5)],
+              title: '$_from → $_to',
+              subtitle:
+                  '${fare.airline} · ${fare.flightNumber} · ${fare.duration} · ${fare.stops == 0 ? 'Non-stop' : '${fare.stops} stop'}',
+              trailing: Text(
+                '\$${fare.price.toStringAsFixed(0)}',
+                style: const TextStyle(
+                  color: N.inkHi,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 22,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
               ),
-              badges: [
-                HeroBadge(
-                  label: '\$${fare.price.toStringAsFixed(0)}',
-                  icon: Icons.payments_rounded,
-                ),
-                HeroBadge(
-                  label: '${(fare.scoreOnTime * 100).round()}% on-time',
+            ),
+            const SizedBox(height: N.s3),
+            // Intelligence chips — on-time score + CO₂ rendered as
+            // hairline pills instead of glassy hero badges.
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                _IntelChip(
                   icon: Icons.timer_rounded,
+                  label: '${(fare.scoreOnTime * 100).round()}% on-time',
+                  tone: const Color(0xFF3FB68B),
                 ),
-                HeroBadge(
-                  label: 'CO₂ ${fare.co2.toStringAsFixed(0)} kg',
+                _IntelChip(
                   icon: Icons.eco_rounded,
+                  label: 'CO₂ ${fare.co2.toStringAsFixed(0)} kg',
+                  tone: brand.color,
+                ),
+                _IntelChip(
+                  icon: Icons.airlines_rounded,
+                  label: fare.aircraft,
+                  tone: N.inkMid,
                 ),
               ],
             ),
@@ -358,9 +370,6 @@ class _FlightsScreenState extends State<FlightsScreen> {
             CinematicButton(
               label: 'Book · \$${fare.price.toStringAsFixed(0)}',
               icon: Icons.flight_takeoff_rounded,
-              gradient: LinearGradient(
-                colors: [brand.color, brand.color.withValues(alpha: 0.65)],
-              ),
               onPressed: () {
                 HapticFeedback.heavyImpact();
                 Navigator.of(sheetCtx).maybePop();
@@ -486,12 +495,12 @@ class _SearchHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return PremiumCard.hero(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [tone, tone.withValues(alpha: 0.55)],
+    return Container(
+      padding: const EdgeInsets.fromLTRB(N.s5, N.s5, N.s5, N.s4),
+      decoration: BoxDecoration(
+        color: N.surface,
+        borderRadius: BorderRadius.circular(N.rCardLg),
+        border: Border.all(color: N.hairline, width: N.strokeHair),
       ),
       child: Column(
         children: [
@@ -503,23 +512,25 @@ class _SearchHero extends StatelessWidget {
                   code: from,
                   onTap: onPickFrom,
                   airport: getAirport(from),
+                  tone: tone,
                 ),
               ),
               Pressable(
                 scale: 0.9,
                 onTap: onSwap,
                 child: Container(
-                  width: 38,
-                  height: 38,
+                  width: 36,
+                  height: 36,
+                  margin: const EdgeInsets.symmetric(horizontal: N.s2),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.20),
+                    color: tone.withValues(alpha: 0.14),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.30),
+                      color: tone.withValues(alpha: 0.36),
+                      width: N.strokeHair,
                     ),
                   ),
-                  child:
-                      const Icon(Icons.swap_horiz_rounded, color: Colors.white),
+                  child: Icon(Icons.swap_horiz_rounded, color: tone, size: 18),
                 ),
               ),
               Expanded(
@@ -528,29 +539,45 @@ class _SearchHero extends StatelessWidget {
                   code: to,
                   onTap: onPickTo,
                   airport: getAirport(to),
+                  tone: tone,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppTokens.space4),
+          const SizedBox(height: N.s4),
+          // Hairline divider between airport row and trip-meta row.
+          Container(
+            height: N.strokeHair,
+            color: N.hairline,
+            margin: const EdgeInsets.symmetric(horizontal: N.s1),
+          ),
+          const SizedBox(height: N.s3),
           Row(
             children: [
               const Icon(Icons.calendar_today_rounded,
-                  size: 14, color: Colors.white),
+                  size: 13, color: N.inkMid),
               const SizedBox(width: 6),
-              Text('Mon, 12 Jun · Round-trip',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  )),
+              const Text(
+                'Mon, 12 Jun · Round-trip',
+                style: TextStyle(
+                  color: N.inkHi,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                  letterSpacing: 0.2,
+                ),
+              ),
               const Spacer(),
-              const Icon(Icons.person_rounded, size: 14, color: Colors.white),
+              const Icon(Icons.person_rounded, size: 13, color: N.inkMid),
               const SizedBox(width: 4),
-              Text('1 traveler',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  )),
+              const Text(
+                '1 traveler',
+                style: TextStyle(
+                  color: N.inkHi,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                  letterSpacing: 0.2,
+                ),
+              ),
             ],
           ),
         ],
@@ -565,45 +592,61 @@ class _AirportField extends StatelessWidget {
     required this.code,
     required this.onTap,
     required this.airport,
+    required this.tone,
   });
   final String label;
   final String code;
   final VoidCallback onTap;
   final Airport? airport;
+  final Color tone;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Pressable(
       scale: 0.97,
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(
-            horizontal: AppTokens.space3, vertical: AppTokens.space2),
+            horizontal: AppTokens.space2, vertical: AppTokens.space1),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.78),
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 10,
-                )),
+            Text(
+              label,
+              style: const TextStyle(
+                color: N.inkLow,
+                letterSpacing: 1.4,
+                fontWeight: FontWeight.w700,
+                fontSize: 10,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text(code,
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.5,
-                )),
-            if (airport != null)
-              Text(airport!.city,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.85),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
+            // Tabular IATA glyphs — feel like a departure-board readout.
+            Text(
+              code,
+              style: const TextStyle(
+                color: N.inkHi,
+                fontWeight: FontWeight.w800,
+                fontSize: 28,
+                height: 1.0,
+                letterSpacing: -0.5,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
+            if (airport != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                airport!.city,
+                style: const TextStyle(
+                  color: N.inkMid,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 11,
+                  height: 1.2,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ],
         ),
       ),
@@ -624,7 +667,6 @@ class _FlexDateStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final base = DateTime.utc(2026, 6, 5);
     return SizedBox(
       height: 76,
@@ -642,58 +684,55 @@ class _FlexDateStrip extends StatelessWidget {
             scale: 0.95,
             onTap: () => onPick(i),
             child: AnimatedContainer(
-              duration: AppTokens.durationSm,
-              curve: AppTokens.easeOutSoft,
+              duration: N.dQuick,
+              curve: N.ease,
               width: 64,
               padding: const EdgeInsets.symmetric(
-                  horizontal: 8, vertical: AppTokens.space2 + 2),
+                  horizontal: 8, vertical: N.s2 + 2),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-                color: active
-                    ? tone.withValues(alpha: 0.20)
-                    : theme.colorScheme.surface.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(N.rCard),
+                color: active ? tone.withValues(alpha: 0.14) : N.surface,
                 border: Border.all(
                   color: active
-                      ? tone.withValues(alpha: 0.6)
-                      : theme.colorScheme.onSurface.withValues(alpha: 0.10),
+                      ? tone.withValues(alpha: 0.55)
+                      : N.hairline,
+                  width: N.strokeHair,
                 ),
-                boxShadow: active
-                    ? [
-                        BoxShadow(
-                          color: tone.withValues(alpha: 0.18),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
-                        ),
-                      ]
-                    : null,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(_weekdayShort(d.weekday),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: active
-                            ? tone
-                            : theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
-                      )),
-                  Text('${d.day}',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: active ? tone : theme.colorScheme.onSurface,
-                      )),
+                  Text(
+                    _weekdayShort(d.weekday),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 10,
+                      letterSpacing: 1.2,
+                      color: active ? tone : N.inkLow,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text('\$$price',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                        color: active
-                            ? tone
-                            : theme.colorScheme.onSurface
-                                .withValues(alpha: 0.6),
-                      )),
+                  Text(
+                    '${d.day}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                      height: 1.0,
+                      color: active ? tone : N.inkHi,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '\$$price',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 10,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      color: active ? tone : N.inkMid,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -989,16 +1028,18 @@ class _FareCard extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-                  gradient: LinearGradient(
-                    colors: [brand.color, brand.color.withValues(alpha: 0.55)],
+                  borderRadius: BorderRadius.circular(N.rSmall),
+                  color: brand.color.withValues(alpha: 0.14),
+                  border: Border.all(
+                    color: brand.color.withValues(alpha: 0.36),
+                    width: N.strokeHair,
                   ),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   brand.shortCode,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: brand.color,
                     fontWeight: FontWeight.w800,
                     fontSize: 11,
                     letterSpacing: 0.5,
@@ -1126,26 +1167,27 @@ class _MicroChip extends StatelessWidget {
   final String label;
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-        color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(N.rPill),
+        border: Border.all(color: N.hairline, width: N.strokeHair),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon,
-              size: 11,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
-          const SizedBox(width: 3),
-          Text(label,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
-                fontWeight: FontWeight.w700,
-                fontSize: 10,
-              )),
+          Icon(icon, size: 11, color: N.inkMid),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: N.inkMid,
+              fontWeight: FontWeight.w700,
+              fontSize: 10,
+              letterSpacing: 0.1,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          ),
         ],
       ),
     );
@@ -1379,4 +1421,48 @@ class _AirportPicker extends StatelessWidget {
 extension _AirlineBrandX on AirlineBrand {
   Color get color => primary;
   String get shortCode => iata.startsWith('__') ? 'XX' : iata;
+}
+
+/// Nexus intelligence chip — hairline pill with tonal icon glyph.
+/// Used inside fare detail sheets to surface on-time score, CO₂,
+/// aircraft type without resorting to glassy hero badges.
+class _IntelChip extends StatelessWidget {
+  const _IntelChip({
+    required this.icon,
+    required this.label,
+    required this.tone,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color tone;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: N.surface,
+        borderRadius: BorderRadius.circular(N.rPill),
+        border: Border.all(color: N.hairline, width: N.strokeHair),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: tone),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: N.inkHi,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
+              letterSpacing: 0.2,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

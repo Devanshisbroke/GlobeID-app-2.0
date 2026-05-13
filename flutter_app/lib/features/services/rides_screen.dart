@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../data/api/api_provider.dart';
+import '../../nexus/nexus_tokens.dart';
 import '../../widgets/cinematic_button.dart';
-import '../../widgets/premium_card.dart';
 import '_bespoke_scaffold.dart';
 
 /// Rides — bespoke vertical with vehicle-class filters and a detail
@@ -52,7 +52,6 @@ class RidesScreen extends ConsumerWidget {
     showBespokeDetail(
       context: context,
       builder: (sheetCtx, scroll) {
-        final theme = Theme.of(sheetCtx);
         final title = item['title']?.toString() ?? 'Ride';
         final eta = item['eta']?.toString() ?? '4 min';
         final price = item['price']?.toString() ?? '\$24';
@@ -63,76 +62,54 @@ class RidesScreen extends ConsumerWidget {
             vertical: AppTokens.space3,
           ),
           children: [
-            PremiumCard.hero(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFFEA580C), Color(0xFFFACC15)],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.directions_car_rounded,
-                          color: Colors.white, size: 32),
-                      const SizedBox(width: AppTokens.space3),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(title,
-                                style: theme.textTheme.headlineSmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                )),
-                            Text('ETA $eta',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.85),
-                                )),
-                          ],
-                        ),
-                      ),
-                      Text(price,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          )),
-                    ],
-                  ),
-                ],
+            BespokeDetailHeader(
+              icon: Icons.directions_car_rounded,
+              tone: _tone,
+              title: title,
+              subtitle: 'ETA $eta',
+              trailing: Text(
+                price,
+                style: const TextStyle(
+                  color: N.inkHi,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 22,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
               ),
             ),
             const SizedBox(height: AppTokens.space5),
             const _RouteStrip(),
             const SizedBox(height: AppTokens.space5),
-            Text('Fare breakdown', style: theme.textTheme.titleSmall),
-            const SizedBox(height: AppTokens.space3),
-            for (final r in const [
-              ('Base fare', '\$8.00'),
-              ('Distance · 7.4 km', '\$11.20'),
-              ('Service fee', '\$2.40'),
-              ('Tip', '\$0.00'),
-            ])
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppTokens.space2),
-                child: PremiumCard(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppTokens.space4, vertical: AppTokens.space3),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(r.$1, style: theme.textTheme.bodyMedium),
-                      Text(r.$2,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          )),
-                    ],
-                  ),
-                ),
+            const Text(
+              'FARE BREAKDOWN',
+              style: TextStyle(
+                color: N.inkLow,
+                fontWeight: FontWeight.w700,
+                fontSize: 10,
+                letterSpacing: 1.4,
               ),
+            ),
+            const SizedBox(height: N.s3),
+            // Hairline-framed receipt block.
+            Container(
+              decoration: BoxDecoration(
+                color: N.surface,
+                borderRadius: BorderRadius.circular(N.rCard),
+                border: Border.all(color: N.hairline, width: N.strokeHair),
+              ),
+              child: Column(
+                children: [
+                  for (final entry in const [
+                    ('Base fare', '\$8.00', false),
+                    ('Distance · 7.4 km', '\$11.20', false),
+                    ('Service fee', '\$2.40', false),
+                    ('Tip', '\$0.00', true),
+                  ])
+                    _FareRow(
+                        label: entry.$1, value: entry.$2, isLast: entry.$3),
+                ],
+              ),
+            ),
             const SizedBox(height: AppTokens.space5),
             CinematicButton(
               label: 'Book ride · $price',
@@ -151,51 +128,87 @@ class _RouteStrip extends StatelessWidget {
   const _RouteStrip();
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return PremiumCard(
-      padding: const EdgeInsets.all(AppTokens.space4),
+    return Container(
+      padding: const EdgeInsets.all(N.s4),
+      decoration: BoxDecoration(
+        color: N.surface,
+        borderRadius: BorderRadius.circular(N.rCard),
+        border: Border.all(color: N.hairline, width: N.strokeHair),
+      ),
       child: Row(
         children: [
+          // Origin / destination axis — small filled disc, hairline
+          // connector, terminal tone disc.
           Column(
             children: [
               Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
+                width: 10,
+                height: 10,
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: theme.colorScheme.primary,
+                  color: N.inkMid,
                 ),
               ),
               Container(
-                width: 1.5,
-                height: 36,
-                margin: const EdgeInsets.symmetric(vertical: 2),
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
+                width: 1,
+                height: 30,
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                color: N.hairlineHi,
               ),
               Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
+                width: 10,
+                height: 10,
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFEA580C),
+                  color: Color(0xFFEA580C),
                 ),
               ),
             ],
           ),
-          const SizedBox(width: AppTokens.space3),
+          const SizedBox(width: N.s3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Pickup · Embarcadero',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    )),
-                const SizedBox(height: 18),
-                Text('Drop · SFO Terminal 2',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    )),
+              children: const [
+                Text(
+                  'PICKUP',
+                  style: TextStyle(
+                    color: N.inkLow,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 9,
+                    letterSpacing: 1.4,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Embarcadero',
+                  style: TextStyle(
+                    color: N.inkHi,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    height: 1.2,
+                  ),
+                ),
+                SizedBox(height: 14),
+                Text(
+                  'DROP',
+                  style: TextStyle(
+                    color: N.inkLow,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 9,
+                    letterSpacing: 1.4,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'SFO Terminal 2',
+                  style: TextStyle(
+                    color: N.inkHi,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    height: 1.2,
+                  ),
+                ),
               ],
             ),
           ),
@@ -211,68 +224,137 @@ class _RideCard extends StatelessWidget {
   final Color tone;
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final title = item['title']?.toString() ?? 'Ride';
     final eta = item['eta']?.toString() ?? '4 min';
     final price = item['price']?.toString() ?? '\$—';
-    return PremiumCard(
-      padding: const EdgeInsets.all(AppTokens.space4),
+    return Container(
+      padding: const EdgeInsets.all(N.s4),
+      decoration: BoxDecoration(
+        color: N.surface,
+        borderRadius: BorderRadius.circular(N.rCard),
+        border: Border.all(color: N.hairline, width: N.strokeHair),
+      ),
       child: Row(
         children: [
+          // Vehicle disc — tonal fill, hairline ring.
           Container(
-            width: 56,
-            height: 56,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-              gradient: LinearGradient(
-                colors: [tone, tone.withValues(alpha: 0.55)],
+              borderRadius: BorderRadius.circular(N.rSmall),
+              color: tone.withValues(alpha: 0.14),
+              border: Border.all(
+                color: tone.withValues(alpha: 0.36),
+                width: N.strokeHair,
               ),
             ),
-            child: const Icon(Icons.directions_car_rounded,
-                color: Colors.white, size: 26),
+            child: Icon(Icons.directions_car_rounded, color: tone, size: 24),
           ),
-          const SizedBox(width: AppTokens.space3),
+          const SizedBox(width: N.s3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    )),
-                const SizedBox(height: 2),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: N.inkHi,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(Icons.access_time_rounded,
-                        size: 13,
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                    const Icon(Icons.access_time_rounded,
+                        size: 11, color: N.inkMid),
                     const SizedBox(width: 4),
-                    Text('ETA $eta',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w600,
-                        )),
+                    Text(
+                      'ETA $eta',
+                      style: const TextStyle(
+                        color: N.inkMid,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                        fontFeatures: [FontFeature.tabularFigures()],
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
           ),
+          // Price pill — hairline frame, tabular numerals.
           Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppTokens.space3, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+              borderRadius: BorderRadius.circular(N.rPill),
               color: tone.withValues(alpha: 0.14),
-              border: Border.all(color: tone.withValues(alpha: 0.32)),
+              border: Border.all(
+                color: tone.withValues(alpha: 0.36),
+                width: N.strokeHair,
+              ),
             ),
-            child: Text(price,
-                style: TextStyle(
-                  color: tone,
-                  fontWeight: FontWeight.w800,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                )),
+            child: Text(
+              price,
+              style: TextStyle(
+                color: tone,
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+                letterSpacing: 0.2,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Single hairline-bordered row inside the rides fare-breakdown receipt.
+class _FareRow extends StatelessWidget {
+  const _FareRow({
+    required this.label,
+    required this.value,
+    required this.isLast,
+  });
+
+  final String label;
+  final String value;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: N.s4, vertical: N.s3),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: isLast ? Colors.transparent : N.hairline,
+            width: N.strokeHair,
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: N.inkMid,
+              fontWeight: FontWeight.w500,
+              fontSize: 13,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              color: N.inkHi,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
           ),
         ],
       ),

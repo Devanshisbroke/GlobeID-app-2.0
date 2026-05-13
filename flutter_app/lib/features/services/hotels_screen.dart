@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../data/api/api_provider.dart';
+import '../../nexus/nexus_tokens.dart';
 import '../../widgets/cinematic_button.dart';
-import '../../widgets/premium_card.dart';
 import '_bespoke_scaffold.dart';
 import 'hotel_detail_screen.dart';
 
@@ -54,7 +54,6 @@ class HotelsScreen extends ConsumerWidget {
     showBespokeDetail(
       context: context,
       builder: (sheetCtx, scroll) {
-        final theme = Theme.of(sheetCtx);
         final title = item['title']?.toString() ?? 'Hotel';
         final price = item['price']?.toString() ?? '\$—';
         final rating = (item['rating'] as num?)?.toDouble() ?? 4.5;
@@ -67,133 +66,135 @@ class HotelsScreen extends ConsumerWidget {
             vertical: AppTokens.space3,
           ),
           children: [
-            Container(
-              height: 180,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF7E22CE), Color(0xFFEC4899)],
+            BespokeDetailHeader(
+              icon: Icons.hotel_rounded,
+              tone: _tone,
+              title: title,
+              subtitle: '★ ${rating.toStringAsFixed(1)} · $price',
+              trailing: Text(
+                price,
+                style: const TextStyle(
+                  color: N.inkHi,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 20,
+                  fontFeatures: [FontFeature.tabularFigures()],
                 ),
-              ),
-              alignment: Alignment.bottomLeft,
-              padding: const EdgeInsets.all(AppTokens.space5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.18),
-                          borderRadius:
-                              BorderRadius.circular(AppTokens.radiusFull),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.star_rounded,
-                                size: 14, color: Colors.white),
-                            const SizedBox(width: 4),
-                            Text(rating.toStringAsFixed(1),
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                )),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppTokens.space2),
-                      Text(title,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                          )),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppTokens.space3,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                    ),
-                    child: Text(price,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: const Color(0xFF7E22CE),
-                          fontWeight: FontWeight.w800,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        )),
-                  ),
-                ],
               ),
             ),
             const SizedBox(height: AppTokens.space5),
-            Text('Amenities', style: theme.textTheme.titleSmall),
-            const SizedBox(height: AppTokens.space3),
+            const Text(
+              'AMENITIES',
+              style: TextStyle(
+                color: N.inkLow,
+                fontWeight: FontWeight.w700,
+                fontSize: 10,
+                letterSpacing: 1.4,
+              ),
+            ),
+            const SizedBox(height: N.s3),
             Wrap(
-              spacing: AppTokens.space2,
-              runSpacing: AppTokens.space2,
+              spacing: 6,
+              runSpacing: 6,
               children: [
                 for (final a in amenities)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: AppTokens.space3, vertical: 6),
+                        horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.surface.withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                      border: Border.all(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                      color: N.surface,
+                      borderRadius: BorderRadius.circular(N.rPill),
+                      border:
+                          Border.all(color: N.hairline, width: N.strokeHair),
+                    ),
+                    child: Text(
+                      a.toString(),
+                      style: const TextStyle(
+                        color: N.inkHi,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 11,
+                        letterSpacing: 0.2,
                       ),
                     ),
-                    child: Text(a.toString(),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        )),
                   ),
               ],
             ),
             const SizedBox(height: AppTokens.space5),
-            Text('Rooms', style: theme.textTheme.titleSmall),
-            const SizedBox(height: AppTokens.space3),
+            const Text(
+              'ROOMS',
+              style: TextStyle(
+                color: N.inkLow,
+                fontWeight: FontWeight.w700,
+                fontSize: 10,
+                letterSpacing: 1.4,
+              ),
+            ),
+            const SizedBox(height: N.s3),
             for (final r in const [
               ('Deluxe King', 'King bed · City view', '\$240/nt'),
               ('Twin Suite', 'Two queens · Premium tower', '\$310/nt'),
               ('Penthouse', 'Bay view · Lounge access', '\$680/nt'),
             ])
               Padding(
-                padding: const EdgeInsets.only(bottom: AppTokens.space2),
-                child: PremiumCard(
-                  padding: const EdgeInsets.all(AppTokens.space4),
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Container(
+                  padding: const EdgeInsets.all(N.s4),
+                  decoration: BoxDecoration(
+                    color: N.surface,
+                    borderRadius: BorderRadius.circular(N.rCard),
+                    border: Border.all(color: N.hairline, width: N.strokeHair),
+                  ),
                   child: Row(
                     children: [
-                      const Icon(Icons.bed_rounded, color: Color(0xFF7E22CE)),
-                      const SizedBox(width: AppTokens.space3),
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _tone.withValues(alpha: 0.14),
+                          border: Border.all(
+                            color: _tone.withValues(alpha: 0.36),
+                            width: N.strokeHair,
+                          ),
+                        ),
+                        child: const Icon(Icons.bed_rounded,
+                            color: _tone, size: 18),
+                      ),
+                      const SizedBox(width: N.s3),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(r.$1,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                )),
-                            Text(r.$2, style: theme.textTheme.bodySmall),
+                            Text(
+                              r.$1,
+                              style: const TextStyle(
+                                color: N.inkHi,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                height: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              r.$2,
+                              style: const TextStyle(
+                                color: N.inkMid,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12,
+                                height: 1.3,
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      Text(r.$3,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: const Color(0xFF7E22CE),
-                            fontWeight: FontWeight.w800,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          )),
+                      Text(
+                        r.$3,
+                        style: const TextStyle(
+                          color: N.inkHi,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -256,101 +257,130 @@ class _HotelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final title = item['title']?.toString() ?? 'Hotel';
     final subtitle = item['subtitle']?.toString() ?? '—';
     final price = item['price']?.toString() ?? '\$—';
     final rating = (item['rating'] as num?)?.toDouble();
-    return PremiumCard(
-      padding: const EdgeInsets.all(AppTokens.space4),
+    return Container(
+      padding: const EdgeInsets.all(N.s4),
+      decoration: BoxDecoration(
+        color: N.surface,
+        borderRadius: BorderRadius.circular(N.rCard),
+        border: Border.all(color: N.hairline, width: N.strokeHair),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Tonal hotel disc — flat fill, hairline ring, no halo.
           Container(
-            width: 64,
-            height: 64,
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  tone,
-                  tone.withValues(alpha: 0.55),
-                ],
+              borderRadius: BorderRadius.circular(N.rSmall),
+              color: tone.withValues(alpha: 0.14),
+              border: Border.all(
+                color: tone.withValues(alpha: 0.36),
+                width: N.strokeHair,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: tone.withValues(alpha: 0.30),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
             ),
-            child:
-                const Icon(Icons.hotel_rounded, color: Colors.white, size: 30),
+            child: Icon(Icons.hotel_rounded, color: tone, size: 24),
           ),
-          const SizedBox(width: AppTokens.space3),
+          const SizedBox(width: N.s3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: N.inkHi,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    height: 1.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 2),
-                Text(subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-                const SizedBox(height: AppTokens.space2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: N.inkMid,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                    height: 1.3,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     if (rating != null) ...[
                       const Icon(Icons.star_rounded,
-                          size: 14, color: Color(0xFFF59E0B)),
+                          size: 12, color: N.tierGold),
                       const SizedBox(width: 2),
-                      Text(rating.toStringAsFixed(1),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          )),
-                      const SizedBox(width: AppTokens.space3),
+                      Text(
+                        rating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          color: N.inkHi,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 2,
+                        height: 2,
+                        decoration: const BoxDecoration(
+                          color: N.inkLow,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                     ],
-                    Icon(Icons.location_on_rounded,
-                        size: 13,
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                    const Icon(Icons.location_on_rounded,
+                        size: 11, color: N.inkLow),
                     const SizedBox(width: 2),
-                    Text('1.2 km',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.6),
-                          fontWeight: FontWeight.w600,
-                        )),
+                    const Text(
+                      '1.2 km',
+                      style: TextStyle(
+                        color: N.inkLow,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                        fontFeatures: [FontFeature.tabularFigures()],
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
           ),
-          const SizedBox(width: AppTokens.space2),
+          const SizedBox(width: N.s2),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(price,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: tone,
-                    fontWeight: FontWeight.w800,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  )),
-              Text('per night',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  )),
+              Text(
+                price,
+                style: const TextStyle(
+                  color: N.inkHi,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                  height: 1.0,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+              const SizedBox(height: 2),
+              const Text(
+                'per night',
+                style: TextStyle(
+                  color: N.inkLow,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 10,
+                  letterSpacing: 0.4,
+                ),
+              ),
             ],
           ),
         ],
