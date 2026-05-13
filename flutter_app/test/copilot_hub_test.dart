@@ -71,7 +71,7 @@ void main() {
   });
 
   group('CopilotHubScreen — rendering', () {
-    Widget _harness({GoRouter? router}) {
+    Widget harness({GoRouter? router}) {
       final r = router ??
           GoRouter(
             initialLocation: '/copilot/hub',
@@ -100,7 +100,7 @@ void main() {
     }
 
     testWidgets('renders chrome + every suggestion title', (t) async {
-      await t.pumpWidget(_harness());
+      await t.pumpWidget(harness());
       await t.pump(const Duration(milliseconds: 100));
 
       expect(find.text('GLOBE·ID · COPILOT'), findsOneWidget);
@@ -114,7 +114,7 @@ void main() {
     });
 
     testWidgets('chrome surfaces urgent-count chip', (t) async {
-      await t.pumpWidget(_harness());
+      await t.pumpWidget(harness());
       await t.pump(const Duration(milliseconds: 100));
       // The seed has at least 3 urgent + critical items.
       expect(
@@ -147,7 +147,7 @@ void main() {
             GoRoute(path: p, builder: (_, __) => const Scaffold()),
         ],
       );
-      await t.pumpWidget(_harness(router: r));
+      await t.pumpWidget(harness(router: r));
       await t.pump(const Duration(milliseconds: 100));
 
       // Tap on the critical passport row by its title.
