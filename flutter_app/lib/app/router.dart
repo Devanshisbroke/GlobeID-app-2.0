@@ -84,6 +84,7 @@ import '../features/social/social_screen.dart';
 import '../features/timeline/timeline_screen.dart';
 import '../features/trip/trip_detail_screen.dart';
 import '../features/vault/credential_detail_screen.dart';
+import '../features/vault/issuance_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
@@ -358,6 +359,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         (_, state) => CredentialDetailScreen(
           credentialId: state.pathParameters['id'] ?? '',
         ),
+      ),
+      _blurFadeRoute(
+        '/vault/issuance',
+        (_, state) {
+          final extra = state.extra;
+          if (extra is Map<String, dynamic>) {
+            return IssuanceScreen(
+              title: (extra['title'] as String?) ?? 'Republic of Iceland · Passport',
+              subtitle: (extra['subtitle'] as String?) ?? 'Bearer · GlobeID',
+              issuer: (extra['issuer'] as String?) ?? 'Republic of Iceland',
+              blockHeight: (extra['blockHeight'] as int?) ?? 12_148_337,
+            );
+          }
+          return const IssuanceScreen(
+            title: 'Republic of Iceland · Passport',
+            subtitle: 'Bearer · GlobeID',
+            issuer: 'Republic of Iceland',
+            blockHeight: 12148337,
+          );
+        },
       ),
       _blurFadeRoute('/audit-log', (_, __) => const AuditLogScreen()),
       _blurFadeRoute('/inbox', (_, __) => const InboxScreen()),
