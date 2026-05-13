@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../domain/identity_tier.dart';
+import '../../features/trip/trip_country_intel.dart';
+import '../../features/user/user_provider.dart';
 import '../os2_tokens.dart';
 import '../primitives/os2_action_card.dart';
 import '../primitives/os2_beacon.dart';
@@ -25,19 +28,43 @@ import '../primitives/os2_world_header.dart';
 ///      caption, GMT offset Solari, ambient mood gradient, tagline.
 ///   3. Intelligence section — briefing cards (typographic).
 ///   4. Smart deals — typographic ribbon rows.
-class DiscoverWorld extends ConsumerWidget {
+class DiscoverWorld extends ConsumerStatefulWidget {
   const DiscoverWorld({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DiscoverWorld> createState() => _DiscoverWorldState();
+}
+
+class _DiscoverWorldState extends ConsumerState<DiscoverWorld> {
+  @override
+  Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    final tier = IdentityTier.forScore(user.profile.identityScore);
+    final tierIdx = IdentityTier.tiers.indexOf(tier);
+    final nextTier = tierIdx < IdentityTier.tiers.length - 1
+        ? IdentityTier.tiers[tierIdx + 1]
+        : null;
+    final ptsToNext = nextTier == null
+        ? 0
+        : (nextTier.threshold - user.profile.identityScore).clamp(0, 1000);
+    // Marquee numbers anchored to real data so they don't read like
+    // fiction. Atlas count is the real curated atlas length, deals
+    // and briefings stay typographic counts but match the rest of
+    // the world.
+    final atlasCount = _atlas.length;
+    final briefings = 3 + (user.records.length ~/ 2).clamp(0, 6);
+
     return SafeArea(
       bottom: false,
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        padding: const EdgeInsets.only(bottom: 100),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      child: RefreshIndicator.adaptive(
+        onRefresh: () => ref.read(userProvider.notifier).hydrate(),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics()),
+          padding: const EdgeInsets.only(bottom: 100),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             Os2WorldHeader(
               world: Os2World.discover,
               title: 'Atlas',
@@ -45,15 +72,15 @@ class DiscoverWorld extends ConsumerWidget {
               beacon: 'CURATING',
             ),
             const SizedBox(height: Os2.space2),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: Os2.space4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
               child: Os2Marquee(
                 items: [
-                  'CURATING · 36 CITIES',
-                  'INTEL · 12 BRIEFINGS THIS WEEK',
-                  'SMART DEALS · 8 LIVE',
-                  'CONCIERGE · STANDING BY',
-                  'CULTURE · 4 EVENTS NEAR YOU',
+                  'CURATING \u00b7 $atlasCount CITIES',
+                  'INTEL \u00b7 $briefings BRIEFINGS THIS WEEK',
+                  'SMART DEALS \u00b7 LIVE',
+                  'CONCIERGE \u00b7 STANDING BY',
+                  'TIER \u00b7 ${tier.label.toUpperCase()}',
                 ],
                 tone: Os2.discoverTone,
               ),
@@ -126,8 +153,8 @@ class DiscoverWorld extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
               child: Column(
-                children: const [
-                  _BriefingSlab(
+                children: [
+                  const _BriefingSlab(
                     tone: Os2.discoverTone,
                     tag: 'TRAVEL \u00b7 4 MIN READ',
                     title:
@@ -135,8 +162,8 @@ class DiscoverWorld extends ConsumerWidget {
                     body:
                         'Jet-stream anomaly over the North Atlantic. 9% longer westbound times until Sunday.',
                   ),
-                  SizedBox(height: Os2.space3),
-                  _BriefingSlab(
+                  const SizedBox(height: Os2.space3),
+                  const _BriefingSlab(
                     tone: Os2.walletTone,
                     tag: 'MONEY \u00b7 2 MIN READ',
                     title:
@@ -144,13 +171,21 @@ class DiscoverWorld extends ConsumerWidget {
                     body:
                         'If you\'re settling USD invoices, today is statistically the strongest moment in 87 days.',
                   ),
-                  SizedBox(height: Os2.space3),
+                  const SizedBox(height: Os2.space3),
+                  // Identity tier briefing derived from the user's
+                  // real identity score + the next-tier threshold,
+                  // so the "Sovereign in 28 pts" string actually
+                  // matches the bearer instead of being fixed.
                   _BriefingSlab(
                     tone: Os2.identityTone,
                     tag: 'IDENTITY \u00b7 1 MIN READ',
-                    title: 'Your tier ramp accelerated this month',
-                    body:
-                        '+12 pts from issuer cross-sign verifications. 28 pts to Sovereign tier.',
+                    title: nextTier == null
+                        ? 'You\'re at the top of the tier ladder'
+                        : 'Your tier ramp accelerated this month',
+                    body: nextTier == null
+                        ? 'All issuer cross-signs current. Sovereign tier retained.'
+                        : 'Identity score ${user.profile.identityScore} / 1000. '
+                            '$ptsToNext pts to ${nextTier.label} tier.',
                   ),
                 ],
               ),
@@ -165,13 +200,14 @@ class DiscoverWorld extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
               child: Column(
-                children: const [
+                children: [
                   _DealStrip(
                     icon: Icons.airline_seat_flat_rounded,
                     title: 'Lufthansa Senator upgrade',
                     sub: 'Match offer \u00b7 expires 36h',
                     badge: '-\u20ac420',
                     tone: Os2.identityTone,
+                    onTap: () => GoRouter.of(context).push('/flights'),
                   ),
                   _DealStrip(
                     icon: Icons.hotel_rounded,
@@ -179,6 +215,7 @@ class DiscoverWorld extends ConsumerWidget {
                     sub: 'Tokyo + Osaka stays through 30 Apr',
                     badge: '2\u00d7 pts',
                     tone: Os2.servicesTone,
+                    onTap: () => GoRouter.of(context).push('/hotels'),
                   ),
                   _DealStrip(
                     icon: Icons.sim_card_rounded,
@@ -186,12 +223,14 @@ class DiscoverWorld extends ConsumerWidget {
                     sub: '10 GB region pack',
                     badge: '-25%',
                     tone: Os2.discoverTone,
+                    onTap: () => GoRouter.of(context).push('/esim'),
                   ),
                 ],
               ),
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -295,8 +334,14 @@ class _DestinationSlab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Resolve the destination IATA → ISO-2 country code so the tap
+    // bloom lands on the right Country Live page. Previously the
+    // route was `/country/<IATA>` which 404'd into the catch-all
+    // CountryProfileScreen with no country context.
+    final iso2 = CountryIntel.fromIata(entry.code).iso2;
     return Os2Magnetic(
-      onTap: () => GoRouter.of(context).push('/country/${entry.code}'),
+      onTap: () =>
+          GoRouter.of(context).push('/country-live/$iso2'),
       child: Os2Slab(
         tone: entry.tone,
         tier: Os2SlabTier.floor2,
@@ -347,11 +392,15 @@ class _DestinationSlab extends StatelessWidget {
                 const SizedBox(width: 10),
                 Os2Text.monoCap(entry.gmt, color: entry.tone),
                 const Spacer(),
-                Os2Chip(
-                  label: 'PLAN TRIP',
-                  tone: entry.tone,
-                  icon: Icons.flight_takeoff_rounded,
-                  intensity: Os2ChipIntensity.solid,
+                Os2Magnetic(
+                  onTap: () =>
+                      GoRouter.of(context).push('/itinerary'),
+                  child: Os2Chip(
+                    label: 'PLAN TRIP',
+                    tone: entry.tone,
+                    icon: Icons.flight_takeoff_rounded,
+                    intensity: Os2ChipIntensity.solid,
+                  ),
                 ),
               ],
             ),
@@ -405,18 +454,22 @@ class _DealStrip extends StatelessWidget {
     required this.sub,
     required this.badge,
     required this.tone,
+    this.onTap,
   });
   final IconData icon;
   final String title;
   final String sub;
   final String badge;
   final Color tone;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: Os2.space3),
-      child: Os2Slab(
+      child: Os2Magnetic(
+        onTap: onTap ?? () {},
+        child: Os2Slab(
         tone: tone,
         radius: Os2.rCard,
         tier: Os2SlabTier.floor1,
@@ -458,6 +511,7 @@ class _DealStrip extends StatelessWidget {
             Os2Chip(label: badge, tone: tone, intensity: Os2ChipIntensity.solid),
           ],
         ),
+      ),
       ),
     );
   }
