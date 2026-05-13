@@ -1443,6 +1443,339 @@ class _LiveDataPulseState extends State<LiveDataPulse>
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// GLOBEID WATERMARK DRIFT — subliminal manufactured-by signature
+// ─────────────────────────────────────────────────────────────────────
+
+/// A very faint, slowly-drifting GLOBE·ID watermark layer for the
+/// background of any Live substrate. Acts as the subliminal
+/// "manufactured by GlobeID" signature — your eye never catches it
+/// at rest, but the brain registers the slow drift as a sign of
+/// life. Period defaults to 40 seconds (one full crossing) so the
+/// motion is well below conscious threshold.
+///
+/// Stack this *behind* substrate content (depth ~ 1).
+class GlobeIdWatermarkDrift extends StatefulWidget {
+  const GlobeIdWatermarkDrift({
+    super.key,
+    this.text = 'GLOBE\u00b7ID',
+    this.tone,
+    this.alpha = 0.05,
+    this.fontSize = 60,
+    this.period = const Duration(seconds: 40),
+  });
+
+  final String text;
+  final Color? tone;
+  final double alpha;
+  final double fontSize;
+  final Duration period;
+
+  @override
+  State<GlobeIdWatermarkDrift> createState() => _GlobeIdWatermarkDriftState();
+}
+
+class _GlobeIdWatermarkDriftState extends State<GlobeIdWatermarkDrift>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.period,
+  )..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tone = (widget.tone ?? const Color(0xFFE9C75D))
+        .withValues(alpha: widget.alpha);
+    return IgnorePointer(
+      ignoring: true,
+      child: ClipRect(
+        child: RepaintBoundary(
+          child: AnimatedBuilder(
+            animation: _c,
+            builder: (_, __) {
+              return CustomPaint(
+                painter: _GlobeIdWatermarkPainter(
+                  t: _c.value,
+                  tone: tone,
+                  text: widget.text,
+                  fontSize: widget.fontSize,
+                ),
+                size: Size.infinite,
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GlobeIdWatermarkPainter extends CustomPainter {
+  _GlobeIdWatermarkPainter({
+    required this.t,
+    required this.tone,
+    required this.text,
+    required this.fontSize,
+  });
+  final double t;
+  final Color tone;
+  final String text;
+  final double fontSize;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final tp = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          color: tone,
+          fontSize: fontSize,
+          fontWeight: FontWeight.w900,
+          letterSpacing: fontSize * 0.12,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    // Drift diagonally — slow translation, no rotation. Wrap with
+    // two copies so the seam never lands inside the visible bounds.
+    final dx = -tp.width + (size.width + tp.width * 2) * t;
+    final dy = size.height * 0.5 - tp.height / 2;
+
+    canvas.save();
+    canvas.translate(dx, dy);
+    tp.paint(canvas, Offset.zero);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _GlobeIdWatermarkPainter old) =>
+      old.t != t ||
+      old.tone != tone ||
+      old.text != text ||
+      old.fontSize != fontSize;
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// LIVE ENTRANCE — substrate → content → foil cinematic mount
+// ─────────────────────────────────────────────────────────────────────
+
+/// Staggered fade-in for Live credentials. Substrate appears first
+/// (0 → 220 ms), content fades in second (180 → 460 ms), foil
+/// sweep glows in third (420 → 760 ms). This makes a Live credential
+/// feel like it's being printed / materialized when the screen
+/// mounts, instead of just snapping into place.
+///
+/// Provide the three layers (`substrate`, `content`, `foil`) in
+/// back-to-front order — the wrapper composes them in a [Stack].
+class LiveEntrance extends StatefulWidget {
+  const LiveEntrance({
+    super.key,
+    required this.substrate,
+    required this.content,
+    this.foil,
+    this.duration = const Duration(milliseconds: 760),
+    this.autoStart = true,
+  });
+
+  /// Bottom layer — the credential substrate (leather, linen, PETG,
+  /// vellum). Appears first.
+  final Widget substrate;
+
+  /// Middle layer — content (text, seals, photo). Appears second.
+  final Widget content;
+
+  /// Top layer — foil sweep / shimmer. Appears third. Optional.
+  final Widget? foil;
+
+  final Duration duration;
+  final bool autoStart;
+
+  @override
+  State<LiveEntrance> createState() => _LiveEntranceState();
+}
+
+class _LiveEntranceState extends State<LiveEntrance>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.autoStart) _c.forward();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  double _band(double t, double start, double end) {
+    if (t <= start) return 0;
+    if (t >= end) return 1;
+    final p = (t - start) / (end - start);
+    return Curves.easeOutCubic.transform(p.clamp(0.0, 1.0));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, __) {
+        final t = _c.value;
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            Opacity(opacity: _band(t, 0.00, 0.30), child: widget.substrate),
+            Opacity(opacity: _band(t, 0.25, 0.60), child: widget.content),
+            if (widget.foil != null)
+              Opacity(opacity: _band(t, 0.55, 1.00), child: widget.foil!),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// LIVE SURFACE STATE — breathing cadence semantics
+// ─────────────────────────────────────────────────────────────────────
+
+/// Maps a [LiveSurfaceState] to a recommended breathing period for
+/// any substrate / pulse / halo tied to that surface. Used to keep
+/// the cinematic ladder consistent across every Live screen — slow
+/// at IDLE, fast at ACTIVE, single-pulse on COMMITTED, settled back
+/// to slow on SETTLED.
+extension LiveSurfaceStateCadence on LiveSurfaceState {
+  /// Recommended breathing period for any pulse/halo tied to the
+  /// state. Slower at rest, faster as urgency rises.
+  Duration get breathingPeriod {
+    switch (this) {
+      case LiveSurfaceState.idle:
+        return const Duration(milliseconds: 4000);
+      case LiveSurfaceState.armed:
+        return const Duration(milliseconds: 2200);
+      case LiveSurfaceState.active:
+        return const Duration(milliseconds: 1400);
+      case LiveSurfaceState.committed:
+        return const Duration(milliseconds: 800);
+      case LiveSurfaceState.settled:
+        return const Duration(milliseconds: 4200);
+    }
+  }
+
+  /// Recommended NFC ring count for the state. ACTIVE/COMMITTED
+  /// surfaces show a denser ring stack.
+  int get suggestedNfcRings {
+    switch (this) {
+      case LiveSurfaceState.idle:
+      case LiveSurfaceState.settled:
+        return 1;
+      case LiveSurfaceState.armed:
+        return 2;
+      case LiveSurfaceState.active:
+      case LiveSurfaceState.committed:
+        return 3;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// ROLLING DIGITS — counts up to a target on activation
+// ─────────────────────────────────────────────────────────────────────
+
+/// A column of digits that animates from 0 to a target integer over
+/// [duration]. Tabular figures, monospace cadence, ease-out curve so
+/// the last digits "settle". Used for the forex banknote serial
+/// roll, the lounge member tier badge, the wallet balance reveal.
+class RollingDigits extends StatefulWidget {
+  const RollingDigits({
+    super.key,
+    required this.target,
+    this.digits = 6,
+    this.style,
+    this.duration = const Duration(milliseconds: 600),
+    this.prefix = '',
+    this.suffix = '',
+  });
+
+  /// Target value to land on.
+  final int target;
+
+  /// Force a minimum number of digits (zero-padded). E.g. digits=6
+  /// for a banknote serial (A000042 → A002847).
+  final int digits;
+
+  final TextStyle? style;
+  final Duration duration;
+  final String prefix;
+  final String suffix;
+
+  @override
+  State<RollingDigits> createState() => _RollingDigitsState();
+}
+
+class _RollingDigitsState extends State<RollingDigits>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+  )..forward();
+  late int _from = 0;
+
+  @override
+  void didUpdateWidget(RollingDigits oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.target != widget.target) {
+      _from = oldWidget.target;
+      _c.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, __) {
+        // Ease-out: digits race up then settle.
+        final t = Curves.easeOutCubic.transform(_c.value);
+        final current = (_from + (widget.target - _from) * t).round();
+        final text =
+            '${widget.prefix}${current.toString().padLeft(widget.digits, '0')}${widget.suffix}';
+        return Text(
+          text,
+          style: (widget.style ??
+                  const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    letterSpacing: 1.6,
+                  ))
+              .copyWith(
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        );
+      },
+    );
+  }
+}
+
 /// Wraps a Live credential in a soft drop shadow + tonal ambient
 /// occlusion so the object reads as floating off the OLED surface
 /// instead of sitting flat against it. Used on every Live hero

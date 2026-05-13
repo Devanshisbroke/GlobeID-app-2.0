@@ -332,4 +332,166 @@ void main() {
       expect(lift.tone, const Color(0xFF66B7FF));
     });
   });
+
+  group('LiveSurfaceStateCadence — breathing semantics', () {
+    test('breathing period gets faster from idle through committed',
+        () {
+      final idle = LiveSurfaceState.idle.breathingPeriod;
+      final armed = LiveSurfaceState.armed.breathingPeriod;
+      final active = LiveSurfaceState.active.breathingPeriod;
+      final committed = LiveSurfaceState.committed.breathingPeriod;
+      expect(idle.inMilliseconds, greaterThan(armed.inMilliseconds));
+      expect(armed.inMilliseconds, greaterThan(active.inMilliseconds));
+      expect(active.inMilliseconds, greaterThan(committed.inMilliseconds));
+    });
+
+    test('settled returns to a slow breathing cadence', () {
+      final settled = LiveSurfaceState.settled.breathingPeriod;
+      final committed = LiveSurfaceState.committed.breathingPeriod;
+      expect(settled.inMilliseconds, greaterThan(committed.inMilliseconds));
+    });
+
+    test('NFC ring count rises with the state ladder', () {
+      expect(LiveSurfaceState.idle.suggestedNfcRings, 1);
+      expect(LiveSurfaceState.armed.suggestedNfcRings, 2);
+      expect(LiveSurfaceState.active.suggestedNfcRings, 3);
+      expect(LiveSurfaceState.committed.suggestedNfcRings, 3);
+      expect(LiveSurfaceState.settled.suggestedNfcRings, 1);
+    });
+  });
+
+  group('RollingDigits — Apple-Wallet card-number roll', () {
+    testWidgets('lands on the target after the animation runs',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: RollingDigits(
+                target: 100,
+                digits: 3,
+                duration: Duration(milliseconds: 600),
+              ),
+            ),
+          ),
+        ),
+      );
+      // Final value is reached after the animation completes.
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(find.text('100'), findsOneWidget);
+    });
+
+    testWidgets('zero-pads to the configured digit count',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: RollingDigits(
+                target: 42,
+                digits: 6,
+                duration: Duration(milliseconds: 100),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 150));
+      expect(find.text('000042'), findsOneWidget);
+    });
+
+    testWidgets('prefix and suffix render around the rolling value',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: RollingDigits(
+                target: 50,
+                digits: 1,
+                prefix: 'A',
+                suffix: 'K',
+                duration: Duration(milliseconds: 100),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 150));
+      expect(find.text('A50K'), findsOneWidget);
+    });
+  });
+
+  group('LiveEntrance — staggered substrate \u2192 content \u2192 foil', () {
+    testWidgets('mounts all three layers and they remain visible '
+        'after the cinematic completes', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 200,
+              height: 200,
+              child: LiveEntrance(
+                substrate: Text('SUB'),
+                content: Text('CON'),
+                foil: Text('FOIL'),
+                duration: Duration(milliseconds: 200),
+              ),
+            ),
+          ),
+        ),
+      );
+      // After the cinematic completes all three layers are visible.
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.text('SUB'), findsOneWidget);
+      expect(find.text('CON'), findsOneWidget);
+      expect(find.text('FOIL'), findsOneWidget);
+    });
+
+    testWidgets('foil layer is optional', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 200,
+              height: 200,
+              child: LiveEntrance(
+                substrate: Text('SUB'),
+                content: Text('CON'),
+                duration: Duration(milliseconds: 200),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.text('SUB'), findsOneWidget);
+      expect(find.text('CON'), findsOneWidget);
+      expect(find.text('FOIL'), findsNothing);
+    });
+  });
+
+  group('GlobeIdWatermarkDrift — subliminal signature layer', () {
+    testWidgets('mounts as a non-interactive overlay', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              height: 200,
+              child: GlobeIdWatermarkDrift(),
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(GlobeIdWatermarkDrift), findsOneWidget);
+      // Drift uses IgnorePointer — never blocks taps on substrate.
+      expect(find.byType(IgnorePointer), findsWidgets);
+    });
+
+    test('defaults to faint gold tone alpha far below opaque', () {
+      const w = GlobeIdWatermarkDrift();
+      expect(w.alpha, lessThan(0.10));
+    });
+  });
 }

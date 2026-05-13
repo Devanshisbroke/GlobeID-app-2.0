@@ -174,7 +174,12 @@ class _PassportLiveScreenState extends ConsumerState<PassportLiveScreen>
                                   ..rotateX(-math.pi * t),
                                 child: Opacity(
                                   opacity: 1 - (t * 0.95).clamp(0.0, 1.0),
-                                  child: _Cover(foil: _foil),
+                                  child: _Cover(
+                                    foil: _foil,
+                                    liveState: _isOpen
+                                        ? LiveSurfaceState.active
+                                        : LiveSurfaceState.armed,
+                                  ),
                                 ),
                               ),
                             ),
@@ -308,8 +313,12 @@ int _stampPages(List<Map<String, dynamic>> stamps) =>
 // ─────────────────────────────────────────────────────────────────────
 
 class _Cover extends StatelessWidget {
-  const _Cover({required this.foil});
+  const _Cover({
+    required this.foil,
+    this.liveState = LiveSurfaceState.armed,
+  });
   final AnimationController foil;
+  final LiveSurfaceState liveState;
 
   @override
   Widget build(BuildContext context) {
@@ -366,6 +375,14 @@ class _Cover extends StatelessWidget {
               isComplex: true,
               painter: _GrainPainter(),
             ),
+          ),
+          // ── Subliminal GLOBE·ID watermark drift ──────────────────
+          // 40s drift cycle, alpha 0.04 — subliminal proof of
+          // "manufactured by GlobeID" without ever competing with the
+          // foil or crest. Below conscious threshold.
+          const GlobeIdWatermarkDrift(
+            alpha: 0.04,
+            fontSize: 56,
           ),
           // ── Crest / title ────────────────────────────────────────
           Center(
@@ -427,13 +444,13 @@ class _Cover extends StatelessWidget {
               ],
             ),
           ),
-          // Live state pill — passport cover is ARMED until tapped.
-          // The signature triple-pulse fires on _toggleOpen, then
-          // the inner pages render with state = ACTIVE.
-          const Positioned(
+          // Live state pill — driven by the actual gesture state.
+          // ARMED before user taps; ACTIVE while the passport is
+          // open. Signature triple-pulse fires on _toggleOpen.
+          Positioned(
             top: 24,
             right: 24,
-            child: LiveStatusPill(state: LiveSurfaceState.armed),
+            child: LiveStatusPill(state: liveState),
           ),
         ],
       ),

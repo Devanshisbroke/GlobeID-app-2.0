@@ -223,6 +223,12 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
                             visaNumber: widget.visaNumber,
                             stampAnim: _stampDrop,
                             foilAnim: _foil,
+                            // Inner page state ladder — ACTIVE while
+                            // the consular stamp is still in flight,
+                            // COMMITTED once it lands.
+                            liveState: _stamped
+                                ? LiveSurfaceState.committed
+                                : LiveSurfaceState.active,
                           ),
                         ),
                       ),
@@ -239,6 +245,12 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
                             flag: widget.flag,
                             tone: widget.tone,
                             foilAnim: _foil,
+                            // Cover state ladder — IDLE before user
+                            // intent, ARMED once the booklet starts
+                            // animating open.
+                            liveState: _isOpen
+                                ? LiveSurfaceState.active
+                                : LiveSurfaceState.armed,
                           ),
                         ),
                       ),
@@ -356,11 +368,13 @@ class _Cover extends StatelessWidget {
     required this.flag,
     required this.tone,
     required this.foilAnim,
+    this.liveState = LiveSurfaceState.armed,
   });
   final String country;
   final String flag;
   final Color tone;
   final AnimationController foilAnim;
+  final LiveSurfaceState liveState;
 
   @override
   Widget build(BuildContext context) {
@@ -523,12 +537,13 @@ class _Cover extends StatelessWidget {
               },
             ),
           ),
-          // Live state pill — visa cover stays ARMED until tapped,
-          // then promotes to ACTIVE on _toggleOpen.
-          const Positioned(
+          // Live state pill — driven by the booklet's actual
+          // gesture state. ARMED when closed, ACTIVE while open
+          // and animating, COMMITTED on the inner page.
+          Positioned(
             top: 20,
             right: 24,
-            child: LiveStatusPill(state: LiveSurfaceState.armed),
+            child: LiveStatusPill(state: liveState),
           ),
         ],
       ),
@@ -563,6 +578,7 @@ class _VisaPage extends StatelessWidget {
     required this.country,
     required this.flag,
     required this.tone,
+    this.liveState = LiveSurfaceState.active,
     required this.visaType,
     required this.maxStay,
     required this.issueDate,
@@ -589,6 +605,7 @@ class _VisaPage extends StatelessWidget {
   final String visaNumber;
   final AnimationController stampAnim;
   final AnimationController foilAnim;
+  final LiveSurfaceState liveState;
 
   String _mrz1() {
     final hLast = holder.split(' ').last;
@@ -755,11 +772,17 @@ class _VisaPage extends StatelessWidget {
                     opacity: t.clamp(0.0, 1.0),
                     child: Transform.rotate(
                       angle: -math.pi / 14,
-                      child: OviSeal(
-                        icon: Icons.verified_rounded,
+                      child: NfcPulse(
                         tone: tone,
                         size: 70,
-                        label: 'SEALED',
+                        rings: 2,
+                        maxAlpha: 0.42,
+                        child: OviSeal(
+                          icon: Icons.verified_rounded,
+                          tone: tone,
+                          size: 70,
+                          label: 'SEALED',
+                        ),
                       ),
                     ),
                   ),
@@ -821,12 +844,12 @@ class _VisaPage extends StatelessWidget {
             ),
           ),
           // Cinematic state pill — visa booklet promotes from
-          // ARMED on the cover to COMMITTED on the inner page
-          // once the consular stamp drops.
-          const Positioned(
+          // ARMED on the cover to ACTIVE on first open, then
+          // COMMITTED once the consular stamp drops on the page.
+          Positioned(
             top: 12,
             right: 14,
-            child: LiveStatusPill(state: LiveSurfaceState.committed),
+            child: LiveStatusPill(state: liveState),
           ),
         ],
       ),

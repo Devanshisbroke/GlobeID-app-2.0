@@ -547,12 +547,21 @@ class _BanknoteCard extends StatelessWidget {
                   ),
                 ),
               ),
-              // Bottom denomination — corner.
+              // Bottom denomination — corner. Rolls up from 0 on
+              // activation so the banknote "comes alive" when the
+              // user pins it (Apple-Wallet card-number reveal feel).
               Positioned(
                 bottom: 30,
                 right: 18,
-                child: Text(
-                  '${(note.amount > 1000 ? note.amount / 1000 : note.amount).toStringAsFixed(0)}${note.amount > 1000 ? 'K' : ''}',
+                child: RollingDigits(
+                  key: ValueKey('forex-corner-${note.code}'),
+                  target: (note.amount > 1000
+                          ? note.amount / 1000
+                          : note.amount)
+                      .toInt(),
+                  digits: 1,
+                  suffix: note.amount > 1000 ? 'K' : '',
+                  duration: const Duration(milliseconds: 620),
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.55),
                     fontWeight: FontWeight.w900,
