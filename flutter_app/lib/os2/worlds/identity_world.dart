@@ -1,8 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../domain/identity_tier.dart';
+import '../../features/identity/identity_intel.dart';
 import '../../features/user/user_provider.dart';
 import '../os2_tokens.dart';
 import '../primitives/os2_beacon.dart';
@@ -32,24 +35,42 @@ import '../primitives/os2_world_header.dart';
 ///        b. Trusted-traveler / KYC programs
 ///        c. Issuer cross-signs (verifiable claims count).
 ///   5. Audit timeline strip (last verification event).
-class IdentityWorld extends ConsumerWidget {
+class IdentityWorld extends ConsumerStatefulWidget {
   const IdentityWorld({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<IdentityWorld> createState() => _IdentityWorldState();
+}
+
+class _IdentityWorldState extends ConsumerState<IdentityWorld> {
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
     final profile = user.profile;
     final tier = IdentityTier.forScore(profile.identityScore);
     final pct = (profile.identityScore / 1000).clamp(0.0, 1.0);
+    // Derived identity intelligence from real user data (keys held,
+    // attestations count, cross-sign source, trusted programs, most
+    // recent verification event, streak, passport expiry, tier
+    // ladder) — the legacy world hard-coded "12 keys / FRA T1 12 min
+    // ago / 7 streak" regardless of who was looking. Inside-the-app,
+    // deterministic, no network call.
+    final intel = IdentityIntel.from(
+      profile: profile,
+      records: user.records,
+    );
 
     return SafeArea(
       bottom: false,
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        padding: const EdgeInsets.only(bottom: 100),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      child: RefreshIndicator.adaptive(
+        onRefresh: () => ref.read(userProvider.notifier).hydrate(),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics()),
+          padding: const EdgeInsets.only(bottom: 100),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             Os2WorldHeader(
               world: Os2World.identity,
               title: 'Identity',
@@ -66,6 +87,7 @@ class IdentityWorld extends ConsumerWidget {
                 flag: profile.nationalityFlag,
                 nationality: profile.nationality,
                 verifiedStatus: profile.verifiedStatus,
+                tierLabel: tier.label,
               ),
             ),
             const SizedBox(height: Os2.space4),
@@ -94,7 +116,7 @@ class IdentityWorld extends ConsumerWidget {
                 Os2InfoEntry(
                   icon: Icons.fingerprint_rounded,
                   label: 'KEYS',
-                  value: '12',
+                  value: '${intel.keysHeld}',
                   tone: Os2.identityTone,
                   onTap: () => GoRouter.of(context).push('/vault'),
                 ),
@@ -151,7 +173,10 @@ class IdentityWorld extends ConsumerWidget {
                     icon: Icons.verified_user_rounded,
                     label: 'TRUSTED PROGRAMS',
                     title: 'Global Entry \u00b7 PreCheck \u00b7 TSA',
-                    sub: '3 enrolled \u00b7 1 pending renewal',
+                    sub: intel.trustedProgramsPending > 0
+                        ? '${intel.trustedPrograms} enrolled \u00b7 '
+                            '${intel.trustedProgramsPending} pending renewal'
+                        : '${intel.trustedPrograms} enrolled \u00b7 all current',
                     tone: Os2.identityTone,
                     onTap: () =>
                         GoRouter.of(context).push('/passport-live'),
@@ -160,8 +185,9 @@ class IdentityWorld extends ConsumerWidget {
                   _CredentialSlab(
                     icon: Icons.fingerprint_rounded,
                     label: 'ISSUER CROSS-SIGNS',
-                    title: '12 verifiable claims',
-                    sub: 'Aadhaar \u00b7 Schengen \u00b7 EU citizen \u00b7 +9',
+                    title: '${intel.attestationsCount} verifiable claims',
+                    sub: '${intel.crossSignSource} \u00b7 '
+                        '+${math.max(0, intel.attestationsCount - 3)}',
                     tone: Os2.identityTone,
                     onTap: () => GoRouter.of(context).push('/vault'),
                   ),
@@ -169,8 +195,9 @@ class IdentityWorld extends ConsumerWidget {
                   _CredentialSlab(
                     icon: Icons.shield_rounded,
                     label: 'AUDIT LOG',
-                    title: 'Last verification \u00b7 12 min ago',
-                    sub: 'KIOSK \u00b7 FRA T1 \u00b7 success',
+                    title: 'Last verification \u00b7 '
+                        '${intel.lastEventAgo} ago',
+                    sub: '${intel.lastEventVenue} \u00b7 success',
                     tone: Os2.identityTone,
                     onTap: () => GoRouter.of(context).push('/audit-log'),
                   ),
@@ -185,10 +212,11 @@ class IdentityWorld extends ConsumerWidget {
             const SizedBox(height: Os2.space3),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
-              child: _VerificationTimeline(),
+              child: _VerificationTimeline(intel: intel),
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -295,10 +323,17 @@ class _TierRung extends StatelessWidget {
 // ─────────────────────────────────────────────────── Verification timeline
 
 class _VerificationTimeline extends StatelessWidget {
-  const _VerificationTimeline();
+  const _VerificationTimeline({required this.intel});
+  final IdentityIntel intel;
 
   @override
   Widget build(BuildContext context) {
+    // Build the streak pip strip from the actual streak length. Last
+    // pip is the currently-active verification (not yet settled).
+    final pips = <Os2PipState>[
+      for (var i = 0; i < intel.streakLength - 1; i++) Os2PipState.settled,
+      Os2PipState.active,
+    ];
     return Os2Slab(
       tone: Os2.identityTone,
       tier: Os2SlabTier.floor1,
@@ -314,19 +349,19 @@ class _VerificationTimeline extends StatelessWidget {
             label: 'AUDIT',
             value: 'ALL CHECKS PASSING',
             tone: Os2.signalSettled,
-            trailing: '12 MIN AGO',
+            trailing: '${intel.lastEventAgo.toUpperCase()} AGO',
           ),
           const SizedBox(height: Os2.space3),
           Os2Timeline(
             tone: Os2.identityTone,
             nodes: [
               Os2TimelineNode(
-                title: 'KIOSK · FRA T1',
-                caption: 'Live biometric · auto-verified · 0.4s match',
-                trailing: '12m',
+                title: intel.lastEventVenue,
+                caption: intel.lastEventCaption,
+                trailing: intel.lastEventAgo,
                 state: Os2NodeState.settled,
               ),
-              Os2TimelineNode(
+              const Os2TimelineNode(
                 title: 'Issuer cross-sign',
                 caption: 'Aadhaar UID gateway · re-attested',
                 trailing: '3d',
@@ -334,14 +369,20 @@ class _VerificationTimeline extends StatelessWidget {
               ),
               Os2TimelineNode(
                 title: 'Trusted-traveler',
-                caption: 'Global Entry renewal queued',
-                trailing: 'SOON',
-                state: Os2NodeState.active,
+                caption: intel.trustedProgramsPending > 0
+                    ? 'Renewal queued'
+                    : 'All programs current',
+                trailing:
+                    intel.trustedProgramsPending > 0 ? 'SOON' : 'CURRENT',
+                state: intel.trustedProgramsPending > 0
+                    ? Os2NodeState.active
+                    : Os2NodeState.settled,
               ),
               Os2TimelineNode(
                 title: 'Document refresh',
-                caption: 'Passport expires 2031 · plenty of runway',
-                trailing: '2027',
+                caption: 'Passport expires ${intel.passportExpiryYear} '
+                    '· ${intel.passportExpiryWindow}',
+                trailing: '${intel.passportExpiryYear}',
                 state: Os2NodeState.pending,
               ),
             ],
@@ -350,16 +391,8 @@ class _VerificationTimeline extends StatelessWidget {
           Os2LabelledPipStack(
             label: 'VERIFICATION STREAK',
             tone: Os2.signalSettled,
-            trailing: '7 / 7',
-            pips: const [
-              Os2PipState.settled,
-              Os2PipState.settled,
-              Os2PipState.settled,
-              Os2PipState.settled,
-              Os2PipState.settled,
-              Os2PipState.settled,
-              Os2PipState.active,
-            ],
+            trailing: '${intel.streakLength} / ${intel.streakLength}',
+            pips: pips,
           ),
         ],
       ),
@@ -395,6 +428,7 @@ class _PassportHero extends StatefulWidget {
     required this.flag,
     required this.nationality,
     required this.verifiedStatus,
+    required this.tierLabel,
   });
 
   final String name;
@@ -402,29 +436,84 @@ class _PassportHero extends StatefulWidget {
   final String flag;
   final String nationality;
   final String verifiedStatus;
+  final String tierLabel;
 
   @override
   State<_PassportHero> createState() => _PassportHeroState();
 }
 
 class _PassportHeroState extends State<_PassportHero>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _shimmer = AnimationController(
     vsync: this,
     duration: const Duration(seconds: 6),
   )..repeat();
 
+  // Settle controller eases the tilt back to neutral when the user
+  // releases the pan gesture. Matches the Wallet hero's "Apple Wallet
+  // soft hand" feel — pan to tilt, release to settle.
+  late final AnimationController _tiltSettle = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 360),
+  );
+  Offset _tiltTarget = Offset.zero;
+  Offset _tiltCurrent = Offset.zero;
+  Size _heroSize = Size.zero;
+
+  void _onPan(DragUpdateDetails d, Size box) {
+    if (box == Size.zero) return;
+    final dx = ((d.localPosition.dx / box.width) - 0.5) * 2; // -1..1
+    final dy = ((d.localPosition.dy / box.height) - 0.5) * 2; // -1..1
+    // Cap at ±0.06 rad (~3.4°) — subtle, in-brand.
+    setState(() {
+      _tiltTarget = Offset(dx.clamp(-1.0, 1.0) * 0.06,
+          -dy.clamp(-1.0, 1.0) * 0.06);
+      _tiltCurrent = _tiltTarget;
+    });
+  }
+
+  void _onPanEnd(_) {
+    _tiltSettle
+      ..stop()
+      ..reset();
+    final start = _tiltCurrent;
+    _tiltSettle.addListener(() {
+      final v = Curves.easeOutCubic.transform(_tiltSettle.value);
+      setState(() {
+        _tiltCurrent = Offset(
+          start.dx * (1 - v),
+          start.dy * (1 - v),
+        );
+      });
+    });
+    _tiltSettle.forward();
+  }
+
   @override
   void dispose() {
     _shimmer.dispose();
+    _tiltSettle.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Os2Magnetic(
-      onTap: () => GoRouter.of(context).push('/passport-live'),
-      child: Os2Slab(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _heroSize = Size(constraints.maxWidth, 220);
+        return GestureDetector(
+          onPanUpdate: (d) => _onPan(d, _heroSize),
+          onPanCancel: () => _onPanEnd(null),
+          onPanEnd: _onPanEnd,
+          child: Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.0012)
+              ..rotateX(_tiltCurrent.dy)
+              ..rotateY(_tiltCurrent.dx),
+            child: Os2Magnetic(
+              onTap: () => GoRouter.of(context).push('/passport-live'),
+              child: Os2Slab(
         tone: Os2.identityTone,
         tier: Os2SlabTier.floor2,
         radius: Os2.rHero,
@@ -530,7 +619,7 @@ class _PassportHeroState extends State<_PassportHero>
                             Os2Text.caption('TIER', color: Os2.inkLow),
                             const SizedBox(height: 4),
                             Os2Text.title(
-                              IdentityTier.forScore(826).label,
+                              widget.tierLabel,
                               color: Os2.identityTone,
                               size: 16,
                             ),
@@ -545,6 +634,10 @@ class _PassportHeroState extends State<_PassportHero>
           ),
         ),
       ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
