@@ -268,6 +268,10 @@ class _CommandRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Pressable(
+      semanticLabel: command.label,
+      semanticHint: command.subtitle.isEmpty
+          ? 'command palette action'
+          : command.subtitle,
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(

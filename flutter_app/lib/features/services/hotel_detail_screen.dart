@@ -662,6 +662,7 @@ class _NightsStepper extends StatelessWidget {
             ),
             child: IconButton(
               padding: EdgeInsets.zero,
+              tooltip: 'Decrease nights',
               icon: Icon(Icons.remove_rounded, color: tone, size: 18),
               onPressed: () => onChanged(nights - 1),
             ),
@@ -695,6 +696,7 @@ class _NightsStepper extends StatelessWidget {
             ),
             child: IconButton(
               padding: EdgeInsets.zero,
+              tooltip: 'Increase nights',
               icon: Icon(Icons.add_rounded, color: tone, size: 18),
               onPressed: () => onChanged(nights + 1),
             ),

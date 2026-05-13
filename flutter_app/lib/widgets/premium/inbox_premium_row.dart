@@ -37,6 +37,8 @@ class InboxPremiumRow extends StatelessWidget {
     return MagneticPressable(
       onTap: onTap,
       scale: 0.985,
+      semanticLabel: unread ? '$title, unread' : title,
+      semanticHint: subtitle,
       child: Container(
         margin: const EdgeInsets.symmetric(
           horizontal: AppTokens.space5,

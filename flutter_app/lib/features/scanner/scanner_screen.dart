@@ -518,6 +518,7 @@ class _TopBar extends StatelessWidget {
           child: Row(
             children: [
               Pressable(
+                semanticLabel: 'Close scanner',
                 onTap: onClose,
                 child: const SizedBox(
                   width: 36,
@@ -531,6 +532,8 @@ class _TopBar extends StatelessWidget {
                 ),
               ),
               Pressable(
+                semanticLabel: torch ? 'Torch on' : 'Torch off',
+                semanticHint: 'toggle the scanner torch',
                 onTap: onTorch,
                 child: SizedBox(
                   width: 36,

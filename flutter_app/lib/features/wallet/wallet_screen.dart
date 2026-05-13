@@ -480,6 +480,10 @@ class _PassStackState extends State<_PassStack>
                                               ),
                                               child: Pressable(
                                                 scale: 0.985,
+                                                semanticLabel:
+                                                    'Pass ${widget.passes[i].label}',
+                                                semanticHint:
+                                                    'opens pass details',
                                                 onTap: () {
                                                   HapticFeedback.lightImpact();
                                                   GoRouter.of(context).push(
@@ -628,6 +632,8 @@ class _FanLayer extends StatelessWidget {
                 ..rotateY(tiltY),
               child: Pressable(
                 scale: 0.97,
+                semanticLabel: 'Pass ${pass.label}',
+                semanticHint: 'opens pass details',
                 onTap: () {
                   HapticFeedback.lightImpact();
                   GoRouter.of(context).push('/pass/${pass.id}');
@@ -1100,6 +1106,9 @@ class _TxRow extends StatelessWidget {
     final color = isCredit ? Colors.green : theme.colorScheme.onSurface;
     return Pressable(
       scale: 0.98,
+      semanticLabel:
+          '${tx.description}, ${isCredit ? 'received' : 'paid'} ${tx.amount.abs().toStringAsFixed(2)} ${tx.currency}',
+      semanticHint: 'opens transaction details',
       onTap: () => _showSheet(context),
       child: GlassSurface(
         padding: const EdgeInsets.symmetric(

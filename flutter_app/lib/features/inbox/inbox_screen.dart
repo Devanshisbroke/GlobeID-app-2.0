@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -280,7 +281,14 @@ class _InboxRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final res = resolveInboxKind(item.kind);
-    return Dismissible(
+    return Semantics(
+      customSemanticsActions: {
+        const CustomSemanticsAction(label: 'Dismiss'): () {
+          HapticFeedback.mediumImpact();
+          ref.read(inboxProvider.notifier).dismiss(item.id);
+        },
+      },
+      child: Dismissible(
       key: ValueKey(item.id),
       direction: DismissDirection.endToStart,
       onDismissed: (_) {
@@ -426,6 +434,7 @@ class _InboxRow extends ConsumerWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

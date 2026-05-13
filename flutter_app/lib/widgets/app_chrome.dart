@@ -174,6 +174,10 @@ class InboxBellAction extends ConsumerWidget {
     final unread = ref.watch(inboxUnreadProvider);
 
     return Pressable(
+      semanticLabel: unread > 0
+          ? 'Inbox, $unread unread notification${unread == 1 ? '' : 's'}'
+          : 'Inbox',
+      semanticHint: 'opens your notifications',
       onTap: () {
         HapticFeedback.lightImpact();
         GoRouter.of(context).push('/inbox');
@@ -248,7 +252,17 @@ class ThemeCyclerAction extends ConsumerWidget {
       ThemeMode.dark => 'Dark mode · tap to switch · hold for accent',
     };
 
-    return Tooltip(
+    final modeLabel = switch (prefs.themeMode) {
+      ThemeMode.system => 'Auto theme',
+      ThemeMode.light => 'Light theme',
+      ThemeMode.dark => 'Dark theme',
+    };
+    return Semantics(
+      button: true,
+      label: modeLabel,
+      hint: 'tap to cycle themes, long-press for accent picker',
+      excludeSemantics: true,
+      child: Tooltip(
       message: tooltip,
       child: Material(
         color: Colors.transparent,
@@ -300,6 +314,7 @@ class ThemeCyclerAction extends ConsumerWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

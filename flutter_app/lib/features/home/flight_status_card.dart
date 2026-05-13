@@ -49,6 +49,8 @@ class FlightStatusCard extends StatelessWidget {
     final accent = theme.colorScheme.primary;
 
     return Pressable(
+      semanticLabel: 'Flight status, ${status.label}',
+      semanticHint: 'opens boarding pass',
       onTap: () {
         HapticFeedback.lightImpact();
         if (tripId != null && legId != null) {
@@ -272,6 +274,7 @@ class _FlightAction extends StatelessWidget {
     final theme = Theme.of(context);
     return Expanded(
       child: Pressable(
+        semanticLabel: label,
         onTap: () {
           HapticFeedback.selectionClick();
           onTap();

@@ -537,6 +537,8 @@ class _ServiceTile extends StatelessWidget {
     final theme = Theme.of(context);
     final accent = _resolveAccent(theme, svc.accent);
     return Pressable(
+      semanticLabel: svc.name,
+      semanticHint: svc.description,
       onTap: () {
         HapticFeedback.lightImpact();
         GoRouter.of(context).push(svc.path);
@@ -631,6 +633,8 @@ class _FeaturedFastPath extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppTokens.space5),
       child: Pressable(
         scale: 0.99,
+        semanticLabel: 'Live Passport · Featured',
+        semanticHint: 'opens the live passport surface',
         onTap: () {
           HapticFeedback.mediumImpact();
           GoRouter.of(context).push('/passport-live');
