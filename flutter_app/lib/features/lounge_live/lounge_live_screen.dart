@@ -205,9 +205,15 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                                     // orbiting perk dots — signals the
                                     // card is "live and ready to tap"
                                     // and broadcasts the active perks
-                                    // (shower / dining / spa /
-                                    // fast-track) as a quiet orbit
-                                    // around the seal.
+                                    // as a quiet orbit around the
+                                    // seal. Each dot is tone-coded to
+                                    // its perk's live status (green =
+                                    // open / available, amber = waits,
+                                    // gold = chef / curated, blue =
+                                    // business). The dot count tracks
+                                    // the real perks length so the
+                                    // halo reads as data-driven, not
+                                    // decorative.
                                     NfcPulse(
                                       tone: tone,
                                       size: 64,
@@ -215,10 +221,8 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                                         radius: 30,
                                         dotSize: 3.2,
                                         tones: [
-                                          tone,
-                                          tone.withValues(alpha: 0.78),
-                                          const Color(0xFF66B7FF),
-                                          const Color(0xFFE9C75D),
+                                          for (final p in perks)
+                                            _perkTone(p.value, tone),
                                         ],
                                         child: OviSeal(
                                           icon: Icons.weekend_rounded,
@@ -346,6 +350,22 @@ class _Perk {
   final String label;
   final String value;
   final IconData icon;
+}
+
+/// Map a perk's live status to a tonal accent so the OrbitalPerks
+/// dots read as a data-driven status ring rather than a decorative
+/// orbit. Open / available → green; wait windows → amber; curated /
+/// chef offerings → gold; otherwise inherit the lounge tone.
+Color _perkTone(String status, Color fallback) {
+  final s = status.toUpperCase();
+  if (s.contains('WAIT')) return const Color(0xFFF59E0B);
+  if (s.contains('OPEN') || s.contains('AVAILABLE')) {
+    return const Color(0xFF66D29A);
+  }
+  if (s.contains('CHEF') || s.contains('MENU') || s.contains('CURATED')) {
+    return const Color(0xFFE9C75D);
+  }
+  return fallback;
 }
 
 class _Header extends StatelessWidget {

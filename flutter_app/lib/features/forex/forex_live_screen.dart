@@ -279,6 +279,7 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
                               note: note,
                               foilAnim: _foil,
                               tilt: _tilt,
+                              isActive: i == _index,
                             ),
                           ),
                           );
@@ -512,6 +513,7 @@ class _BanknoteCard extends StatelessWidget {
     required this.note,
     required this.foilAnim,
     this.tilt = Offset.zero,
+    this.isActive = false,
   });
   final _Banknote note;
   final AnimationController foilAnim;
@@ -520,6 +522,11 @@ class _BanknoteCard extends StatelessWidget {
   /// highlight catches the user's tilt instead of sweeping on a
   /// pure timer.
   final Offset tilt;
+
+  /// True for the currently-focused note in the carousel. Drives
+  /// the substrate serial roll so the active note reads as "being
+  /// minted right now" on swipe-in.
+  final bool isActive;
 
   String get _formatted {
     if (note.code == 'JPY' || note.code == 'INR') {
@@ -540,6 +547,7 @@ class _BanknoteCard extends StatelessWidget {
           child: BanknoteSubstrate(
           tone: note.tone,
           serial: 'GBL · ${note.code} · A${note.amount.toInt().toString().padLeft(6, '0')}',
+          isActive: isActive,
           child: Stack(
             children: [
               // Subliminal GLOBE·ID watermark drift under the foil

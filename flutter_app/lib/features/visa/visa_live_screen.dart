@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -73,6 +74,7 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
   Offset _tilt = Offset.zero;
   bool _isOpen = false;
   bool _stamped = false;
+  DateTime? _stampedAt;
 
   @override
   void initState() {
@@ -107,15 +109,20 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
       _open.reverse();
       setState(() => _isOpen = false);
     } else {
-      // Opening the visa booklet is a hero reveal — pages turning,
-      // foil catching light. Signature triple-pulse on the open,
-      // then heavy confirm when the consular stamp drops.
-      Haptics.signature();
+      // Opening the visa booklet is a two-beat reveal: a medium
+      // "panel opening" thump on the tap, then a cinematic signature
+      // multi-pulse the instant the consular stamp drops onto the
+      // page. The escalation reads as "the visa is being authorized
+      // right now".
+      Haptics.open();
       _open.forward().then((_) {
         if (mounted && !_stamped) {
-          _stamped = true;
+          setState(() {
+            _stamped = true;
+            _stampedAt = DateTime.now();
+          });
           _stampDrop.forward();
-          Haptics.confirm();
+          unawaited(Haptics.signature());
         }
       });
       setState(() => _isOpen = true);
@@ -269,6 +276,7 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
                             liveState: _stamped
                                 ? LiveSurfaceState.committed
                                 : LiveSurfaceState.active,
+                            stampedAt: _stampedAt,
                           ),
                         ),
                       ),
@@ -675,6 +683,7 @@ class _VisaPage extends StatelessWidget {
     required this.visaNumber,
     required this.stampAnim,
     required this.foilAnim,
+    this.stampedAt,
   });
   final String country;
   final String flag;
@@ -691,6 +700,12 @@ class _VisaPage extends StatelessWidget {
   final AnimationController stampAnim;
   final AnimationController foilAnim;
   final LiveSurfaceState liveState;
+
+  /// Timestamp at which the consular stamp landed on the page.
+  /// Non-null only on the COMMITTED state. When present a small
+  /// "STAMPED · hh:mm" caption is rendered under the stamp so the
+  /// commit moment carries a real-world receipt feel.
+  final DateTime? stampedAt;
 
   String _mrz1() {
     final hLast = holder.split(' ').last;
@@ -868,17 +883,44 @@ class _VisaPage extends StatelessWidget {
                     opacity: t.clamp(0.0, 1.0),
                     child: Transform.rotate(
                       angle: -math.pi / 14,
-                      child: NfcPulse(
-                        tone: tone,
-                        size: 70,
-                        rings: 2,
-                        maxAlpha: 0.42,
-                        child: OviSeal(
-                          icon: Icons.verified_rounded,
-                          tone: tone,
-                          size: 70,
-                          label: 'SEALED',
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          NfcPulse(
+                            tone: tone,
+                            size: 70,
+                            rings: 2,
+                            maxAlpha: 0.42,
+                            child: OviSeal(
+                              icon: Icons.verified_rounded,
+                              tone: tone,
+                              size: 70,
+                              label: 'SEALED',
+                            ),
+                          ),
+                          if (stampedAt != null) ...[
+                            const SizedBox(height: 4),
+                            // STAMPED · hh:mm receipt caption —
+                            // mono-cap tabular figures, only paints
+                            // once the consular stamp lands. Gives
+                            // the cinematic commit a real-world
+                            // paper-trail feel.
+                            Text(
+                              'STAMPED · '
+                              '${stampedAt!.hour.toString().padLeft(2, '0')}'
+                              ':${stampedAt!.minute.toString().padLeft(2, '0')}',
+                              style: TextStyle(
+                                color: tone.withValues(alpha: 0.86),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 7.5,
+                                letterSpacing: 1.4,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ),

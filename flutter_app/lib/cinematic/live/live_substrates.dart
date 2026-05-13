@@ -194,6 +194,7 @@ class BanknoteSubstrate extends StatefulWidget {
     this.serial = 'GBL · 00 · A28 · 411 · 928',
     this.rollOnMount = true,
     this.rollDuration = const Duration(milliseconds: 720),
+    this.isActive = false,
   });
   final Color tone;
   final Widget child;
@@ -211,6 +212,12 @@ class BanknoteSubstrate extends StatefulWidget {
   /// Duration of the serial roll. Designed for ~700 ms so the roll
   /// feels intentional but never delays interaction.
   final Duration rollDuration;
+
+  /// When this flips from false → true (carousel focuses this
+  /// banknote), the serial number re-rolls cinematically. Lets the
+  /// active note read as "the live one being minted right now"
+  /// without re-rolling every time the user scrolls past it.
+  final bool isActive;
 
   @override
   State<BanknoteSubstrate> createState() => _BanknoteSubstrateState();
@@ -248,6 +255,12 @@ class _BanknoteSubstrateState extends State<BanknoteSubstrate>
       // Serial changed (different currency / different banknote
       // selection) — re-roll the new value into place so the user
       // sees the new credential being minted.
+      _roll
+        ..reset()
+        ..forward();
+    } else if (!old.isActive && widget.isActive) {
+      // Carousel just focused this banknote — re-roll the serial
+      // so the active note reads as the live one being minted.
       _roll
         ..reset()
         ..forward();
