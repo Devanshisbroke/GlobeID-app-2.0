@@ -114,6 +114,17 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                       tone: tone,
                       child: Stack(
                         children: [
+                          // Subliminal GLOBE·ID watermark drift —
+                          // 40 s cycle, alpha 0.035 against the
+                          // cognac leather. Below conscious threshold
+                          // but the eye reads it as proof of life.
+                          const Positioned.fill(
+                            child: GlobeIdWatermarkDrift(
+                              alpha: 0.035,
+                              fontSize: 44,
+                              period: Duration(seconds: 48),
+                            ),
+                          ),
                           // Lounge member card foil — iridescent
                           // for the brushed-foil member tier.
                           Positioned.fill(

@@ -240,7 +240,17 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
                           ..rotateY(-math.pi * 0.92 * t),
                         child: Opacity(
                           opacity: (1 - t * 0.96).clamp(0.0, 1.0),
-                          child: _Cover(
+                          // Breathing tonal halo behind the cover that
+                          // shifts cadence with the state ladder —
+                          // slow at ARMED, faster at ACTIVE.
+                          child: BreathingHalo(
+                            tone: widget.tone,
+                            maxAlpha: 0.22,
+                            expand: 18,
+                            state: _isOpen
+                                ? LiveSurfaceState.active
+                                : LiveSurfaceState.armed,
+                            child: _Cover(
                             country: widget.country,
                             flag: widget.flag,
                             tone: widget.tone,
@@ -251,6 +261,7 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
                             liveState: _isOpen
                                 ? LiveSurfaceState.active
                                 : LiveSurfaceState.armed,
+                          ),
                           ),
                         ),
                       ),
@@ -329,18 +340,40 @@ class _StatusStrip extends StatelessWidget {
                   builder: (_, d) {
                     final days = d.inDays;
                     final hours = d.inHours % 24;
-                    return Text(
+                    // <14 days reads as urgent red; expired locks
+                    // to red. The standard ticker stays in the
+                    // country tone otherwise.
+                    final urgent = !d.isNegative && days < 14;
+                    final tickerColor = d.isNegative
+                        ? const Color(0xFFE15B5B)
+                        : urgent
+                            ? const Color(0xFFE15B5B)
+                            : tone.withValues(alpha: 0.92);
+                    Widget label = Text(
                       d.isNegative
                           ? 'EXPIRED'
                           : 'VALID · $days D · ${hours.toString().padLeft(2, '0')} H',
                       style: TextStyle(
-                        color: tone.withValues(alpha: 0.92),
+                        color: tickerColor,
                         fontWeight: FontWeight.w800,
                         fontSize: 10,
                         letterSpacing: 1.4,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     );
+                    if (urgent || d.isNegative) {
+                      // Urgent breathing cadence — auto-pulses
+                      // continuously to draw the eye toward the
+                      // days-remaining indicator.
+                      label = BreathingHalo(
+                        tone: const Color(0xFFE15B5B),
+                        state: LiveSurfaceState.active,
+                        maxAlpha: 0.32,
+                        expand: 6,
+                        child: label,
+                      );
+                    }
+                    return label;
                   },
                 ),
               ],
@@ -626,6 +659,17 @@ class _VisaPage extends StatelessWidget {
       cornerCode: 'GBL · $country',
       child: Stack(
         children: [
+          // Subliminal GLOBE·ID watermark drift behind the visa
+          // page — 38 s cycle, alpha 0.03, fontSize matched to the
+          // visa page proportions.
+          Positioned.fill(
+            child: GlobeIdWatermarkDrift(
+              tone: tone,
+              alpha: 0.03,
+              fontSize: 48,
+              period: const Duration(seconds: 38),
+            ),
+          ),
           // Header — VISA TYPE strip.
           Positioned(
             top: 14,
@@ -918,6 +962,19 @@ class _PhotoPanel extends StatelessWidget {
               decoration: BoxDecoration(
                 color: N.tierGold,
                 borderRadius: BorderRadius.circular(1.5),
+              ),
+            ),
+          ),
+          // Radial holographic security overlay on the photo —
+          // concentrated highlight that orbits the photo center,
+          // hero-grade optically-variable layer over the bearer.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: HolographicFoil(
+                duration: const Duration(seconds: 7),
+                style: HolographicFoilStyle.iridescent,
+                radial: true,
+                child: Container(color: Colors.transparent),
               ),
             ),
           ),

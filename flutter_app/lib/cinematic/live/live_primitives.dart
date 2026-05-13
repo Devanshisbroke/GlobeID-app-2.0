@@ -252,6 +252,7 @@ class HolographicFoil extends StatefulWidget {
     this.colors,
     this.style = HolographicFoilStyle.gold,
     this.secondarySweep = false,
+    this.radial = false,
   });
 
   final Widget child;
@@ -269,6 +270,13 @@ class HolographicFoil extends StatefulWidget {
   /// so reserve it for hero credentials (passport bearer page,
   /// premium boarding pass).
   final bool secondarySweep;
+
+  /// When true, the sweep is rendered as a radial gradient whose
+  /// focal point orbits the credential center instead of sweeping
+  /// linearly. Used for the most cinematic credentials (visa hero
+  /// stamp, passport bearer page) where the foil should read as a
+  /// concentrated holographic seal rather than a sweep.
+  final bool radial;
 
   @override
   State<HolographicFoil> createState() => _HolographicFoilState();
@@ -301,18 +309,42 @@ class _HolographicFoilState extends State<HolographicFoil>
         animation: _c,
         builder: (_, child) {
           final t = _c.value;
-          Widget sweep = ShaderMask(
-            blendMode: BlendMode.srcATop,
-            shaderCallback: (bounds) {
-              return LinearGradient(
-                begin: Alignment(-1.4 + t * 2.8, -0.3),
-                end: Alignment(-0.4 + t * 2.8, 0.3),
-                colors: stops,
-              ).createShader(bounds);
-            },
-            child: child,
-          );
-          if (widget.secondarySweep) {
+          Widget sweep;
+          if (widget.radial) {
+            // Radial holographic sweep — the focal point orbits the
+            // credential's center on a small circle so the highlight
+            // reads as a concentrated optically-variable seal instead
+            // of a linear sweep. Used for hero credentials.
+            final theta = t * 2 * math.pi;
+            final fx = math.cos(theta) * 0.35;
+            final fy = math.sin(theta) * 0.35;
+            sweep = ShaderMask(
+              blendMode: BlendMode.srcATop,
+              shaderCallback: (bounds) {
+                return RadialGradient(
+                  center: const Alignment(0, 0),
+                  focal: Alignment(fx, fy),
+                  focalRadius: 0.05,
+                  radius: 0.9,
+                  colors: stops,
+                ).createShader(bounds);
+              },
+              child: child,
+            );
+          } else {
+            sweep = ShaderMask(
+              blendMode: BlendMode.srcATop,
+              shaderCallback: (bounds) {
+                return LinearGradient(
+                  begin: Alignment(-1.4 + t * 2.8, -0.3),
+                  end: Alignment(-0.4 + t * 2.8, 0.3),
+                  colors: stops,
+                ).createShader(bounds);
+              },
+              child: child,
+            );
+          }
+          if (widget.secondarySweep && !widget.radial) {
             // Counter-sweep at a slower, offset phase — gives the
             // foil a second highlight band so credentials read as
             // genuinely holographic instead of a single linear
@@ -1789,6 +1821,105 @@ class _GlobeIdWatermarkPainter extends CustomPainter {
       old.tone != tone ||
       old.text != text ||
       old.fontSize != fontSize;
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// BREATHING HALO — state-driven ambient pulse around any child
+// ─────────────────────────────────────────────────────────────────────
+
+/// A soft tonal halo that breathes around its child at a cadence
+/// determined by [state] (slow at IDLE, fast at ACTIVE, single-pulse
+/// at COMMITTED, settled back to slow at SETTLED). Lives off-screen
+/// of the credential proper — drop it behind a Live surface to
+/// signal aliveness without altering the substrate.
+class BreathingHalo extends StatefulWidget {
+  const BreathingHalo({
+    super.key,
+    required this.child,
+    required this.tone,
+    this.state = LiveSurfaceState.active,
+    this.maxAlpha = 0.30,
+    this.expand = 12,
+  });
+
+  final Widget child;
+  final Color tone;
+  final LiveSurfaceState state;
+
+  /// Peak alpha at the top of the breathing cycle.
+  final double maxAlpha;
+
+  /// Pixel radius the halo expands to past the child bounds.
+  final double expand;
+
+  @override
+  State<BreathingHalo> createState() => _BreathingHaloState();
+}
+
+class _BreathingHaloState extends State<BreathingHalo>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.state.breathingPeriod,
+  )..repeat(reverse: true);
+
+  @override
+  void didUpdateWidget(covariant BreathingHalo old) {
+    super.didUpdateWidget(old);
+    if (old.state.breathingPeriod != widget.state.breathingPeriod) {
+      // Smooth-rate change so the cadence shift never snaps.
+      _c.duration = widget.state.breathingPeriod;
+      _c
+        ..reset()
+        ..repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, child) {
+        // Eased breath — slow inhale, slow exhale.
+        final t = Curves.easeInOutSine.transform(_c.value);
+        final alpha = widget.maxAlpha * t;
+        return Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              left: -widget.expand,
+              top: -widget.expand,
+              right: -widget.expand,
+              bottom: -widget.expand,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: widget.tone.withValues(alpha: alpha),
+                        blurRadius: 28 + widget.expand,
+                        spreadRadius: 4,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            child!,
+          ],
+        );
+      },
+      child: widget.child,
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────

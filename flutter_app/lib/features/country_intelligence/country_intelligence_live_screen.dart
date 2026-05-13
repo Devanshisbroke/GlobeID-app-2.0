@@ -36,10 +36,89 @@ class CountryIntelligenceLiveScreen extends ConsumerStatefulWidget {
       _CountryIntelligenceLiveScreenState();
 }
 
+/// Advisory tier — drives the entire dossier's tonal mood.
+enum _AdvisoryTier {
+  low,
+  moderate,
+  high,
+  extreme,
+}
+
+extension _AdvisoryTierTone on _AdvisoryTier {
+  Color get tone {
+    switch (this) {
+      case _AdvisoryTier.low:
+        return const Color(0xFF66D29A); // safe green
+      case _AdvisoryTier.moderate:
+        return const Color(0xFFF59E0B); // amber
+      case _AdvisoryTier.high:
+        return const Color(0xFFE17A2A); // burnt orange
+      case _AdvisoryTier.extreme:
+        return const Color(0xFFE15B5B); // urgent red
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case _AdvisoryTier.low:
+        return 'ADVISORY · LOW';
+      case _AdvisoryTier.moderate:
+        return 'ADVISORY · MODERATE';
+      case _AdvisoryTier.high:
+        return 'ADVISORY · HIGH';
+      case _AdvisoryTier.extreme:
+        return 'ADVISORY · EXTREME';
+    }
+  }
+
+  String get body {
+    switch (this) {
+      case _AdvisoryTier.low:
+        return 'NORMAL PRECAUTIONS · LOCAL CUSTOMS APPLY';
+      case _AdvisoryTier.moderate:
+        return 'EXERCISE INCREASED CAUTION';
+      case _AdvisoryTier.high:
+        return 'RECONSIDER TRAVEL · MONITOR CHANNELS';
+      case _AdvisoryTier.extreme:
+        return 'DO NOT TRAVEL · CONTACT EMBASSY';
+    }
+  }
+}
+
+/// Initial tier inference per country. Used as the seed advisory
+/// tier so countries render at a believable level on first open.
+_AdvisoryTier _seedAdvisoryFor(String iso) {
+  switch (iso.toUpperCase()) {
+    case 'JP':
+    case 'CH':
+    case 'SG':
+    case 'NO':
+    case 'IS':
+      return _AdvisoryTier.low;
+    case 'US':
+    case 'FR':
+    case 'DE':
+    case 'AE':
+    case 'IN':
+      return _AdvisoryTier.moderate;
+    case 'EG':
+    case 'TR':
+    case 'PK':
+      return _AdvisoryTier.high;
+    case 'AF':
+    case 'SY':
+    case 'YE':
+      return _AdvisoryTier.extreme;
+    default:
+      return _AdvisoryTier.moderate;
+  }
+}
+
 class _CountryIntelligenceLiveScreenState
     extends ConsumerState<CountryIntelligenceLiveScreen>
     with TickerProviderStateMixin {
   late final AnimationController _foil;
+  late _AdvisoryTier _tier;
 
   @override
   void initState() {
@@ -48,6 +127,7 @@ class _CountryIntelligenceLiveScreenState
       vsync: this,
       duration: const Duration(seconds: 7),
     )..repeat();
+    _tier = _seedAdvisoryFor(widget.countryCode);
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
   }
 
@@ -57,9 +137,30 @@ class _CountryIntelligenceLiveScreenState
     super.dispose();
   }
 
+  /// Tap-to-escalate — cycles tier up; when at EXTREME wraps back
+  /// to LOW. Each escalation fires a tonal pulse so the user feels
+  /// the mood shift.
+  void _cycleTier() {
+    final next = _AdvisoryTier
+        .values[(_tier.index + 1) % _AdvisoryTier.values.length];
+    final escalating = next.index > _tier.index;
+    if (escalating) {
+      HapticFeedback.heavyImpact();
+    } else {
+      HapticFeedback.selectionClick();
+    }
+    setState(() => _tier = next);
+  }
+
   @override
   Widget build(BuildContext context) {
-    const tone = Color(0xFFF59E0B);
+    return _TonalShift(
+      tone: _tier.tone,
+      builder: (_, tone) => _buildWith(context, tone),
+    );
+  }
+
+  Widget _buildWith(BuildContext context, Color tone) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: LiveCanvas(
@@ -101,7 +202,20 @@ class _CountryIntelligenceLiveScreenState
             children: [
               DossierSubstrate(
                 tone: tone,
-                child: Padding(
+                child: Stack(
+                  children: [
+                    // Subliminal GLOBE·ID drift behind the dossier
+                    // text. Faint enough that it never competes with
+                    // the existing diagonal DOSSIER watermark.
+                    Positioned.fill(
+                      child: GlobeIdWatermarkDrift(
+                        tone: tone,
+                        alpha: 0.025,
+                        fontSize: 42,
+                        period: const Duration(seconds: 56),
+                      ),
+                    ),
+                    Padding(
                   padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,49 +278,73 @@ class _CountryIntelligenceLiveScreenState
                         ],
                       ),
                       const SizedBox(height: 18),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: tone.withValues(alpha: 0.16),
-                          border: Border.all(
-                            color: tone.withValues(alpha: 0.50),
-                            width: 0.6,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.warning_amber_rounded,
-                                color: tone, size: 18),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
-                                  Text(
-                                    'ADVISORY · LOW',
-                                    style: TextStyle(
-                                      color: Colors.black87,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 11,
-                                      letterSpacing: 1.6,
-                                    ),
-                                  ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    'NORMAL PRECAUTIONS · LOCAL CUSTOMS APPLY',
-                                    style: TextStyle(
-                                      color: Colors.black54,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 10,
-                                      letterSpacing: 1.0,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                      // Advisory tier chip — tap to escalate. Tone
+                      // and body text shift smoothly between tiers
+                      // via the parent _TonalShift wrapper.
+                      GestureDetector(
+                        onTap: _cycleTier,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 600),
+                          curve: Curves.easeOutCubic,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: tone.withValues(alpha: 0.16),
+                            border: Border.all(
+                              color: tone.withValues(alpha: 0.50),
+                              width: 0.6,
                             ),
-                          ],
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _tier == _AdvisoryTier.extreme
+                                    ? Icons.dangerous_rounded
+                                    : Icons.warning_amber_rounded,
+                                color: tone,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    AnimatedSwitcher(
+                                      duration: const Duration(
+                                          milliseconds: 240),
+                                      child: Text(
+                                        _tier.label,
+                                        key: ValueKey(_tier.label),
+                                        style: const TextStyle(
+                                          color: Colors.black87,
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 11,
+                                          letterSpacing: 1.6,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    AnimatedSwitcher(
+                                      duration: const Duration(
+                                          milliseconds: 240),
+                                      child: Text(
+                                        _tier.body,
+                                        key: ValueKey(_tier.body),
+                                        style: const TextStyle(
+                                          color: Colors.black54,
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 10,
+                                          letterSpacing: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -220,6 +358,8 @@ class _CountryIntelligenceLiveScreenState
                       _Field('CUSTOMS', 'Conservative · respect quiet zones'),
                     ],
                   ),
+                ),
+                  ],
                 ),
               ),
               const SizedBox(height: N.s4),
@@ -447,6 +587,30 @@ class _TickerCard extends StatelessWidget {
           Expanded(child: LiveTicker(items: items, tone: Colors.white)),
         ],
       ),
+    );
+  }
+}
+
+/// Smoothly lerps the tone passed to its builder when the target
+/// changes. Used by the country dossier so escalating the advisory
+/// tier shifts every tone-bound element (header, foil, halos, chip
+/// border, OVI ring) over 800 ms instead of snapping.
+class _TonalShift extends StatelessWidget {
+  const _TonalShift({
+    required this.tone,
+    required this.builder,
+  });
+
+  final Color tone;
+  final Widget Function(BuildContext, Color tone) builder;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<Color?>(
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeOutCubic,
+      tween: ColorTween(end: tone),
+      builder: (context, value, _) => builder(context, value ?? tone),
     );
   }
 }

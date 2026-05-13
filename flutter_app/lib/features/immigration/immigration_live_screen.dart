@@ -104,7 +104,15 @@ class _ImmigrationLiveScreenState extends ConsumerState<ImmigrationLiveScreen>
                   alignment: Alignment.center,
                   children: [
                     BreathingRing(tone: tone, size: 240),
-                    _PassportScanner(tone: tone, anim: _scan),
+                    // NFC pulse around the scanner — gives the eGate
+                    // primed-to-read read instead of static prop.
+                    NfcPulse(
+                      tone: tone,
+                      size: 220,
+                      rings: 3,
+                      maxAlpha: 0.42,
+                      child: _PassportScanner(tone: tone, anim: _scan),
+                    ),
                   ],
                 ),
               ),

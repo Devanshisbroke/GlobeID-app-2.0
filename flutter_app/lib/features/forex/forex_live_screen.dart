@@ -472,6 +472,16 @@ class _BanknoteCard extends StatelessWidget {
           serial: 'GBL · ${note.code} · A${note.amount.toInt().toString().padLeft(6, '0')}',
           child: Stack(
             children: [
+              // Subliminal GLOBE·ID watermark drift under the foil
+              // — tells the eye this is a real banknote engineered
+              // by GlobeID.
+              const Positioned.fill(
+                child: GlobeIdWatermarkDrift(
+                  alpha: 0.032,
+                  fontSize: 50,
+                  period: Duration(seconds: 52),
+                ),
+              ),
               // Foil sweep — only on the active currency. Banknotes
               // get the iridescent preset (ice + amber security ink)
               // so the active note reads as authentic currency.
