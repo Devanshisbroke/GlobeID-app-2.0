@@ -9,6 +9,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/sheets/apple_sheet.dart';
 import '../../data/models/travel_document.dart';
 import '../../data/models/wallet_models.dart';
 import '../../domain/airline_brand.dart';
@@ -1146,11 +1147,23 @@ class _TxRow extends StatelessWidget {
 
   void _showSheet(BuildContext context) {
     HapticFeedback.lightImpact();
-    showModalBottomSheet<void>(
+    showAppleSheet<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _TxDetailSheet(tx: tx, iconFor: _iconForCategory),
+      eyebrow: 'WALLET · ${tx.category.toUpperCase()}',
+      title: tx.description,
+      detents: const [0.48, 0.62, 0.92],
+      builder: (controller) => ListView(
+        controller: controller,
+        padding: const EdgeInsets.fromLTRB(
+          AppTokens.space5,
+          AppTokens.space2,
+          AppTokens.space5,
+          AppTokens.space5,
+        ),
+        children: [
+          _TxDetailSheet(tx: tx, iconFor: _iconForCategory),
+        ],
+      ),
     );
   }
 
@@ -1184,32 +1197,13 @@ class _TxDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isCredit = tx.amount > 0;
-    return Container(
-      margin: const EdgeInsets.all(AppTokens.space4),
-      padding: const EdgeInsets.all(AppTokens.space5),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppTokens.radius2xl),
-        border: Border.all(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.10),
-        ),
-        boxShadow: AppTokens.shadowLg(),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppTokens.space4),
+    // AppleSheet already paints the drag handle, gold hairline,
+    // eyebrow, title, and OLED substrate — this widget only
+    // renders the wallet transaction body.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
           Row(
             children: [
               Container(
@@ -1324,8 +1318,7 @@ class _TxDetailSheet extends StatelessWidget {
               ),
             ],
           ),
-        ],
-      ),
+      ],
     );
   }
 }
