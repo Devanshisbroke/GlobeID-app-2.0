@@ -477,6 +477,30 @@ class _PassportScanner extends StatelessWidget {
                   ),
                 ),
               ),
+              // Scan-ring sweep — soft radial ring that radiates
+              // out from the centre of the passport in sync with
+              // the beam. Sells the "eGate is reading the chip"
+              // dimension on top of the linear scan. Two staggered
+              // rings (offset by 0.5 phase) so there's always one
+              // active mid-flight.
+              ...List.generate(2, (i) {
+                final phase = (t + i * 0.5) % 1.0;
+                final radius = 18 + phase * 90;
+                final ringAlpha = (1.0 - phase) * 0.55;
+                return IgnorePointer(
+                  child: Container(
+                    width: radius * 2,
+                    height: radius * 2,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: tone.withValues(alpha: ringAlpha),
+                        width: 0.8,
+                      ),
+                    ),
+                  ),
+                );
+              }),
               // Scan-zone label.
               Positioned(
                 bottom: 6,

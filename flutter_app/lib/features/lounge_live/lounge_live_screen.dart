@@ -32,6 +32,13 @@ class LoungeLiveScreen extends ConsumerStatefulWidget {
 class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
     with TickerProviderStateMixin {
   late final AnimationController _foil;
+
+  /// One-shot gold sweep that fires on cold mount across the
+  /// "ELITE MEMBER · POLARIS · SFO T3" tier line — sells the
+  /// "your member tier just activated" beat. Plays once, then
+  /// stops at 1.0 so the line reads at full brightness.
+  late final AnimationController _tierReveal;
+
   Offset _tilt = Offset.zero;
   bool _checkedIn = false;
   DateTime? _checkInAt;
@@ -52,12 +59,23 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
       vsync: this,
       duration: const Duration(seconds: 6),
     )..repeat();
+    _tierReveal = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    );
+    // Stagger the reveal so the card has time to settle in first —
+    // mirrors how the Visa stamp drop waits for the booklet to open
+    // before committing.
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (mounted) _tierReveal.forward();
+    });
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
   }
 
   @override
   void dispose() {
     _foil.dispose();
+    _tierReveal.dispose();
     _checkInPulse.dispose();
     super.dispose();
   }
@@ -243,13 +261,53 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                Text(
-                                  'ELITE MEMBER · POLARIS · SFO T3',
-                                  style: TextStyle(
-                                    color: tone.withValues(alpha: 0.85),
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 11,
-                                    letterSpacing: 1.6,
+                                // Tier reveal — one-shot gold sweep
+                                // across the member tier line. A
+                                // diagonal shimmer pass moves from
+                                // left to right over 1.1 s on mount,
+                                // landing on full brightness. Sells
+                                // the "your tier just activated"
+                                // moment without any extra UI.
+                                AnimatedBuilder(
+                                  animation: _tierReveal,
+                                  builder: (_, child) {
+                                    final t = Curves.easeInOutCubic
+                                        .transform(_tierReveal.value);
+                                    return ShaderMask(
+                                      blendMode: BlendMode.srcATop,
+                                      shaderCallback: (bounds) {
+                                        // Sweep position rides from
+                                        // -0.4 to 1.4 of the text
+                                        // width so the bright stop
+                                        // enters from off-screen left
+                                        // and exits off-screen right.
+                                        final pos = -0.4 + 1.8 * t;
+                                        return LinearGradient(
+                                          begin: Alignment.centerLeft,
+                                          end: Alignment.centerRight,
+                                          colors: [
+                                            tone.withValues(alpha: 0.85),
+                                            const Color(0xFFE9C75D),
+                                            tone.withValues(alpha: 0.85),
+                                          ],
+                                          stops: [
+                                            (pos - 0.18).clamp(0.0, 1.0),
+                                            pos.clamp(0.0, 1.0),
+                                            (pos + 0.18).clamp(0.0, 1.0),
+                                          ],
+                                        ).createShader(bounds);
+                                      },
+                                      child: child,
+                                    );
+                                  },
+                                  child: Text(
+                                    'ELITE MEMBER · POLARIS · SFO T3',
+                                    style: TextStyle(
+                                      color: tone.withValues(alpha: 0.85),
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 11,
+                                      letterSpacing: 1.6,
+                                    ),
                                   ),
                                 ),
                                 const Spacer(),

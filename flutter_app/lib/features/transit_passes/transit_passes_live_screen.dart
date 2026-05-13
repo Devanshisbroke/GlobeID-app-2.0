@@ -670,7 +670,7 @@ class _AuthorizedBannerState extends State<_AuthorizedBanner>
     super.initState();
     _c = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 380),
+      duration: const Duration(milliseconds: 560),
     )..forward();
   }
 
@@ -687,66 +687,113 @@ class _AuthorizedBannerState extends State<_AuthorizedBanner>
     final ss = widget.at.second.toString().padLeft(2, '0');
     return AnimatedBuilder(
       animation: _c,
-      builder: (_, child) {
-        final t = Curves.easeOutCubic.transform(_c.value);
+      builder: (_, __) {
+        // Container envelope — fades + scales in over the full 560 ms.
+        final envelopeT = Curves.easeOutCubic.transform(_c.value);
+
+        // Check icon scale — runs slightly ahead with an overshoot
+        // bounce (0.6 → 1.18 at t≈0.7 → 1.0 at t=1.0). Lands earlier
+        // than the envelope so the icon "drops" into the badge.
+        final iconRaw =
+            (_c.value / 0.6).clamp(0.0, 1.0); // ahead of envelope
+        final iconT = Curves.easeOutCubic.transform(iconRaw);
+        final iconScale = iconT < 0.7
+            ? 0.6 + (1.18 - 0.6) * (iconT / 0.7)
+            : 1.18 - 0.18 * ((iconT - 0.7) / 0.3);
+
+        // Inner pulse ring — single soft ripple that blooms outward
+        // once the icon settles, then fades. Adds the "POS terminal
+        // confirmed" energy without an extra haptic.
+        final pulseT =
+            ((_c.value - 0.45) / 0.55).clamp(0.0, 1.0);
+        final pulseRadius = 30 + 60 * pulseT;
+        final pulseAlpha = (1.0 - pulseT) * 0.55;
+
         return Opacity(
-          opacity: t,
+          opacity: envelopeT,
           child: Transform.scale(
-            scale: 0.92 + 0.08 * t,
-            child: child,
+            scale: 0.92 + 0.08 * envelopeT,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Pulse ring underneath the badge.
+                if (pulseT > 0 && pulseT < 1)
+                  IgnorePointer(
+                    child: Container(
+                      width: pulseRadius * 2,
+                      height: pulseRadius * 2,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFFE9C75D)
+                              .withValues(alpha: pulseAlpha),
+                          width: 1.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 18, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFE9C75D)
+                          .withValues(alpha: 0.80),
+                      width: 0.8,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFE9C75D)
+                            .withValues(alpha: 0.32),
+                        blurRadius: 22,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Transform.scale(
+                        scale: iconScale,
+                        child: const Icon(
+                          Icons.verified_rounded,
+                          color: Color(0xFFE9C75D),
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'AUTHORIZED',
+                        style: TextStyle(
+                          color: Color(0xFFE9C75D),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 13,
+                          letterSpacing: 3.0,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'GLOBE·ID · $hh:$mm:$ss',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 10,
+                          letterSpacing: 1.6,
+                          fontFeatures: [
+                            FontFeature.tabularFigures(),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
-      child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.55),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFFE9C75D).withValues(alpha: 0.80),
-            width: 0.8,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFE9C75D).withValues(alpha: 0.32),
-              blurRadius: 22,
-              spreadRadius: 1,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.verified_rounded,
-              color: Color(0xFFE9C75D),
-              size: 24,
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'AUTHORIZED',
-              style: TextStyle(
-                color: Color(0xFFE9C75D),
-                fontWeight: FontWeight.w900,
-                fontSize: 13,
-                letterSpacing: 3.0,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'GLOBE·ID · $hh:$mm:$ss',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 10,
-                letterSpacing: 1.6,
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
