@@ -471,6 +471,76 @@ void main() {
     });
   });
 
+  group('OrbitalPerks — dots orbit around the seal', () {
+    testWidgets('mounts around its child and renders no extra widgets',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 100,
+              height: 100,
+              child: OrbitalPerks(
+                tones: [Color(0xFFE9C75D), Color(0xFF66B7FF)],
+                child: SizedBox(width: 40, height: 40),
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(OrbitalPerks), findsOneWidget);
+      expect(find.byType(CustomPaint), findsWidgets);
+    });
+
+    test('tone list defines the orbit count', () {
+      const perks = OrbitalPerks(
+        tones: [Color(0xFFE9C75D), Color(0xFF66B7FF), Color(0xFF9B6FE3)],
+        child: SizedBox.shrink(),
+      );
+      expect(perks.tones.length, 3);
+    });
+
+    test('default radius is 32 and dot size is 4', () {
+      const perks = OrbitalPerks(
+        tones: [Color(0xFFE9C75D)],
+        child: SizedBox.shrink(),
+      );
+      expect(perks.radius, 32);
+      expect(perks.dotSize, 4);
+    });
+  });
+
+  group('PassportRibbonBookmark — silk bookmark fluttering', () {
+    testWidgets('mounts on a real-sized passport corner',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Stack(
+              children: [
+                Positioned(
+                  top: 0,
+                  right: 24,
+                  child: PassportRibbonBookmark(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(PassportRibbonBookmark), findsOneWidget);
+      // Flutter rotation transform is part of the widget tree.
+      expect(find.byType(Transform), findsWidgets);
+    });
+
+    test('defaults to deep red silk, ~80 length, 10 width', () {
+      const ribbon = PassportRibbonBookmark();
+      expect(ribbon.length, 80);
+      expect(ribbon.width, 10);
+      expect(ribbon.tone, const Color(0xFFB72424));
+    });
+  });
+
   group('GlobeIdWatermarkDrift — subliminal signature layer', () {
     testWidgets('mounts as a non-interactive overlay', (tester) async {
       await tester.pumpWidget(

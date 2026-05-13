@@ -140,16 +140,29 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                                       ),
                                     ),
                                     const Spacer(),
-                                    // OVI seal with NFC pulse —
-                                    // signals the card is "live and
-                                    // ready to tap" without making
-                                    // noise. Heart-rate cadence.
+                                    // OVI seal with NFC pulse +
+                                    // orbiting perk dots — signals the
+                                    // card is "live and ready to tap"
+                                    // and broadcasts the active perks
+                                    // (shower / dining / spa /
+                                    // fast-track) as a quiet orbit
+                                    // around the seal.
                                     NfcPulse(
                                       tone: tone,
-                                      size: 48,
-                                      child: OviSeal(
-                                        icon: Icons.weekend_rounded,
-                                        tone: tone,
+                                      size: 64,
+                                      child: OrbitalPerks(
+                                        radius: 30,
+                                        dotSize: 3.2,
+                                        tones: [
+                                          tone,
+                                          tone.withValues(alpha: 0.78),
+                                          const Color(0xFF66B7FF),
+                                          const Color(0xFFE9C75D),
+                                        ],
+                                        child: OviSeal(
+                                          icon: Icons.weekend_rounded,
+                                          tone: tone,
+                                        ),
                                       ),
                                     ),
                                   ],

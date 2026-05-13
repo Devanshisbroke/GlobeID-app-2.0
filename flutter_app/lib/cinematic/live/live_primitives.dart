@@ -1444,6 +1444,235 @@ class _LiveDataPulseState extends State<LiveDataPulse>
 }
 
 // ─────────────────────────────────────────────────────────────────────
+// ORBITAL PERKS — tiny dots orbit a seal to show active perks
+// ─────────────────────────────────────────────────────────────────────
+
+/// A configurable number of small dots that orbit around the child
+/// at a fixed [radius]. Each dot can carry its own tone, so this is
+/// used on the Lounge OVI seal to show which perks (shower, food,
+/// fast-track, wifi) are active. Slow ~6 s period — ambient, not
+/// attention-grabbing.
+class OrbitalPerks extends StatefulWidget {
+  const OrbitalPerks({
+    super.key,
+    required this.child,
+    required this.tones,
+    this.radius = 32,
+    this.dotSize = 4,
+    this.period = const Duration(seconds: 6),
+  });
+
+  final Widget child;
+
+  /// One tone per orbiting dot — tone list length defines count.
+  final List<Color> tones;
+  final double radius;
+  final double dotSize;
+  final Duration period;
+
+  @override
+  State<OrbitalPerks> createState() => _OrbitalPerksState();
+}
+
+class _OrbitalPerksState extends State<OrbitalPerks>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.period,
+  )..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final n = widget.tones.length;
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (_, child) {
+          return CustomPaint(
+            painter: _OrbitalPerksPainter(
+              t: _c.value,
+              tones: widget.tones,
+              radius: widget.radius,
+              dotSize: widget.dotSize,
+              count: n,
+            ),
+            child: child,
+          );
+        },
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+class _OrbitalPerksPainter extends CustomPainter {
+  _OrbitalPerksPainter({
+    required this.t,
+    required this.tones,
+    required this.radius,
+    required this.dotSize,
+    required this.count,
+  });
+  final double t;
+  final List<Color> tones;
+  final double radius;
+  final double dotSize;
+  final int count;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (count == 0) return;
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    for (var i = 0; i < count; i++) {
+      // Phase offset so dots fan out evenly around the orbit.
+      final phase = (t + i / count) % 1.0;
+      final theta = phase * 2 * math.pi;
+      final x = cx + radius * math.cos(theta);
+      final y = cy + radius * math.sin(theta);
+      final paint = Paint()
+        ..color = tones[i].withValues(alpha: 0.78)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(x, y), dotSize, paint);
+      // Soft trailing glow.
+      canvas.drawCircle(
+        Offset(x, y),
+        dotSize * 2,
+        Paint()..color = tones[i].withValues(alpha: 0.14),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _OrbitalPerksPainter old) =>
+      old.t != t ||
+      old.tones.length != tones.length ||
+      old.radius != radius ||
+      old.dotSize != dotSize;
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// PASSPORT BOOKMARK RIBBON — red silk ribbon flutters off the page edge
+// ─────────────────────────────────────────────────────────────────────
+
+/// A small silk-ribbon bookmark that hangs off the right edge of an
+/// open passport / dossier. Flutters very gently (4s period, 6°
+/// rotation amplitude) so it reads as a real object hanging from a
+/// real book. Place inside a Stack at the top-right corner of the
+/// open page.
+class PassportRibbonBookmark extends StatefulWidget {
+  const PassportRibbonBookmark({
+    super.key,
+    this.tone = const Color(0xFFB72424),
+    this.length = 80,
+    this.width = 10,
+    this.period = const Duration(seconds: 4),
+  });
+
+  final Color tone;
+  final double length;
+  final double width;
+  final Duration period;
+
+  @override
+  State<PassportRibbonBookmark> createState() =>
+      _PassportRibbonBookmarkState();
+}
+
+class _PassportRibbonBookmarkState extends State<PassportRibbonBookmark>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.period,
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (_, __) {
+          final eased =
+              math.sin(_c.value * math.pi); // 0 → 1 → 0
+          final tilt = (eased - 0.5) * (math.pi / 30); // ±6°
+          return Transform.rotate(
+            angle: tilt,
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              width: widget.width,
+              height: widget.length,
+              child: CustomPaint(
+                painter: _RibbonPainter(
+                  tone: widget.tone,
+                  width: widget.width,
+                  length: widget.length,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _RibbonPainter extends CustomPainter {
+  _RibbonPainter({
+    required this.tone,
+    required this.width,
+    required this.length,
+  });
+  final Color tone;
+  final double width;
+  final double length;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, width, length);
+    // Silk gradient — slightly darker in the center for a shadow
+    // fold.
+    final gradient = LinearGradient(
+      colors: [
+        tone.withValues(alpha: 0.92),
+        tone,
+        tone.withValues(alpha: 0.72),
+        tone,
+      ],
+      stops: const [0.0, 0.35, 0.65, 1.0],
+    );
+    final paint = Paint()..shader = gradient.createShader(rect);
+    canvas.drawRect(rect, paint);
+
+    // Forked V-cut at the bottom for a real ribbon end.
+    final path = Path()
+      ..moveTo(0, length)
+      ..lineTo(width / 2, length - width)
+      ..lineTo(width, length)
+      ..lineTo(width, length - 0.5)
+      ..lineTo(0, length - 0.5)
+      ..close();
+    canvas.drawPath(
+        path, Paint()..color = Colors.black.withValues(alpha: 0.55));
+  }
+
+  @override
+  bool shouldRepaint(covariant _RibbonPainter old) =>
+      old.tone != tone || old.width != width || old.length != length;
+}
+
+// ─────────────────────────────────────────────────────────────────────
 // GLOBEID WATERMARK DRIFT — subliminal manufactured-by signature
 // ─────────────────────────────────────────────────────────────────────
 

@@ -165,6 +165,22 @@ class _PassportLiveScreenState extends ConsumerState<PassportLiveScreen>
                                 ),
                               ),
                             ),
+                            // ── Silk bookmark ribbon (only while open) ──
+                            // Hangs off the top-right edge of the open
+                            // passport, ~6° flutter. Tells the eye this
+                            // is a real bound book.
+                            if (t > 0.6)
+                              Positioned(
+                                top: 0,
+                                right: 28,
+                                child: Opacity(
+                                  opacity: ((t - 0.6) / 0.4).clamp(0.0, 1.0),
+                                  child: const PassportRibbonBookmark(
+                                    length: 64,
+                                    width: 8,
+                                  ),
+                                ),
+                              ),
                             // ── Cover (flips up on open) ────────────────
                             Positioned.fill(
                               child: Transform(
