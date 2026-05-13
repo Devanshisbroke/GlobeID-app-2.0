@@ -162,7 +162,8 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
             ],
           ),
         ),
-        child: GestureDetector(
+        child: LiveMaterialize(
+          child: GestureDetector(
           onTap: _toggleOpen,
           onPanUpdate: (d) {
             setState(() {
@@ -261,6 +262,7 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
                             liveState: _isOpen
                                 ? LiveSurfaceState.active
                                 : LiveSurfaceState.armed,
+                            tilt: _tilt,
                           ),
                           ),
                         ),
@@ -272,6 +274,7 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
             },
           ),
           ),
+        ),
         ),
       ),
     );
@@ -402,12 +405,18 @@ class _Cover extends StatelessWidget {
     required this.tone,
     required this.foilAnim,
     this.liveState = LiveSurfaceState.armed,
+    this.tilt = Offset.zero,
   });
   final String country;
   final String flag;
   final Color tone;
   final AnimationController foilAnim;
   final LiveSurfaceState liveState;
+
+  /// User pan offset — plumbed through to the cover foil so the
+  /// holographic sweep follows the user's tilt the way real
+  /// passport-grade security ink catches the light.
+  final Offset tilt;
 
   @override
   Widget build(BuildContext context) {
@@ -434,10 +443,12 @@ class _Cover extends StatelessWidget {
           CustomPaint(painter: _LeatherGrainPainter()),
           // Foil shimmer — passport-grade iridescent + secondary
           // counter-sweep so the booklet cover reads as authentic
-          // optically-variable security ink.
+          // optically-variable security ink. Tilt-driven so the
+          // user's pan steers the highlight bands.
           HolographicFoil(
             style: HolographicFoilStyle.iridescent,
             secondarySweep: true,
+            tilt: tilt,
             child: Container(color: Colors.transparent),
           ),
           // Embossed border.

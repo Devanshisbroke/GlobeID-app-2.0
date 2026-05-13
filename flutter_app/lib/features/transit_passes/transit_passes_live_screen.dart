@@ -155,7 +155,11 @@ class _TransitPassesLiveScreenState
                           ),
                         );
                       },
-                      child: _TransitCard(card: card, foilAnim: _foil),
+                      child: _TransitCard(
+                        card: card,
+                        foilAnim: _foil,
+                        tilt: _tilt,
+                      ),
                     );
                   },
                 ),
@@ -319,9 +323,17 @@ class _BalanceRow extends StatelessWidget {
 }
 
 class _TransitCard extends StatelessWidget {
-  const _TransitCard({required this.card, required this.foilAnim});
+  const _TransitCard({
+    required this.card,
+    required this.foilAnim,
+    this.tilt = Offset.zero,
+  });
   final _Card card;
   final AnimationController foilAnim;
+
+  /// Pan offset — plumbed into the aurora foil so the digital
+  /// credential's holographic sweep follows the user's tilt.
+  final Offset tilt;
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -347,11 +359,14 @@ class _TransitCard extends StatelessWidget {
               ),
               // Transit cards are digital credentials — aurora foil
               // (cyan + violet + gold) makes the active card read as
-              // a live NFC chip rather than printed plastic.
+              // a live NFC chip rather than printed plastic. Tilt
+              // drives the sweep so the card responds to the user's
+              // physical pan.
               Positioned.fill(
                 child: HolographicFoil(
                   duration: const Duration(seconds: 5),
                   style: HolographicFoilStyle.aurora,
+                  tilt: tilt,
                   child: Container(color: Colors.transparent),
                 ),
               ),

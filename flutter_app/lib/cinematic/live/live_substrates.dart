@@ -185,26 +185,115 @@ class _VisaPainter extends CustomPainter {
 // BANKNOTE — polymer note with intaglio engraving, optically variable ink
 // ─────────────────────────────────────────────────────────────────────
 
-class BanknoteSubstrate extends StatelessWidget {
+class BanknoteSubstrate extends StatefulWidget {
   const BanknoteSubstrate({
     super.key,
     required this.tone,
     required this.child,
     this.borderRadius = const BorderRadius.all(Radius.circular(16)),
     this.serial = 'GBL · 00 · A28 · 411 · 928',
+    this.rollOnMount = true,
+    this.rollDuration = const Duration(milliseconds: 720),
   });
   final Color tone;
   final Widget child;
   final BorderRadius borderRadius;
+
+  /// Final serial number to display once the roll completes.
   final String serial;
+
+  /// When true, the serial number rolls in from a randomized state
+  /// to its final value over [rollDuration] on first mount. This
+  /// gives the banknote a cinematic minting feel as if the bill is
+  /// being printed fresh.
+  final bool rollOnMount;
+
+  /// Duration of the serial roll. Designed for ~700 ms so the roll
+  /// feels intentional but never delays interaction.
+  final Duration rollDuration;
+
+  @override
+  State<BanknoteSubstrate> createState() => _BanknoteSubstrateState();
+}
+
+class _BanknoteSubstrateState extends State<BanknoteSubstrate>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _roll;
+  // Stable random pool for each character index — recomputed once
+  // per build of the widget so the painter never picks a new char
+  // mid-frame (which would make the roll feel like static).
+  static const _alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  late final List<String> _scrambleSeed;
+
+  @override
+  void initState() {
+    super.initState();
+    _roll = AnimationController(vsync: this, duration: widget.rollDuration);
+    _scrambleSeed = List<String>.generate(
+      widget.serial.length,
+      (i) => _alphabet[(widget.serial.codeUnitAt(i) * 31 + i) %
+          _alphabet.length],
+    );
+    if (widget.rollOnMount) {
+      _roll.forward();
+    } else {
+      _roll.value = 1.0;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant BanknoteSubstrate old) {
+    super.didUpdateWidget(old);
+    if (old.serial != widget.serial) {
+      // Serial changed (different currency / different banknote
+      // selection) — re-roll the new value into place so the user
+      // sees the new credential being minted.
+      _roll
+        ..reset()
+        ..forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _roll.dispose();
+    super.dispose();
+  }
+
+  /// Resolves the serial at progress `t` in [0, 1]. Characters that
+  /// have "landed" are the real serial; characters yet to land show
+  /// a deterministic scrambled letter so the line never goes blank.
+  String _serialAt(double t) {
+    final landed = (widget.serial.length * t).floor();
+    final buffer = StringBuffer();
+    for (var i = 0; i < widget.serial.length; i++) {
+      final ch = widget.serial[i];
+      if (i < landed || ch == ' ' || ch == '·') {
+        buffer.write(ch);
+      } else {
+        buffer.write(_scrambleSeed[i]);
+      }
+    }
+    return buffer.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: borderRadius,
-      child: CustomPaint(
-        painter: _BanknotePainter(tone: tone, serial: serial),
-        child: child,
+      borderRadius: widget.borderRadius,
+      child: AnimatedBuilder(
+        animation: _roll,
+        builder: (_, child) {
+          final t = Curves.easeOutCubic.transform(_roll.value);
+          return CustomPaint(
+            painter: _BanknotePainter(
+              tone: widget.tone,
+              serial: _serialAt(t),
+            ),
+            child: child,
+          );
+        },
+        child: widget.child,
       ),
     );
   }
