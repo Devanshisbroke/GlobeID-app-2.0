@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../nexus/nexus_tokens.dart';
+import 'motion_tokens.dart';
 
 /// `motion.dart` — the GlobeID motion language.
 ///
@@ -16,15 +16,22 @@ class GlobeMotion {
   GlobeMotion._();
 
   // ── Curves ─────────────────────────────────────────────────────────
+  //
+  // Kept for source-compat. New screens should source curves from
+  // [Motion] (motion_tokens.dart). These names alias the canonical
+  // values 1:1 — no behavior change.
 
   /// Standard outward spring used for entrance + state changes.
-  static const Curve spring = Cubic(0.16, 1.0, 0.30, 1.0); // ease-out-back-ish
+  /// Aliases [Motion.cStandard].
+  static const Curve spring = Motion.cStandard;
 
   /// Soft pop used for taps / micro-feedback.
-  static const Curve pop = Cubic(0.34, 1.56, 0.64, 1.0);
+  /// Aliases [Motion.cSpring].
+  static const Curve pop = Motion.cSpring;
 
   /// Settle used on state collapse (reverse animations).
-  static const Curve settle = Cubic(0.45, 0.0, 0.55, 1.0);
+  /// Aliases [Motion.cSettle].
+  static const Curve settle = Motion.cSettle;
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -231,8 +238,13 @@ Widget premiumSlideTransition(
   Animation<double> secondary,
   Widget child,
 ) {
-  final inCurve = CurvedAnimation(parent: anim, curve: N.ease);
-  final outCurve = CurvedAnimation(parent: secondary, curve: N.ease);
+  // Incoming uses the canonical [Motion.cStandard] (ease-out-back-soft);
+  // outgoing uses [Motion.cExit] so the previous route accelerates
+  // *out* as the new one decelerates *in*. This asymmetry is what
+  // gives Apple's push transitions their "decisive" feel — without it
+  // you get the lingering ghost effect.
+  final inCurve = CurvedAnimation(parent: anim, curve: Motion.cStandard);
+  final outCurve = CurvedAnimation(parent: secondary, curve: Motion.cExit);
   return AnimatedBuilder(
     animation: Listenable.merge([inCurve, outCurve]),
     builder: (_, c) {
@@ -262,6 +274,50 @@ Widget premiumSlideTransition(
   );
 }
 
+/// Apple-grade sheet presentation transition.
+///
+/// Mirrors UIKit's `.sheet` / SwiftUI's `.sheet` motion: the incoming
+/// route slides up from the bottom on a soft spring curve, scales the
+/// previous content down very slightly (0.98) to suggest layered
+/// depth without dimming it. Use for `/wallet/scheduled`, statements,
+/// modal flows where the user expects "this is a temporary surface I
+/// can swipe down to dismiss".
+///
+/// Pairs with [Motion.dSheet] (320 ms in, 220 ms out).
+Widget premiumSheetTransition(
+  BuildContext _,
+  Animation<double> anim,
+  Animation<double> secondary,
+  Widget child,
+) {
+  final inCurve = CurvedAnimation(parent: anim, curve: Motion.cStandard);
+  final outCurve = CurvedAnimation(parent: secondary, curve: Motion.cExit);
+  return AnimatedBuilder(
+    animation: Listenable.merge([inCurve, outCurve]),
+    builder: (_, c) {
+      final i = inCurve.value;
+      final o = outCurve.value;
+      // Incoming: slide up from the bottom (24 % of its height) and
+      // fade in. No scale on the new sheet — sheets present at 100 %.
+      final inOpacity = i.clamp(0.0, 1.0);
+      final inOffsetY = (1 - i) * 0.24;
+      // Outgoing: subtle scale down (0.98) without fade — the dimmed
+      // background depth is provided by the sheet's own backdrop.
+      final outScale = 1.0 - o * 0.02;
+      return RepaintBoundary(
+        child: Transform.scale(
+          scale: outScale,
+          child: FractionalTranslation(
+            translation: Offset(0, inOffsetY),
+            child: Opacity(opacity: inOpacity, child: c),
+          ),
+        ),
+      );
+    },
+    child: RepaintBoundary(child: child),
+  );
+}
+
 /// Fade-only transition for non-disruptive route changes (e.g. tab swap).
 Widget premiumFadeTransition(
   BuildContext _,
@@ -270,7 +326,7 @@ Widget premiumFadeTransition(
   Widget child,
 ) {
   return FadeTransition(
-    opacity: CurvedAnimation(parent: anim, curve: GlobeMotion.spring),
+    opacity: CurvedAnimation(parent: anim, curve: Motion.cStandard),
     child: child,
   );
 }
