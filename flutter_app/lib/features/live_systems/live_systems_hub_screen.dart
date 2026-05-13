@@ -474,18 +474,42 @@ class _LiveTileState extends State<_LiveTile>
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: m.tone.withValues(alpha: 0.20),
-                                border: Border.all(
-                                  color: m.tone.withValues(alpha: 0.55),
-                                  width: 0.6,
+                            // Hub tile icon breathes at the tile's
+                            // own LiveSurfaceState cadence — active
+                            // surfaces (Boarding / Trip Timeline /
+                            // Forex / Arrival / Country / Lounge)
+                            // breathe faster, armed surfaces
+                            // (Immigration / Customs / Visa /
+                            // Navigation) breathe slower, idle
+                            // (Transit) is calm. Brightness keyed
+                            // to state so the user can read each
+                            // surface's intensity at a glance from
+                            // the hub.
+                            BreathingHalo(
+                              tone: m.tone,
+                              state: m.state,
+                              maxAlpha: switch (m.state) {
+                                LiveSurfaceState.idle => 0.10,
+                                LiveSurfaceState.armed => 0.18,
+                                LiveSurfaceState.active => 0.28,
+                                LiveSurfaceState.committed => 0.40,
+                                LiveSurfaceState.settled => 0.14,
+                              },
+                              expand: 4,
+                              child: Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: m.tone.withValues(alpha: 0.20),
+                                  border: Border.all(
+                                    color: m.tone.withValues(alpha: 0.55),
+                                    width: 0.6,
+                                  ),
                                 ),
+                                child:
+                                    Icon(m.icon, color: m.tone, size: 18),
                               ),
-                              child: Icon(m.icon, color: m.tone, size: 18),
                             ),
                             const Spacer(),
                             LiveStatusPill(state: m.state, tone: m.tone),
