@@ -11,6 +11,7 @@ import '../../widgets/app_chrome.dart';
 import '../../widgets/bible/bible.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/premium/premium.dart';
+import '../../motion/haptic_refresh.dart';
 import '../../widgets/safe_boundary.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/sparkline.dart';
@@ -46,7 +47,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final theme = Theme.of(context);
     final greeting = _greeting();
 
-    return RefreshIndicator(
+    return HapticRefresh(
       onRefresh: () async {
         await Future.wait([
           ref.read(userProvider.notifier).hydrate(),

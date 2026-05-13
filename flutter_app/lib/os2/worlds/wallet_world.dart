@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../data/models/wallet_models.dart';
 import '../../features/wallet/merchant_brand.dart';
 import '../../features/wallet/wallet_provider.dart';
+import '../../motion/haptic_refresh.dart';
 import '../os2_tokens.dart';
 import '../primitives/os2_bar.dart';
 import '../primitives/os2_beacon.dart';
@@ -46,7 +47,7 @@ class WalletWorld extends ConsumerWidget {
 
     return SafeArea(
       bottom: false,
-      child: RefreshIndicator.adaptive(
+      child: HapticRefresh(
         onRefresh: () => ref.read(walletProvider.notifier).hydrate(),
         color: Os2.walletTone,
         child: SingleChildScrollView(

@@ -8,6 +8,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
+import '../../motion/haptic_refresh.dart';
 import '../../widgets/skeletons.dart';
 import '../insights/insights_provider.dart';
 
@@ -58,10 +59,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           },
         ),
       ],
-      body: RefreshIndicator(
+      body: HapticRefresh(
         color: theme.colorScheme.primary,
         onRefresh: () async {
-          HapticFeedback.lightImpact();
           // ignore: unused_result
           ref.refresh(activityInsightsProvider);
           await Future.delayed(const Duration(milliseconds: 600));

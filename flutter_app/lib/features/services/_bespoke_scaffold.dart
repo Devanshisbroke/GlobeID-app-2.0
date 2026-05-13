@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../nexus/nexus_tokens.dart';
+import '../../motion/haptic_refresh.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/page_scaffold.dart';
@@ -70,7 +71,7 @@ class _BespokeServiceShellState<T> extends State<BespokeServiceShell<T>> {
     return PageScaffold(
       title: widget.title,
       subtitle: widget.subtitle,
-      body: RefreshIndicator(
+      body: HapticRefresh(
         onRefresh: _refresh,
         color: widget.tone,
         backgroundColor: N.surface,
