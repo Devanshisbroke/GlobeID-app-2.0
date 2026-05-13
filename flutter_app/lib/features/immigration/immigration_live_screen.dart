@@ -34,6 +34,7 @@ class _ImmigrationLiveScreenState extends ConsumerState<ImmigrationLiveScreen>
     with TickerProviderStateMixin {
   late final AnimationController _scan;
   int _step = 0;
+  _QueueBucket _queueBucket = _QueueBucket.fast;
 
   @override
   void initState() {
@@ -72,6 +73,21 @@ class _ImmigrationLiveScreenState extends ConsumerState<ImmigrationLiveScreen>
     }
   }
 
+  /// Queue depth bumps the cinematic state: fast queue stays at the
+  /// step-derived cadence; medium queue promotes idle/armed → active;
+  /// heavy queue promotes anything below committed → committed. The
+  /// stamp step always wins (the visa-stamp moment is the loudest
+  /// commit on the surface).
+  LiveSurfaceState _composedState(int step, _QueueBucket bucket) {
+    final stepState = _stateForStep(step);
+    final queueState = switch (bucket) {
+      _QueueBucket.fast => LiveSurfaceState.armed,
+      _QueueBucket.medium => LiveSurfaceState.active,
+      _QueueBucket.heavy => LiveSurfaceState.committed,
+    };
+    return stepState.index >= queueState.index ? stepState : queueState;
+  }
+
   @override
   Widget build(BuildContext context) {
     const tone = Color(0xFF06B6D4);
@@ -82,7 +98,7 @@ class _ImmigrationLiveScreenState extends ConsumerState<ImmigrationLiveScreen>
       _ImmStep('STAMP', Icons.approval_rounded),
       _ImmStep('EXIT', Icons.exit_to_app_rounded),
     ];
-    final liveState = _stateForStep(_step);
+    final liveState = _composedState(_step, _queueBucket);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: LiveCanvas(
@@ -159,7 +175,13 @@ class _ImmigrationLiveScreenState extends ConsumerState<ImmigrationLiveScreen>
               ),
             ),
             const SizedBox(height: N.s4),
-            _QueueStrip(tone: tone),
+            _QueueStrip(
+              tone: tone,
+              onBucketChange: (bucket) {
+                if (!mounted) return;
+                setState(() => _queueBucket = bucket);
+              },
+            ),
             const SizedBox(height: N.s4),
             _StepRibbon(steps: steps, active: _step, tone: tone),
           ],
@@ -521,8 +543,13 @@ String _labelFor(_QueueBucket b) {
 /// at 7-second intervals; tone + label shift with the bucket so the
 /// user can read airport conditions at a glance.
 class _QueueStrip extends StatefulWidget {
-  const _QueueStrip({required this.tone});
+  const _QueueStrip({required this.tone, this.onBucketChange});
   final Color tone;
+
+  /// Fired when the queue depth bucket changes. Lets the parent
+  /// surface compose the queue bucket into its cinematic state
+  /// ladder so the breathing cadence accelerates with the queue.
+  final ValueChanged<_QueueBucket>? onBucketChange;
 
   @override
   State<_QueueStrip> createState() => _QueueStripState();
@@ -542,6 +569,13 @@ class _QueueStripState extends State<_QueueStrip> {
   void initState() {
     super.initState();
     _bucket = _bucketFor(_schedule[0]);
+    // Propagate the initial bucket once after the first frame so the
+    // parent's composed state ladder picks up the queue depth on
+    // first paint.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      widget.onBucketChange?.call(_bucket);
+    });
     _tick = Timer.periodic(const Duration(seconds: 7), (_) {
       if (!mounted) return;
       final nextIx = (_ix + 1) % _schedule.length;
@@ -552,8 +586,18 @@ class _QueueStripState extends State<_QueueStrip> {
         _bucket = nextBucket;
       });
       if (changed) {
-        HapticFeedback.selectionClick();
+        // Heavy queue gets a stronger haptic — the surface escalates
+        // physically as the user starts to feel airport friction.
+        switch (nextBucket) {
+          case _QueueBucket.fast:
+            HapticFeedback.selectionClick();
+          case _QueueBucket.medium:
+            HapticFeedback.lightImpact();
+          case _QueueBucket.heavy:
+            HapticFeedback.mediumImpact();
+        }
         _pulse.pulse();
+        widget.onBucketChange?.call(nextBucket);
       }
     });
   }

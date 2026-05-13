@@ -339,19 +339,40 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
                         // Phase copy (EARLY / SOON / BOARDING / FINAL
                         // CALL / DEPARTED) drives the brand-tinted
                         // HUD; the pill below mirrors the state
-                        // ladder so the user feels the cadence.
+                        // ladder so the user feels the cadence. The
+                        // HUD is wrapped in a BreathingHalo whose
+                        // max-alpha ramps with the phase index so the
+                        // HUD physically brightens as the boarding
+                        // window approaches — calm at EARLY, brilliant
+                        // at FINAL CALL.
                         Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            PremiumHud(
-                              label: phase.label,
+                            BreathingHalo(
+                              state: boardingState,
                               tone: phase == _BoardingPhase.finalCall
                                   ? const Color(0xFFE15B5B)
                                   : phase == _BoardingPhase.boarding
                                       ? const Color(0xFFE9C75D)
                                       : brand.primary,
-                              trailing: Text('GATE ${resolvedLeg.gate}'),
+                              maxAlpha: switch (phase) {
+                                _BoardingPhase.early => 0.12,
+                                _BoardingPhase.soon => 0.20,
+                                _BoardingPhase.boarding => 0.32,
+                                _BoardingPhase.finalCall => 0.46,
+                                _BoardingPhase.departed => 0.10,
+                              },
+                              expand: 6,
+                              child: PremiumHud(
+                                label: phase.label,
+                                tone: phase == _BoardingPhase.finalCall
+                                    ? const Color(0xFFE15B5B)
+                                    : phase == _BoardingPhase.boarding
+                                        ? const Color(0xFFE9C75D)
+                                        : brand.primary,
+                                trailing: Text('GATE ${resolvedLeg.gate}'),
+                              ),
                             ),
                             const SizedBox(height: 6),
                             LiveStatusPill(
