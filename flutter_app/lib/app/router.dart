@@ -91,6 +91,7 @@ import '../features/ambient/live_activity_preview_screen.dart';
 import '../features/ambient/home_widget_gallery_screen.dart';
 import '../features/ambient/watch_face_preview_screen.dart';
 import '../features/ambient/quick_settings_preview_screen.dart';
+import '../features/ambient/lock_screen_preview_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
@@ -374,6 +375,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       _blurFadeRoute(
         '/ambient/quick-settings',
         (_, __) => const QuickSettingsPreviewScreen(),
+      ),
+      _blurFadeRoute(
+        '/ambient/lock-screen',
+        (_, __) => const LockScreenPreviewScreen(),
       ),
       _blurFadeRoute('/vault', (_, __) => const VaultScreen()),
       _route(
