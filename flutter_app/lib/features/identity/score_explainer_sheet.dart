@@ -2,21 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/sheets/apple_sheet.dart';
 import '../../motion/creative_motion.dart';
 
 /// Identity score explainer bottom sheet — shows each factor, weight,
 /// current value, and actionable improvement steps.
 class ScoreExplainerSheet extends StatelessWidget {
-  const ScoreExplainerSheet({super.key, required this.score});
+  const ScoreExplainerSheet({super.key, required this.score, this.controller});
   final int score;
+  final ScrollController? controller;
 
   static Future<void> show(BuildContext context, int score) {
     HapticFeedback.mediumImpact();
-    return showModalBottomSheet(
+    return showAppleSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => ScoreExplainerSheet(score: score),
+      eyebrow: 'IDENTITY · TRUST',
+      title: 'Score breakdown',
+      tone: _scoreColorOf(score),
+      builder: (controller) => ScoreExplainerSheet(
+        score: score,
+        controller: controller,
+      ),
     );
   }
 
@@ -24,32 +30,15 @@ class ScoreExplainerSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final factors = _factors(score);
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.7,
-      minChildSize: 0.4,
-      maxChildSize: 0.92,
-      builder: (_, scroll) => Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppTokens.radiusXl)),
+    return ListView(
+        controller: controller,
+        padding: const EdgeInsets.fromLTRB(
+          AppTokens.space5,
+          AppTokens.space2,
+          AppTokens.space5,
+          AppTokens.space5,
         ),
-        child: ListView(
-            controller: scroll,
-            padding: const EdgeInsets.all(AppTokens.space5),
-            children: [
-              Center(
-                  child: Container(
-                      width: 36,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: AppTokens.space4),
-                      decoration: BoxDecoration(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.18),
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.radiusFull),
-                      ))),
+        children: [
               // Score hero
               Center(
                   child: BreathingGlow(
@@ -122,18 +111,10 @@ class ScoreExplainerSheet extends StatelessWidget {
                   style: theme.textTheme.bodySmall?.copyWith(
                       color: const Color(0xFF22C55E),
                       fontWeight: FontWeight.w700)),
-            ]),
-      ),
-    );
+            ]);
   }
 
-  Color _scoreColor(int s) => s >= 80
-      ? const Color(0xFF22C55E)
-      : s >= 60
-          ? const Color(0xFF0EA5E9)
-          : s >= 40
-              ? const Color(0xFFF59E0B)
-              : const Color(0xFFEF4444);
+  Color _scoreColor(int s) => _scoreColorOf(s);
   String _tierLabel(int s) => s >= 80
       ? 'Sovereign'
       : s >= 60
@@ -305,3 +286,13 @@ class _SparklinePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _SparklinePainter old) => true;
 }
+
+// Top-level helper so the static  method can pick the tone
+// before instantiating the sheet. The instance method delegates here.
+Color _scoreColorOf(int s) => s >= 80
+    ? const Color(0xFF22C55E)
+    : s >= 60
+        ? const Color(0xFF0EA5E9)
+        : s >= 40
+            ? const Color(0xFFF59E0B)
+            : const Color(0xFFEF4444);
