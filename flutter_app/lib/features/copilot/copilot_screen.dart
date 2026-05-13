@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../data/api/api_provider.dart';
@@ -10,6 +11,7 @@ import '../../widgets/pressable.dart';
 import '../../widgets/toast.dart';
 import 'agent_action_card.dart';
 import 'concierge_command_surface.dart';
+import 'copilot_hub_provider.dart';
 
 /// Copilot v2 — premium chat. Suggestion chips, bubble tails, typing
 /// indicator, pressable send button, soft keyboard polish.
@@ -101,9 +103,65 @@ class _CopilotScreenState extends ConsumerState<CopilotScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final urgentCount = ref.watch(copilotHubUrgentCountProvider);
     return PageScaffold(
       title: 'Copilot',
       subtitle: 'Deterministic travel intelligence',
+      actions: [
+        Pressable(
+          scale: 0.94,
+          semanticLabel: 'Open Copilot Hub',
+          semanticHint: urgentCount > 0
+              ? 'shows $urgentCount items that need attention'
+              : 'shows every Copilot recommendation in flight',
+          onTap: () {
+            HapticFeedback.lightImpact();
+            context.push('/copilot/hub');
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 6,
+            ),
+            decoration: BoxDecoration(
+              color: urgentCount > 0
+                  ? const Color(0xFFD4AF37).withValues(alpha: 0.16)
+                  : theme.colorScheme.surface.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+              border: Border.all(
+                color: urgentCount > 0
+                    ? const Color(0xFFD4AF37).withValues(alpha: 0.42)
+                    : theme.dividerColor.withValues(alpha: 0.32),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.auto_awesome_rounded,
+                  size: 14,
+                  color: urgentCount > 0
+                      ? const Color(0xFFD4AF37)
+                      : theme.colorScheme.onSurface
+                          .withValues(alpha: 0.7),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  urgentCount > 0 ? 'HUB · $urgentCount' : 'HUB',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.6,
+                    color: urgentCount > 0
+                        ? const Color(0xFFD4AF37)
+                        : theme.colorScheme.onSurface
+                            .withValues(alpha: 0.75),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
       body: Column(
         children: [
           Expanded(

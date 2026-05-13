@@ -14,6 +14,7 @@ import '../bible/screens/bible_passport_screen.dart';
 import '../bible/screens/bible_trip_screen.dart';
 import '../bible/screens/bible_wallet_screen.dart';
 import '../features/analytics/analytics_screen.dart';
+import '../features/copilot/copilot_hub_screen.dart';
 import '../features/copilot/copilot_screen.dart';
 import '../features/explore/explore_screen.dart';
 import '../features/feed/feed_screen.dart';
@@ -356,6 +357,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Notifications/alerts/scanner overlays: drop.
       _dropRoute('/scan', (_, __) => const ScannerScreen()),
       _dropRoute('/copilot', (_, __) => const CopilotScreen()),
+      // Copilot Hub — the consolidated view of every Copilot
+      // recommendation currently in flight. Sits adjacent to the
+      // chat surface, not in place of it.
+      _route('/copilot/hub', (_, __) => const CopilotHubScreen()),
 
       // Altitude descent: kiosk → boarding → passport-live → trip detail.
       _descentRoute('/kiosk-sim', (_, __) => const KioskScreen()),
