@@ -204,6 +204,21 @@ class _VaultScreenState extends ConsumerState<VaultScreen>
               ),
             ),
             const SizedBox(height: AppTokens.space3),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppTokens.space5,
+                0,
+                AppTokens.space5,
+                AppTokens.space3,
+              ),
+              child: _DashboardCta(
+                count: user.documents.length,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  context.push('/vault/dashboard');
+                },
+              ),
+            ),
             const SectionHeader(title: 'Documents', dense: true),
             for (var i = 0; i < user.documents.length; i++)
               AnimatedAppearance(
@@ -510,6 +525,64 @@ class _MintCta extends StatelessWidget {
               Icons.arrow_forward_rounded,
               color: Os2.canvas,
               size: 18,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DashboardCta extends StatelessWidget {
+  const _DashboardCta({required this.count, required this.onTap});
+  final int count;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      semanticLabel: 'Open vault dashboard',
+      semanticHint: 'shows trust score, renewal radar, and recent disclosure',
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: Os2.space4,
+          vertical: Os2.space3,
+        ),
+        decoration: BoxDecoration(
+          color: Os2.floor1,
+          borderRadius: BorderRadius.circular(Os2.rCard),
+          border: Border.all(color: Os2.goldDeep.withValues(alpha: 0.46)),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.dashboard_rounded,
+              color: Os2.goldDeep,
+              size: 20,
+            ),
+            const SizedBox(width: Os2.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Os2Text.monoCap(
+                    'IDENTITY · DASHBOARD',
+                    color: Os2.goldDeep,
+                    size: Os2.textTiny,
+                  ),
+                  const SizedBox(height: 2),
+                  Os2Text.title(
+                    'Trust score · renewal radar · activity',
+                    color: Os2.inkBright,
+                    size: Os2.textRg,
+                  ),
+                ],
+              ),
+            ),
+            Os2Text.monoCap(
+              '$count HELD',
+              color: Os2.inkLow,
+              size: Os2.textTiny,
             ),
           ],
         ),
