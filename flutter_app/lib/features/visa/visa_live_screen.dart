@@ -124,6 +124,45 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
 
   DateTime get _expiry => DateTime.parse(widget.expiryDate);
 
+  /// Expiry → LiveSurfaceState mapping. Pure function of days
+  /// remaining so the entire surface (cover halo, cover pill,
+  /// breathing cadence) can settle on a single source of truth.
+  ///
+  ///   >90 d  · idle    — calm, ambient
+  ///   31-90  · armed   — gentle awareness
+  ///   15-30  · active  — clear attention required
+  ///   ≤14 d  · committed — urgent red
+  ///   negative · committed — lockdown / expired
+  LiveSurfaceState get _expiryEscalation {
+    final d = _expiry.difference(DateTime.now()).inDays;
+    if (d < 0) return LiveSurfaceState.committed;
+    if (d <= 14) return LiveSurfaceState.committed;
+    if (d <= 30) return LiveSurfaceState.active;
+    if (d <= 90) return LiveSurfaceState.armed;
+    return LiveSurfaceState.idle;
+  }
+
+  /// The cover state — picks the more urgent of (a) open/closed
+  /// gesture state and (b) expiry escalation. The booklet always
+  /// reads at the right urgency level.
+  LiveSurfaceState get _coverState {
+    final gestureState =
+        _isOpen ? LiveSurfaceState.active : LiveSurfaceState.armed;
+    final escalation = _expiryEscalation;
+    return escalation.index > gestureState.index ? escalation : gestureState;
+  }
+
+  /// Tone to bleed into the cover halo + cover live pill. Defaults
+  /// to the country tone (gold/teal/etc.). Red overrides when the
+  /// expiry escalation has reached COMMITTED — so under-14-day
+  /// visas literally read in alarm tone regardless of country.
+  Color get _coverTone {
+    if (_expiryEscalation == LiveSurfaceState.committed) {
+      return const Color(0xFFE15B5B);
+    }
+    return widget.tone;
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -245,23 +284,25 @@ class _VisaLiveScreenState extends ConsumerState<VisaLiveScreen>
                           // shifts cadence with the state ladder —
                           // slow at ARMED, faster at ACTIVE.
                           child: BreathingHalo(
-                            tone: widget.tone,
-                            maxAlpha: 0.22,
+                            tone: _coverTone,
+                            maxAlpha: _expiryEscalation ==
+                                    LiveSurfaceState.committed
+                                ? 0.36
+                                : _expiryEscalation == LiveSurfaceState.active
+                                    ? 0.28
+                                    : 0.22,
                             expand: 18,
-                            state: _isOpen
-                                ? LiveSurfaceState.active
-                                : LiveSurfaceState.armed,
+                            state: _coverState,
                             child: _Cover(
                             country: widget.country,
                             flag: widget.flag,
                             tone: widget.tone,
                             foilAnim: _foil,
-                            // Cover state ladder — IDLE before user
-                            // intent, ARMED once the booklet starts
-                            // animating open.
-                            liveState: _isOpen
-                                ? LiveSurfaceState.active
-                                : LiveSurfaceState.armed,
+                            // Cover state ladder — derived from both
+                            // the open/closed gesture AND the expiry
+                            // escalation, so a 7-day-out visa reads
+                            // urgent even when closed.
+                            liveState: _coverState,
                             tilt: _tilt,
                           ),
                           ),

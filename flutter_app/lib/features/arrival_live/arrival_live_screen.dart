@@ -282,7 +282,81 @@ class _DescentBanner extends StatelessWidget {
                     letterSpacing: 1.0,
                   ),
                 ),
+                const SizedBox(height: 8),
+                // Arrival city clock — ticks every second so the
+                // banner reads "you are actually here, right now"
+                // rather than a static panel.
+                const _ArrivalCityClock(),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// City clock — ticks every second; renders WALL · hh:mm:ss in
+/// tabular figures over a hairline-framed pill. Mirrors the live
+/// market-feed heartbeat on Forex; says "this surface is rooted in
+/// real wall-clock time".
+class _ArrivalCityClock extends StatefulWidget {
+  const _ArrivalCityClock();
+
+  @override
+  State<_ArrivalCityClock> createState() => _ArrivalCityClockState();
+}
+
+class _ArrivalCityClockState extends State<_ArrivalCityClock> {
+  Timer? _t;
+  DateTime _now = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _t = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _t?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hh = _now.hour.toString().padLeft(2, '0');
+    final mm = _now.minute.toString().padLeft(2, '0');
+    final ss = _now.second.toString().padLeft(2, '0');
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.16),
+          width: 0.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.location_city_rounded,
+            color: Colors.white.withValues(alpha: 0.72),
+            size: 12,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            'WALL · $hh:$mm:$ss',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.88),
+              fontWeight: FontWeight.w900,
+              fontSize: 10,
+              letterSpacing: 1.4,
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
         ],

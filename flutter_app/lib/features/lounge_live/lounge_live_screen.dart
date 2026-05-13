@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,6 +33,8 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
     with TickerProviderStateMixin {
   late final AnimationController _foil;
   Offset _tilt = Offset.zero;
+  bool _checkedIn = false;
+  DateTime? _checkInAt;
 
   // Cinematic state of the lounge card. Starts armed (waiting for
   // a check-in tap); commits when the user taps "Check in", then
@@ -39,7 +43,7 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
 
   // Pulse broadcaster — fires over the member card when the user
   // commits a check-in, blooming a tonal halo across the foil.
-  final _checkInPulse = LiveDataPulseController();
+  final LiveDataPulseController _checkInPulse = LiveDataPulseController();
 
   @override
   void initState() {
@@ -58,18 +62,32 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
     super.dispose();
   }
 
-  /// Cinematic check-in commit — the signature moment when an Elite
-  /// member walks past the host. Triple-pulse haptic, tonal halo
-  /// across the member card, status ladder armed → committed →
-  /// active (the post-commit settled-into-the-lounge state).
-  void _commitCheckIn() {
-    Haptics.signature();
-    _checkInPulse.pulse();
-    setState(() => _cardState = LiveSurfaceState.committed);
-    Future.delayed(const Duration(milliseconds: 1800), () {
-      if (!mounted) return;
-      setState(() => _cardState = LiveSurfaceState.active);
-    });
+  /// Cinematic check-in handler — the signature moment when an
+  /// Elite member walks past the host.
+  ///
+  /// First tap commits: triple-pulse haptic + gold pulse over the
+  /// member card + persistent "CHECKED IN · hh:mm" badge. The
+  /// status ladder ramps armed → committed → active, easing back
+  /// to a settled cadence after 1.8 s.
+  ///
+  /// Second tap (already checked in) routes to the boarding pass.
+  void _handleCheckIn() {
+    if (!_checkedIn) {
+      setState(() {
+        _checkedIn = true;
+        _checkInAt = DateTime.now();
+        _cardState = LiveSurfaceState.committed;
+      });
+      unawaited(Haptics.signature());
+      _checkInPulse.pulse();
+      Future.delayed(const Duration(milliseconds: 1800), () {
+        if (!mounted) return;
+        setState(() => _cardState = LiveSurfaceState.active);
+      });
+    } else {
+      HapticFeedback.lightImpact();
+      context.push('/boarding-pass-live');
+    }
   }
 
   @override
@@ -92,15 +110,11 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
           children: [
             Expanded(
               child: LiveCta(
-                label: 'Check in',
-                icon: Icons.qr_code_scanner_rounded,
-                onTap: () {
-                  // Cinematic commit — signature haptic + tonal
-                  // halo bloom across the member card before the
-                  // user lands on the boarding pass.
-                  _commitCheckIn();
-                  context.push('/boarding-pass-live');
-                },
+                label: _checkedIn ? 'Checked in · go' : 'Check in',
+                icon: _checkedIn
+                    ? Icons.verified_rounded
+                    : Icons.qr_code_scanner_rounded,
+                onTap: _handleCheckIn,
               ),
             ),
             const SizedBox(width: N.s3),
@@ -137,12 +151,12 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                   depth: 6,
                   child: LiveLift(
                     tone: tone,
-                    child: AspectRatio(
-                    aspectRatio: 1.58,
                     child: LiveDataPulse(
                       controller: _checkInPulse,
-                      tone: tone,
-                      child: LoungeCardSubstrate(
+                      tone: const Color(0xFFE9C75D),
+                      child: AspectRatio(
+                    aspectRatio: 1.58,
+                    child: LoungeCardSubstrate(
                       tone: tone,
                       child: Stack(
                         children: [
@@ -272,15 +286,29 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                           // Live state pill — cinematic ladder
                           // status. Pulses with the state glow,
                           // evolving armed → committed → active as
-                          // the user checks into the lounge.
+                          // the user checks into the lounge, then
+                          // settling to gold once committed.
                           Positioned(
                             top: 12,
                             right: 12,
                             child: LiveStatusPill(
                               state: _cardState,
-                              tone: tone,
+                              tone: _checkedIn
+                                  ? const Color(0xFFE9C75D)
+                                  : tone,
                             ),
                           ),
+                          // Check-in commit banner — once the user
+                          // commits the lounge entry, a faint gold
+                          // hairline-framed "CHECKED IN · hh:mm"
+                          // anchors the bottom-left so the card
+                          // reads as "active and settled".
+                          if (_checkedIn && _checkInAt != null)
+                            Positioned(
+                              left: 18,
+                              bottom: 18,
+                              child: _CheckedInBadge(at: _checkInAt!),
+                            ),
                         ],
                       ),
                     ),
@@ -574,6 +602,87 @@ class _PerkChip extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// CHECKED IN · hh:mm — small hairline-framed badge that pulses
+/// once on mount (signature commit) then settles. Stays for the
+/// rest of the session so the lounge card reads "actively used".
+class _CheckedInBadge extends StatefulWidget {
+  const _CheckedInBadge({required this.at});
+  final DateTime at;
+
+  @override
+  State<_CheckedInBadge> createState() => _CheckedInBadgeState();
+}
+
+class _CheckedInBadgeState extends State<_CheckedInBadge>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hh = widget.at.hour.toString().padLeft(2, '0');
+    final mm = widget.at.minute.toString().padLeft(2, '0');
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, child) {
+        final t = Curves.easeOutCubic.transform(_c.value);
+        return Opacity(
+          opacity: t,
+          child: Transform.translate(
+            offset: Offset(0, (1 - t) * 6),
+            child: child,
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE9C75D).withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: const Color(0xFFE9C75D).withValues(alpha: 0.60),
+            width: 0.6,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.check_circle_rounded,
+              color: Color(0xFFE9C75D),
+              size: 14,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'CHECKED IN · $hh:$mm',
+              style: const TextStyle(
+                color: Color(0xFFE9C75D),
+                fontWeight: FontWeight.w900,
+                fontSize: 10,
+                letterSpacing: 1.6,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

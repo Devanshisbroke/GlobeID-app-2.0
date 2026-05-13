@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,10 +39,12 @@ class _TransitPassesLiveScreenState
   int _index = 0;
   Offset _tilt = Offset.zero;
   // Cinematic tap state — armed by default (chip primed, awaiting
-  // reader). On tap → committed (the contactless commit moment).
-  // Auto-settles back to armed ~1.6 s later so the card is ready
-  // for the next gate.
+  // reader). On tap → committed (the contactless commit moment) →
+  // settled (1.4 s grace, AUTHORIZED banner) → armed (ready for
+  // next gate). Drives the LiveStatusPill cadence on the active
+  // card and the AUTHORIZED commit banner.
   LiveSurfaceState _tapState = LiveSurfaceState.armed;
+  DateTime? _tapAt;
   // Broadcasts a tonal halo over the active card on each tap.
   final _tapPulse = LiveDataPulseController();
 
@@ -79,19 +83,26 @@ class _TransitPassesLiveScreenState
 
   /// Cinematic tap orchestration — the user's "physical contactless
   /// commit". State ladder: armed → committed (the moment) →
-  /// settled (1.4 s grace) → armed (ready for next gate).
+  /// settled (1.4 s grace + persistent AUTHORIZED banner) → armed
+  /// (ready for next gate, banner cleared).
   void _runTap() {
-    Haptics.signature();
+    unawaited(Haptics.signature());
     _tap.forward(from: 0);
     _tapPulse.pulse();
-    setState(() => _tapState = LiveSurfaceState.committed);
+    setState(() {
+      _tapState = LiveSurfaceState.committed;
+      _tapAt = DateTime.now();
+    });
     Future.delayed(const Duration(milliseconds: 800), () {
       if (!mounted) return;
       setState(() => _tapState = LiveSurfaceState.settled);
     });
     Future.delayed(const Duration(milliseconds: 2200), () {
       if (!mounted) return;
-      setState(() => _tapState = LiveSurfaceState.armed);
+      setState(() {
+        _tapState = LiveSurfaceState.armed;
+        _tapAt = null;
+      });
     });
   }
 
@@ -190,12 +201,19 @@ class _TransitPassesLiveScreenState
                       child: _TransitCard(
                         card: card,
                         foilAnim: _foil,
+                        // Only the focused card carries the active
+                        // tap-state cadence + pulse controller +
+                        // AUTHORIZED banner timestamp. Background
+                        // cards stay armed (chip primed) so the
+                        // swipe carousel doesn't read as multiple
+                        // cards committing at once.
                         tilt: i == _index ? _tilt : Offset.zero,
                         liveState: i == _index
                             ? _tapState
                             : LiveSurfaceState.armed,
                         pulseController:
                             i == _index ? _tapPulse : null,
+                        tapAt: i == _index ? _tapAt : null,
                       ),
                     );
                   },
@@ -205,10 +223,11 @@ class _TransitPassesLiveScreenState
             const SizedBox(height: N.s4),
             _TapButton(
               tone: active.tone,
-              // Simulated NFC tap — drives the full cinematic
-              // state ladder (armed → committed → settled → armed)
-              // so the status pill, halo, and pulse all evolve
-              // through the contactless commit.
+              // Simulated NFC tap — drives the full cinematic state
+              // ladder (armed → committed → settled → armed) on the
+              // active card. Status pill, halo, pulse, and the
+              // AUTHORIZED banner all evolve through the contactless
+              // commit moment.
               onTap: _runTap,
               anim: _tap,
             ),
@@ -364,6 +383,7 @@ class _TransitCard extends StatelessWidget {
     this.tilt = Offset.zero,
     this.liveState = LiveSurfaceState.armed,
     this.pulseController,
+    this.tapAt,
   });
   final _Card card;
   final AnimationController foilAnim;
@@ -373,14 +393,20 @@ class _TransitCard extends StatelessWidget {
   final Offset tilt;
 
   /// Cinematic state of the card — armed by default, committed
-  /// during a contactless tap, settled briefly after. Drives the
-  /// status pill state.
+  /// during a contactless tap, settled briefly after with a
+  /// persistent AUTHORIZED banner, then back to armed. Drives the
+  /// status pill cadence on this card.
   final LiveSurfaceState liveState;
 
   /// Pulse broadcaster fired the moment a tap commits. When
   /// provided the card's body is wrapped in [LiveDataPulse] so the
   /// contactless commit reads as a tonal bloom across the card.
   final LiveDataPulseController? pulseController;
+
+  /// Timestamp of the most recent tap. While non-null the card
+  /// surfaces an AUTHORIZED · hh:mm:ss banner over the substrate
+  /// so the contactless commit reads as a POS-style confirmation.
+  final DateTime? tapAt;
   @override
   Widget build(BuildContext context) {
     Widget body = TransitCardSubstrate(
@@ -447,12 +473,36 @@ class _TransitCard extends StatelessWidget {
                 ),
               ),
               // Live state pill — pulses with the cinematic ladder
-              // intensity. Lives below the NFC chip on its own row.
+              // intensity. Driven by the NFC tap state machine.
+              // Background carousel cards stay armed; the focused
+              // card cycles armed → committed → settled (gold) →
+              // armed across the contactless commit.
               Positioned(
                 top: 56,
                 right: 10,
-                child: LiveStatusPill(state: liveState, tone: card.tone),
+                child: LiveStatusPill(
+                  state: liveState,
+                  tone: liveState == LiveSurfaceState.settled
+                      ? const Color(0xFFE9C75D)
+                      : card.tone,
+                ),
               ),
+              // AUTHORIZED banner — drops in after a tap commits and
+              // stays through the settled phase. Looks like a real
+              // POS confirmation receipt; fades on auto-return to
+              // idle.
+              if (tapAt != null)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: IgnorePointer(
+                    child: Center(
+                      child: _AuthorizedBanner(at: tapAt!, tone: card.tone),
+                    ),
+                  ),
+                ),
               Positioned(
                 bottom: 18,
                 left: 18,
@@ -592,6 +642,110 @@ class _TapButton extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// AUTHORIZED — POS-style confirmation banner that drops into the
+/// transit card after a successful NFC tap. Card-style gold rule,
+/// monospace tabular figures for the timestamp, and a check seal
+/// at the top. Stays visible while the tap state machine is in the
+/// committed/settled phase.
+class _AuthorizedBanner extends StatefulWidget {
+  const _AuthorizedBanner({required this.at, required this.tone});
+  final DateTime at;
+  final Color tone;
+
+  @override
+  State<_AuthorizedBanner> createState() => _AuthorizedBannerState();
+}
+
+class _AuthorizedBannerState extends State<_AuthorizedBanner>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hh = widget.at.hour.toString().padLeft(2, '0');
+    final mm = widget.at.minute.toString().padLeft(2, '0');
+    final ss = widget.at.second.toString().padLeft(2, '0');
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, child) {
+        final t = Curves.easeOutCubic.transform(_c.value);
+        return Opacity(
+          opacity: t,
+          child: Transform.scale(
+            scale: 0.92 + 0.08 * t,
+            child: child,
+          ),
+        );
+      },
+      child: Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFFE9C75D).withValues(alpha: 0.80),
+            width: 0.8,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFE9C75D).withValues(alpha: 0.32),
+              blurRadius: 22,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.verified_rounded,
+              color: Color(0xFFE9C75D),
+              size: 24,
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'AUTHORIZED',
+              style: TextStyle(
+                color: Color(0xFFE9C75D),
+                fontWeight: FontWeight.w900,
+                fontSize: 13,
+                letterSpacing: 3.0,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'GLOBE·ID · $hh:$mm:$ss',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 10,
+                letterSpacing: 1.6,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
