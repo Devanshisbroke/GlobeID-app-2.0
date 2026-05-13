@@ -186,6 +186,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/passport-ceremony'),
                   ),
                   _SettingsRow(
+                    icon: Icons.approval_rounded,
+                    tone: const Color(0xFFC8932F),
+                    label: 'Visa stamp ceremony',
+                    sub: '4-frame · ink load · arc · press · bleed',
+                    onTap: () => context.push('/lab/visa-stamp'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
