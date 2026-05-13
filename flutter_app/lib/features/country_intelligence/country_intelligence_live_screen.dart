@@ -929,7 +929,7 @@ class _ClassifiedStampState extends State<_ClassifiedStamp>
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 360),
+      duration: const Duration(milliseconds: 440),
     )..forward();
   }
 
@@ -948,13 +948,24 @@ class _ClassifiedStampState extends State<_ClassifiedStamp>
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (_, __) {
-        final t = Curves.easeOutCubic.transform(_ctrl.value);
-        final scale = 1.30 - 0.30 * t;
-        final opacity = finalOpacity * t;
+        // Stamp-down physics — starts at scale 1.45 with a wrist-flick
+        // rotation of -14°, overshoots through 0.94 at t≈0.7 and
+        // settles at 1.0 at -7°. Mimics a real rubber stamp pressed
+        // down against the paper and bouncing back fractionally.
+        final raw = Curves.easeOutCubic.transform(_ctrl.value);
+        final overshoot = raw < 0.7
+            ? 1.45 - (0.51 * (raw / 0.7))
+            : 0.94 + 0.06 * ((raw - 0.7) / 0.3);
+        final scale = overshoot;
+        final angleDeg = -14 + (7 * raw);
+        final opacity = finalOpacity * raw.clamp(0.0, 1.0);
+
+        // Ink-bleed shadow on impact — paints a soft tinted shadow
+        // underneath the stamp body that fades in with the opacity.
         return Opacity(
           opacity: opacity,
           child: Transform.rotate(
-            angle: -8 * math.pi / 180,
+            angle: angleDeg * math.pi / 180,
             child: Transform.scale(
               scale: scale,
               child: Container(
@@ -964,6 +975,14 @@ class _ClassifiedStampState extends State<_ClassifiedStamp>
                   border: Border.all(color: color, width: 2.6),
                   borderRadius: BorderRadius.circular(6),
                   color: color.withValues(alpha: 0.04),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.22 * raw),
+                      blurRadius: 14,
+                      spreadRadius: -4,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
