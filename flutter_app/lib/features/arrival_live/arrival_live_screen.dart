@@ -681,9 +681,13 @@ class _CityTimeStripState extends State<_CityTimeStrip>
         borderRadius: BorderRadius.circular(N.rCardLg),
         child: Stack(
           children: [
-            // Skyline silhouette — slow parallax drift left→right on
-            // ~22 s. Painted in a deep tonal blue so the OLED-black
-            // substrate reads as horizon, not flat.
+            // Skyline silhouette — three-layer parallax drift on
+            // ~22 s. Painted in a tonal blue/dusk depending on the
+            // local hour so the OLED-black substrate reads as a real
+            // horizon: dawn warmth, daytime cool, dusk amber, night
+            // deep navy. Back row drifts slowest (mountains), front
+            // row fastest (closer buildings), so the depth reads as
+            // real, not animated alone.
             Positioned.fill(
               child: RepaintBoundary(
                 child: AnimatedBuilder(
@@ -692,6 +696,7 @@ class _CityTimeStripState extends State<_CityTimeStrip>
                     painter: _SkylinePainter(
                       t: _drift.value,
                       tone: widget.tone,
+                      hour: local.hour,
                     ),
                   ),
                 ),
@@ -786,21 +791,54 @@ class _CityTimeStripState extends State<_CityTimeStrip>
 /// drifts slowly, a front-row of shorter buildings drifts at 1.6× so
 /// the parallax reads as depth, not motion alone.
 class _SkylinePainter extends CustomPainter {
-  _SkylinePainter({required this.t, required this.tone});
+  _SkylinePainter({required this.t, required this.tone, required this.hour});
   final double t;
   final Color tone;
+
+  /// Current local hour (0–23) at the arrival city. Drives the
+  /// time-of-day tint so dawn / day / dusk / night each have a
+  /// distinct horizon mood.
+  final int hour;
+
+  /// Phase-of-day tint blended into the skyline silhouette.
+  Color get _phaseTint {
+    if (hour >= 5 && hour < 7) {
+      // Dawn — warm pink/gold
+      return const Color(0xFFE17A4A);
+    }
+    if (hour >= 7 && hour < 17) {
+      // Day — cool blue
+      return const Color(0xFF6BA3D8);
+    }
+    if (hour >= 17 && hour < 19) {
+      // Dusk — amber/orange
+      return const Color(0xFFF59E0B);
+    }
+    // Night — deep navy
+    return const Color(0xFF1E2A48);
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
+    final tint = _phaseTint;
 
-    // Back row — far towers. Deep navy, slow.
-    final back = Paint()..color = const Color(0xFF0A1424);
+    // Ultra-distant — far mountains / haze layer. Slowest drift,
+    // most blended with phase tint so the horizon shifts mood
+    // with the time of day.
+    final far = Paint()
+      ..color = Color.lerp(const Color(0xFF050912), tint, 0.16)!;
+    final farOffset = (t * w * 0.22) % w;
+    _drawSkyline(canvas, size, far, h * 0.42, h * 0.62, 6, farOffset);
+
+    // Back row — far towers.
+    final back = Paint()
+      ..color = Color.lerp(const Color(0xFF0A1424), tint, 0.10)!;
     final backOffset = (t * w * 0.45) % w;
     _drawSkyline(canvas, size, back, h * 0.52, h * 0.78, 9, backOffset);
 
-    // Front row — closer buildings. Slightly tonal, faster.
+    // Front row — closer buildings, faster.
     final front = Paint()
       ..color = Color.lerp(
         const Color(0xFF050B14),
@@ -810,10 +848,13 @@ class _SkylinePainter extends CustomPainter {
     final frontOffset = (t * w * 0.72) % w;
     _drawSkyline(canvas, size, front, h * 0.68, h * 0.94, 13, frontOffset);
 
-    // Distant point lights — faint warm gold pinpricks on the
-    // skyline ridge so it reads as a city at dusk, not a flat tone.
+    // Distant point lights — gold pinpricks on the skyline ridge.
+    // At night they're brighter and more numerous; daylight dims
+    // them so the city reads as awake / asleep with the local clock.
+    final nightFactor = hour < 6 || hour >= 19 ? 1.0 : 0.45;
     final star = Paint()
-      ..color = const Color(0xFFE9C75D).withValues(alpha: 0.55);
+      ..color = const Color(0xFFE9C75D)
+          .withValues(alpha: 0.55 * nightFactor);
     final rand = math.Random(7);
     for (var i = 0; i < 14; i++) {
       final x = (rand.nextDouble() * w + t * w * 0.30) % w;
@@ -855,5 +896,5 @@ class _SkylinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SkylinePainter old) =>
-      old.t != t || old.tone != tone;
+      old.t != t || old.tone != tone || old.hour != hour;
 }

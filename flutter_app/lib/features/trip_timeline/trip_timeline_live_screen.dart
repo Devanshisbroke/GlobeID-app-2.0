@@ -135,13 +135,31 @@ class _TripTimelineLiveScreenState
               LiveDataPulse(
                 controller: _phasePulse,
                 tone: tone,
-                child: _StageDetailCard(
-                  stage: _stages[_activeIndex],
-                  index: _activeIndex,
-                  count: _stages.length,
+                child: BreathingHalo(
+                  // Active-stage halo brightens with the cinematic
+                  // weight of the phase. BOARD / LAND / CUSTOMS are
+                  // the loud commits — they earn the brightest halo.
+                  // CRUISE / EXPLORE are cruising states — calm. The
+                  // user can read the trip's intensity from the halo
+                  // alone, without parsing copy.
                   tone: tone,
-                  trip: trip,
-                  liveState: _stateForStage(_activeIndex, _activeIndex),
+                  state: _stateForStage(_activeIndex, _activeIndex),
+                  maxAlpha: switch (_stages[_activeIndex].label) {
+                    'BOARD' || 'CUSTOMS' => 0.36,
+                    'LAND' => 0.42,
+                    'ARRIVAL' || 'CHECK-IN' => 0.30,
+                    'CRUISE' || 'EXPLORE' => 0.18,
+                    _ => 0.22,
+                  },
+                  expand: 6,
+                  child: _StageDetailCard(
+                    stage: _stages[_activeIndex],
+                    index: _activeIndex,
+                    count: _stages.length,
+                    tone: tone,
+                    trip: trip,
+                    liveState: _stateForStage(_activeIndex, _activeIndex),
+                  ),
                 ),
               ),
               const SizedBox(height: N.s4),
