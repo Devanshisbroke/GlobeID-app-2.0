@@ -836,6 +836,85 @@ class _LegacyCommandPaletteState extends State<_LegacyCommandPalette> {
       icon: Icons.person_rounded,
       tone: Color(0xFF06B6D4)
     ),
+    // ─── Live systems (alive OS surfaces) ───────────────────────────
+    (
+      label: 'Alive · Live Systems Hub',
+      path: '/live',
+      icon: Icons.auto_awesome_rounded,
+      tone: Color(0xFFC9A961),
+    ),
+    (
+      label: 'Live Passport',
+      path: '/passport-live',
+      icon: Icons.book_rounded,
+      tone: Color(0xFF1E3A8A),
+    ),
+    (
+      label: 'Live Boarding Pass',
+      path: '/boarding-pass-live',
+      icon: Icons.qr_code_2_rounded,
+      tone: Color(0xFF0EA5E9),
+    ),
+    (
+      label: 'Live Visa · Japan',
+      path: '/visa-live/JP',
+      icon: Icons.shield_rounded,
+      tone: Color(0xFFE11D48),
+    ),
+    (
+      label: 'Live Forex',
+      path: '/forex-live',
+      icon: Icons.currency_exchange_rounded,
+      tone: Color(0xFF10B981),
+    ),
+    (
+      label: 'Live Trip Timeline',
+      path: '/trip-timeline-live',
+      icon: Icons.timeline_rounded,
+      tone: Color(0xFF6366F1),
+    ),
+    (
+      label: 'Live Immigration',
+      path: '/immigration-live',
+      icon: Icons.how_to_reg_rounded,
+      tone: Color(0xFF06B6D4),
+    ),
+    (
+      label: 'Live Airport Companion',
+      path: '/airport-companion-live',
+      icon: Icons.radar_rounded,
+      tone: Color(0xFF60A5FA),
+    ),
+    (
+      label: 'Live Arrival',
+      path: '/arrival-live',
+      icon: Icons.flight_land_rounded,
+      tone: Color(0xFF10B981),
+    ),
+    (
+      label: 'Live Transit Passes',
+      path: '/transit-passes-live',
+      icon: Icons.nfc_rounded,
+      tone: Color(0xFF8B5CF6),
+    ),
+    (
+      label: 'Live Lounge',
+      path: '/lounge-live',
+      icon: Icons.weekend_rounded,
+      tone: Color(0xFFD4A574),
+    ),
+    (
+      label: 'Live Country Intelligence',
+      path: '/country-live/JP',
+      icon: Icons.public_rounded,
+      tone: Color(0xFFF59E0B),
+    ),
+    (
+      label: 'Live Navigation',
+      path: '/navigation-live',
+      icon: Icons.alt_route_rounded,
+      tone: Color(0xFF2DD4BF),
+    ),
   ];
 
   List<({String label, String path, IconData icon, Color tone})> get _filtered {

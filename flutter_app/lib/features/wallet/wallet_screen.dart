@@ -116,10 +116,18 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
             ),
           ),
           SliverToBoxAdapter(
-            child: const SectionHeader(title: 'FX board', dense: true),
+            child: SectionHeader(
+              title: 'FX board',
+              dense: true,
+              action: 'Open vault',
+              onAction: () => context.push('/forex-live'),
+            ),
           ),
           SliverToBoxAdapter(
-            child: const FxTickerPremium(
+            child: GestureDetector(
+              onTap: () => context.push('/forex-live'),
+              behavior: HitTestBehavior.opaque,
+              child: const FxTickerPremium(
               ticks: [
                 FxTick(pair: 'USD/JPY', rate: 156.42, changePercent: 0.34),
                 FxTick(pair: 'EUR/USD', rate: 1.0892, changePercent: -0.12),
@@ -128,6 +136,78 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
                 FxTick(pair: 'USD/AED', rate: 3.6725, changePercent: 0.01),
                 FxTick(pair: 'USD/INR', rate: 83.21, changePercent: 0.21),
               ],
+            ),
+            ),
+          ),
+          // ── Live alive surfaces ─────────────────────────────
+          SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'Live wallet',
+              dense: true,
+              action: 'Open hub',
+              onAction: () => context.push('/live'),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space5),
+            sliver: SliverToBoxAdapter(
+              child: SizedBox(
+                height: 76,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemCount: 4,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (_, i) {
+                    final items = const [
+                      (label: 'Live forex', icon: Icons.currency_exchange_rounded, tone: Color(0xFF10B981), route: '/forex-live'),
+                      (label: 'Transit', icon: Icons.nfc_rounded, tone: Color(0xFF8B5CF6), route: '/transit-passes-live'),
+                      (label: 'Live trip', icon: Icons.timeline_rounded, tone: Color(0xFF6366F1), route: '/trip-timeline-live'),
+                      (label: 'All alive', icon: Icons.auto_awesome_rounded, tone: Color(0xFFC9A961), route: '/live'),
+                    ];
+                    final it = items[i];
+                    return GestureDetector(
+                      onTap: () => context.push(it.route),
+                      child: Container(
+                        width: 132,
+                        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              it.tone.withValues(alpha: 0.20),
+                              it.tone.withValues(alpha: 0.04),
+                            ],
+                          ),
+                          border: Border.all(
+                            color: it.tone.withValues(alpha: 0.32),
+                            width: 0.5,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(it.icon, color: it.tone, size: 20),
+                            const Spacer(),
+                            Text(
+                              it.label.toUpperCase(),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 11,
+                                letterSpacing: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
           ),
           SliverToBoxAdapter(
@@ -165,7 +245,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
           SliverToBoxAdapter(
             child: WalletFxTicker(
               pairs: FxPair.demo(),
-              onTap: (_) => context.push('/multi-currency'),
+              onTap: (_) => context.push('/forex-live'),
             ),
           ),
           // ── Spending analytics ─────────────────────────────

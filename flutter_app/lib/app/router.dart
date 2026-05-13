@@ -25,9 +25,20 @@ import '../features/multi_currency/multi_currency_pour_screen.dart';
 import '../features/multi_currency/multi_currency_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/onboarding/onboarding_provider.dart';
+import '../features/airport_companion/airport_companion_live_screen.dart';
+import '../features/arrival_live/arrival_live_screen.dart';
 import '../features/boarding_pass/boarding_pass_live_screen.dart';
+import '../features/country_intelligence/country_intelligence_live_screen.dart';
+import '../features/forex/forex_live_screen.dart';
+import '../features/immigration/immigration_live_screen.dart';
+import '../features/live_systems/live_systems_hub_screen.dart';
+import '../features/lounge_live/lounge_live_screen.dart';
+import '../features/navigation_live/navigation_live_screen.dart';
 import '../features/passport_book/passport_book_screen.dart';
 import '../features/passport_book/passport_live_screen.dart';
+import '../features/transit_passes/transit_passes_live_screen.dart';
+import '../features/trip_timeline/trip_timeline_live_screen.dart';
+import '../features/visa/visa_live_screen.dart';
 import '../features/planner/planner_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/receipt/receipt_screen.dart';
@@ -317,6 +328,72 @@ final routerProvider = Provider<GoRouter>((ref) {
         (_, state) => TripDetailScreen(tripId: state.pathParameters['tripId']!),
       ),
 
+      // ─── Phase 4 — Live systems ────────────────────────────────────
+      _descentRoute('/live', (_, __) => const LiveSystemsHubScreen()),
+      _descentRoute(
+        '/visa-live/:countryCode',
+        (_, state) {
+          final cc = state.pathParameters['countryCode']?.toUpperCase() ?? 'JP';
+          final meta = _visaMetaFor(cc);
+          return VisaLiveScreen(
+            countryCode: cc,
+            country: meta.$1,
+            flag: meta.$2,
+            tone: meta.$3,
+          );
+        },
+      ),
+      _descentRoute('/visa-live', (_, __) => const VisaLiveScreen()),
+      _descentRoute('/forex-live', (_, __) => const ForexLiveScreen()),
+      _descentRoute(
+        '/trip-timeline-live',
+        (_, __) => const TripTimelineLiveScreen(),
+      ),
+      _descentRoute(
+        '/trip-timeline-live/:tripId',
+        (_, state) =>
+            TripTimelineLiveScreen(tripId: state.pathParameters['tripId']),
+      ),
+      _descentRoute(
+        '/immigration-live',
+        (_, __) => const ImmigrationLiveScreen(),
+      ),
+      _descentRoute(
+        '/airport-companion-live',
+        (_, __) => const AirportCompanionLiveScreen(),
+      ),
+      _descentRoute('/arrival-live', (_, __) => const ArrivalLiveScreen()),
+      _descentRoute(
+        '/transit-passes-live',
+        (_, __) => const TransitPassesLiveScreen(),
+      ),
+      _descentRoute(
+        '/lounge-live',
+        (_, state) =>
+            LoungeLiveScreen(loungeId: state.uri.queryParameters['id']),
+      ),
+      _descentRoute(
+        '/lounge-live/:loungeId',
+        (_, state) =>
+            LoungeLiveScreen(loungeId: state.pathParameters['loungeId']),
+      ),
+      _descentRoute(
+        '/country-live/:countryCode',
+        (_, state) {
+          final cc = state.pathParameters['countryCode']?.toUpperCase() ?? 'JP';
+          final meta = _visaMetaFor(cc);
+          return CountryIntelligenceLiveScreen(
+            countryCode: cc,
+            country: meta.$1,
+            flag: meta.$2,
+          );
+        },
+      ),
+      _descentRoute(
+        '/navigation-live',
+        (_, __) => const NavigationLiveScreen(),
+      ),
+
       // Default secondary surfaces: rise / slide-fade.
       _route('/receipt', (_, __) => const ReceiptScreen()),
       _route('/timeline', (_, __) => const TimelineScreen()),
@@ -495,3 +572,32 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
+
+/// Country metadata (name, flag, visa-tone) for Live Visa / Country
+/// Intelligence routes. Keeps the route layer free of import cycles.
+(String, String, Color) _visaMetaFor(String cc) {
+  switch (cc.toUpperCase()) {
+    case 'JP':
+      return ('Japan', '🇯🇵', const Color(0xFFE11D48));
+    case 'US':
+      return ('United States', '🇺🇸', const Color(0xFF1E3A8A));
+    case 'GB':
+      return ('United Kingdom', '🇬🇧', const Color(0xFF7C3AED));
+    case 'AE':
+      return ('United Arab Emirates', '🇦🇪', const Color(0xFF14B8A6));
+    case 'IN':
+      return ('India', '🇮🇳', const Color(0xFFF59E0B));
+    case 'FR':
+      return ('France', '🇫🇷', const Color(0xFF6366F1));
+    case 'IT':
+      return ('Italy', '🇮🇹', const Color(0xFF10B981));
+    case 'ES':
+      return ('Spain', '🇪🇸', const Color(0xFFEF4444));
+    case 'SG':
+      return ('Singapore', '🇸🇬', const Color(0xFFEC4899));
+    case 'TH':
+      return ('Thailand', '🇹🇭', const Color(0xFF8B5CF6));
+    default:
+      return ('Japan', '🇯🇵', const Color(0xFFE11D48));
+  }
+}
