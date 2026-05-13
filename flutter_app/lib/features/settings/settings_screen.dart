@@ -109,6 +109,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/ambient/widgets'),
                   ),
                   _SettingsRow(
+                    icon: Icons.watch_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Watch face complications',
+                    sub: 'watchOS · Wear OS · boarding glance',
+                    onTap: () => context.push('/ambient/watch'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
