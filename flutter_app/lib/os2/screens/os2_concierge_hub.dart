@@ -43,7 +43,7 @@ class _Os2ConciergeHubState extends ConsumerState<Os2ConciergeHub> {
       appBar: AppBar(
         backgroundColor: Os2.canvas,
         elevation: 0,
-        title: Os2Text.title('Concierge', color: Os2.inkBright, size: 18),
+        title: Os2Text.title('Concierge', color: Os2.inkBright, size: Os2.textXl),
       ),
       body: SafeArea(
         bottom: false,
@@ -430,7 +430,7 @@ class _LoyaltyPrograms extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Os2Text.monoCap(p.$2, color: p.$4, size: 11),
+                    Os2Text.monoCap(p.$2, color: p.$4, size: Os2.textXs),
                   ],
                 ),
               ),

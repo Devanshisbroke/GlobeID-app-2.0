@@ -98,6 +98,80 @@ class Os2 {
   static const double trackCaption = 0.8;
   static const double trackMonoCap = 1.6;
 
+  // ───────────────────────────────────────────────────── type scale
+  //
+  // Canonical sizes used across every world. Whenever a callsite
+  // overrides `Os2Text.<variant>(size: …)` it should pick from these
+  // tokens rather than hard-coding a magic number. Keeping the set
+  // small (10 steps) is what makes typography read uniform across
+  // unrelated surfaces.
+  //
+  //   • tiny / micro / xs   — mono-cap chips, status pills, watermarks
+  //   • sm / md             — compact callouts, dense labels
+  //   • base                — body default
+  //   • lg / xl             — small headers / title default
+  //   • xxl                 — emphatic title
+  //   • h2 / h1             — headline / display
+  static const double textTiny = 9;
+  static const double textMicro = 10;
+  static const double textXs = 11;
+  static const double textSm = 12;
+  static const double textMd = 13;
+  static const double textRg = 14;
+  static const double textBase = 15;
+  static const double textLg = 16;
+  static const double textXl = 18;
+  static const double textXxl = 22;
+  static const double textH2 = 30;
+  static const double textH1 = 48;
+
+  /// Canonical default size for each `Os2Text` variant. Used by
+  /// [trackingFor] to relax letter-spacing proportionally when a
+  /// callsite shrinks a variant below its canonical anchor.
+  static const double canonDisplay = textH1;
+  static const double canonHeadline = textH2;
+  static const double canonTitle = 20;
+  static const double canonBody = textBase;
+  static const double canonCaption = textXs;
+  static const double canonMonoCap = textSm;
+
+  /// Returns the letter-spacing to apply at [size] for a variant whose
+  /// canonical tracking is [track] at [canonical] size.
+  ///
+  /// At sizes ≥ [canonical] the canonical tracking is used unchanged
+  /// (tighter tracking reads correctly at the design size). At sizes
+  /// below [canonical] we scale tracking linearly toward 0 so a
+  /// `title` rendered at 14 pt doesn't carry the same -0.4 squeeze
+  /// that's tuned for the 20 pt anchor.
+  static double trackingFor(double track, double size, double canonical) {
+    if (size >= canonical) return track;
+    return track * (size / canonical);
+  }
+
+  // ─────────────────────────────────────────────── brand DNA palette
+  //
+  // The two-stop gold the entire app pulls from for hero text, foil
+  // sweeps, hairlines, and the GLOBE·ID monogram. Kept on the tokens
+  // class so every surface that ramps gold reaches for the same
+  // canonical colour pair instead of inventing its own.
+  static const Color goldDeep = Color(0xFFD4AF37);
+  static const Color goldLight = Color(0xFFE9C75D);
+
+  /// Canonical hero gradient — the soft champagne ramp that the
+  /// display / headline / credential variants opt into when they want
+  /// to read "engineered by GlobeID" instead of flat white.
+  static const LinearGradient foilGoldHero = LinearGradient(
+    colors: [goldDeep, goldLight, goldDeep],
+    stops: [0.0, 0.5, 1.0],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  /// Gold rule painted under the GLOBE·ID watermark — same alpha the
+  /// AppleSheet substrate uses so the watermark and the sheet chrome
+  /// share one thread.
+  static const Color goldHairline = Color(0x6BD4AF37); // 42% alpha
+
   // ───────────────────────────────────────────────────── touch
   static const double touchMin = 56;
   static const double touchTight = 44;

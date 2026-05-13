@@ -342,7 +342,7 @@ class _MetaCol extends StatelessWidget {
       children: [
         Os2Text.caption(label, color: Os2.inkLow),
         const SizedBox(height: 3),
-        Os2Text.title(value, color: Os2.inkBright, size: 14, maxLines: 1),
+        Os2Text.title(value, color: Os2.inkBright, size: Os2.textRg, maxLines: 1),
       ],
     );
   }
@@ -493,7 +493,7 @@ class _LifecycleStage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Os2Text.caption(label, color: tone, size: 9),
+        Os2Text.caption(label, color: tone, size: Os2.textTiny),
       ],
     );
   }

@@ -141,7 +141,7 @@ class Os2LabelledPipStack extends StatelessWidget {
           children: [
             Expanded(child: Os2Text.caption(label, color: Os2.inkMid)),
             if (trailing != null)
-              Os2Text.monoCap(trailing!, color: Os2.inkBright, size: 11),
+              Os2Text.monoCap(trailing!, color: Os2.inkBright, size: Os2.textXs),
           ],
         ),
         const SizedBox(height: Os2.space2),

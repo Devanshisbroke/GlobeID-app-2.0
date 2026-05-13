@@ -440,9 +440,9 @@ class _BriefingSlab extends StatelessWidget {
         children: [
           Os2Text.caption(tag, color: tone),
           const SizedBox(height: Os2.space2),
-          Os2Text.title(title, color: Os2.inkBright, size: 16, maxLines: 2),
+          Os2Text.title(title, color: Os2.inkBright, size: Os2.textLg, maxLines: 2),
           const SizedBox(height: 6),
-          Os2Text.body(body, color: Os2.inkMid, size: 13, maxLines: 3),
+          Os2Text.body(body, color: Os2.inkMid, size: Os2.textMd, maxLines: 3),
         ],
       ),
     );
@@ -506,7 +506,7 @@ class _DealStrip extends StatelessWidget {
                   Os2Text.title(title,
                       color: Os2.inkBright, size: 14, maxLines: 1),
                   const SizedBox(height: 2),
-                  Os2Text.body(sub, color: Os2.inkMid, size: 12, maxLines: 1),
+                  Os2Text.body(sub, color: Os2.inkMid, size: Os2.textSm, maxLines: 1),
                 ],
               ),
             ),

@@ -312,7 +312,7 @@ class _FoilStat extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Os2Text.monoCap(label, color: Os2.inkMid, size: 10),
+        Os2Text.monoCap(label, color: Os2.inkMid, size: Os2.textMicro),
         const SizedBox(height: 2),
         Os2Solari(text: value, fontSize: 18, cellWidth: 16, cellHeight: 24),
       ],
@@ -516,7 +516,7 @@ class _CrewRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Os2Text.title(title, color: Os2.inkBright, size: 14),
+              Os2Text.title(title, color: Os2.inkBright, size: Os2.textRg),
               const SizedBox(height: 2),
               Os2Text.caption(sub, color: Os2.inkMid),
             ],

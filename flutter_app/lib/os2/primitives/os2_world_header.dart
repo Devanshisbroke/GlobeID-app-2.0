@@ -94,7 +94,7 @@ class _Os2WorldHeaderState extends State<Os2WorldHeader> {
           // Row 1 — meta caption + LIVE beacon.
           Row(
             children: [
-              Os2Text.caption(widget.world.label, color: tone, size: 11),
+              Os2Text.caption(widget.world.label, color: tone, size: Os2.textXs),
               const SizedBox(width: 10),
               Container(
                 width: 3,

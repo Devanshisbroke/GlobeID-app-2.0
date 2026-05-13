@@ -35,7 +35,7 @@ class Os2TrustHub extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Os2.canvas,
         elevation: 0,
-        title: Os2Text.title('Trust', color: Os2.inkBright, size: 18),
+        title: Os2Text.title('Trust', color: Os2.inkBright, size: Os2.textXl),
       ),
       body: SafeArea(
         bottom: false,
@@ -163,8 +163,8 @@ class _TrustHero extends StatelessWidget {
             center: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Os2Text.display('92', color: Os2.inkBright, size: 30),
-                Os2Text.monoCap('TRUST', color: Os2.inkLow, size: 9),
+                Os2Text.display('92', color: Os2.inkBright, size: Os2.textH2),
+                Os2Text.monoCap('TRUST', color: Os2.inkLow, size: Os2.textTiny),
               ],
             ),
           ),
@@ -287,9 +287,9 @@ class _IssuerTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Os2Text.monoCap(tag, color: tone, size: 9),
+          Os2Text.monoCap(tag, color: tone, size: Os2.textTiny),
           const SizedBox(height: 2),
-          Os2Text.title(name, color: Os2.inkBright, size: 13, maxLines: 1),
+          Os2Text.title(name, color: Os2.inkBright, size: Os2.textMd, maxLines: 1),
           const SizedBox(height: Os2.space2),
           Os2ProgressArc(
             value: value,

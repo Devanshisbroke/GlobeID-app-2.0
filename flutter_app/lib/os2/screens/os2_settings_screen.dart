@@ -53,7 +53,7 @@ class _Os2SettingsScreenState extends ConsumerState<Os2SettingsScreen> {
       appBar: AppBar(
         backgroundColor: Os2.canvas,
         elevation: 0,
-        title: Os2Text.title('Settings', color: Os2.inkBright, size: 18),
+        title: Os2Text.title('Settings', color: Os2.inkBright, size: Os2.textXl),
       ),
       body: SafeArea(
         bottom: false,
@@ -543,7 +543,7 @@ class _ToggleRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Os2Text.title(title, color: Os2.inkBright, size: 14),
+                  Os2Text.title(title, color: Os2.inkBright, size: Os2.textRg),
                   const SizedBox(height: 2),
                   Os2Text.caption(sub, color: Os2.inkMid),
                 ],
@@ -637,7 +637,7 @@ class _NavRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Os2Text.title(title, color: Os2.inkBright, size: 14),
+                  Os2Text.title(title, color: Os2.inkBright, size: Os2.textRg),
                   const SizedBox(height: 2),
                   Os2Text.caption(sub, color: Os2.inkMid),
                 ],

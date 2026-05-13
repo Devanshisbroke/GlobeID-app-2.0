@@ -286,7 +286,7 @@ class _Stat extends StatelessWidget {
       children: [
         Os2Text.caption(label, color: Os2.inkLow),
         const SizedBox(height: 2),
-        Os2Text.title(value, color: tone, size: 14),
+        Os2Text.title(value, color: tone, size: Os2.textRg),
       ],
     );
   }
@@ -309,7 +309,7 @@ class _EmptyState extends StatelessWidget {
         children: [
           Icon(Icons.receipt_long_rounded, size: 20, color: Os2.walletTone),
           const SizedBox(height: Os2.space3),
-          Os2Text.title('No statements yet', color: Os2.inkBright, size: 16),
+          Os2Text.title('No statements yet', color: Os2.inkBright, size: Os2.textLg),
           const SizedBox(height: 4),
           Os2Text.body(
             'Your monthly ledger appears here as transactions settle.',

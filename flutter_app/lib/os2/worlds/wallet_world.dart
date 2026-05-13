@@ -808,7 +808,7 @@ class _FxTile extends StatelessWidget {
         children: [
           Text(item.flag, style: const TextStyle(fontSize: 14)),
           const SizedBox(width: 6),
-          Os2Text.title(item.code, color: Os2.inkBright, size: 12),
+          Os2Text.title(item.code, color: Os2.inkBright, size: Os2.textSm),
           const SizedBox(width: 6),
           Os2Text.monoCap(
             item.rate.toStringAsFixed(item.rate > 10 ? 2 : 4),
@@ -816,7 +816,7 @@ class _FxTile extends StatelessWidget {
             size: 11,
           ),
           const SizedBox(width: 6),
-          Os2Text.monoCap(deltaText, color: deltaTone, size: 10),
+          Os2Text.monoCap(deltaText, color: deltaTone, size: Os2.textMicro),
         ],
       ),
     );
@@ -1132,9 +1132,9 @@ class _EmptyState extends StatelessWidget {
         children: [
           Icon(icon, size: 20, color: Os2.walletTone),
           const SizedBox(height: Os2.space3),
-          Os2Text.title(label, color: Os2.inkBright, size: 16),
+          Os2Text.title(label, color: Os2.inkBright, size: Os2.textLg),
           const SizedBox(height: 4),
-          Os2Text.body(sub, color: Os2.inkMid, size: 13),
+          Os2Text.body(sub, color: Os2.inkMid, size: Os2.textMd),
         ],
       ),
     );

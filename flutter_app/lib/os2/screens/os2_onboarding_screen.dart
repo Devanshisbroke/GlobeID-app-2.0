@@ -272,7 +272,7 @@ class _Header extends StatelessWidget {
           const SizedBox(width: Os2.space3),
           Os2Magnetic(
             onTap: onSkip,
-            child: Os2Text.monoCap('SKIP', color: Os2.inkLow, size: 11),
+            child: Os2Text.monoCap('SKIP', color: Os2.inkLow, size: Os2.textXs),
           ),
         ],
       ),
@@ -306,7 +306,7 @@ class _StagePage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: Os2.space5),
-          Os2Text.monoCap(stage.eyebrow, color: stage.tone, size: 11),
+          Os2Text.monoCap(stage.eyebrow, color: stage.tone, size: Os2.textXs),
           const SizedBox(height: Os2.space2),
           Os2Text.display(
             stage.title,

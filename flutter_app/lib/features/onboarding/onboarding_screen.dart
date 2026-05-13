@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../cinematic/live/live_primitives.dart';
 import '../../motion/motion.dart';
+import '../../os2/primitives/os2_text.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/pressable.dart';
@@ -240,19 +241,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
           // 9 px caps, 18% white, never readable at a glance but
           // always there if you look. Same chrome thread the Live
           // credentials use.
-          Positioned(
+          const Positioned(
             top: 56,
             right: 24,
-            child: Text(
-              'GLOBE·ID',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.18),
-                fontSize: 9,
-                letterSpacing: 2.4,
-                fontWeight: FontWeight.w700,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
-            ),
+            child: Os2Text.watermark('GLOBE·ID'),
           ),
           SafeArea(
             child: Column(
