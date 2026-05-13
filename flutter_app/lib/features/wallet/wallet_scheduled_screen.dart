@@ -291,7 +291,7 @@ class _EmptyState extends StatelessWidget {
         children: [
           Icon(Icons.event_busy_rounded, size: 20, color: Os2.walletTone),
           const SizedBox(height: Os2.space3),
-          Os2Text.title('Nothing scheduled', color: Os2.inkBright, size: 16),
+          Os2Text.title('Nothing scheduled', color: Os2.inkBright, size: Os2.textLg),
           const SizedBox(height: 4),
           Os2Text.body(
             'When you set up a recurring payment it will appear here with the next run date.',

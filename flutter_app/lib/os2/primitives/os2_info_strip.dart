@@ -93,7 +93,7 @@ class _Os2InfoTile extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Os2Text.caption(entry.label, color: Os2.inkLow, size: 10),
+              Os2Text.caption(entry.label, color: Os2.inkLow, size: Os2.textMicro),
               const SizedBox(height: 2),
               Os2Text.monoCap(
                 entry.value,

@@ -39,7 +39,7 @@ class Os2TreasuryHub extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Os2.canvas,
         elevation: 0,
-        title: Os2Text.title('Treasury', color: Os2.inkBright, size: 18),
+        title: Os2Text.title('Treasury', color: Os2.inkBright, size: Os2.textXl),
       ),
       body: SafeArea(
         bottom: false,
@@ -214,9 +214,9 @@ class _Stat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Os2Text.monoCap(label, color: Os2.inkLow, size: 10),
+        Os2Text.monoCap(label, color: Os2.inkLow, size: Os2.textMicro),
         const SizedBox(height: 4),
-        Os2Text.title(value, color: Os2.inkBright, size: 14),
+        Os2Text.title(value, color: Os2.inkBright, size: Os2.textRg),
       ],
     );
   }
@@ -421,7 +421,7 @@ class _CashflowStrip extends StatelessWidget {
                 dense: true,
               ),
               const Spacer(),
-              Os2Text.monoCap('LAST 30D', color: Os2.inkLow, size: 10),
+              Os2Text.monoCap('LAST 30D', color: Os2.inkLow, size: Os2.textMicro),
             ],
           ),
         ],
@@ -534,7 +534,7 @@ class _RuleRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Os2Text.title(title, color: Os2.inkBright, size: 14),
+                  Os2Text.title(title, color: Os2.inkBright, size: Os2.textRg),
                   const SizedBox(height: 2),
                   Os2Text.caption(sub, color: Os2.inkMid),
                 ],

@@ -433,9 +433,9 @@ class _VisaTile extends StatelessWidget {
           children: [
             Text(v.flag, style: const TextStyle(fontSize: 22)),
             const SizedBox(height: 2),
-            Os2Text.monoCap(v.code, color: Os2.inkBright, size: 11),
+            Os2Text.monoCap(v.code, color: Os2.inkBright, size: Os2.textXs),
             const SizedBox(height: 2),
-            Os2Text.monoCap(v.length, color: Os2.servicesTone, size: 9),
+            Os2Text.monoCap(v.length, color: Os2.servicesTone, size: Os2.textTiny),
           ],
         ),
       ),

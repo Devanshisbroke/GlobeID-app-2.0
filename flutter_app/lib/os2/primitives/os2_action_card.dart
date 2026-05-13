@@ -53,7 +53,7 @@ class Os2ActionCard extends StatelessWidget {
               Os2GlyphHalo(icon: icon, tone: tone, size: dense ? 30 : 36),
               const Spacer(),
               if (trailing != null)
-                Os2Text.monoCap(trailing!, color: tone, size: 10),
+                Os2Text.monoCap(trailing!, color: tone, size: Os2.textMicro),
             ],
           ),
           SizedBox(height: dense ? Os2.space2 : Os2.space3),
