@@ -144,6 +144,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/fx-adapter'),
                   ),
                   _SettingsRow(
+                    icon: Icons.flight_takeoff_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Flight adapter',
+                    sub: 'AeroAPI (FlightAware) · demo phase machine',
+                    onTap: () => context.push('/lab/flight-adapter'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
