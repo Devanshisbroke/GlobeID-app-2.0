@@ -357,9 +357,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/smart-routes', redirect: (_, __) => '/intelligence'),
       GoRoute(path: '/atlas', redirect: (_, __) => '/explore'),
       GoRoute(path: '/trip-pipeline', redirect: (_, __) => '/travel-os'),
+      // Shortcut: `/boarding-pass-live` jumps straight to the live
+      // boarding pass for whichever leg is most relevant right now.
+      // BoardingPassLiveScreen auto-resolves to the first active /
+      // upcoming leg when the requested IDs don't exist, so the
+      // `auto/auto` sentinel is intentional and safe on fresh installs.
       GoRoute(
         path: '/boarding-pass-live',
-        redirect: (_, __) => '/boarding/demo-trip/demo-leg',
+        redirect: (_, __) => '/boarding/auto/auto',
       ),
       GoRoute(
         path: '/credential/:id',

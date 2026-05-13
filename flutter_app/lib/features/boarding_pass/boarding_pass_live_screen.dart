@@ -95,18 +95,58 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
     return '${h.toString().padLeft(2, '0')}:$m:$s';
   }
 
+  /// Pick the most relevant leg from the lifecycle store.
+  ///
+  /// Preference order:
+  ///   1. Any trip currently in the `active` stage with a leg.
+  ///   2. The first leg of the earliest upcoming trip.
+  ///   3. The first leg of any trip with legs.
+  ({TripLifecycle trip, FlightLeg leg})? _autoResolve(
+    List<TripLifecycle> trips,
+  ) {
+    if (trips.isEmpty) return null;
+    final withLegs = trips.where((t) => t.legs.isNotEmpty).toList();
+    if (withLegs.isEmpty) return null;
+    final active = withLegs.where((t) => t.stage == 'active').toList();
+    if (active.isNotEmpty) {
+      return (trip: active.first, leg: active.first.legs.first);
+    }
+    final upcoming = withLegs.where((t) => t.stage == 'upcoming').toList();
+    if (upcoming.isNotEmpty) {
+      return (trip: upcoming.first, leg: upcoming.first.legs.first);
+    }
+    return (trip: withLegs.first, leg: withLegs.first.legs.first);
+  }
+
   @override
   Widget build(BuildContext context) {
     final lifecycle = ref.watch(lifecycleProvider);
     final user = ref.watch(userProvider);
-    final trip = lifecycle.trips.cast<TripLifecycle?>().firstWhere(
+
+    // Resolve the requested trip/leg, falling back to the most
+    // relevant upcoming or active leg if the requested IDs don't exist
+    // in the lifecycle store. This keeps shortcuts like
+    // `/boarding-pass-live` and stale deep-links from showing a dead
+    // "not found" state on a freshly installed app.
+    final requestedTrip = lifecycle.trips.cast<TripLifecycle?>().firstWhere(
           (t) => t?.id == widget.tripId,
           orElse: () => null,
         );
-    final leg = trip?.legs.cast<FlightLeg?>().firstWhere(
+    final requestedLeg = requestedTrip?.legs.cast<FlightLeg?>().firstWhere(
           (l) => l?.id == widget.legId,
           orElse: () => null,
         );
+
+    final TripLifecycle? trip;
+    final FlightLeg? leg;
+    if (requestedTrip != null && requestedLeg != null) {
+      trip = requestedTrip;
+      leg = requestedLeg;
+    } else {
+      final auto = _autoResolve(lifecycle.trips);
+      trip = auto?.trip;
+      leg = auto?.leg;
+    }
 
     if (trip == null || leg == null) {
       return Scaffold(
@@ -123,7 +163,7 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
                 ),
                 const SizedBox(height: AppTokens.space3),
                 Text(
-                  'Boarding pass not found',
+                  'No upcoming flights',
                   style: Theme.of(context)
                       .textTheme
                       .titleLarge
@@ -140,10 +180,15 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
       );
     }
 
-    _remaining = _calcRemaining(leg.scheduled);
-    final brand = resolveAirlineBrand(leg.flightNumber);
-    final fromAir = getAirport(leg.from);
-    final toAir = getAirport(leg.to);
+    // Capture as non-nullable locals so closures inside the widget
+    // tree don't have to re-prove nullability across boundaries.
+    final FlightLeg resolvedLeg = leg;
+    final TripLifecycle resolvedTrip = trip;
+
+    _remaining = _calcRemaining(resolvedLeg.scheduled);
+    final brand = resolveAirlineBrand(resolvedLeg.flightNumber);
+    final fromAir = getAirport(resolvedLeg.from);
+    final toAir = getAirport(resolvedLeg.to);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -209,7 +254,7 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
                         PremiumHud(
                           label: 'BOARDING',
                           tone: brand.primary,
-                          trailing: Text('GATE ${leg.gate}'),
+                          trailing: Text('GATE ${resolvedLeg.gate}'),
                         ),
                         const Spacer(),
                         Pressable(
@@ -277,13 +322,13 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
                                         transform: Matrix4.identity()
                                           ..rotateY(math.pi),
                                         child: _BackFace(
-                                          leg: leg,
+                                          leg: resolvedLeg,
                                           brand: brand,
                                           passengerName: user.profile.name,
                                         ),
                                       )
                                     : _FrontFace(
-                                        leg: leg,
+                                        leg: resolvedLeg,
                                         brand: brand,
                                         fromAirport: fromAir,
                                         toAirport: toAir,
@@ -350,9 +395,9 @@ class _BoardingPassLiveScreenState extends ConsumerState<BoardingPassLiveScreen>
                         child: AspectRatio(
                           aspectRatio: 1,
                           child: QrImageView(
-                            data: 'GLOBEID|BP|${trip.id}|${leg.id}|'
-                                '${leg.from}|${leg.to}|${leg.flightNumber}|'
-                                '${leg.scheduled}',
+                            data: 'GLOBEID|BP|${resolvedTrip.id}|${resolvedLeg.id}|'
+                                '${resolvedLeg.from}|${resolvedLeg.to}|${resolvedLeg.flightNumber}|'
+                                '${resolvedLeg.scheduled}',
                             backgroundColor: Colors.white,
                             eyeStyle: const QrEyeStyle(
                               eyeShape: QrEyeShape.square,

@@ -143,10 +143,56 @@ class ServicesWorld extends ConsumerWidget {
                     tone: Os2.discoverTone,
                   ),
                   _Vignette(
+                    icon: Icons.assignment_ind_rounded,
+                    label: 'VISA',
+                    title: 'Visa & eVisa center',
+                    body:
+                        'Eligibility, expiry & readiness · 192 destinations.',
+                    route: '/visa',
+                    tone: Os2.identityTone,
+                  ),
+                  _Vignette(
+                    icon: Icons.currency_exchange_rounded,
+                    label: 'FOREX',
+                    title: 'Currency exchange',
+                    body:
+                        'Live FX · multi-currency pours · spot rates in 48 currencies.',
+                    route: '/wallet/exchange',
+                    tone: Os2.walletTone,
+                  ),
+                  _Vignette(
+                    icon: Icons.auto_awesome_rounded,
+                    label: 'CURATED',
+                    title: 'Curated trips',
+                    body:
+                        'Hand-built itineraries by category — heritage, family, solo, gourmet.',
+                    route: '/itinerary',
+                    tone: Os2.discoverTone,
+                  ),
+                  _Vignette(
+                    icon: Icons.alt_route_rounded,
+                    label: 'ROUTES',
+                    title: 'Smart routes',
+                    body:
+                        'Multi-leg pipeline optimisation across airline, rail and ground.',
+                    route: '/travel-os',
+                    tone: Os2.travelTone,
+                  ),
+                  _Vignette(
+                    icon: Icons.directions_subway_rounded,
+                    label: 'TRANSIT',
+                    title: 'Local transit & passes',
+                    body:
+                        'Metro, rail, bus and ride passes for 84 cities.',
+                    route: '/services/transport',
+                    tone: Os2.pulseTone,
+                  ),
+                  _Vignette(
                     icon: Icons.health_and_safety_rounded,
                     label: 'SAFETY',
                     title: 'Emergency desk',
-                    body: 'Tap-to-talk crisis support \u00b7 medical \u00b7 evacuation in 24/7 ops.',
+                    body:
+                        'Tap-to-talk crisis support \u00b7 medical \u00b7 evacuation in 24/7 ops.',
                     route: '/emergency',
                     tone: Os2.identityTone,
                   ),
@@ -267,6 +313,9 @@ class _ServicesQuickActions extends StatelessWidget {
       _QA('Dine', Icons.restaurant_rounded, Os2.pulseTone, '/services/food'),
       _QA('Lounge', Icons.local_cafe_rounded, Os2.walletTone, '/lounge'),
       _QA('eSIM', Icons.sim_card_rounded, Os2.discoverTone, '/esim'),
+      _QA('Visa', Icons.assignment_ind_rounded, Os2.identityTone, '/visa'),
+      _QA('Forex', Icons.currency_exchange_rounded, Os2.walletTone,
+          '/wallet/exchange'),
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -274,7 +323,7 @@ class _ServicesQuickActions extends StatelessWidget {
         Os2DividerRule(
           eyebrow: 'QUICK ACTIONS',
           tone: Os2.servicesTone,
-          trailing: '6 / 12',
+          trailing: '8 / 12',
         ),
         const SizedBox(height: Os2.space3),
         for (var i = 0; i < actions.length; i += 2) ...[

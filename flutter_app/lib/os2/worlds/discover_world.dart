@@ -471,10 +471,13 @@ class _DiscoverActionGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final actions = [
-      _Act('Curate trip', Icons.tune_rounded, Os2.discoverTone, '/copilot'),
-      _Act('Smart routes', Icons.alt_route_rounded, Os2.travelTone, '/lifecycle-hub'),
-      _Act('Visa scout', Icons.assignment_turned_in_rounded, Os2.identityTone, '/visa-detail/JP'),
-      _Act('Concierge brief', Icons.psychology_rounded, Os2.pulseTone, '/copilot'),
+      _Act('Curate trip', Icons.tune_rounded, Os2.discoverTone, '/itinerary'),
+      _Act('Smart routes', Icons.alt_route_rounded, Os2.travelTone,
+          '/travel-os'),
+      _Act('Visa scout', Icons.assignment_turned_in_rounded,
+          Os2.identityTone, '/visa'),
+      _Act('Concierge brief', Icons.psychology_rounded, Os2.pulseTone,
+          '/copilot'),
     ];
     return Column(
       children: [
