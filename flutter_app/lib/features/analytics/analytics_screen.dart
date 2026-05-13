@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
@@ -25,19 +25,26 @@ class AnalyticsScreen extends ConsumerWidget {
       title: 'Analytics',
       subtitle: 'Spend · mileage · carbon',
       body: wallet.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => EmptyState(
+        loading: () => const Os2LoadingState(
+          eyebrow: 'INTELLIGENCE · ANALYTICS',
+          title: 'Computing analytics',
+          message: 'Crunching spend, mileage, and carbon across your history.',
+          icon: Icons.bar_chart_rounded,
+        ),
+        error: (e, _) => Os2ErrorState(
+          eyebrow: 'INTELLIGENCE · ANALYTICS',
           title: 'Analytics unavailable',
-          message: e.toString(),
-          icon: Icons.cloud_off_rounded,
+          message: 'We couldn\'t reach the analytics backbone. Retry to pull spend, mileage, and carbon totals.',
+          errorCode: e.toString(),
         ),
         data: (data) {
           final spend = ((data['spendByCategory'] as List?) ?? const [])
               .cast<Map<String, dynamic>>();
           if (spend.isEmpty) {
-            return const EmptyState(
+            return const Os2EmptyState(
+              eyebrow: 'INTELLIGENCE · ANALYTICS',
               title: 'No spend yet',
-              message: 'Record a transaction to populate charts.',
+              message: 'Record a transaction to populate spend, mileage, and carbon charts.',
               icon: Icons.bar_chart_rounded,
             );
           }

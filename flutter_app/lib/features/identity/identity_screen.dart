@@ -14,7 +14,7 @@ import '../../domain/identity_tier.dart';
 import '../../widgets/animated_number.dart';
 import '../../widgets/app_chrome.dart';
 import '../../widgets/bible/bible.dart';
-import '../../widgets/empty_state.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/section_header.dart';
@@ -227,9 +227,10 @@ class _IdentityScreenState extends ConsumerState<IdentityScreen>
         // ── Credentials gallery (horizontal carousel) ────────────
         const SectionHeader(title: 'Credentials gallery'),
         if (user.documents.isEmpty)
-          const EmptyState(
+          const Os2EmptyState(
+            eyebrow: 'IDENTITY · CREDENTIALS',
             title: 'No credentials yet',
-            message: 'Add your passport or visa to bump up your tier.',
+            message: 'Add your passport or visa to bump up your tier — every credential is sealed, signed, and pinned to your wallet.',
             icon: Icons.badge_outlined,
           )
         else

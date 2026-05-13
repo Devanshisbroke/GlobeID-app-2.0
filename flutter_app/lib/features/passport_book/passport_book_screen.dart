@@ -50,7 +50,12 @@ class _PassportBookScreenState extends ConsumerState<PassportBookScreen> {
         ),
       ],
       body: loyalty.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Os2LoadingState(
+          eyebrow: 'IDENTITY · LOYALTY',
+          title: 'Reading your stamps',
+          message: 'Pulling tier, stamps, and milestone history from the ledger.',
+          icon: Icons.workspace_premium_rounded,
+        ),
         error: (e, _) => Os2ErrorState(
           eyebrow: 'IDENTITY · LOYALTY',
           title: 'Loyalty unavailable',
