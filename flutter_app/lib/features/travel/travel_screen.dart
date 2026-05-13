@@ -12,6 +12,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
+import '../../motion/haptic_refresh.dart';
 import '../../widgets/section_header.dart';
 import '../lifecycle/lifecycle_provider.dart';
 import 'travel_stats_header.dart';
@@ -54,7 +55,7 @@ class _TravelScreenState extends ConsumerState<TravelScreen>
         ? upcoming.first
         : null;
 
-    return RefreshIndicator(
+    return HapticRefresh(
       onRefresh: () => ref.read(lifecycleProvider.notifier).hydrate(),
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(),

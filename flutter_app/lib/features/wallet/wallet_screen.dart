@@ -20,6 +20,7 @@ import '../../widgets/glass_surface.dart';
 import '../../widgets/premium/premium.dart';
 import '../../widgets/pressable.dart';
 import '../../app/theme/emotional_palette.dart';
+import '../../motion/haptic_refresh.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/sparkline.dart';
 import '../user/user_provider.dart';
@@ -52,7 +53,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
     final passes =
         user.documents.where((d) => d.type == 'boarding_pass').toList();
 
-    return RefreshIndicator(
+    return HapticRefresh(
       onRefresh: () async {
         await Future.wait([
           ref.read(walletProvider.notifier).hydrate(),

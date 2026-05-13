@@ -16,6 +16,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
+import '../../motion/haptic_refresh.dart';
 import '../../widgets/section_header.dart';
 import '../lifecycle/lifecycle_provider.dart';
 import '../score/score_provider.dart';
@@ -125,7 +126,7 @@ class _SuperServicesScreenState extends ConsumerState<SuperServicesScreen> {
     return PageScaffold(
       title: 'Super Services',
       subtitle: 'Predictive travel, money, safety and identity hub',
-      body: RefreshIndicator(
+      body: HapticRefresh(
         onRefresh: _refresh,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(

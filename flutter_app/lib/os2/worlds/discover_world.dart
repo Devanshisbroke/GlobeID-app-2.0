@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../domain/identity_tier.dart';
 import '../../features/trip/trip_country_intel.dart';
 import '../../features/user/user_provider.dart';
+import '../../motion/haptic_refresh.dart';
 import '../os2_tokens.dart';
 import '../primitives/os2_action_card.dart';
 import '../primitives/os2_beacon.dart';
@@ -56,8 +57,9 @@ class _DiscoverWorldState extends ConsumerState<DiscoverWorld> {
 
     return SafeArea(
       bottom: false,
-      child: RefreshIndicator.adaptive(
+      child: HapticRefresh(
         onRefresh: () => ref.read(userProvider.notifier).hydrate(),
+        color: Os2.discoverTone,
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(
               parent: AlwaysScrollableScrollPhysics()),

@@ -39,46 +39,143 @@ class GlobeMotion {
 class Haptics {
   Haptics._();
 
+  /// Master gate — when false, every haptic in the vocabulary is a
+  /// no-op. Wire to a "Reduce motion / haptics" accessibility setting
+  /// when one is added. Default true; future setting flips it.
+  static bool enabled = true;
+
+  // ── Selection family ───────────────────────────────────────────────
+  //
+  // Cheapest, most frequent haptics. Used for hover/focus/scrub —
+  // anything where the user is moving across choices.
+
+  /// User scrubbed across a list (picker / slider / wheel), or focus
+  /// moved between items. Identical to [scrub] but with a more
+  /// descriptive name for new call sites.
+  static void selection() {
+    if (!enabled) return;
+    HapticFeedback.selectionClick();
+  }
+
+  /// Same as [selection]. Kept for source-compat.
+  static void scrub() => selection();
+
+  // ── Press / tap family ─────────────────────────────────────────────
+  //
+  // Light impacts for ordinary tappable surfaces.
+
   /// User tapped a button or made a selection. Cheapest tap.
   static void tap() {
+    if (!enabled) return;
     HapticFeedback.lightImpact();
     SoundCues.instance.play(SoundCue.tap);
   }
 
+  /// User pressed down on a magnetic surface. Identical to
+  /// [selection] today but separate so future tuning (a dedicated
+  /// soft pulse on iOS' Taptic Engine, for instance) doesn't have
+  /// to track down call sites.
+  static void pressDown() => selection();
+
+  /// User released a magnetic surface and committed the tap. Same
+  /// energy as [tap] today; reserved for richer future tuning.
+  static void pressUp() => tap();
+
+  /// User navigated between tabs / pages.
+  static void navigate() {
+    if (!enabled) return;
+    HapticFeedback.lightImpact();
+    SoundCues.instance.play(SoundCue.navigate);
+  }
+
+  // ── Open / close family ────────────────────────────────────────────
+
   /// User opened a panel, drawer, modal, or expanded a card.
   static void open() {
+    if (!enabled) return;
     HapticFeedback.mediumImpact();
     SoundCues.instance.play(SoundCue.open);
   }
 
   /// User closed / dismissed something.
   static void close() {
+    if (!enabled) return;
     HapticFeedback.lightImpact();
     SoundCues.instance.play(SoundCue.close);
   }
 
+  /// User snapped a sheet / panel to a detent.
+  static void snapDetent() {
+    if (!enabled) return;
+    HapticFeedback.mediumImpact();
+  }
+
+  // ── Outcome family ─────────────────────────────────────────────────
+
   /// User triggered an irreversible / consequential action (purchase,
   /// confirm, scan-success).
   static void confirm() {
+    if (!enabled) return;
     HapticFeedback.heavyImpact();
     SoundCues.instance.play(SoundCue.confirm);
   }
 
+  /// User completed something positive (payment received, identity
+  /// verified, trip booked).
+  static Future<void> success() async {
+    if (!enabled) return;
+    await HapticFeedback.lightImpact();
+    await Future<void>.delayed(const Duration(milliseconds: 60));
+    await HapticFeedback.mediumImpact();
+    SoundCues.instance.play(SoundCue.success);
+  }
+
+  /// User hit a soft warning (about to exceed budget, low balance,
+  /// passport about to expire).
+  static void warning() {
+    if (!enabled) return;
+    HapticFeedback.mediumImpact();
+  }
+
   /// User got an error or hit a boundary.
   static void error() {
+    if (!enabled) return;
     HapticFeedback.heavyImpact();
     SoundCues.instance.play(SoundCue.error);
   }
 
-  /// User scrubbed across a list (picker / slider / wheel).
-  static void scrub() {
+  // ── Pull-to-refresh family ─────────────────────────────────────────
+
+  /// User crossed the pull-to-refresh threshold (pull > armed
+  /// distance). One soft tick — let the user know the gesture is
+  /// armed.
+  static void pullArmed() {
+    if (!enabled) return;
     HapticFeedback.selectionClick();
   }
 
-  /// User navigated between tabs / pages.
-  static void navigate() {
+  /// User released a pull-to-refresh while armed. The refresh
+  /// actually began.
+  static void pullCommitted() {
+    if (!enabled) return;
     HapticFeedback.lightImpact();
-    SoundCues.instance.play(SoundCue.navigate);
+  }
+
+  // ── Signature / cinematic family ───────────────────────────────────
+  //
+  // Reserved for hero moments — passport bearer reveal, boarding-pass
+  // unlock, identity tier-up. Multi-pulse pattern that reads as
+  // "something significant just happened".
+
+  /// Cinematic signature haptic — a multi-pulse pattern. Use sparingly
+  /// (≤ 1× per screen, ≤ 5× per session) to preserve the moment.
+  static Future<void> signature() async {
+    if (!enabled) return;
+    await HapticFeedback.lightImpact();
+    await Future<void>.delayed(const Duration(milliseconds: 90));
+    await HapticFeedback.mediumImpact();
+    await Future<void>.delayed(const Duration(milliseconds: 70));
+    await HapticFeedback.lightImpact();
   }
 }
 
