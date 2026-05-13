@@ -36,6 +36,13 @@ class _TransitPassesLiveScreenState
   late final PageController _pages;
   int _index = 0;
   Offset _tilt = Offset.zero;
+  // Cinematic tap state — armed by default (chip primed, awaiting
+  // reader). On tap → committed (the contactless commit moment).
+  // Auto-settles back to armed ~1.6 s later so the card is ready
+  // for the next gate.
+  LiveSurfaceState _tapState = LiveSurfaceState.armed;
+  // Broadcasts a tonal halo over the active card on each tap.
+  final _tapPulse = LiveDataPulseController();
 
   static final _cards = [
     _Card('Suica', '¥ 4,820', 'Tap: TOKYO 12:42', Color(0xFF22C55E), '🚇'),
@@ -66,7 +73,26 @@ class _TransitPassesLiveScreenState
     _foil.dispose();
     _tap.dispose();
     _pages.dispose();
+    _tapPulse.dispose();
     super.dispose();
+  }
+
+  /// Cinematic tap orchestration — the user's "physical contactless
+  /// commit". State ladder: armed → committed (the moment) →
+  /// settled (1.4 s grace) → armed (ready for next gate).
+  void _runTap() {
+    Haptics.signature();
+    _tap.forward(from: 0);
+    _tapPulse.pulse();
+    setState(() => _tapState = LiveSurfaceState.committed);
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
+      setState(() => _tapState = LiveSurfaceState.settled);
+    });
+    Future.delayed(const Duration(milliseconds: 2200), () {
+      if (!mounted) return;
+      setState(() => _tapState = LiveSurfaceState.armed);
+    });
   }
 
   @override
@@ -155,10 +181,21 @@ class _TransitPassesLiveScreenState
                           ),
                         );
                       },
+                      // Only the active card drives the cinematic
+                      // tap-state machine + pulse — others stay calm
+                      // armed so the deck reads as "this one is
+                      // primed; the rest are at rest". The foil
+                      // also tracks user tilt so the active card
+                      // catches the light naturally.
                       child: _TransitCard(
                         card: card,
                         foilAnim: _foil,
-                        tilt: _tilt,
+                        tilt: i == _index ? _tilt : Offset.zero,
+                        liveState: i == _index
+                            ? _tapState
+                            : LiveSurfaceState.armed,
+                        pulseController:
+                            i == _index ? _tapPulse : null,
                       ),
                     );
                   },
@@ -168,13 +205,11 @@ class _TransitPassesLiveScreenState
             const SizedBox(height: N.s4),
             _TapButton(
               tone: active.tone,
-              onTap: () {
-                // Simulated NFC tap — the cinematic moment for a
-                // transit card. Signature triple-pulse so it lands
-                // as a real-world contactless commit.
-                Haptics.signature();
-                _tap.forward(from: 0);
-              },
+              // Simulated NFC tap — drives the full cinematic
+              // state ladder (armed → committed → settled → armed)
+              // so the status pill, halo, and pulse all evolve
+              // through the contactless commit.
+              onTap: _runTap,
               anim: _tap,
             ),
           ],
@@ -327,6 +362,8 @@ class _TransitCard extends StatelessWidget {
     required this.card,
     required this.foilAnim,
     this.tilt = Offset.zero,
+    this.liveState = LiveSurfaceState.armed,
+    this.pulseController,
   });
   final _Card card;
   final AnimationController foilAnim;
@@ -334,15 +371,19 @@ class _TransitCard extends StatelessWidget {
   /// Pan offset — plumbed into the aurora foil so the digital
   /// credential's holographic sweep follows the user's tilt.
   final Offset tilt;
+
+  /// Cinematic state of the card — armed by default, committed
+  /// during a contactless tap, settled briefly after. Drives the
+  /// status pill state.
+  final LiveSurfaceState liveState;
+
+  /// Pulse broadcaster fired the moment a tap commits. When
+  /// provided the card's body is wrapped in [LiveDataPulse] so the
+  /// contactless commit reads as a tonal bloom across the card.
+  final LiveDataPulseController? pulseController;
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: AspectRatio(
-        aspectRatio: 1.58, // standard credit-card aspect ratio
-        child: LiveLift(
-          tone: card.tone,
-          child: TransitCardSubstrate(
+    Widget body = TransitCardSubstrate(
           tone: card.tone,
           child: Stack(
             children: [
@@ -407,10 +448,10 @@ class _TransitCard extends StatelessWidget {
               ),
               // Live state pill — pulses with the cinematic ladder
               // intensity. Lives below the NFC chip on its own row.
-              const Positioned(
+              Positioned(
                 top: 56,
                 right: 10,
-                child: LiveStatusPill(state: LiveSurfaceState.active),
+                child: LiveStatusPill(state: liveState, tone: card.tone),
               ),
               Positioned(
                 bottom: 18,
@@ -471,8 +512,22 @@ class _TransitCard extends StatelessWidget {
               ),
             ],
           ),
-        ),
-        ),
+        );
+
+    final controller = pulseController;
+    if (controller != null) {
+      body = LiveDataPulse(
+        controller: controller,
+        tone: card.tone,
+        child: body,
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: AspectRatio(
+        aspectRatio: 1.58, // standard credit-card aspect ratio
+        child: LiveLift(tone: card.tone, child: body),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../cinematic/live/live_primitives.dart';
 import '../../cinematic/live/live_substrates.dart';
+import '../../motion/motion.dart';
 import '../../nexus/nexus_tokens.dart';
 
 /// LoungeLive — embossed leather lounge card.
@@ -31,6 +32,15 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
   late final AnimationController _foil;
   Offset _tilt = Offset.zero;
 
+  // Cinematic state of the lounge card. Starts armed (waiting for
+  // a check-in tap); commits when the user taps "Check in", then
+  // settles after 1.8 s back to active for the rest of the visit.
+  LiveSurfaceState _cardState = LiveSurfaceState.armed;
+
+  // Pulse broadcaster — fires over the member card when the user
+  // commits a check-in, blooming a tonal halo across the foil.
+  final _checkInPulse = LiveDataPulseController();
+
   @override
   void initState() {
     super.initState();
@@ -44,7 +54,22 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
   @override
   void dispose() {
     _foil.dispose();
+    _checkInPulse.dispose();
     super.dispose();
+  }
+
+  /// Cinematic check-in commit — the signature moment when an Elite
+  /// member walks past the host. Triple-pulse haptic, tonal halo
+  /// across the member card, status ladder armed → committed →
+  /// active (the post-commit settled-into-the-lounge state).
+  void _commitCheckIn() {
+    Haptics.signature();
+    _checkInPulse.pulse();
+    setState(() => _cardState = LiveSurfaceState.committed);
+    Future.delayed(const Duration(milliseconds: 1800), () {
+      if (!mounted) return;
+      setState(() => _cardState = LiveSurfaceState.active);
+    });
   }
 
   @override
@@ -70,7 +95,10 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                 label: 'Check in',
                 icon: Icons.qr_code_scanner_rounded,
                 onTap: () {
-                  HapticFeedback.lightImpact();
+                  // Cinematic commit — signature haptic + tonal
+                  // halo bloom across the member card before the
+                  // user lands on the boarding pass.
+                  _commitCheckIn();
                   context.push('/boarding-pass-live');
                 },
               ),
@@ -111,7 +139,10 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                     tone: tone,
                     child: AspectRatio(
                     aspectRatio: 1.58,
-                    child: LoungeCardSubstrate(
+                    child: LiveDataPulse(
+                      controller: _checkInPulse,
+                      tone: tone,
+                      child: LoungeCardSubstrate(
                       tone: tone,
                       child: Stack(
                         children: [
@@ -239,16 +270,20 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                             alignment: Alignment.bottomLeft,
                           ),
                           // Live state pill — cinematic ladder
-                          // status. Pulses with the state glow.
-                          const Positioned(
+                          // status. Pulses with the state glow,
+                          // evolving armed → committed → active as
+                          // the user checks into the lounge.
+                          Positioned(
                             top: 12,
                             right: 12,
                             child: LiveStatusPill(
-                              state: LiveSurfaceState.active,
+                              state: _cardState,
+                              tone: tone,
                             ),
                           ),
                         ],
                       ),
+                    ),
                     ),
                     ),
                   ),

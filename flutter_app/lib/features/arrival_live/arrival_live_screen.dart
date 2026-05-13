@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -84,6 +87,13 @@ class _ArrivalLiveScreenState extends ConsumerState<ArrivalLiveScreen>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _DescentBanner(tone: tone),
+              const SizedBox(height: N.s4),
+              const _CityTimeStrip(
+                city: 'TOKYO',
+                zone: 'JST · UTC+9',
+                tzOffset: Duration(hours: 9),
+                tone: Color(0xFF10B981),
+              ),
               const SizedBox(height: N.s4),
               _BaggageBelt(tone: tone, anim: _belt),
               const SizedBox(height: N.s4),
@@ -507,4 +517,263 @@ class _CustomsCard extends StatelessWidget {
       ),
     );
   }
+}
+
+
+/// City-time strip — a live local-time ticker over a slow-drifting
+/// city skyline silhouette. Renders the cinematic moment where the
+/// flight has landed and the city is now yours: an actual JST clock
+/// ticking every second, behind a silhouette that breathes from
+/// left to right on a ~22 s cycle.
+///
+/// Brand DNA stays intact — gold hairline accents (#D4AF37), mono-cap
+/// caption, OLED-black substrate, faint GLOBE·ID watermark drift —
+/// so the strip reads as engineered-by-GlobeID, not generic UI.
+class _CityTimeStrip extends StatefulWidget {
+  const _CityTimeStrip({
+    required this.city,
+    required this.zone,
+    required this.tzOffset,
+    required this.tone,
+  });
+
+  /// Display label for the city — used in mono-cap chrome.
+  final String city;
+
+  /// Display label for the zone — e.g. 'JST · UTC+9'.
+  final String zone;
+
+  /// Offset from UTC. The clock displays
+  /// `(DateTime.now().toUtc() + tzOffset)`.
+  final Duration tzOffset;
+
+  /// Tonal accent (gold by default in arrival context).
+  final Color tone;
+
+  @override
+  State<_CityTimeStrip> createState() => _CityTimeStripState();
+}
+
+class _CityTimeStripState extends State<_CityTimeStrip>
+    with SingleTickerProviderStateMixin {
+  Timer? _tick;
+  late final AnimationController _drift;
+  DateTime _now = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _drift = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 22),
+    )..repeat();
+    _tick = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() => _now = DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    _drift.dispose();
+    super.dispose();
+  }
+
+  String _two(int n) => n.toString().padLeft(2, '0');
+
+  @override
+  Widget build(BuildContext context) {
+    final local = _now.toUtc().add(widget.tzOffset);
+    final clock = '${_two(local.hour)}:${_two(local.minute)}:${_two(local.second)}';
+
+    return Container(
+      height: 96,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(N.rCardLg),
+        color: const Color(0xFF050505),
+        border: Border.all(
+          color: const Color(0xFFD4AF37).withValues(alpha: 0.22),
+          width: 0.6,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(N.rCardLg),
+        child: Stack(
+          children: [
+            // Skyline silhouette — slow parallax drift left→right on
+            // ~22 s. Painted in a deep tonal blue so the OLED-black
+            // substrate reads as horizon, not flat.
+            Positioned.fill(
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _drift,
+                  builder: (_, __) => CustomPaint(
+                    painter: _SkylinePainter(
+                      t: _drift.value,
+                      tone: widget.tone,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Faint top→bottom darkening so the clock reads clearly.
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.10),
+                      Colors.black.withValues(alpha: 0.55),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Left: city + zone (mono-cap chrome).
+            Positioned(
+              left: 16,
+              top: 14,
+              bottom: 14,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'LOCAL TIME · ${widget.city.toUpperCase()}',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.55),
+                      fontWeight: FontWeight.w900,
+                      fontSize: 9,
+                      letterSpacing: 1.6,
+                    ),
+                  ),
+                  Text(
+                    widget.zone,
+                    style: TextStyle(
+                      color: const Color(0xFFE9C75D).withValues(alpha: 0.92),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 10,
+                      letterSpacing: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Right: live JST tick.
+            Positioned(
+              right: 16,
+              top: 14,
+              bottom: 14,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    clock,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 26,
+                      letterSpacing: 1.4,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'GLOBEID · CITY HOUR',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.45),
+                      fontWeight: FontWeight.w900,
+                      fontSize: 8,
+                      letterSpacing: 1.8,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Painter — minimal repeating skyline silhouette that drifts on the
+/// underlying [t] cycle. Two layers: a back-row of taller towers
+/// drifts slowly, a front-row of shorter buildings drifts at 1.6× so
+/// the parallax reads as depth, not motion alone.
+class _SkylinePainter extends CustomPainter {
+  _SkylinePainter({required this.t, required this.tone});
+  final double t;
+  final Color tone;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // Back row — far towers. Deep navy, slow.
+    final back = Paint()..color = const Color(0xFF0A1424);
+    final backOffset = (t * w * 0.45) % w;
+    _drawSkyline(canvas, size, back, h * 0.52, h * 0.78, 9, backOffset);
+
+    // Front row — closer buildings. Slightly tonal, faster.
+    final front = Paint()
+      ..color = Color.lerp(
+        const Color(0xFF050B14),
+        tone,
+        0.04,
+      )!;
+    final frontOffset = (t * w * 0.72) % w;
+    _drawSkyline(canvas, size, front, h * 0.68, h * 0.94, 13, frontOffset);
+
+    // Distant point lights — faint warm gold pinpricks on the
+    // skyline ridge so it reads as a city at dusk, not a flat tone.
+    final star = Paint()
+      ..color = const Color(0xFFE9C75D).withValues(alpha: 0.55);
+    final rand = math.Random(7);
+    for (var i = 0; i < 14; i++) {
+      final x = (rand.nextDouble() * w + t * w * 0.30) % w;
+      final y = h * (0.55 + rand.nextDouble() * 0.30);
+      canvas.drawCircle(Offset(x, y), 0.85, star);
+    }
+  }
+
+  void _drawSkyline(
+    Canvas canvas,
+    Size size,
+    Paint paint,
+    double minTopY,
+    double bottomY,
+    int towerCount,
+    double xOffset,
+  ) {
+    final w = size.width;
+    final segment = w / towerCount;
+    final path = Path()
+      ..moveTo(-segment, size.height)
+      ..lineTo(-segment, bottomY);
+    final rand = math.Random(towerCount);
+    for (var i = -1; i <= towerCount + 1; i++) {
+      final tx = i * segment - xOffset % segment;
+      final th = minTopY + rand.nextDouble() * (bottomY - minTopY) * 0.65;
+      final tw = segment * (0.55 + rand.nextDouble() * 0.35);
+      path
+        ..lineTo(tx, th)
+        ..lineTo(tx + tw, th)
+        ..lineTo(tx + tw, bottomY);
+    }
+    path
+      ..lineTo(w + segment, bottomY)
+      ..lineTo(w + segment, size.height)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SkylinePainter old) =>
+      old.t != t || old.tone != tone;
 }

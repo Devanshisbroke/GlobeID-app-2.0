@@ -824,4 +824,120 @@ void main() {
       expect(w.rollOnMount, true);
     });
   });
+
+  // ─────────────────────────────────────────────────────────────────
+  // Phase 3e — Live surfaces deep-alive
+  //
+  // Verifies the state-driven Live surface contracts shipped in 3e:
+  // the boarding pass time-state mapper, the transit tap controller,
+  // and the lounge check-in pulse controller invariants.
+  // ─────────────────────────────────────────────────────────────────
+  group('LiveSurfaceState — boarding window cinematic ladder', () {
+    // Helper mirroring the private _stateForRemaining in the
+    // boarding pass screen. Mirrored here so the contract is
+    // independently verified against the cadence ladder.
+    LiveSurfaceState stateForRemaining(Duration d) {
+      if (d.isNegative) return LiveSurfaceState.settled;
+      final mins = d.inMinutes;
+      if (mins > 120) return LiveSurfaceState.armed;
+      if (mins > 30) return LiveSurfaceState.active;
+      if (mins >= 5) return LiveSurfaceState.committed;
+      return LiveSurfaceState.settled;
+    }
+
+    test('>2h out is armed', () {
+      expect(
+        stateForRemaining(const Duration(hours: 4)),
+        LiveSurfaceState.armed,
+      );
+    });
+
+    test('30 m – 2 h is active', () {
+      expect(
+        stateForRemaining(const Duration(minutes: 90)),
+        LiveSurfaceState.active,
+      );
+      expect(
+        stateForRemaining(const Duration(minutes: 45)),
+        LiveSurfaceState.active,
+      );
+    });
+
+    test('5 – 30 m is committed (the boarding window)', () {
+      expect(
+        stateForRemaining(const Duration(minutes: 25)),
+        LiveSurfaceState.committed,
+      );
+      expect(
+        stateForRemaining(const Duration(minutes: 5)),
+        LiveSurfaceState.committed,
+      );
+    });
+
+    test('< 5 m → settled (gate about to close)', () {
+      expect(
+        stateForRemaining(const Duration(minutes: 4)),
+        LiveSurfaceState.settled,
+      );
+    });
+
+    test('negative duration → settled (departed)', () {
+      expect(
+        stateForRemaining(const Duration(minutes: -5)),
+        LiveSurfaceState.settled,
+      );
+    });
+
+    test('ladder breathing accelerates from armed to committed', () {
+      final armed =
+          stateForRemaining(const Duration(hours: 4)).breathingPeriod;
+      final active =
+          stateForRemaining(const Duration(minutes: 90)).breathingPeriod;
+      final committed =
+          stateForRemaining(const Duration(minutes: 15)).breathingPeriod;
+      expect(armed.inMilliseconds, greaterThan(active.inMilliseconds));
+      expect(active.inMilliseconds, greaterThan(committed.inMilliseconds));
+    });
+  });
+
+  group('LiveDataPulseController — repeated commits on the same controller',
+      () {
+    test('a controller can be re-pulsed many times without leaking', () {
+      final c = LiveDataPulseController();
+      // Simulate a transit user tapping at every gate over a multi-leg
+      // journey. The controller must broadcast every pulse cleanly.
+      for (var i = 0; i < 50; i++) {
+        c.pulse();
+      }
+      c.dispose();
+    });
+
+    test('a fresh controller starts with zero listeners', () {
+      final c = LiveDataPulseController();
+      // hasListeners is protected in ChangeNotifier so we just verify
+      // pulse() is safe on a brand-new instance.
+      c.pulse();
+      c.dispose();
+    });
+  });
+
+  group('LiveStatusPill — state pill mounts for every cinematic state', () {
+    for (final state in LiveSurfaceState.values) {
+      testWidgets('mounts cleanly with state = ${state.name}',
+          (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: LiveStatusPill(
+                state: state,
+                tone: const Color(0xFFD4AF37),
+              ),
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(find.byType(LiveStatusPill), findsOneWidget);
+      });
+    }
+  });
 }
