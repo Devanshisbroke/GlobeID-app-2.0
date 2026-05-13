@@ -39,6 +39,8 @@ class PremiumServiceCard extends StatelessWidget {
       rotation: 0.012,
       child: MagneticPressable(
         onTap: onTap,
+        semanticLabel: title,
+        semanticHint: subtitle,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(AppTokens.radius2xl),
           child: Container(

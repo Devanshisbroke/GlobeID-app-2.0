@@ -49,7 +49,13 @@ class _EmptyStateState extends State<EmptyState>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color = widget.tone ?? theme.colorScheme.primary;
-    return Center(
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      label: '${widget.title}. ${widget.message}',
+      child: ExcludeSemantics(
+        excluding: widget.cta == null && widget.tertiary == null,
+        child: Center(
       child: Padding(
         padding: const EdgeInsets.all(AppTokens.space7),
         child: Column(
@@ -127,6 +133,8 @@ class _EmptyStateState extends State<EmptyState>
                   onPressed: widget.onTertiary, child: Text(widget.tertiary!)),
             ],
           ],
+        ),
+      ),
         ),
       ),
     );

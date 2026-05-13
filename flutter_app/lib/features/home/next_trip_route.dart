@@ -267,6 +267,8 @@ class _NextTripRouteState extends State<NextTripRoute>
     );
 
     return Pressable(
+      semanticLabel: hasRoute ? 'Next trip route' : 'Plan a trip',
+      semanticHint: hasRoute ? 'opens travel screen' : 'opens trip planner',
       onTap: widget.onTap ??
           () {
             if (hasRoute) {

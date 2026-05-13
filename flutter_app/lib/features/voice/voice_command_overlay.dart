@@ -28,6 +28,8 @@ class VoiceCommandOrb extends StatelessWidget {
       message: 'Voice command',
       child: Pressable(
         scale: 0.92,
+        semanticLabel: 'Voice command',
+        semanticHint: 'opens the voice copilot',
         onTap: () {
           HapticFeedback.mediumImpact();
           showAppleSheet<void>(

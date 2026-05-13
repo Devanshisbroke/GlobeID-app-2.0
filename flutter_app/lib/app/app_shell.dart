@@ -429,10 +429,16 @@ class _DockTab extends StatelessWidget {
     final tone = tab.tone;
     final inactive = theme.colorScheme.onSurface.withValues(alpha: 0.62);
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-      child: AnimatedContainer(
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: tab.label,
+      hint: 'switch to ${tab.label} world',
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+        child: AnimatedContainer(
         duration: const Duration(milliseconds: 320),
         curve: Curves.easeOutCubic,
         // Active capsule expands; inactive collapses to icon-only.
@@ -502,6 +508,7 @@ class _DockTab extends StatelessWidget {
           },
         ),
       ),
+      ),
     );
   }
 }
@@ -556,7 +563,12 @@ class _ScanFabState extends State<_ScanFab>
       animation: _glow,
       builder: (_, __) {
         final t = Curves.easeInOut.transform(_glow.value);
-        return SizedBox(
+        return Semantics(
+          button: true,
+          label: 'Scan',
+          hint: 'tap to scan, long-press to open command palette',
+          excludeSemantics: true,
+          child: SizedBox(
           width: 72,
           height: 72,
           child: Material(
@@ -686,6 +698,7 @@ class _ScanFabState extends State<_ScanFab>
                 ],
               ),
             ),
+          ),
           ),
         );
       },

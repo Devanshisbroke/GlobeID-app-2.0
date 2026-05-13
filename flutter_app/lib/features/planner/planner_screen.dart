@@ -666,6 +666,7 @@ class _StepHeader extends StatelessWidget {
             ),
             const Spacer(),
             IconButton(
+              tooltip: 'Close',
               icon: const Icon(Icons.close_rounded),
               onPressed: onClose,
             ),

@@ -37,6 +37,8 @@ class AgenticChip extends StatelessWidget {
     final accent = tone ?? N.tierGold;
     return Pressable(
       scale: 0.96,
+      semanticLabel: eyebrow != null ? '$eyebrow, $label' : label,
+      semanticHint: 'recommended action',
       onTap: () {
         HapticFeedback.lightImpact();
         if (onTap != null) {

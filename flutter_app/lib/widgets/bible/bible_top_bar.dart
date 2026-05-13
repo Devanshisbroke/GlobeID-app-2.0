@@ -470,9 +470,21 @@ class BibleTopBarAction extends StatelessWidget {
       ),
     );
 
-    return tooltip == null
-        ? core
-        : Tooltip(message: tooltip!, child: core);
+    if (tooltip == null) return core;
+    // Tooltip ships its own semantics, but we wrap in a Semantics
+    // button node so screen readers announce role + label uniformly
+    // across every top-bar action (including those on iOS, where
+    // long-press tooltips don't render visually).
+    return Semantics(
+      button: true,
+      label: tooltip!,
+      hint: badgeCount > 0
+          ? '$badgeCount unread'
+          : null,
+      child: ExcludeSemantics(
+        child: Tooltip(message: tooltip!, child: core),
+      ),
+    );
   }
 }
 

@@ -28,6 +28,8 @@ class MagneticPressable extends StatefulWidget {
     this.scale = 0.985,
     this.duration = AppTokens.durationSm,
     this.behavior = HitTestBehavior.opaque,
+    this.semanticLabel,
+    this.semanticHint,
   });
 
   final Widget child;
@@ -48,6 +50,13 @@ class MagneticPressable extends StatefulWidget {
   final Duration duration;
 
   final HitTestBehavior behavior;
+
+  /// Optional accessibility label that the screen reader announces
+  /// when the surface gains focus. Pair with [semanticHint] to add
+  /// guidance ("opens trip details") without changing the visible
+  /// chrome.
+  final String? semanticLabel;
+  final String? semanticHint;
 
   @override
   State<MagneticPressable> createState() => _MagneticPressableState();
@@ -102,7 +111,7 @@ class _MagneticPressableState extends State<MagneticPressable>
   @override
   Widget build(BuildContext context) {
     final reduce = MediaQuery.of(context).disableAnimations;
-    return LayoutBuilder(
+    final core = LayoutBuilder(
       builder: (_, c) {
         _onSize(Size(c.maxWidth, c.maxHeight));
         return Listener(
@@ -159,6 +168,15 @@ class _MagneticPressableState extends State<MagneticPressable>
           ),
         );
       },
+    );
+    final label = widget.semanticLabel;
+    if (label == null || label.isEmpty) return core;
+    return Semantics(
+      button: true,
+      enabled: widget.onTap != null || widget.onLongPress != null,
+      label: label,
+      hint: widget.semanticHint,
+      child: ExcludeSemantics(child: core),
     );
   }
 

@@ -685,6 +685,7 @@ class _PostCard extends StatelessWidget {
                 ),
               ),
               IconButton(
+                tooltip: 'More options',
                 icon: Icon(
                   Icons.more_horiz_rounded,
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
