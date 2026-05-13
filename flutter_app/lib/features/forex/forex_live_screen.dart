@@ -464,7 +464,10 @@ class _BanknoteCard extends StatelessWidget {
       padding: const EdgeInsets.all(6),
       child: AspectRatio(
         aspectRatio: 0.62,
-        child: BanknoteSubstrate(
+        child: LiveLift(
+          tone: note.tone,
+          depth: 18,
+          child: BanknoteSubstrate(
           tone: note.tone,
           serial: 'GBL · ${note.code} · A${note.amount.toInt().toString().padLeft(6, '0')}',
           child: Stack(
@@ -558,8 +561,16 @@ class _BanknoteCard extends StatelessWidget {
                   ),
                 ),
               ),
+              // Live state pill — banknote stays in ACTIVE while
+              // pinned. Mono-cap glow against the linen substrate.
+              const Positioned(
+                top: 14,
+                left: 90,
+                child: LiveStatusPill(state: LiveSurfaceState.active),
+              ),
             ],
           ),
+        ),
         ),
       ),
     );

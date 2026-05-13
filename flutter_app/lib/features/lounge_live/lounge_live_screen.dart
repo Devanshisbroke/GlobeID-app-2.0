@@ -106,7 +106,9 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                 child: TiltParallax(
                   tilt: _tilt,
                   depth: 6,
-                  child: AspectRatio(
+                  child: LiveLift(
+                    tone: tone,
+                    child: AspectRatio(
                     aspectRatio: 1.58,
                     child: LoungeCardSubstrate(
                       tone: tone,
@@ -138,9 +140,17 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                                       ),
                                     ),
                                     const Spacer(),
-                                    OviSeal(
-                                      icon: Icons.weekend_rounded,
+                                    // OVI seal with NFC pulse —
+                                    // signals the card is "live and
+                                    // ready to tap" without making
+                                    // noise. Heart-rate cadence.
+                                    NfcPulse(
                                       tone: tone,
+                                      size: 48,
+                                      child: OviSeal(
+                                        icon: Icons.weekend_rounded,
+                                        tone: tone,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -192,8 +202,25 @@ class _LoungeLiveScreenState extends ConsumerState<LoungeLiveScreen>
                               ],
                             ),
                           ),
+                          // GlobeID signature — discreet hairline
+                          // gold rule + 9 px monogram pressed into
+                          // the corner. Says "manufactured by
+                          // GlobeID" without competing for the eye.
+                          const GlobeIdSignature(
+                            alignment: Alignment.bottomLeft,
+                          ),
+                          // Live state pill — cinematic ladder
+                          // status. Pulses with the state glow.
+                          const Positioned(
+                            top: 12,
+                            right: 12,
+                            child: LiveStatusPill(
+                              state: LiveSurfaceState.active,
+                            ),
+                          ),
                         ],
                       ),
+                    ),
                     ),
                   ),
                 ),

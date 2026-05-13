@@ -165,11 +165,9 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
-          StatusPill(
-            icon: Icons.alt_route_rounded,
-            label: 'NAV',
+          LiveStatusPill(
+            state: LiveSurfaceState.active,
             tone: tone,
-            dense: true,
           ),
         ],
       ),

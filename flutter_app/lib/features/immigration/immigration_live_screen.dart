@@ -183,11 +183,9 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
-          StatusPill(
-            icon: Icons.bolt_rounded,
-            label: 'READY',
-            tone: const Color(0xFF10B981),
-            dense: true,
+          const LiveStatusPill(
+            state: LiveSurfaceState.armed,
+            tone: Color(0xFF10B981),
           ),
         ],
       ),

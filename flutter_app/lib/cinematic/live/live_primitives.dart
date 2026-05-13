@@ -1095,3 +1095,407 @@ extension LiveSurfaceStateX on LiveSurfaceState {
     }
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────
+// NFC PULSE — the chip-is-live signal
+// ─────────────────────────────────────────────────────────────────────
+
+/// A faint radial pulse that radiates outward from an NFC / chip /
+/// contactless icon at a heart-rate cadence — communicating "this
+/// credential is awake, tap me" without the noise of a constantly
+/// animated background.
+///
+/// Used on Transit Passes, Lounge member cards, and the OVI seal on
+/// hero credentials. The pulse renders BEHIND the icon (so it doesn't
+/// obscure anything) and the icon is passed in as the [child].
+class NfcPulse extends StatefulWidget {
+  const NfcPulse({
+    super.key,
+    required this.child,
+    this.tone,
+    this.size = 56,
+    this.period = const Duration(milliseconds: 1400),
+    this.rings = 2,
+    this.maxAlpha = 0.55,
+  });
+
+  /// The chip / NFC / wave icon to render at the centre.
+  final Widget child;
+
+  /// Pulse ring colour. Defaults to GlobeID hot gold.
+  final Color? tone;
+
+  /// Total widget footprint (square). The pulse rings extend to this
+  /// outer radius at peak.
+  final double size;
+
+  /// One full pulse cycle. Default ~1.4 s — slightly faster than a
+  /// resting heart-beat, in the cadence band that reads as "alert".
+  final Duration period;
+
+  /// How many overlapping rings echo outward. 1 = a single pulse,
+  /// 2 = a stacked pair offset by half a phase (richer cadence),
+  /// 3+ gets noisy.
+  final int rings;
+
+  /// Peak ring alpha at the brightest frame.
+  final double maxAlpha;
+
+  @override
+  State<NfcPulse> createState() => _NfcPulseState();
+}
+
+class _NfcPulseState extends State<NfcPulse>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.period,
+  )..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tone = widget.tone ?? const Color(0xFFE9C75D);
+    return RepaintBoundary(
+      child: SizedBox(
+        width: widget.size,
+        height: widget.size,
+        child: AnimatedBuilder(
+          animation: _c,
+          builder: (_, child) {
+            return CustomPaint(
+              painter: _NfcPulsePainter(
+                t: _c.value,
+                tone: tone,
+                rings: widget.rings,
+                maxAlpha: widget.maxAlpha,
+              ),
+              child: child,
+            );
+          },
+          child: Center(child: widget.child),
+        ),
+      ),
+    );
+  }
+}
+
+class _NfcPulsePainter extends CustomPainter {
+  _NfcPulsePainter({
+    required this.t,
+    required this.tone,
+    required this.rings,
+    required this.maxAlpha,
+  });
+
+  final double t;
+  final Color tone;
+  final int rings;
+  final double maxAlpha;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final centre = Offset(size.width / 2, size.height / 2);
+    final maxR = size.shortestSide / 2;
+    for (var i = 0; i < rings; i++) {
+      // Each ring is offset by 1/rings of a phase so the pulses
+      // stack in a continuous echo instead of all pulsing in unison.
+      final phase = (t + i / rings) % 1.0;
+      final radius = maxR * (0.35 + 0.65 * phase);
+      // Alpha eases in then out — peaks at phase 0.35.
+      final fade = (1 - phase) * (phase < 0.15 ? phase / 0.15 : 1);
+      final alpha = (maxAlpha * fade).clamp(0.0, 1.0);
+      if (alpha <= 0.01) continue;
+      final paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0 + 0.6 * (1 - phase)
+        ..color = tone.withValues(alpha: alpha);
+      canvas.drawCircle(centre, radius, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _NfcPulsePainter old) =>
+      old.t != t ||
+      old.tone != tone ||
+      old.rings != rings ||
+      old.maxAlpha != maxAlpha;
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// LIVE STATUS PILL — cinematic state ladder badge
+// ─────────────────────────────────────────────────────────────────────
+
+/// A hairline mono-cap pill that shows the current [LiveSurfaceState]
+/// — IDLE / ARMED / LIVE / COMMITTED / SETTLED. The pill border and
+/// dot pulse at the state's [LiveSurfaceState.glowAlpha], so the eye
+/// reads the cinematic ladder without any explicit indicator.
+///
+/// Drop this into the top-right of any Live surface as a "what's
+/// happening" badge. Subtle by design.
+class LiveStatusPill extends StatefulWidget {
+  const LiveStatusPill({
+    super.key,
+    required this.state,
+    this.tone,
+    this.compact = true,
+  });
+
+  final LiveSurfaceState state;
+
+  /// Accent tone for the dot + ring. Defaults to GlobeID gold.
+  final Color? tone;
+
+  /// When true (default) the pill is tight enough for a credential
+  /// corner; when false it adopts a slightly more generous footprint
+  /// for a dossier header.
+  final bool compact;
+
+  @override
+  State<LiveStatusPill> createState() => _LiveStatusPillState();
+}
+
+class _LiveStatusPillState extends State<LiveStatusPill>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1800),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tone = widget.tone ?? const Color(0xFFE9C75D);
+    final base = widget.state.glowAlpha;
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (_, __) {
+          // Pulse breathes ±18% around the base glow — gentle, never
+          // fully extinguished. ARMED / LIVE / COMMITTED all read
+          // brighter than IDLE / SETTLED at their dimmest frame.
+          final amp = 0.18 * base;
+          final pulse = (base + math.sin(_c.value * math.pi) * amp)
+              .clamp(0.06, 0.95);
+          return Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: widget.compact ? 8 : 10,
+              vertical: widget.compact ? 4 : 5,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.42),
+              border: Border.all(
+                color: tone.withValues(alpha: pulse * 0.85),
+                width: 0.6,
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: tone.withValues(alpha: pulse),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  widget.state.label,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.78),
+                    fontWeight: FontWeight.w900,
+                    fontSize: widget.compact ? 8.5 : 9.5,
+                    letterSpacing: 1.8,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// LIVE LIFT — credentials float off the OLED substrate
+// ─────────────────────────────────────────────────────────────────────
+
+/// Single-frame attention pulse triggered when a Live data field
+/// changes — gate-change on a boarding pass, rate-spike on a forex
+/// banknote, advisory escalation on a country dossier, queue depth
+/// shift on immigration. Emits one full pulse on demand, then
+/// settles.
+///
+/// Wrap any widget that displays mutating live data; call
+/// `LiveDataPulseController.pulse()` from outside (e.g. when a
+/// provider value changes) to fire one cinematic moment.
+class LiveDataPulseController extends ChangeNotifier {
+  int _gen = 0;
+  int get generation => _gen;
+
+  /// Fire one pulse — the wrapped widget will flash on next frame.
+  void pulse() {
+    _gen++;
+    notifyListeners();
+  }
+}
+
+/// Wraps a child in a one-shot tonal glow pulse — triggered by a
+/// [LiveDataPulseController]. The pulse halos the child's bounds
+/// for 600 ms with a tonal accent, then fades.
+class LiveDataPulse extends StatefulWidget {
+  const LiveDataPulse({
+    super.key,
+    required this.controller,
+    required this.child,
+    this.tone,
+    this.duration = const Duration(milliseconds: 600),
+  });
+
+  final LiveDataPulseController controller;
+  final Widget child;
+  final Color? tone;
+  final Duration duration;
+
+  @override
+  State<LiveDataPulse> createState() => _LiveDataPulseState();
+}
+
+class _LiveDataPulseState extends State<LiveDataPulse>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+  );
+  int _lastGen = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _lastGen = widget.controller.generation;
+    widget.controller.addListener(_onPulse);
+  }
+
+  @override
+  void didUpdateWidget(LiveDataPulse oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onPulse);
+      widget.controller.addListener(_onPulse);
+    }
+  }
+
+  void _onPulse() {
+    if (widget.controller.generation == _lastGen) return;
+    _lastGen = widget.controller.generation;
+    _c.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onPulse);
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tone = widget.tone ?? const Color(0xFFE9C75D);
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, child) {
+        // Pulse profile: ease-out shimmer. Alpha rises quickly to
+        // peak at t=0.25 then fades by t=1.
+        final t = _c.value;
+        final alpha =
+            t == 0 ? 0.0 : (t < 0.25 ? t / 0.25 : (1 - t) / 0.75);
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            boxShadow: alpha > 0.01
+                ? [
+                    BoxShadow(
+                      color: tone.withValues(alpha: alpha * 0.65),
+                      blurRadius: 18 + 26 * t,
+                      spreadRadius: -2 + 4 * t,
+                    ),
+                  ]
+                : const [],
+          ),
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
+/// Wraps a Live credential in a soft drop shadow + tonal ambient
+/// occlusion so the object reads as floating off the OLED surface
+/// instead of sitting flat against it. Used on every Live hero
+/// credential (passport, boarding, visa, banknote, transit, lounge).
+class LiveLift extends StatelessWidget {
+  const LiveLift({
+    super.key,
+    required this.child,
+    this.tone,
+    this.depth = 14,
+    this.spread = 0.0,
+  });
+
+  final Widget child;
+
+  /// Ambient tone bled under the credential. Subtle; reinforces the
+  /// vertical's accent without being visible directly.
+  final Color? tone;
+
+  /// Vertical offset of the soft cast shadow (px). Default 14.
+  final double depth;
+
+  /// Extra spread on the shadow blur. 0 is conservative; bump for
+  /// taller cards.
+  final double spread;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = (tone ?? const Color(0xFFD4AF37));
+    return RepaintBoundary(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          boxShadow: [
+            // Deep core shadow — the "weight" of the credential.
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.62),
+              offset: Offset(0, depth),
+              blurRadius: 32 + spread,
+              spreadRadius: 0,
+            ),
+            // Tonal ambient — a faint coloured halo of the vertical
+            // sneaks through the shadow so the OLED substrate
+            // "remembers" the credential is there.
+            BoxShadow(
+              color: accent.withValues(alpha: 0.18),
+              offset: Offset(0, depth * 0.5),
+              blurRadius: 48 + spread,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: child,
+      ),
+    );
+  }
+}

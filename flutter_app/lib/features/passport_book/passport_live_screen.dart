@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../cinematic/document_substrate.dart';
+import '../../cinematic/live/live_primitives.dart';
 import '../../data/models/user_profile.dart';
+import '../../motion/motion.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/pressable.dart';
 import '../insights/insights_provider.dart';
@@ -64,10 +66,16 @@ class _PassportLiveScreenState extends ConsumerState<PassportLiveScreen>
   }
 
   void _toggleOpen() {
-    HapticFeedback.mediumImpact();
     if (_isOpen) {
+      // Closing the passport — soft close haptic, cover folds back.
+      Haptics.close();
       _open.reverse();
     } else {
+      // Opening the passport is the hero reveal of the entire Live
+      // family — the bearer page (photo, name, DOB, MRZ) materialises.
+      // Signature triple-pulse so the moment lands cinematic, not
+      // utilitarian.
+      Haptics.signature();
       _open.forward();
     }
     setState(() => _isOpen = !_isOpen);
@@ -418,6 +426,14 @@ class _Cover extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          // Live state pill — passport cover is ARMED until tapped.
+          // The signature triple-pulse fires on _toggleOpen, then
+          // the inner pages render with state = ACTIVE.
+          const Positioned(
+            top: 24,
+            right: 24,
+            child: LiveStatusPill(state: LiveSurfaceState.armed),
           ),
         ],
       ),

@@ -523,6 +523,13 @@ class _Cover extends StatelessWidget {
               },
             ),
           ),
+          // Live state pill — visa cover stays ARMED until tapped,
+          // then promotes to ACTIVE on _toggleOpen.
+          const Positioned(
+            top: 20,
+            right: 24,
+            child: LiveStatusPill(state: LiveSurfaceState.armed),
+          ),
         ],
       ),
     );
@@ -812,6 +819,14 @@ class _VisaPage extends StatelessWidget {
               lines: [_mrz1(), _mrz2()],
               tone: Colors.black.withValues(alpha: 0.9),
             ),
+          ),
+          // Cinematic state pill — visa booklet promotes from
+          // ARMED on the cover to COMMITTED on the inner page
+          // once the consular stamp drops.
+          const Positioned(
+            top: 12,
+            right: 14,
+            child: LiveStatusPill(state: LiveSurfaceState.committed),
           ),
         ],
       ),

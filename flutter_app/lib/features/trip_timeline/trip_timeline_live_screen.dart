@@ -187,11 +187,9 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
-          StatusPill(
-            icon: Icons.flight_takeoff_rounded,
-            label: 'ACTIVE',
+          LiveStatusPill(
+            state: LiveSurfaceState.active,
             tone: tone,
-            dense: true,
           ),
         ],
       ),

@@ -154,11 +154,9 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
-          StatusPill(
-            icon: Icons.flight_land_rounded,
-            label: 'LANDED',
+          LiveStatusPill(
+            state: LiveSurfaceState.committed,
             tone: tone,
-            dense: true,
           ),
         ],
       ),

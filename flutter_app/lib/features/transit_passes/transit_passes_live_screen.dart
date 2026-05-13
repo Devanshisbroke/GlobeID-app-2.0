@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../cinematic/live/live_primitives.dart';
 import '../../cinematic/live/live_substrates.dart';
+import '../../motion/motion.dart';
 import '../../nexus/nexus_tokens.dart';
 
 /// TransitPassesLive — stacked transit-card deck.
@@ -164,7 +165,10 @@ class _TransitPassesLiveScreenState
             _TapButton(
               tone: active.tone,
               onTap: () {
-                HapticFeedback.heavyImpact();
+                // Simulated NFC tap — the cinematic moment for a
+                // transit card. Signature triple-pulse so it lands
+                // as a real-world contactless commit.
+                Haptics.signature();
                 _tap.forward(from: 0);
               },
               anim: _tap,
@@ -324,7 +328,9 @@ class _TransitCard extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       child: AspectRatio(
         aspectRatio: 1.58, // standard credit-card aspect ratio
-        child: TransitCardSubstrate(
+        child: LiveLift(
+          tone: card.tone,
+          child: TransitCardSubstrate(
           tone: card.tone,
           child: Stack(
             children: [
@@ -356,6 +362,29 @@ class _TransitCard extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              // NFC chip — pulses at heart-rate cadence so the card
+              // reads as awake and ready to tap. Lives top-right
+              // where a real transit card carries its chip.
+              Positioned(
+                top: 10,
+                right: 10,
+                child: NfcPulse(
+                  tone: card.tone,
+                  size: 44,
+                  child: Icon(
+                    Icons.contactless_rounded,
+                    color: card.tone.withValues(alpha: 0.92),
+                    size: 22,
+                  ),
+                ),
+              ),
+              // Live state pill — pulses with the cinematic ladder
+              // intensity. Lives below the NFC chip on its own row.
+              const Positioned(
+                top: 56,
+                right: 10,
+                child: LiveStatusPill(state: LiveSurfaceState.active),
               ),
               Positioned(
                 bottom: 18,
@@ -416,6 +445,7 @@ class _TransitCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
         ),
       ),
     );

@@ -185,4 +185,151 @@ void main() {
       );
     });
   });
+
+  group('NfcPulse — chip-is-live radial pulse', () {
+    testWidgets('mounts and renders its child icon', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: NfcPulse(
+                child: Icon(Icons.contactless_rounded, size: 22),
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.byIcon(Icons.contactless_rounded), findsOneWidget);
+      // Allow one frame so the controller starts; do NOT pump for
+      // ever or testWidgets will time out on the repeating loop.
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(NfcPulse), findsOneWidget);
+    });
+
+    test('default cadence is heart-rate band (~1.4 s)', () {
+      const pulse = NfcPulse(child: SizedBox.shrink());
+      expect(pulse.period, const Duration(milliseconds: 1400));
+      expect(pulse.rings, 2);
+      expect(pulse.size, 56);
+      expect(pulse.maxAlpha, closeTo(0.55, 1e-9));
+    });
+
+    test('rings count is configurable', () {
+      const one = NfcPulse(rings: 1, child: SizedBox.shrink());
+      const three = NfcPulse(rings: 3, child: SizedBox.shrink());
+      expect(one.rings, 1);
+      expect(three.rings, 3);
+    });
+  });
+
+  group('LiveStatusPill — cinematic state ladder badge', () {
+    testWidgets('renders the state label', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: LiveStatusPill(state: LiveSurfaceState.active),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('LIVE'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(LiveStatusPill), findsOneWidget);
+    });
+
+    testWidgets('reflects the requested state', (tester) async {
+      for (final state in LiveSurfaceState.values) {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Center(child: LiveStatusPill(state: state)),
+            ),
+          ),
+        );
+        expect(find.text(state.label), findsOneWidget);
+      }
+    });
+
+    test('compact mode is on by default', () {
+      const pill = LiveStatusPill(state: LiveSurfaceState.idle);
+      expect(pill.compact, true);
+    });
+  });
+
+  group('LiveDataPulse — one-shot data-change attention', () {
+    test('controller increments generation on each pulse', () {
+      final c = LiveDataPulseController();
+      expect(c.generation, 0);
+      c.pulse();
+      expect(c.generation, 1);
+      c.pulse();
+      c.pulse();
+      expect(c.generation, 3);
+    });
+
+    test('controller notifies listeners on pulse', () {
+      final c = LiveDataPulseController();
+      var ticks = 0;
+      c.addListener(() => ticks++);
+      c.pulse();
+      c.pulse();
+      expect(ticks, 2);
+    });
+
+    testWidgets('mounts around its child', (tester) async {
+      final c = LiveDataPulseController();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: LiveDataPulse(
+                controller: c,
+                child: const SizedBox(width: 80, height: 32),
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(LiveDataPulse), findsOneWidget);
+      // Fire one pulse and let the animation run a few frames.
+      c.pulse();
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(LiveDataPulse), findsOneWidget);
+    });
+  });
+
+  group('LiveLift — credentials float off OLED', () {
+    testWidgets('mounts around its child', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: LiveLift(
+                child: SizedBox(width: 200, height: 120),
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(LiveLift), findsOneWidget);
+      // Sanity: child still mounts inside.
+      expect(find.byType(SizedBox), findsWidgets);
+    });
+
+    test('default depth is 14 (Apple-Wallet-style cast shadow)', () {
+      const lift = LiveLift(child: SizedBox.shrink());
+      expect(lift.depth, 14);
+      expect(lift.spread, 0.0);
+    });
+
+    test('respects an explicit tone override', () {
+      const lift = LiveLift(
+        tone: Color(0xFF66B7FF),
+        child: SizedBox.shrink(),
+      );
+      expect(lift.tone, const Color(0xFF66B7FF));
+    });
+  });
 }
