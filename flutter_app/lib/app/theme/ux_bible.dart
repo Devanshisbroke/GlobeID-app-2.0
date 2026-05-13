@@ -223,38 +223,70 @@ class BibleTransitions {
   }
 
   /// 4. `dropTransition` — slide down with bounce.
+  ///
+  /// Apple-grade upgrade: handles BOTH incoming and outgoing animations
+  /// so the previous route fades out as the new one drops in.
+  /// Without this, the previous screen stays at 100% opacity behind the
+  /// new screen, which presents as a "ghost-frame" lingering effect
+  /// during the transition.
   static Widget drop(
     Animation<double> animation,
+    Animation<double> secondary,
     Widget child,
   ) {
     final t = CurvedAnimation(parent: animation, curve: BibleCurves.bank);
-    return SlideTransition(
-      position: Tween(begin: const Offset(0, -0.18), end: Offset.zero)
-          .animate(t),
-      child: FadeTransition(opacity: t, child: child),
+    final out =
+        CurvedAnimation(parent: secondary, curve: BibleCurves.descent);
+    return AnimatedBuilder(
+      animation: Listenable.merge([t, out]),
+      builder: (_, c) {
+        final i = t.value;
+        final o = out.value;
+        final outOpacity = (1.0 - o * 0.85).clamp(0.0, 1.0);
+        return RepaintBoundary(
+          child: Opacity(
+            opacity: (i * outOpacity).clamp(0.0, 1.0),
+            child: Transform.translate(
+              offset: Offset(0, (1 - i) * -18),
+              child: c,
+            ),
+          ),
+        );
+      },
+      child: child,
     );
   }
 
   /// 5. `blurFadeTransition` — incoming fades in over a hairline drop.
-  /// Originally a backdrop-blur lens; now a pure fade + 12 px drop
-  /// (cheap on the GPU, identical perceived effect for the user, and
-  /// consistent with the Nexus "depth via contrast, not blur" rule).
+  ///
+  /// Apple-grade upgrade: crossfades with the outgoing route. The
+  /// per-frame [BackdropFilter] is gone (was the worst offender for
+  /// ghost frames on tier-2 GPUs); we use a pure scale + fade that
+  /// composites cleanly at 120 Hz.
   static Widget blurFade(
     Animation<double> animation,
+    Animation<double> secondary,
     Widget child,
   ) {
     final t = CurvedAnimation(parent: animation, curve: BibleCurves.cruise);
+    final out =
+        CurvedAnimation(parent: secondary, curve: BibleCurves.descent);
     return AnimatedBuilder(
-      animation: t,
+      animation: Listenable.merge([t, out]),
       builder: (_, c) {
-        final v = t.value;
-        return Opacity(
-          opacity: v.clamp(0.0, 1.0),
-          child: Transform.translate(
-            offset: Offset(0, (1 - v) * 12),
-            child: Transform.scale(
-              scale: 0.985 + 0.015 * v,
-              child: c,
+        final i = t.value;
+        final o = out.value;
+        final outOpacity = (1.0 - o * 0.92).clamp(0.0, 1.0);
+        final outScale = 1.0 - o * 0.02;
+        return RepaintBoundary(
+          child: Opacity(
+            opacity: (i * outOpacity).clamp(0.0, 1.0),
+            child: Transform.translate(
+              offset: Offset(0, (1 - i) * 12),
+              child: Transform.scale(
+                scale: (0.985 + 0.015 * i) * outScale,
+                child: c,
+              ),
             ),
           ),
         );
@@ -292,21 +324,48 @@ class BibleTransitions {
   }
 
   /// 8. `atmosphericDescent` — descending the altitude stack
-  /// (Globe → Travel → Trip → Boarding). Vertical slide + scale; the
-  /// former GPU-expensive blur lens has been retired in favour of a
-  /// stronger overshoot scale, which sells the descent on its own.
+  /// (Globe → Travel → Trip → Boarding).
+  ///
+  /// Apple-grade rewrite: crossfades with the outgoing route. Without
+  /// the secondary-animation handling, the previous screen would stay
+  /// at full opacity behind the new one and produce the ghost-frame
+  /// lingering effect users see during navigation. We now fade + scale
+  /// the outgoing screen down concurrently with the incoming slide-up,
+  /// so the transition resolves cleanly at 120 Hz.
   static Widget atmosphericDescent(
     Animation<double> animation,
+    Animation<double> secondary,
     Widget child,
   ) {
     final t = CurvedAnimation(parent: animation, curve: BibleCurves.takeoff);
-    return SlideTransition(
-      position: Tween(begin: const Offset(0, 0.18), end: Offset.zero)
-          .animate(t),
-      child: ScaleTransition(
-        scale: Tween(begin: 1.06, end: 1.0).animate(t),
-        child: FadeTransition(opacity: t, child: child),
-      ),
+    final out =
+        CurvedAnimation(parent: secondary, curve: BibleCurves.descent);
+    return AnimatedBuilder(
+      animation: Listenable.merge([t, out]),
+      builder: (_, c) {
+        final i = t.value;
+        final o = out.value;
+        // Outgoing: scale down + fade out so the previous screen
+        // disappears as the new one arrives. No more ghost frames.
+        final outOpacity = (1.0 - o * 0.95).clamp(0.0, 1.0);
+        final outScale = 1.0 - o * 0.03;
+        // Incoming: slide up 18 %, scale 1.06 → 1.0, fade in.
+        final inOffsetY = (1.0 - i) * 0.18;
+        final inScale = 1.06 - 0.06 * i;
+        return RepaintBoundary(
+          child: Opacity(
+            opacity: (i * outOpacity).clamp(0.0, 1.0),
+            child: FractionalTranslation(
+              translation: Offset(0, inOffsetY),
+              child: Transform.scale(
+                scale: inScale * outScale,
+                child: c,
+              ),
+            ),
+          ),
+        );
+      },
+      child: child,
     );
   }
 }

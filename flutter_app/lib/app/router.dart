@@ -105,10 +105,12 @@ import 'theme/ux_bible.dart';
 CustomTransitionPage<void> _slideFade(LocalKey key, Widget child) {
   return CustomTransitionPage<void>(
     key: key,
-    transitionDuration: const Duration(milliseconds: 420),
-    reverseTransitionDuration: const Duration(milliseconds: 300),
+    transitionDuration: const Duration(milliseconds: 320),
+    reverseTransitionDuration: const Duration(milliseconds: 240),
+    opaque: true,
+    barrierColor: const Color(0xFF000000),
     transitionsBuilder: premiumSlideTransition,
-    child: child,
+    child: RepaintBoundary(child: child),
   );
 }
 
@@ -128,11 +130,13 @@ GoRoute _route(
 CustomTransitionPage<void> _atmosphericDescent(LocalKey key, Widget child) {
   return CustomTransitionPage<void>(
     key: key,
-    transitionDuration: const Duration(milliseconds: 520),
-    reverseTransitionDuration: const Duration(milliseconds: 360),
-    transitionsBuilder: (_, animation, __, c) =>
-        BibleTransitions.atmosphericDescent(animation, c),
-    child: child,
+    transitionDuration: const Duration(milliseconds: 360),
+    reverseTransitionDuration: const Duration(milliseconds: 260),
+    opaque: true,
+    barrierColor: const Color(0xFF000000),
+    transitionsBuilder: (_, animation, secondary, c) =>
+        BibleTransitions.atmosphericDescent(animation, secondary, c),
+    child: RepaintBoundary(child: child),
   );
 }
 
@@ -151,11 +155,13 @@ GoRoute _descentRoute(
 CustomTransitionPage<void> _blurFade(LocalKey key, Widget child) {
   return CustomTransitionPage<void>(
     key: key,
-    transitionDuration: const Duration(milliseconds: 380),
-    reverseTransitionDuration: const Duration(milliseconds: 260),
-    transitionsBuilder: (_, animation, __, c) =>
-        BibleTransitions.blurFade(animation, c),
-    child: child,
+    transitionDuration: const Duration(milliseconds: 280),
+    reverseTransitionDuration: const Duration(milliseconds: 220),
+    opaque: true,
+    barrierColor: const Color(0xFF000000),
+    transitionsBuilder: (_, animation, secondary, c) =>
+        BibleTransitions.blurFade(animation, secondary, c),
+    child: RepaintBoundary(child: child),
   );
 }
 
@@ -172,11 +178,13 @@ GoRoute _blurFadeRoute(
 CustomTransitionPage<void> _drop(LocalKey key, Widget child) {
   return CustomTransitionPage<void>(
     key: key,
-    transitionDuration: const Duration(milliseconds: 360),
-    reverseTransitionDuration: const Duration(milliseconds: 240),
-    transitionsBuilder: (_, animation, __, c) =>
-        BibleTransitions.drop(animation, c),
-    child: child,
+    transitionDuration: const Duration(milliseconds: 280),
+    reverseTransitionDuration: const Duration(milliseconds: 220),
+    opaque: true,
+    barrierColor: const Color(0xFF000000),
+    transitionsBuilder: (_, animation, secondary, c) =>
+        BibleTransitions.drop(animation, secondary, c),
+    child: RepaintBoundary(child: child),
   );
 }
 
@@ -195,9 +203,11 @@ CustomTransitionPage<void> _slideLateral(LocalKey key, Widget child) {
     key: key,
     transitionDuration: const Duration(milliseconds: 320),
     reverseTransitionDuration: const Duration(milliseconds: 240),
+    opaque: true,
+    barrierColor: const Color(0xFF000000),
     transitionsBuilder: (_, animation, secondary, c) =>
         BibleTransitions.slideLateral(animation, secondary, c),
-    child: child,
+    child: RepaintBoundary(child: child),
   );
 }
 

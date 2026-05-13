@@ -79,6 +79,12 @@ dependencies:
   # Toasts
   toastification: ^2.3.0
 
+  # High refresh rate (Android) — Flutter defaults to 60Hz even on 120Hz
+  # panels. This package opts the app into the highest available mode
+  # for buttery-smooth scroll + transitions. iOS ProMotion is handled by
+  # Flutter automatically as of 3.10+.
+  flutter_displaymode: ^0.6.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -184,7 +184,12 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
                         },
                         itemBuilder: (_, i) {
                           final note = notes[i];
-                          return AnimatedBuilder(
+                          // RepaintBoundary isolates each note card's
+                          // page-scroll-driven scale/rotation so the
+                          // sibling cards don't repaint at the swipe
+                          // cadence.
+                          return RepaintBoundary(
+                            child: AnimatedBuilder(
                             animation: _pages,
                             builder: (_, child) {
                               double pageValue = i.toDouble();
@@ -216,6 +221,7 @@ class _ForexLiveScreenState extends ConsumerState<ForexLiveScreen>
                               note: note,
                               foilAnim: _foil,
                             ),
+                          ),
                           );
                         },
                       ),
