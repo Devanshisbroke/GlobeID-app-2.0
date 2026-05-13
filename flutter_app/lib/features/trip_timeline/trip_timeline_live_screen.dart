@@ -338,6 +338,67 @@ class _StageDetailCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final target = DateTime.now().add(_nextEventDuration());
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(N.rCardLg),
+      child: Stack(
+        children: [
+          _buildBody(target),
+          // Phase-commit foil sweep — fires once on each stage
+          // change because the TweenAnimationBuilder is keyed by
+          // the active `index`. A soft gold band travels left to
+          // right over the card surface, then disappears. The
+          // signature haptic + tonal halo already broadcast the
+          // commit; the foil sweep is the visible counterpart.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: TweenAnimationBuilder<double>(
+                key: ValueKey('trip-phase-sweep-$index'),
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 880),
+                curve: Curves.easeOutCubic,
+                builder: (_, v, __) {
+                  if (v >= 0.999) return const SizedBox.shrink();
+                  // Position rides -0.3 to 1.3 so the bright band
+                  // enters from off-frame left and exits off-frame
+                  // right.
+                  final pos = -0.3 + 1.6 * v;
+                  // Opacity fades up briefly then back down so the
+                  // sweep doesn't punch through if the user is
+                  // mid-scroll.
+                  final fade = v < 0.5 ? v * 2 : (1 - v) * 2;
+                  return Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.transparent,
+                          tone.withValues(alpha: 0.18 * fade),
+                          const Color(0xFFE9C75D)
+                              .withValues(alpha: 0.34 * fade),
+                          tone.withValues(alpha: 0.18 * fade),
+                          Colors.transparent,
+                        ],
+                        stops: [
+                          (pos - 0.20).clamp(0.0, 1.0),
+                          (pos - 0.08).clamp(0.0, 1.0),
+                          pos.clamp(0.0, 1.0),
+                          (pos + 0.08).clamp(0.0, 1.0),
+                          (pos + 0.20).clamp(0.0, 1.0),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody(DateTime target) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),

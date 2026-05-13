@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -422,7 +424,36 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
             Stack(
               alignment: Alignment.center,
               children: [
-                Container(
+                // Lock-in shake — fires once when _isSealed flips
+                // from false → true. The TweenAnimationBuilder is
+                // keyed by the seal state so it re-runs only on the
+                // transition. Three damped wobbles + a slight scale
+                // overshoot sell the "stamp slams down on paper"
+                // moment that lands at the same time as the
+                // signature haptic.
+                TweenAnimationBuilder<double>(
+                  key: ValueKey('customs-seal-shake-$_isSealed'),
+                  tween: Tween(begin: _isSealed ? 0.0 : 1.0, end: 1.0),
+                  duration: const Duration(milliseconds: 480),
+                  curve: Curves.easeOutCubic,
+                  builder: (_, v, child) {
+                    final shakeT = (1.0 - v);
+                    final wobbleX =
+                        math.sin(shakeT * math.pi * 6) * 5 * shakeT;
+                    final scale = _isSealed
+                        ? (v < 0.4
+                            ? 1.0 + 0.16 * (v / 0.4)
+                            : 1.16 - 0.16 * ((v - 0.4) / 0.6))
+                        : 1.0;
+                    return Transform.translate(
+                      offset: Offset(wobbleX, 0),
+                      child: Transform.scale(
+                        scale: scale,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Container(
                   width: 200,
                   height: 200,
                   alignment: Alignment.center,
@@ -497,6 +528,7 @@ class _CustomsDeclarationScreenState extends State<CustomsDeclarationScreen> {
                       ],
                     ],
                   ),
+                ),
                 ),
                 if (_isSealed)
                   Positioned(

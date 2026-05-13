@@ -362,6 +362,26 @@ class _CountryIntelligenceLiveScreenState
                         period: const Duration(seconds: 56),
                       ),
                     ),
+                    // Atmosphere particles — slow drifting dust /
+                    // light motes behind the dossier text. Sells
+                    // the "this place has weather, atmosphere,
+                    // mood" dimension. Particle alpha + count
+                    // shifts subtly with advisory tier so the
+                    // dossier reads heavier at higher threat
+                    // levels.
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: _AtmosphereParticles(
+                          tone: tone,
+                          intensity: switch (_tier) {
+                            _AdvisoryTier.low => 0.6,
+                            _AdvisoryTier.moderate => 0.75,
+                            _AdvisoryTier.high => 0.95,
+                            _AdvisoryTier.extreme => 1.10,
+                          },
+                        ),
+                      ),
+                    ),
                     // Classified stamp — drops in when the advisory
                     // tier is HIGH or EXTREME. Slight angle, faded
                     // red ink, with a stamp-down scale animation so
@@ -1015,4 +1035,111 @@ class _ClassifiedStampState extends State<_ClassifiedStamp>
       },
     );
   }
+}
+
+/// Atmosphere drift — slow floating dust / light motes behind
+/// the dossier text. Particles drift along sinusoidal paths with
+/// individual periods so the field never looks repeating; alpha
+/// peaks mid-life and fades at both ends so they appear to drift
+/// in and out of the frame. Intensity scales the count + alpha
+/// with advisory tier (heavier sky = more dust).
+class _AtmosphereParticles extends StatefulWidget {
+  const _AtmosphereParticles({required this.tone, this.intensity = 1.0});
+  final Color tone;
+  final double intensity;
+
+  @override
+  State<_AtmosphereParticles> createState() => _AtmosphereParticlesState();
+}
+
+class _AtmosphereParticlesState extends State<_AtmosphereParticles>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 24),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (_, __) {
+          return CustomPaint(
+            painter: _AtmosphereParticlesPainter(
+              t: _c.value,
+              tone: widget.tone,
+              intensity: widget.intensity,
+            ),
+            size: Size.infinite,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AtmosphereParticlesPainter extends CustomPainter {
+  _AtmosphereParticlesPainter({
+    required this.t,
+    required this.tone,
+    required this.intensity,
+  });
+  final double t;
+  final Color tone;
+  final double intensity;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final count = (12 * intensity).round();
+    final rand = math.Random(7);
+    for (var i = 0; i < count; i++) {
+      // Each particle has its own phase + drift radius.
+      final phase = rand.nextDouble();
+      final drift = 0.04 + rand.nextDouble() * 0.08;
+      final px = (rand.nextDouble() + t * drift + phase) % 1.0;
+      final py = rand.nextDouble();
+      // Vertical sway via a slow sin offset so the dust doesn't
+      // strictly drift left-right.
+      final sway = math.sin((t + phase) * 2 * math.pi) * 6;
+      // Life position 0…1; alpha peaks at 0.5.
+      final lifeT = (t + phase) % 1.0;
+      final lifeAlpha = math.sin(lifeT * math.pi);
+      final radius = 0.6 + rand.nextDouble() * 1.2;
+      final color = Color.lerp(
+        Colors.white,
+        tone,
+        0.40 + rand.nextDouble() * 0.30,
+      )!;
+      canvas.drawCircle(
+        Offset(px * w, py * h + sway),
+        radius,
+        Paint()
+          ..color = color.withValues(
+            alpha: (0.18 + 0.14 * rand.nextDouble()) *
+                lifeAlpha *
+                intensity,
+          )
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.0),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_AtmosphereParticlesPainter old) =>
+      old.t != t || old.intensity != intensity || old.tone != tone;
 }

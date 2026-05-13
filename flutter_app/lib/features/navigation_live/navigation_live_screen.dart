@@ -317,7 +317,15 @@ class _TurnDisc extends StatelessWidget {
                 builder: (_, __) {
                   return CustomPaint(
                     painter: _CompassPainter(
-                        heading: heading.value * math.pi * 2, tone: tone),
+                      heading: heading.value * math.pi * 2,
+                      tone: tone,
+                      // Phase rides the heading controller (0 → 1) so
+                      // the dot-arc that flows around the rim shares
+                      // a single clock with the heading sweep — no
+                      // extra ticker.
+                      phase: heading.value,
+                      distance: distance,
+                    ),
                     child: Center(
                       child: Transform.rotate(
                         angle: math.sin(heading.value * math.pi * 2) * 0.18,
@@ -377,9 +385,30 @@ class _TurnDisc extends StatelessWidget {
 }
 
 class _CompassPainter extends CustomPainter {
-  _CompassPainter({required this.heading, required this.tone});
+  _CompassPainter({
+    required this.heading,
+    required this.tone,
+    this.phase = 0.0,
+    this.distance = 999,
+  });
   final double heading;
   final Color tone;
+
+  /// 0 → 1 phase clock, shared with the heading controller. Drives
+  /// the dot-arc shimmer that flows around the rim when the
+  /// maneuver is close (urgent state). Reusing the same controller
+  /// keeps the heading + shimmer perfectly locked so no extra
+  /// AnimationController is needed.
+  final double phase;
+
+  /// Distance to the next maneuver in metres. Drives the urgency of
+  /// the shimmer:
+  ///   • > 500 m → no shimmer (calm rim)
+  ///   • 51–500 m → soft single dot drift
+  ///   • 1–50 m → bright four-dot rotating necklace (urgent)
+  ///   • 0 m   → frozen full arc lit (commit frame)
+  final int distance;
+
   @override
   void paint(Canvas canvas, Size size) {
     final c = Offset(size.width / 2, size.height / 2);
@@ -416,11 +445,63 @@ class _CompassPainter extends CustomPainter {
           ..strokeWidth = 0.8,
       );
     }
+    // Route shimmer — a small necklace of bright dots that flows
+    // around the rim, scaled in intensity by how close the next
+    // maneuver is. When > 500 m the rim is calm. Under 50 m the
+    // dots crowd brighter to read as "you're about to turn."
+    if (distance > 0 && distance <= 500) {
+      // Urgency 0.20 calm → 1.00 commit-imminent.
+      final urgency = distance > 50
+          ? 0.20 + 0.30 * (1 - (distance - 50) / 450)
+          : 0.55 + 0.45 * (1 - distance / 50);
+      // Dot count climbs with urgency: 2 dots at 500 m → 6 at 0 m.
+      final dotCount = (2 + 4 * urgency).round().clamp(2, 6);
+      // Bright stop drifts around the rim at one revolution per
+      // ~3.5 s so it always reads as alive even when the user is
+      // standing still.
+      final baseAngle = phase * math.pi * 2 * 1.7;
+      for (var i = 0; i < dotCount; i++) {
+        final a = baseAngle + (i / dotCount) * math.pi * 2;
+        final dotX = c.dx + math.cos(a) * (r + 1.2);
+        final dotY = c.dy + math.sin(a) * (r + 1.2);
+        // First dot in the necklace is the brightest (the "head"),
+        // tail fades behind it for a comet-line read.
+        final tailAlpha = (1.0 - i / dotCount);
+        canvas.drawCircle(
+          Offset(dotX, dotY),
+          1.4 + 0.8 * urgency,
+          Paint()
+            ..color = tone.withValues(
+              alpha: 0.55 * urgency * tailAlpha,
+            )
+            ..maskFilter = MaskFilter.blur(
+              BlurStyle.normal,
+              1.6 * urgency,
+            ),
+        );
+      }
+    }
+    // Commit frame — when distance hits zero, the entire rim lights
+    // up briefly in the brand tone so the user knows they've
+    // reached the maneuver point.
+    if (distance <= 0) {
+      canvas.drawCircle(
+        c,
+        r,
+        Paint()
+          ..color = tone.withValues(alpha: 0.55)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.2
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.4),
+      );
+    }
   }
 
   @override
   bool shouldRepaint(covariant _CompassPainter old) =>
-      old.heading != heading;
+      old.heading != heading ||
+      old.phase != phase ||
+      old.distance != distance;
 }
 
 class _NavStrip extends StatelessWidget {
