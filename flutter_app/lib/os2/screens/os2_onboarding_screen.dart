@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/onboarding/onboarding_provider.dart';
+import '../../motion/motion.dart';
 import '../motion/os2_breathing.dart';
 import '../os2_tokens.dart';
 import '../primitives/os2_beacon.dart';
@@ -117,6 +117,15 @@ class _Os2OnboardingScreenState extends ConsumerState<Os2OnboardingScreen>
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // Signature haptic on first paint — user crosses into GlobeID.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Haptics.signature();
+    });
+  }
+
+  @override
   void dispose() {
     _ambient.dispose();
     _pageCtrl.dispose();
@@ -126,7 +135,7 @@ class _Os2OnboardingScreenState extends ConsumerState<Os2OnboardingScreen>
   void _advance() {
     if (_index < _stages.length - 1) {
       _pageCtrl.nextPage(duration: Os2.mIn, curve: Os2.cTakeoff);
-      HapticFeedback.selectionClick();
+      Haptics.navigate();
     } else {
       _finish();
     }
@@ -135,12 +144,13 @@ class _Os2OnboardingScreenState extends ConsumerState<Os2OnboardingScreen>
   void _back() {
     if (_index > 0) {
       _pageCtrl.previousPage(duration: Os2.mIn, curve: Os2.cTakeoff);
-      HapticFeedback.selectionClick();
+      Haptics.navigate();
     }
   }
 
   Future<void> _finish() async {
-    HapticFeedback.mediumImpact();
+    // Crossing into the live app — signature moment.
+    await Haptics.signature();
     await ref.read(onboardingProvider.notifier).complete();
     if (!mounted) return;
     GoRouter.of(context).go('/');
