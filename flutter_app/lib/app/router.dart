@@ -83,6 +83,7 @@ import '../features/settings/settings_subscreens.dart';
 import '../features/social/social_screen.dart';
 import '../features/timeline/timeline_screen.dart';
 import '../features/trip/trip_detail_screen.dart';
+import '../features/vault/credential_audit_trail_screen.dart';
 import '../features/vault/credential_detail_screen.dart';
 import '../features/vault/issuance_screen.dart';
 import '../features/vault/vault_screen.dart';
@@ -377,6 +378,19 @@ final routerProvider = Provider<GoRouter>((ref) {
             subtitle: 'Bearer · GlobeID',
             issuer: 'Republic of Iceland',
             blockHeight: 12148337,
+          );
+        },
+      ),
+      _blurFadeRoute(
+        '/vault/audit/:id',
+        (_, state) {
+          final extra = state.extra;
+          final label = (extra is Map<String, dynamic>)
+              ? (extra['label'] as String?) ?? 'Credential'
+              : 'Credential';
+          return CredentialAuditTrailScreen(
+            credentialId: state.pathParameters['id'] ?? '',
+            credentialLabel: label,
           );
         },
       ),

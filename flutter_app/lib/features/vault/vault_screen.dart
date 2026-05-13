@@ -286,10 +286,17 @@ class _VaultDocCardState extends State<_VaultDocCard> {
     return Pressable(
       scale: 0.99,
       semanticLabel: 'Open ${doc.label} details',
-      semanticHint: 'sensitive fields are biometric gated',
+      semanticHint: 'sensitive fields are biometric gated · long press for audit trail',
       onTap: () {
         HapticFeedback.lightImpact();
         context.push('/vault/credential/${doc.id}');
+      },
+      onLongPress: () {
+        HapticFeedback.mediumImpact();
+        context.push(
+          '/vault/audit/${doc.id}',
+          extra: {'label': '${doc.label} · ${doc.country}'},
+        );
       },
       child: PremiumCard(
         padding: const EdgeInsets.all(AppTokens.space5),
