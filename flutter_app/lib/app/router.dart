@@ -126,6 +126,7 @@ import '../atelier/screens/atelier_hub_screen.dart';
 import '../cinematic/cinema2/ledger_seal_ceremony.dart';
 import '../cinematic/cinema2/milestone_bloom_ceremony.dart';
 import '../cinematic/cinema2/tier_promotion_ceremony.dart';
+import '../cinematic/cinema2/favorite_lockin_ceremony.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
@@ -822,6 +823,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       _blurFadeRoute(
         '/ceremony/tier-promotion',
         (_, __) => const TierPromotionCeremonyScreen(),
+      ),
+      _blurFadeRoute(
+        '/ceremony/favorite-lockin',
+        (_, __) => const FavoriteLockInCeremonyScreen(),
       ),
       _route('/visa', (_, __) => const VisaDetailScreen()),
       // Visa renewal ceremony — the Copilot-launched cinematic flow.
