@@ -106,6 +106,7 @@ import '../features/lab/declassified_screen.dart';
 import '../features/lab/velvet_rope_screen.dart';
 import '../features/cinematics/cinematics_hub_screen.dart';
 import '../features/branding/seal_coldmount_screen.dart';
+import '../features/branding/identity_signet_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
@@ -706,6 +707,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       _blurFadeRoute(
         '/lab/seal-coldmount',
         (_, __) => const SealColdMountScreen(),
+      ),
+      _blurFadeRoute(
+        '/lab/identity-signet',
+        (_, __) => const IdentitySignetScreen(),
       ),
       _route('/visa', (_, __) => const VisaDetailScreen()),
       // Visa renewal ceremony — the Copilot-launched cinematic flow.

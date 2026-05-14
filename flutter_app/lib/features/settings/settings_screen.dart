@@ -228,6 +228,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/seal-coldmount'),
                   ),
                   _SettingsRow(
+                    icon: Icons.diamond_outlined,
+                    tone: const Color(0xFFE9C75D),
+                    label: 'Identity signet',
+                    sub: 'Phase 12c · STANDARD · ATELIER · PILOT variants',
+                    onTap: () => context.push('/lab/identity-signet'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
