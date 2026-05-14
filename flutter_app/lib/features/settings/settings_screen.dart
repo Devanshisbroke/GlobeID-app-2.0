@@ -151,6 +151,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/flight-adapter'),
                   ),
                   _SettingsRow(
+                    icon: Icons.travel_explore_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Visa adapter',
+                    sub: 'PassportIndex matrix · demo snapshot',
+                    onTap: () => context.push('/lab/visa-adapter'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
