@@ -354,6 +354,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/ceremony/milestone-bloom'),
                   ),
                   _SettingsRow(
+                    icon: Icons.workspace_premium_rounded,
+                    tone: const Color(0xFFE9C75D),
+                    label: 'Identity · tier promotion ceremony',
+                    sub: 'Phase 15c · 3.2s · ATELIER → PILOT coronation',
+                    onTap: () => context.push('/ceremony/tier-promotion'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
