@@ -249,6 +249,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/receipts'),
                   ),
                   _SettingsRow(
+                    icon: Icons.workspace_premium_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Brand surface gallery',
+                    sub: 'Phase 12 capstone · all 5 brand surfaces',
+                    onTap: () => context.push('/lab/brand-gallery'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
