@@ -270,6 +270,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/rtl-audit'),
                   ),
                   _SettingsRow(
+                    icon: Icons.format_size_rounded,
+                    tone: const Color(0xFFE9C75D),
+                    label: 'Dynamic Type audit',
+                    sub: 'Phase 13c · body scales · chrome capped at 1.35×',
+                    onTap: () => context.push('/lab/dynamic-type'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
