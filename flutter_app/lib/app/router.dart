@@ -83,6 +83,7 @@ import '../features/settings/settings_subscreens.dart';
 import '../features/social/social_screen.dart';
 import '../features/timeline/timeline_screen.dart';
 import '../features/trip/trip_detail_screen.dart';
+import '../features/vault/credential_detail_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
@@ -352,6 +353,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Modal-grade presentations: blurFade.
       _blurFadeRoute('/intelligence', (_, __) => const IntelligenceScreen()),
       _blurFadeRoute('/vault', (_, __) => const VaultScreen()),
+      _route(
+        '/vault/credential/:id',
+        (_, state) => CredentialDetailScreen(
+          credentialId: state.pathParameters['id'] ?? '',
+        ),
+      ),
       _blurFadeRoute('/audit-log', (_, __) => const AuditLogScreen()),
       _blurFadeRoute('/inbox', (_, __) => const InboxScreen()),
 

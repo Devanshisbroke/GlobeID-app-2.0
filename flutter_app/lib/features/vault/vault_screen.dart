@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 
 import '../../app/theme/app_tokens.dart';
@@ -265,9 +266,12 @@ class _VaultDocCardState extends State<_VaultDocCard> {
     final expiringSoon = daysToExpiry != null && daysToExpiry < 90;
     return Pressable(
       scale: 0.99,
-      semanticLabel: 'Manage ${doc.label} disclosure',
-      semanticHint: 'opens the selective disclosure sheet',
-      onTap: _openDisclosure,
+      semanticLabel: 'Open ${doc.label} details',
+      semanticHint: 'sensitive fields are biometric gated',
+      onTap: () {
+        HapticFeedback.lightImpact();
+        context.push('/vault/credential/${doc.id}');
+      },
       child: PremiumCard(
         padding: const EdgeInsets.all(AppTokens.space5),
         gradient: LinearGradient(
