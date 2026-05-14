@@ -99,6 +99,7 @@ import '../features/lab/visa_adapter_screen.dart';
 import '../features/lab/telemetry_sink_screen.dart';
 import '../features/lab/offline_cache_screen.dart';
 import '../features/lab/production_readiness_screen.dart';
+import '../features/lab/passport_ceremony_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
@@ -671,6 +672,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       _blurFadeRoute(
         '/lab/production-readiness',
         (_, __) => const ProductionReadinessScreen(),
+      ),
+      _blurFadeRoute(
+        '/lab/passport-ceremony',
+        (_, __) => const PassportCeremonyScreen(),
       ),
       _route('/visa', (_, __) => const VisaDetailScreen()),
       // Visa renewal ceremony — the Copilot-launched cinematic flow.

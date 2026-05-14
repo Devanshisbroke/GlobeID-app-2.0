@@ -179,6 +179,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/production-readiness'),
                   ),
                   _SettingsRow(
+                    icon: Icons.menu_book_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Passport opening ceremony',
+                    sub: '3s cinematic · foil sweep · bearer reveal',
+                    onTap: () => context.push('/lab/passport-ceremony'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
