@@ -333,6 +333,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/atelier/lab/dna-timeline'),
                   ),
                   _SettingsRow(
+                    icon: Icons.style_rounded,
+                    tone: const Color(0xFFE9C75D),
+                    label: 'Atelier · hub',
+                    sub: 'Phase 14f · 5 modules · invariants charter',
+                    onTap: () => context.push('/atelier/hub'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
