@@ -102,6 +102,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/ambient/live-activity'),
                   ),
                   _SettingsRow(
+                    icon: Icons.widgets_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Home-screen widgets',
+                    sub: 'Trip countdown · FX · visa expiry',
+                    onTap: () => context.push('/ambient/widgets'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
