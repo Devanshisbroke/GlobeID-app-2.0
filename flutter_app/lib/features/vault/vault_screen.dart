@@ -6,9 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
 
 import '../../app/theme/app_tokens.dart';
+import '../../cinematic/identity/credential_attestation_footer.dart';
+import '../../cinematic/states/cinematic_states.dart';
 import '../../data/models/travel_document.dart';
 import '../../widgets/animated_appearance.dart';
-import '../../cinematic/states/cinematic_states.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
 import '../../widgets/pressable.dart';
@@ -298,10 +299,55 @@ class _VaultDocCard extends StatelessWidget {
                   ),
               ],
             ),
+            // Phase 8a — Cryptographic attestation footer. Reads
+            // "this credential is real and not revoked" with a
+            // pulse, block height, and signer handle. Derived
+            // deterministically from the doc id so a passport
+            // always reads the same block across runs.
+            CredentialAttestationFooter(
+              attestation: CredentialAttestation.derive(
+                credentialId: doc.id,
+                credentialStatus: doc.status,
+                signer: _signerFor(doc),
+                signerHandle: _signerHandleFor(doc),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  String _signerFor(TravelDocument doc) {
+    switch (doc.type) {
+      case 'passport':
+        return 'Republic of ${doc.country}';
+      case 'visa':
+        return '${doc.country} Consulate';
+      case 'boarding_pass':
+        return 'Carrier · IATA Seal';
+      case 'travel_insurance':
+        return 'GlobeID Underwriting';
+      default:
+        return 'GlobeID Atelier';
+    }
+  }
+
+  String _signerHandleFor(TravelDocument doc) {
+    final c = doc.country.toUpperCase().replaceAll(' ', '');
+    final code = c.length >= 3 ? c.substring(0, 3) : c;
+    switch (doc.type) {
+      case 'passport':
+        return '$code-PASSPORT';
+      case 'visa':
+        return '$code-CONSULATE';
+      case 'boarding_pass':
+        return 'IATA-CARRIER';
+      case 'travel_insurance':
+        return 'GID-UNDERWRITE';
+      default:
+        return 'GID-ATELIER';
+    }
   }
 
   IconData _iconFor(String type) {
