@@ -87,6 +87,7 @@ import '../features/vault/credential_audit_trail_screen.dart';
 import '../features/vault/credential_detail_screen.dart';
 import '../features/vault/issuance_screen.dart';
 import '../features/vault/vault_dashboard_screen.dart';
+import '../features/ambient/live_activity_preview_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
@@ -355,6 +356,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Modal-grade presentations: blurFade.
       _blurFadeRoute('/intelligence', (_, __) => const IntelligenceScreen()),
+      _blurFadeRoute(
+        '/ambient/live-activity',
+        (_, __) => const LiveActivityPreviewScreen(),
+      ),
       _blurFadeRoute('/vault', (_, __) => const VaultScreen()),
       _route(
         '/vault/credential/:id',

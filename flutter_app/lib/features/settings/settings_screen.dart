@@ -95,6 +95,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/premium-showcase'),
                   ),
                   _SettingsRow(
+                    icon: Icons.flight_takeoff_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Live Activity preview',
+                    sub: 'Dynamic Island · boarding countdown',
+                    onTap: () => context.push('/ambient/live-activity'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
