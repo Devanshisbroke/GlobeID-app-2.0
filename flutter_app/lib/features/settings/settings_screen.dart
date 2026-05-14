@@ -158,6 +158,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/visa-adapter'),
                   ),
                   _SettingsRow(
+                    icon: Icons.cloud_upload_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Telemetry sink',
+                    sub: 'Buffer · Console · Sentry · fan-out',
+                    onTap: () => context.push('/lab/telemetry'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
