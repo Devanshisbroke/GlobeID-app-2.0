@@ -305,6 +305,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/atelier'),
                   ),
                   _SettingsRow(
+                    icon: Icons.timeline_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Motion choreography',
+                    sub: 'Phase 14b · 10 durations · 6 curves · live',
+                    onTap: () => context.push('/atelier/lab/motion'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',

@@ -118,6 +118,7 @@ import '../features/i18n/wcag_audit_screen.dart';
 import '../features/i18n/locale_a11y_hub_screen.dart';
 import '../atelier/screens/atelier_component_screen.dart';
 import '../atelier/screens/atelier_gallery_screen.dart';
+import '../atelier/screens/motion_lab_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
@@ -782,6 +783,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             componentId: state.pathParameters['componentId']!,
           ),
         ),
+      ),
+      _blurFadeRoute(
+        '/atelier/lab/motion',
+        (_, __) => const MotionLabScreen(),
       ),
       _route('/visa', (_, __) => const VisaDetailScreen()),
       // Visa renewal ceremony — the Copilot-launched cinematic flow.
