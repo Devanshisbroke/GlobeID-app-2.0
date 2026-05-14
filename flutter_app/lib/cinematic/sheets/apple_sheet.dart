@@ -41,6 +41,8 @@ Future<T?> showAppleSheet<T>({
   bool enableDrag = true,
   Widget? leading,
   Widget? trailing,
+  String? caseNumber,
+  bool showWatermark = true,
 }) {
   assert(detents.length >= 2, 'AppleSheet needs at least two detents');
   final sortedDetents = [...detents]..sort();
@@ -63,6 +65,8 @@ Future<T?> showAppleSheet<T>({
         backdropTint:
             backdropTint ?? const Color(0x55050505),
         backdropBlur: backdropBlur,
+        caseNumber: caseNumber ?? defaultCaseNumber(title, eyebrow),
+        showWatermark: showWatermark,
         builder: builder,
       );
     },
@@ -75,6 +79,8 @@ class _AppleSheet extends StatefulWidget {
     required this.builder,
     required this.backdropTint,
     required this.backdropBlur,
+    required this.caseNumber,
+    required this.showWatermark,
     this.title,
     this.eyebrow,
     this.tone,
@@ -90,6 +96,8 @@ class _AppleSheet extends StatefulWidget {
   final Color? tone;
   final Widget? leading;
   final Widget? trailing;
+  final String caseNumber;
+  final bool showWatermark;
 
   @override
   State<_AppleSheet> createState() => _AppleSheetState();
@@ -324,9 +332,25 @@ class _AppleSheetState extends State<_AppleSheet>
                           // the rubber-band feel of a real surface
                           // rather than a hard stop at the edges.
                           Expanded(
-                            child: ScrollConfiguration(
-                              behavior: const _AppleSheetScrollBehavior(),
-                              child: widget.builder(controller),
+                            child: Stack(
+                              children: [
+                                ScrollConfiguration(
+                                  behavior:
+                                      const _AppleSheetScrollBehavior(),
+                                  child: widget.builder(controller),
+                                ),
+                                if (widget.showWatermark)
+                                  Positioned(
+                                    right: 14,
+                                    bottom: 10,
+                                    child: IgnorePointer(
+                                      child: AppleSheetWatermark(
+                                        tone: accent,
+                                        caseNumber: widget.caseNumber,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ],
@@ -365,5 +389,81 @@ class _AppleSheetScrollBehavior extends ScrollBehavior {
     // Apple sheets never show the Material glow indicator; the
     // rubber-band bounce is the entire feedback channel.
     return child;
+  }
+}
+
+/// Deterministic case-number generator for the watermark.
+///
+/// Same `(title, eyebrow)` pair always resolves to the same number,
+/// so a given sheet reads as a recurring "case file" across
+/// sessions rather than churning every mount.
+String defaultCaseNumber(String? title, String? eyebrow) {
+  final seed = '${eyebrow ?? ''}|${title ?? ''}';
+  // FNV-1a 32-bit hash for stability across platforms.
+  var hash = 0x811C9DC5;
+  for (final code in seed.codeUnits) {
+    hash ^= code;
+    hash = (hash * 0x01000193) & 0xFFFFFFFF;
+  }
+  final body = hash.toRadixString(16).toUpperCase().padLeft(8, '0');
+  return 'N° $body';
+}
+
+/// Mono-cap GLOBE · ID watermark painted at the bottom-right of
+/// every Apple sheet. Reads as the brand thread on every modal —
+/// the same logic as a stamped serial on a luxury good. Low alpha
+/// (12 % white + 32 % tone) keeps it from competing with content;
+/// the foil-gold tone hairline above ties it to the sheet handle.
+class AppleSheetWatermark extends StatelessWidget {
+  const AppleSheetWatermark({
+    super.key,
+    required this.tone,
+    required this.caseNumber,
+  });
+  final Color tone;
+  final String caseNumber;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Container(
+          width: 80,
+          height: 0.6,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.transparent,
+                tone.withValues(alpha: 0.36),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'GLOBE · ID',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.18),
+            fontSize: 9,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2.4,
+            fontFamily: 'monospace',
+          ),
+        ),
+        const SizedBox(height: 1),
+        Text(
+          caseNumber,
+          style: TextStyle(
+            color: tone.withValues(alpha: 0.42),
+            fontSize: 8,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.6,
+            fontFamily: 'monospace',
+          ),
+        ),
+      ],
+    );
   }
 }
