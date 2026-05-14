@@ -165,6 +165,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/telemetry'),
                   ),
                   _SettingsRow(
+                    icon: Icons.history_toggle_off_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Offline-first cache',
+                    sub: 'STALE chip ladder · TimestampedCache',
+                    onTap: () => context.push('/lab/offline-cache'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
