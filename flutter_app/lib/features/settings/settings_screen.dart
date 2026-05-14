@@ -193,6 +193,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/visa-stamp'),
                   ),
                   _SettingsRow(
+                    icon: Icons.print_outlined,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Boarding PRINTED reveal',
+                    sub: 'Roller strikes · 6 px overshoot · ribbon',
+                    onTap: () => context.push('/lab/boarding-printed'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
