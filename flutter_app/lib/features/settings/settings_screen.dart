@@ -256,6 +256,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/brand-gallery'),
                   ),
                   _SettingsRow(
+                    icon: Icons.translate_rounded,
+                    tone: const Color(0xFFE9C75D),
+                    label: 'Locale gallery',
+                    sub: 'Phase 13a · 5 locales · brand chrome stays foil',
+                    onTap: () => context.push('/lab/locale-gallery'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
