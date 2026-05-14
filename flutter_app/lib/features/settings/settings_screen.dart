@@ -123,6 +123,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/ambient/quick-settings'),
                   ),
                   _SettingsRow(
+                    icon: Icons.lock_clock_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Lock screen widgets',
+                    sub: 'Accessory · Always-On',
+                    onTap: () => context.push('/ambient/lock-screen'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
