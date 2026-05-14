@@ -312,6 +312,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/atelier/lab/motion'),
                   ),
                   _SettingsRow(
+                    icon: Icons.token_rounded,
+                    tone: const Color(0xFFE9C75D),
+                    label: 'Brand tokens · export',
+                    sub: 'Phase 14c · 67 tokens · JSON',
+                    onTap: () => context.push('/atelier/lab/tokens'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
