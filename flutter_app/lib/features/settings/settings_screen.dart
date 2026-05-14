@@ -340,6 +340,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/atelier/hub'),
                   ),
                   _SettingsRow(
+                    icon: Icons.approval_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Wallet · ledger seal ceremony',
+                    sub: 'Phase 15a · 2.4s · gold seal stamping',
+                    onTap: () => context.push('/ceremony/ledger-seal'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',

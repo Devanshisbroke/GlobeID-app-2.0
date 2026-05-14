@@ -123,6 +123,7 @@ import '../atelier/screens/tokens_export_screen.dart';
 import '../atelier/screens/visual_regression_screen.dart';
 import '../atelier/screens/dna_timeline_screen.dart';
 import '../atelier/screens/atelier_hub_screen.dart';
+import '../cinematic/cinema2/ledger_seal_ceremony.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
@@ -807,6 +808,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       _blurFadeRoute(
         '/atelier/hub',
         (_, __) => const AtelierHubScreen(),
+      ),
+      _blurFadeRoute(
+        '/ceremony/ledger-seal',
+        (_, __) => const LedgerSealCeremonyScreen(),
       ),
       _route('/visa', (_, __) => const VisaDetailScreen()),
       // Visa renewal ceremony — the Copilot-launched cinematic flow.
