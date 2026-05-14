@@ -115,6 +115,7 @@ import '../features/i18n/rtl_audit_screen.dart';
 import '../features/i18n/dynamic_type_audit_screen.dart';
 import '../features/i18n/reduced_motion_audit_screen.dart';
 import '../features/i18n/wcag_audit_screen.dart';
+import '../features/i18n/locale_a11y_hub_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
@@ -740,6 +741,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         '/lab/rtl-audit',
         (_, __) => const RtlAuditScreen(),
       ),
+      _blurFadeRoute(
+        '/lab/dynamic-type',
+        (_, __) => const DynamicTypeAuditScreen(),
+      ),
+      _blurFadeRoute(
+        '/lab/reduced-motion',
+        (_, __) => const ReducedMotionAuditScreen(),
+      ),
+      _blurFadeRoute('/lab/wcag', (_, __) => const WcagAuditScreen()),
+      _blurFadeRoute(
+        '/lab/locale-a11y',
+        (_, __) => const LocaleA11yHubScreen(),
+      ),
+      _blurFadeRoute(
+        '/lab/locale-gallery',
+        (_, __) => const LocaleGalleryScreen(),
+      ),
+      _blurFadeRoute('/lab/rtl-audit', (_, __) => const RtlAuditScreen()),
       _blurFadeRoute(
         '/lab/dynamic-type',
         (_, __) => const DynamicTypeAuditScreen(),

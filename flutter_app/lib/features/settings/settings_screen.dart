@@ -291,6 +291,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/wcag'),
                   ),
                   _SettingsRow(
+                    icon: Icons.tune_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Locale + Accessibility',
+                    sub: 'Phase 13f · capstone hub · 5 modules · live status',
+                    onTap: () => context.push('/lab/locale-a11y'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
