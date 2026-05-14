@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'inbox_models.dart';
@@ -12,6 +13,46 @@ class InboxNotifier extends StateNotifier<List<InboxItem>> {
   static List<InboxItem> _seed() {
     final now = DateTime.now();
     return [
+      // ─────────── Pre-emptive Copilot alerts ───────────
+      // Surfaced at the top of the inbox by recency so the first
+      // glance always sees the proactive items the Copilot wants
+      // the bearer to act on. Every Copilot alert is mono-cap
+      // titled and prefixed with "COPILOT ·" in the body so the
+      // voice reads as consistent across surfaces.
+      InboxItem(
+        id: 'i_copilot_passport_expiry',
+        kind: InboxKind.copilot,
+        title: 'Passport expires in 11 days',
+        body:
+            'COPILOT · Renew before 24 May to keep cleared trips on track. Estimated turnaround 7 business days.',
+        timestamp: now.subtract(const Duration(minutes: 2)),
+        deeplink: '/vault',
+        priority: InboxPriority.critical,
+        heroIcon: Icons.menu_book_rounded,
+      ),
+      InboxItem(
+        id: 'i_copilot_visa_renew',
+        kind: InboxKind.copilot,
+        title: 'Schengen visa renewal window opens today',
+        body:
+            'COPILOT · Apply now to avoid the 6-week summer backlog. Trip on calendar in 8 weeks would be affected.',
+        timestamp: now.subtract(const Duration(minutes: 5)),
+        deeplink: '/visa',
+        priority: InboxPriority.high,
+        heroIcon: Icons.flight_takeoff_rounded,
+      ),
+      InboxItem(
+        id: 'i_copilot_advisory_escalation',
+        kind: InboxKind.copilot,
+        title: 'Advisory escalated · Indonesia',
+        body:
+            'COPILOT · Risk tier moved LOW → MODERATE. Your Bali trip in 12 days is still safe but review the dossier before departure.',
+        timestamp: now.subtract(const Duration(minutes: 9)),
+        deeplink: '/intelligence',
+        priority: InboxPriority.high,
+        heroIcon: Icons.public_rounded,
+      ),
+      // ─────────── Standard inbox seed ───────────
       InboxItem(
         id: 'i_gate_change',
         kind: InboxKind.travel,
@@ -141,6 +182,40 @@ class InboxNotifier extends StateNotifier<List<InboxItem>> {
   }
 
   int get unreadCount => state.where((i) => !i.read).length;
+
+  /// Push a new pre-emptive Copilot recommendation onto the inbox.
+  ///
+  /// Used by surfaces that detect a state change worth promoting
+  /// (advisory escalation, FX spike, gate change cascade, etc.) and
+  /// want the inbox to carry the "COPILOT ·" voice. The item is
+  /// prepended so it lands at the top of the most-recent bucket.
+  ///
+  /// Callers should fire `Haptics.signature()` on the same frame to
+  /// match the cinematic state ladder used by Live surfaces.
+  void addCopilotAlert({
+    required String id,
+    required String title,
+    required String body,
+    required String deeplink,
+    IconData? heroIcon,
+    InboxPriority priority = InboxPriority.high,
+  }) {
+    if (state.any((i) => i.id == id)) return;
+    final coda = body.startsWith('COPILOT ·') ? body : 'COPILOT · $body';
+    state = [
+      InboxItem(
+        id: id,
+        kind: InboxKind.copilot,
+        title: title,
+        body: coda,
+        timestamp: DateTime.now(),
+        deeplink: deeplink,
+        priority: priority,
+        heroIcon: heroIcon,
+      ),
+      ...state,
+    ];
+  }
 }
 
 final inboxProvider =
@@ -151,4 +226,15 @@ final inboxProvider =
 /// Convenience selector for the unread badge in app chrome.
 final inboxUnreadProvider = Provider<int>((ref) {
   return ref.watch(inboxProvider).where((i) => !i.read).length;
+});
+
+/// Unread Copilot alerts — drives a dedicated chrome accent
+/// (champagne) on the InboxBell when proactive recommendations are
+/// waiting. Distinguishes "Copilot wants you to act" from "you have
+/// generic notifications" so the bearer learns the voice.
+final inboxCopilotUnreadProvider = Provider<int>((ref) {
+  return ref
+      .watch(inboxProvider)
+      .where((i) => i.kind == InboxKind.copilot && !i.read)
+      .length;
 });

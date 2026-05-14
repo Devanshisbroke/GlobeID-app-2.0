@@ -9,6 +9,7 @@ enum InboxKind {
   money, // payment, fx alert, statement
   system, // app update, feature drop
   social, // friend nearby, follower, comment
+  copilot, // GlobeID Copilot — proactive recommendations
 }
 
 /// One inbox notification.
@@ -102,6 +103,16 @@ InboxKindResolved resolveInboxKind(InboxKind kind) {
         label: 'Social',
         icon: Icons.people_alt_rounded,
         accent: Color(0xFF3B82F6),
+      );
+    case InboxKind.copilot:
+      // Champagne gold — the GlobeID Copilot's canonical voice
+      // colour. Every proactive recommendation is announced under
+      // this tone so the user learns to recognise "this came from
+      // the Copilot" at a glance.
+      return const InboxKindResolved(
+        label: 'Copilot',
+        icon: Icons.auto_awesome_rounded,
+        accent: Color(0xFFD4AF37),
       );
   }
 }
