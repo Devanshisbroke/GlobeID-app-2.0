@@ -361,6 +361,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/ceremony/tier-promotion'),
                   ),
                   _SettingsRow(
+                    icon: Icons.bookmark_added_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Discover · favorite lock-in',
+                    sub: 'Phase 15d · 2.0s · coin flip · seal lock',
+                    onTap: () => context.push('/ceremony/favorite-lockin'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
