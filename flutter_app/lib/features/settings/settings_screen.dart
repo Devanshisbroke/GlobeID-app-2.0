@@ -347,6 +347,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/ceremony/ledger-seal'),
                   ),
                   _SettingsRow(
+                    icon: Icons.local_florist_rounded,
+                    tone: const Color(0xFFE9C75D),
+                    label: 'Trip · milestone bloom ceremony',
+                    sub: 'Phase 15b · 2.8s · gold petal radial bloom',
+                    onTap: () => context.push('/ceremony/milestone-bloom'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
