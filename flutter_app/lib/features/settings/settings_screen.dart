@@ -263,6 +263,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/locale-gallery'),
                   ),
                   _SettingsRow(
+                    icon: Icons.format_textdirection_r_to_l_rounded,
+                    tone: const Color(0xFFC9A961),
+                    label: 'RTL audit',
+                    sub: 'Phase 13b · brand chrome stays LTR Latin',
+                    onTap: () => context.push('/lab/rtl-audit'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',

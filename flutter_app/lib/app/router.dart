@@ -111,6 +111,7 @@ import '../features/branding/camera_chrome_screen.dart';
 import '../features/branding/receipts_screen.dart';
 import '../features/branding/brand_surface_gallery_screen.dart';
 import '../features/i18n/locale_gallery_screen.dart';
+import '../features/i18n/rtl_audit_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
@@ -731,6 +732,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       _blurFadeRoute(
         '/lab/locale-gallery',
         (_, __) => const LocaleGalleryScreen(),
+      ),
+      _blurFadeRoute(
+        '/lab/rtl-audit',
+        (_, __) => const RtlAuditScreen(),
       ),
       _route('/visa', (_, __) => const VisaDetailScreen()),
       // Visa renewal ceremony — the Copilot-launched cinematic flow.
