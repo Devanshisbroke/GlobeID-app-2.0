@@ -284,6 +284,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/reduced-motion'),
                   ),
                   _SettingsRow(
+                    icon: Icons.contrast_rounded,
+                    tone: const Color(0xFFE9C75D),
+                    label: 'WCAG contrast audit',
+                    sub: 'Phase 13e · foil + chrome + accents vs OLED',
+                    onTap: () => context.push('/lab/wcag'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
