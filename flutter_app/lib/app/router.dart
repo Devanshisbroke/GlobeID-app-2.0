@@ -86,6 +86,7 @@ import '../features/trip/trip_detail_screen.dart';
 import '../features/vault/credential_audit_trail_screen.dart';
 import '../features/vault/credential_detail_screen.dart';
 import '../features/vault/issuance_screen.dart';
+import '../features/vault/vault_dashboard_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
@@ -393,6 +394,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             credentialLabel: label,
           );
         },
+      ),
+      _blurFadeRoute(
+        '/vault/dashboard',
+        (_, __) => const IdentityVaultDashboard(),
       ),
       _blurFadeRoute('/audit-log', (_, __) => const AuditLogScreen()),
       _blurFadeRoute('/inbox', (_, __) => const InboxScreen()),
