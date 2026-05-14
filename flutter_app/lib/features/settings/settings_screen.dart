@@ -207,6 +207,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/declassified'),
                   ),
                   _SettingsRow(
+                    icon: Icons.workspaces_outline,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Lounge velvet rope',
+                    sub: 'Brass arm · rope lift · member reveal',
+                    onTap: () => context.push('/lab/velvet-rope'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
