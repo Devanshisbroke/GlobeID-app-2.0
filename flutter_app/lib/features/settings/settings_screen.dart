@@ -214,6 +214,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/velvet-rope'),
                   ),
                   _SettingsRow(
+                    icon: Icons.movie_filter_outlined,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Cinematics',
+                    sub: 'Five GlobeID-engineered ceremonies',
+                    onTap: () => context.push('/cinematics'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
