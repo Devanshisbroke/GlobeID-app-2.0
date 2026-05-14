@@ -116,6 +116,8 @@ import '../features/i18n/dynamic_type_audit_screen.dart';
 import '../features/i18n/reduced_motion_audit_screen.dart';
 import '../features/i18n/wcag_audit_screen.dart';
 import '../features/i18n/locale_a11y_hub_screen.dart';
+import '../atelier/screens/atelier_component_screen.dart';
+import '../atelier/screens/atelier_gallery_screen.dart';
 import '../features/vault/vault_screen.dart';
 import '../features/wallet/pass_detail_screen.dart';
 import '../motion/motion.dart';
@@ -768,6 +770,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         (_, __) => const ReducedMotionAuditScreen(),
       ),
       _blurFadeRoute('/lab/wcag', (_, __) => const WcagAuditScreen()),
+      _blurFadeRoute(
+        '/atelier',
+        (_, __) => const AtelierGalleryScreen(),
+      ),
+      GoRoute(
+        path: '/atelier/:componentId',
+        pageBuilder: (ctx, state) => _blurFade(
+          state.pageKey,
+          AtelierComponentScreen(
+            componentId: state.pathParameters['componentId']!,
+          ),
+        ),
+      ),
       _route('/visa', (_, __) => const VisaDetailScreen()),
       // Visa renewal ceremony — the Copilot-launched cinematic flow.
       // Optional query: ?country=Schengen Area&days=11&flag=🇪🇺

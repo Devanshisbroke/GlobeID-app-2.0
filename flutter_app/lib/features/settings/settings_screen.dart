@@ -298,6 +298,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/locale-a11y'),
                   ),
                   _SettingsRow(
+                    icon: Icons.collections_bookmark_rounded,
+                    tone: const Color(0xFFE9C75D),
+                    label: 'Atelier · design system',
+                    sub: 'Phase 14a · 19 primitives · 4 domains',
+                    onTap: () => context.push('/atelier'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
