@@ -123,6 +123,30 @@ class _DiscoverWorldState extends ConsumerState<DiscoverWorld> {
                   label: 'CULTURE',
                   value: 'EXPLORE',
                   tone: Os2.discoverTone,
+                  onTap: () => GoRouter.of(context).push('/explore'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.workspace_premium_rounded,
+                  label: 'PREMIUM',
+                  value: 'SHOWCASE',
+                  tone: Os2.identityTone,
+                  onTap: () =>
+                      GoRouter.of(context).push('/premium-showcase'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.feed_rounded,
+                  label: 'FEED',
+                  value: 'TRENDS',
+                  tone: Os2.discoverTone,
+                  onTap: () => GoRouter.of(context).push('/feed'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.public_rounded,
+                  label: 'COUNTRY',
+                  value: 'DOSSIER',
+                  tone: Os2.signalLive,
+                  onTap: () =>
+                      GoRouter.of(context).push('/country-live/JP'),
                 ),
               ],
             ),

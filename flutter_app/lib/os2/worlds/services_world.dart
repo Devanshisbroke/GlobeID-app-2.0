@@ -46,7 +46,7 @@ class ServicesWorld extends ConsumerWidget {
                   label: 'CONCIERGE',
                   value: 'ONLINE',
                   tone: Os2.signalSettled,
-                  onTap: () => GoRouter.of(context).push('/copilot'),
+                  onTap: () => GoRouter.of(context).push('/os2/concierge'),
                 ),
                 Os2InfoEntry(
                   icon: Icons.health_and_safety_rounded,
@@ -60,12 +60,46 @@ class ServicesWorld extends ConsumerWidget {
                   label: 'BENEFITS',
                   value: '12 ACTIVE',
                   tone: Os2.servicesTone,
+                  onTap: () => GoRouter.of(context).push('/super-services'),
                 ),
                 Os2InfoEntry(
                   icon: Icons.flag_rounded,
                   label: 'PROGRAMS',
                   value: '6 ENROLLED',
                   tone: Os2.identityTone,
+                  onTap: () => GoRouter.of(context).push('/super-services'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.timeline_rounded,
+                  label: 'LIVE RIDE',
+                  value: 'TRACK',
+                  tone: Os2.servicesTone,
+                  onTap: () =>
+                      GoRouter.of(context).push('/services/rides/live'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.flight_takeoff_rounded,
+                  label: 'FLIGHTS',
+                  value: 'BROWSE',
+                  tone: Os2.travelTone,
+                  onTap: () =>
+                      GoRouter.of(context).push('/services/flights'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.local_activity_rounded,
+                  label: 'ACTIVITIES',
+                  value: 'EXPLORE',
+                  tone: Os2.discoverTone,
+                  onTap: () =>
+                      GoRouter.of(context).push('/services/activities'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.directions_bus_rounded,
+                  label: 'TRANSPORT',
+                  value: 'PLAN',
+                  tone: Os2.travelTone,
+                  onTap: () =>
+                      GoRouter.of(context).push('/services/transport'),
                 ),
               ],
             ),

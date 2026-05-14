@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../cinematic/copilot/copilot_moment_strip.dart';
 import '../../data/models/travel_record.dart';
+import '../../features/copilot/copilot_hub_models.dart';
 import '../../features/user/user_provider.dart';
 import '../os2_tokens.dart';
 import '../primitives/os2_beacon.dart';
@@ -57,6 +59,18 @@ class TravelWorld extends ConsumerWidget {
               subtitle:
                   'Departure stage \u00b7 ${upcoming.length} upcoming \u00b7 ${past.length} flown',
               beacon: active != null ? 'IN FLIGHT' : 'READY',
+            ),
+            const SizedBox(height: Os2.space3),
+            // Copilot moment — boarding / travel-doc / advisory.
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: CopilotMomentStrip(
+                contextKinds: {
+                  CopilotHubKind.boarding,
+                  CopilotHubKind.travel,
+                  CopilotHubKind.advisory,
+                },
+              ),
             ),
             const SizedBox(height: Os2.space4),
             if (focal != null) ...[
@@ -302,27 +316,75 @@ class _DepartureStage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: Os2.space4),
-            Row(
-              children: [
-                _StageChip(
-                  icon: Icons.qr_code_2_rounded,
-                  label: 'Boarding',
-                  onTap: () =>
-                      GoRouter.of(context).push('/boarding-pass-live'),
-                ),
-                const SizedBox(width: 8),
-                _StageChip(
-                  icon: Icons.airport_shuttle_rounded,
-                  label: 'Airport',
-                  onTap: () => GoRouter.of(context).push('/airport'),
-                ),
-                const SizedBox(width: 8),
-                _StageChip(
-                  icon: Icons.luggage_rounded,
-                  label: 'Packing',
-                  onTap: () => GoRouter.of(context).push('/packing'),
-                ),
-              ],
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
+                  _StageChip(
+                    icon: Icons.qr_code_2_rounded,
+                    label: 'Boarding',
+                    onTap: () =>
+                        GoRouter.of(context).push('/boarding-pass-live'),
+                  ),
+                  const SizedBox(width: 8),
+                  _StageChip(
+                    icon: Icons.airport_shuttle_rounded,
+                    label: 'Airport',
+                    onTap: () => GoRouter.of(context).push('/airport'),
+                  ),
+                  const SizedBox(width: 8),
+                  _StageChip(
+                    icon: Icons.luggage_rounded,
+                    label: 'Packing',
+                    onTap: () => GoRouter.of(context).push('/packing'),
+                  ),
+                  const SizedBox(width: 8),
+                  _StageChip(
+                    icon: Icons.radar_rounded,
+                    label: 'Airport OS2',
+                    onTap: () => GoRouter.of(context).push('/os2/airport'),
+                  ),
+                  const SizedBox(width: 8),
+                  _StageChip(
+                    icon: Icons.confirmation_number_rounded,
+                    label: 'Boarding OS2',
+                    onTap: () => GoRouter.of(context).push('/os2/boarding'),
+                  ),
+                  const SizedBox(width: 8),
+                  _StageChip(
+                    icon: Icons.event_note_rounded,
+                    label: 'Itinerary',
+                    onTap: () => GoRouter.of(context).push('/itinerary'),
+                  ),
+                  const SizedBox(width: 8),
+                  _StageChip(
+                    icon: Icons.edit_calendar_rounded,
+                    label: 'Planner',
+                    onTap: () => GoRouter.of(context).push('/planner'),
+                  ),
+                  const SizedBox(width: 8),
+                  _StageChip(
+                    icon: Icons.timeline_rounded,
+                    label: 'Pipeline',
+                    onTap: () =>
+                        GoRouter.of(context).push('/trip-pipeline'),
+                  ),
+                  const SizedBox(width: 8),
+                  _StageChip(
+                    icon: Icons.menu_book_rounded,
+                    label: 'Journal',
+                    onTap: () => GoRouter.of(context).push('/journal'),
+                  ),
+                  const SizedBox(width: 8),
+                  _StageChip(
+                    icon: Icons.graphic_eq_rounded,
+                    label: 'Live trip',
+                    onTap: () =>
+                        GoRouter.of(context).push('/trip-timeline-live'),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
