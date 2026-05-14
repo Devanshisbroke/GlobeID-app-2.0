@@ -382,6 +382,14 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/cinema2'),
                   ),
                   _SettingsRow(
+                    icon: Icons.savings_rounded,
+                    tone: const Color(0xFFE9C75D),
+                    label: 'Wallet · investment milestone',
+                    sub: 'Phase 16a · 3.0s · bar rise · crown reveal',
+                    onTap: () =>
+                        context.push('/ceremony/investment-milestone'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
