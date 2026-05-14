@@ -242,6 +242,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/camera-chrome'),
                   ),
                   _SettingsRow(
+                    icon: Icons.receipt_long_rounded,
+                    tone: const Color(0xFFE9C75D),
+                    label: 'Receipts',
+                    sub: 'Phase 12e · 5 GlobeID-engineered receipts',
+                    onTap: () => context.push('/lab/receipts'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
