@@ -69,6 +69,8 @@ void main() {
         );
 
         final node = t.getSemantics(find.bySemanticsLabel('Disabled action'));
+        // Tristate: when the affordance is disabled, isEnabled is isFalse
+        // (property applies, state is "false / off").
         expect(node.flagsCollection.isEnabled, Tristate.isFalse);
         handle.dispose();
       },
