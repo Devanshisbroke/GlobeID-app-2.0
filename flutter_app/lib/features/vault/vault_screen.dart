@@ -12,6 +12,8 @@ import '../../cinematic/identity/selective_disclosure.dart';
 import '../../cinematic/identity/selective_disclosure_sheet.dart';
 import '../../cinematic/states/cinematic_states.dart';
 import '../../data/models/travel_document.dart';
+import '../../os2/os2_tokens.dart';
+import '../../os2/primitives/os2_text.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
@@ -185,6 +187,23 @@ class _VaultScreenState extends ConsumerState<VaultScreen>
               icon: Icons.shield_outlined,
             )
           else ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTokens.space5,
+              ),
+              child: _MintCta(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  context.push('/vault/issuance', extra: const {
+                    'title': 'GlobeID Atelier · Identity Card',
+                    'subtitle': 'Bearer · GlobeID',
+                    'issuer': 'GlobeID Atelier',
+                    'blockHeight': 12148337,
+                  });
+                },
+              ),
+            ),
+            const SizedBox(height: AppTokens.space3),
             const SectionHeader(title: 'Documents', dense: true),
             for (var i = 0; i < user.documents.length; i++)
               AnimatedAppearance(
@@ -429,6 +448,63 @@ class _StatusChip extends StatelessWidget {
         style: theme.textTheme.bodySmall?.copyWith(
           color: color,
           fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _MintCta extends StatelessWidget {
+  const _MintCta({required this.onTap});
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      semanticLabel: 'Mint credential',
+      semanticHint: 'plays the issuance ceremony',
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: Os2.space5,
+          vertical: Os2.space4,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(Os2.rCard),
+          gradient: Os2.foilGoldHero,
+          border: Border.all(color: Os2.goldDeep.withValues(alpha: 0.62)),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.auto_awesome_rounded,
+              color: Os2.canvas,
+              size: 20,
+            ),
+            const SizedBox(width: Os2.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Os2Text.monoCap(
+                    'IDENTITY · MINT',
+                    color: Os2.canvas,
+                    size: Os2.textTiny,
+                  ),
+                  const SizedBox(height: 2),
+                  Os2Text.title(
+                    'Mint a new credential',
+                    color: Os2.canvas,
+                    size: Os2.textRg,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_rounded,
+              color: Os2.canvas,
+              size: 18,
+            ),
+          ],
         ),
       ),
     );
