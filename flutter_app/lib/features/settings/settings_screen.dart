@@ -368,6 +368,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/ceremony/favorite-lockin'),
                   ),
                   _SettingsRow(
+                    icon: Icons.support_agent_rounded,
+                    tone: const Color(0xFFE9C75D),
+                    label: 'Services · concierge handoff',
+                    sub: 'Phase 15e · 2.6s · packet handoff · seal',
+                    onTap: () => context.push('/ceremony/concierge-handoff'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
