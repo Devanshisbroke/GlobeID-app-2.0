@@ -277,6 +277,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/dynamic-type'),
                   ),
                   _SettingsRow(
+                    icon: Icons.motion_photos_paused_rounded,
+                    tone: const Color(0xFFC9A961),
+                    label: 'Reduced motion audit',
+                    sub: 'Phase 13d · structural · ambient · signature',
+                    onTap: () => context.push('/lab/reduced-motion'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
