@@ -326,6 +326,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/atelier/lab/regression'),
                   ),
                   _SettingsRow(
+                    icon: Icons.history_edu_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Brand DNA timeline',
+                    sub: 'Phase 14e · 14 chapters · invariants',
+                    onTap: () => context.push('/atelier/lab/dna-timeline'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
