@@ -568,6 +568,34 @@ class _TreasuryVaultHeroState extends State<_TreasuryVaultHero>
                             onTap: () => GoRouter.of(context)
                                 .push('/receipt'),
                           ),
+                          const SizedBox(width: 8),
+                          _StageChip(
+                            icon: Icons.show_chart_rounded,
+                            label: 'Forex live',
+                            onTap: () => GoRouter.of(context)
+                                .push('/forex-live'),
+                          ),
+                          const SizedBox(width: 8),
+                          _StageChip(
+                            icon: Icons.water_drop_rounded,
+                            label: 'Pour',
+                            onTap: () => GoRouter.of(context)
+                                .push('/multi-currency-pour'),
+                          ),
+                          const SizedBox(width: 8),
+                          _StageChip(
+                            icon: Icons.layers_rounded,
+                            label: 'Multi-FX',
+                            onTap: () => GoRouter.of(context)
+                                .push('/multi-currency'),
+                          ),
+                          const SizedBox(width: 8),
+                          _StageChip(
+                            icon: Icons.account_balance_wallet_rounded,
+                            label: 'Nexus Wallet',
+                            onTap: () => GoRouter.of(context)
+                                .push('/nexus/wallet'),
+                          ),
                         ],
                       ),
                     ),
