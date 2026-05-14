@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../cinematic/copilot/copilot_moment_strip.dart';
 import '../../domain/identity_tier.dart';
+import '../../features/copilot/copilot_hub_models.dart';
 import '../../features/identity/identity_intel.dart';
 import '../../features/user/user_provider.dart';
 import '../../motion/haptic_refresh.dart';
@@ -79,6 +81,18 @@ class _IdentityWorldState extends ConsumerState<IdentityWorld> {
               subtitle: 'Sovereign credentials \u00b7 foil sanctum',
               beacon: 'VERIFIED',
             ),
+            const SizedBox(height: Os2.space3),
+            // Copilot moment — identity-context AI suggestion (tier,
+            // attestation, score, document renewal).
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: CopilotMomentStrip(
+                contextKinds: {
+                  CopilotHubKind.identity,
+                  CopilotHubKind.travel,
+                },
+              ),
+            ),
             const SizedBox(height: Os2.space4),
             // 1. Holographic passport hero.
             Padding(
@@ -128,6 +142,28 @@ class _IdentityWorldState extends ConsumerState<IdentityWorld> {
                   value: 'CLEAR',
                   tone: Os2.signalSettled,
                   onTap: () => GoRouter.of(context).push('/audit-log'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.dashboard_customize_rounded,
+                  label: 'VAULT',
+                  value: 'DASHBOARD',
+                  tone: Os2.identityTone,
+                  onTap: () =>
+                      GoRouter.of(context).push('/vault/dashboard'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.mark_email_unread_rounded,
+                  label: 'INBOX',
+                  value: 'SIGNALS',
+                  tone: Os2.travelTone,
+                  onTap: () => GoRouter.of(context).push('/inbox'),
+                ),
+                Os2InfoEntry(
+                  icon: Icons.assignment_ind_rounded,
+                  label: 'VISA',
+                  value: 'SCOUT',
+                  tone: Os2.signalLive,
+                  onTap: () => GoRouter.of(context).push('/visa'),
                 ),
               ],
             ),
@@ -191,7 +227,18 @@ class _IdentityWorldState extends ConsumerState<IdentityWorld> {
                     sub: '${intel.crossSignSource} \u00b7 '
                         '+${math.max(0, intel.attestationsCount - 3)}',
                     tone: Os2.identityTone,
-                    onTap: () => GoRouter.of(context).push('/vault'),
+                    onTap: () => GoRouter.of(context).push(
+                      '/vault/issuance',
+                      extra: <String, dynamic>{
+                        'title': profile.passportNumber.isEmpty
+                            ? '${profile.nationality} \u00b7 Passport'
+                            : '${profile.passportNumber} \u00b7 Passport',
+                        'subtitle': 'Bearer \u00b7 ${profile.name}',
+                        'issuer': profile.nationality,
+                        'blockHeight':
+                            12148337 + intel.attestationsCount * 7,
+                      },
+                    ),
                   ),
                   const SizedBox(height: Os2.space3),
                   _CredentialSlab(
@@ -201,7 +248,41 @@ class _IdentityWorldState extends ConsumerState<IdentityWorld> {
                         '${intel.lastEventAgo} ago',
                     sub: '${intel.lastEventVenue} \u00b7 success',
                     tone: Os2.identityTone,
+                    onTap: () => GoRouter.of(context).push(
+                      '/vault/audit/passport',
+                      extra: <String, dynamic>{
+                        'label': profile.passportNumber.isEmpty
+                            ? 'Passport'
+                            : profile.passportNumber,
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: Os2.space3),
+                  _CredentialSlab(
+                    icon: Icons.fact_check_rounded,
+                    label: 'ACCESS HISTORY',
+                    title: 'System-wide verification log',
+                    sub: 'Every issuer touch \u00b7 chronological',
+                    tone: Os2.identityTone,
                     onTap: () => GoRouter.of(context).push('/audit-log'),
+                  ),
+                  const SizedBox(height: Os2.space3),
+                  _CredentialSlab(
+                    icon: Icons.menu_book_rounded,
+                    label: 'PASSPORT BOOK \u00b7 OS2',
+                    title: 'Open cinematic passport book',
+                    sub: 'Foil pages \u00b7 stamps \u00b7 visas',
+                    tone: Os2.identityTone,
+                    onTap: () => GoRouter.of(context).push('/os2/passport'),
+                  ),
+                  const SizedBox(height: Os2.space3),
+                  _CredentialSlab(
+                    icon: Icons.verified_user_rounded,
+                    label: 'TRUST HUB',
+                    title: 'Cross-sign arcs \u00b7 posture meters',
+                    sub: 'Audits \u00b7 sessions \u00b7 keys \u00b7 chain',
+                    tone: Os2.identityTone,
+                    onTap: () => GoRouter.of(context).push('/os2/trust'),
                   ),
                 ],
               ),

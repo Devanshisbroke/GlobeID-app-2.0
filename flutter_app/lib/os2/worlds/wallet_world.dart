@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../cinematic/copilot/copilot_moment_strip.dart';
 import '../../data/models/wallet_models.dart';
+import '../../features/copilot/copilot_hub_models.dart';
 import '../../features/wallet/merchant_brand.dart';
 import '../../features/wallet/wallet_provider.dart';
 import '../../motion/haptic_refresh.dart';
@@ -61,6 +63,14 @@ class WalletWorld extends ConsumerWidget {
               title: 'Treasury',
               subtitle: 'Multi-currency \u00b7 globally settled',
               beacon: 'LIQUID',
+            ),
+            const SizedBox(height: Os2.space3),
+            // Copilot moment — wallet/FX AI suggestion.
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: CopilotMomentStrip(
+                contextKinds: {CopilotHubKind.wallet},
+              ),
             ),
             const SizedBox(height: Os2.space4),
             Padding(
@@ -529,6 +539,34 @@ class _TreasuryVaultHeroState extends State<_TreasuryVaultHero>
                             label: 'Statements',
                             onTap: () => GoRouter.of(context)
                                 .push('/wallet/statements'),
+                          ),
+                          const SizedBox(width: 8),
+                          _StageChip(
+                            icon: Icons.account_balance_rounded,
+                            label: 'Treasury',
+                            onTap: () => GoRouter.of(context)
+                                .push('/os2/treasury'),
+                          ),
+                          const SizedBox(width: 8),
+                          _StageChip(
+                            icon: Icons.flight_takeoff_rounded,
+                            label: 'Trip wallet',
+                            onTap: () => GoRouter.of(context)
+                                .push('/trip-wallet'),
+                          ),
+                          const SizedBox(width: 8),
+                          _StageChip(
+                            icon: Icons.insights_rounded,
+                            label: 'Analytics',
+                            onTap: () => GoRouter.of(context)
+                                .push('/analytics'),
+                          ),
+                          const SizedBox(width: 8),
+                          _StageChip(
+                            icon: Icons.receipt_rounded,
+                            label: 'Receipts',
+                            onTap: () => GoRouter.of(context)
+                                .push('/receipt'),
                           ),
                         ],
                       ),
@@ -1035,7 +1073,9 @@ class _TxnRow extends StatelessWidget {
       description: txn.description,
       category: txn.category,
     );
-    return Padding(
+    return Os2Magnetic(
+      onTap: () => GoRouter.of(context).push('/receipt'),
+      child: Padding(
       padding: const EdgeInsets.symmetric(vertical: Os2.space3),
       child: Row(
         children: [
@@ -1085,6 +1125,7 @@ class _TxnRow extends StatelessWidget {
             maxLines: 1,
           ),
         ],
+      ),
       ),
     );
   }

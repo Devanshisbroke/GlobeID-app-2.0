@@ -8,6 +8,8 @@ import '../../features/wallet/wallet_provider.dart';
 import '../../features/inbox/inbox_provider.dart';
 import '../../features/score/score_provider.dart';
 import '../../domain/identity_tier.dart';
+import '../../cinematic/copilot/copilot_moment_strip.dart';
+import '../../features/copilot/copilot_hub_models.dart';
 import '../../nexus/cards/nexus_countdown_card.dart';
 import '../../nexus/chrome/nexus_pipeline.dart';
 import '../../nexus/chrome/nexus_quick_actions.dart';
@@ -85,6 +87,23 @@ class PulseWorld extends ConsumerWidget {
               subtitle: 'Mission control \u00b7 your day in motion',
             ),
             const SizedBox(height: Os2.space2),
+            // ─── Copilot moment — the most-urgent AI suggestion for
+            //     this user across every domain. Tapping the CTA
+            //     opens the suggestion's deep link; long-press opens
+            //     the full Hub.
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: CopilotMomentStrip(
+                contextKinds: {
+                  CopilotHubKind.travel,
+                  CopilotHubKind.wallet,
+                  CopilotHubKind.identity,
+                  CopilotHubKind.boarding,
+                  CopilotHubKind.advisory,
+                },
+              ),
+            ),
+            const SizedBox(height: Os2.space3),
             // ─── Nexus update banner — canonical attention pattern (only
             //     surfaces when there's actionable signal).
             if (activeLeg != null || nextLeg != null) ...[
@@ -279,6 +298,23 @@ class PulseWorld extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: Os2.space3),
+            // 4b. Intelligence + Copilot Hub dual-slab.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+              child: Row(
+                children: [
+                  Expanded(child: _IntelligencePulse()),
+                  const SizedBox(width: Os2.space3),
+                  Expanded(child: _CopilotHubPulse()),
+                ],
+              ),
+            ),
+            const SizedBox(height: Os2.space3),
+            // 4c. Ambient surfaces rail — Live Activity / Widget /
+            //     Watch / Quick Settings / Lock previews. The OS2
+            //     ambient layer reaches the user beyond the app.
+            const _AmbientSurfaceRail(),
             const SizedBox(height: Os2.space4),
             // 5. Today's signal — info strip
             Os2InfoStrip(
@@ -911,6 +947,74 @@ class _ConciergeHandoff extends StatelessWidget {
   }
 }
 
+class _IntelligencePulse extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Os2Magnetic(
+      onTap: () => GoRouter.of(context).push('/intelligence'),
+      child: Os2Slab(
+        tone: Os2.discoverTone,
+        radius: Os2.rCard,
+        halo: Os2SlabHalo.corner,
+        elevation: Os2SlabElevation.resting,
+        padding: const EdgeInsets.all(Os2.space4),
+        breath: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.auto_graph_rounded,
+                size: 18, color: Os2.discoverTone),
+            const SizedBox(height: Os2.space3),
+            Os2Text.headline(
+              'Intel',
+              color: Os2.inkBright,
+              size: 18,
+              weight: FontWeight.w700,
+            ),
+            const SizedBox(height: 2),
+            Os2Text.caption('LIVE BRIEFINGS', color: Os2.discoverTone),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CopilotHubPulse extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Os2Magnetic(
+      onTap: () => GoRouter.of(context).push('/copilot/hub'),
+      child: Os2Slab(
+        tone: Os2.identityTone,
+        radius: Os2.rCard,
+        halo: Os2SlabHalo.corner,
+        elevation: Os2SlabElevation.resting,
+        padding: const EdgeInsets.all(Os2.space4),
+        breath: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.auto_awesome_rounded,
+                size: 18, color: Os2.identityTone),
+            const SizedBox(height: Os2.space3),
+            Os2Text.headline(
+              'Copilot',
+              color: Os2.inkBright,
+              size: 18,
+              weight: FontWeight.w700,
+            ),
+            const SizedBox(height: 2),
+            Os2Text.caption('SUGGESTIONS HUB', color: Os2.identityTone),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────
 // _AliveSystemsRail — horizontal rail of 12 living credential tiles.
 //
@@ -1100,6 +1204,150 @@ class _AliveTile extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AmbientSurfaceRail extends StatelessWidget {
+  const _AmbientSurfaceRail();
+
+  @override
+  Widget build(BuildContext context) {
+    const surfaces = <_AmbientSurfaceMeta>[
+      _AmbientSurfaceMeta(
+        icon: Icons.broadcast_on_personal_rounded,
+        label: 'LIVE',
+        hint: 'Live Activity',
+        route: '/ambient/live-activity',
+        tone: Os2.signalLive,
+      ),
+      _AmbientSurfaceMeta(
+        icon: Icons.widgets_rounded,
+        label: 'WIDGET',
+        hint: 'Home widgets',
+        route: '/ambient/widgets',
+        tone: Os2.identityTone,
+      ),
+      _AmbientSurfaceMeta(
+        icon: Icons.watch_rounded,
+        label: 'WATCH',
+        hint: 'Watch face',
+        route: '/ambient/watch',
+        tone: Os2.pulseTone,
+      ),
+      _AmbientSurfaceMeta(
+        icon: Icons.tune_rounded,
+        label: 'QUICK',
+        hint: 'Quick settings',
+        route: '/ambient/quick-settings',
+        tone: Os2.servicesTone,
+      ),
+      _AmbientSurfaceMeta(
+        icon: Icons.lock_outline_rounded,
+        label: 'LOCK',
+        hint: 'Lock screen',
+        route: '/ambient/lock-screen',
+        tone: Os2.travelTone,
+      ),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: Os2.space4),
+      child: Os2Slab(
+        tone: Os2.pulseTone,
+        radius: Os2.rCard,
+        halo: Os2SlabHalo.corner,
+        elevation: Os2SlabElevation.resting,
+        padding: const EdgeInsets.all(Os2.space4),
+        breath: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Os2Text.monoCap(
+                  'AMBIENT \u00b7 BEYOND THE APP',
+                  color: Os2.pulseTone,
+                  size: 11,
+                ),
+                const Spacer(),
+                Os2Magnetic(
+                  onTap: () => GoRouter.of(context).push('/ambient'),
+                  child: Os2Text.monoCap(
+                    'HUB \u2192',
+                    color: Os2.identityTone,
+                    size: 11,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: Os2.space3),
+            Row(
+              children: [
+                for (int i = 0; i < surfaces.length; i++) ...[
+                  Expanded(child: _AmbientPip(meta: surfaces[i])),
+                  if (i < surfaces.length - 1)
+                    const SizedBox(width: Os2.space2),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AmbientSurfaceMeta {
+  const _AmbientSurfaceMeta({
+    required this.icon,
+    required this.label,
+    required this.hint,
+    required this.route,
+    required this.tone,
+  });
+  final IconData icon;
+  final String label;
+  final String hint;
+  final String route;
+  final Color tone;
+}
+
+class _AmbientPip extends StatelessWidget {
+  const _AmbientPip({required this.meta});
+  final _AmbientSurfaceMeta meta;
+
+  @override
+  Widget build(BuildContext context) {
+    return Os2Magnetic(
+      onTap: () => GoRouter.of(context).push(meta.route),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: Os2.space2,
+          vertical: Os2.space3,
+        ),
+        decoration: BoxDecoration(
+          color: meta.tone.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(Os2.rChip),
+          border: Border.all(
+            color: meta.tone.withValues(alpha: 0.32),
+            width: Os2.strokeFine,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(meta.icon, size: 18, color: meta.tone),
+            const SizedBox(height: 4),
+            Os2Text.monoCap(
+              meta.label,
+              color: Os2.inkBright,
+              size: 10,
+            ),
+          ],
         ),
       ),
     );
