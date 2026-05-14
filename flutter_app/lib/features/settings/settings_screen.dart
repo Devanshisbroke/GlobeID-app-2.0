@@ -375,6 +375,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/ceremony/concierge-handoff'),
                   ),
                   _SettingsRow(
+                    icon: Icons.movie_filter_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Cinema II · hub',
+                    sub: 'Phase 15f · 5 ceremonies · invariants charter',
+                    onTap: () => context.push('/cinema2'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
