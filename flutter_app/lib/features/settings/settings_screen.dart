@@ -221,6 +221,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/cinematics'),
                   ),
                   _SettingsRow(
+                    icon: Icons.workspace_premium_outlined,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Cold-mount seal',
+                    sub: 'Phase 12b · GlobeID seal stamp ceremony',
+                    onTap: () => context.push('/lab/seal-coldmount'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
