@@ -319,6 +319,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/atelier/lab/tokens'),
                   ),
                   _SettingsRow(
+                    icon: Icons.grid_view_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Visual regression',
+                    sub: 'Phase 14d · 8 specimens · canonical sizing',
+                    onTap: () => context.push('/atelier/lab/regression'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
