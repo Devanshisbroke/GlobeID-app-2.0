@@ -130,6 +130,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/ambient/lock-screen'),
                   ),
                   _SettingsRow(
+                    icon: Icons.dashboard_customize_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Ambient hub',
+                    sub: 'Dynamic Island · widgets · watch · lock',
+                    onTap: () => context.push('/ambient'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
