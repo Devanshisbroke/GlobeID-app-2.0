@@ -235,6 +235,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/identity-signet'),
                   ),
                   _SettingsRow(
+                    icon: Icons.center_focus_strong_rounded,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Camera chrome',
+                    sub: 'Phase 12d · 5 GlobeID-engineered scan modes',
+                    onTap: () => context.push('/lab/camera-chrome'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
