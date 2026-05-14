@@ -172,6 +172,13 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () => context.push('/lab/offline-cache'),
                   ),
                   _SettingsRow(
+                    icon: Icons.verified_outlined,
+                    tone: const Color(0xFFD4AF37),
+                    label: 'Production readiness',
+                    sub: 'Phase 10 capstone · live + idle + demo audit',
+                    onTap: () => context.push('/lab/production-readiness'),
+                  ),
+                  _SettingsRow(
                     icon: Icons.info_outline_rounded,
                     tone: const Color(0xFF8B5CF6),
                     label: 'About',
