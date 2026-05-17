@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../../core/render_profile.dart';
 import '../../widgets/animated_appearance.dart';
 import '../../widgets/page_scaffold.dart';
 import '../../widgets/premium_card.dart';
+import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
 import 'theme_prefs_provider.dart';
 
@@ -608,7 +610,7 @@ class _LabSettingsState extends State<LabSettingsScreen> {
   Widget build(BuildContext context) {
     return PageScaffold(
       title: 'Lab features',
-      subtitle: 'Experimental + early access',
+      subtitle: 'Experimental · sandbox · ceremonies · adapters',
       body: ListView(
         physics: const BouncingScrollPhysics(),
         children: [
@@ -620,14 +622,14 @@ class _LabSettingsState extends State<LabSettingsScreen> {
                 const SizedBox(width: AppTokens.space3),
                 Expanded(
                   child: Text(
-                    'These features are unstable, undocumented, and may change without warning.',
+                    'Internal previews — sandbox surfaces, design ateliers, ceremonies, and adapter audits. Unstable, undocumented, may change without warning.',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ),
               ]),
             ),
           ),
-          const SectionHeader(title: 'Visual', dense: true),
+          const SectionHeader(title: 'Feature flags · Visual', dense: true),
           AnimatedAppearance(
             delay: const Duration(milliseconds: 120),
             child: PremiumCard(
@@ -654,7 +656,8 @@ class _LabSettingsState extends State<LabSettingsScreen> {
               ]),
             ),
           ),
-          const SectionHeader(title: 'Intelligence', dense: true),
+          const SectionHeader(
+              title: 'Feature flags · Intelligence', dense: true),
           AnimatedAppearance(
             delay: const Duration(milliseconds: 200),
             child: PremiumCard(
@@ -681,8 +684,368 @@ class _LabSettingsState extends State<LabSettingsScreen> {
               ]),
             ),
           ),
+          const SectionHeader(title: 'OS2 sandbox', dense: true),
+          _LabGroup(rows: [
+            _LabRow(
+                icon: Icons.auto_awesome_rounded,
+                label: 'OS2 · Copilot',
+                sub: 'Cinematic AI copilot surface',
+                route: '/os2/copilot'),
+            _LabRow(
+                icon: Icons.tune_rounded,
+                label: 'OS2 · Settings',
+                sub: 'Cinematic settings surface',
+                route: '/os2/settings'),
+            _LabRow(
+                icon: Icons.lock_outline_rounded,
+                label: 'OS2 · Lock screen',
+                sub: 'Cinematic lock surface',
+                route: '/os2/lock'),
+            _LabRow(
+                icon: Icons.rocket_launch_rounded,
+                label: 'OS2 · Onboarding',
+                sub: 'Cinematic onboarding surface',
+                route: '/os2/onboarding'),
+          ]),
+          const SectionHeader(title: 'Brand iterations · Nexus', dense: true),
+          _LabGroup(rows: [
+            _LabRow(
+                icon: Icons.public_rounded,
+                label: 'Nexus · Travel OS',
+                sub: 'Nexus iteration · travel-OS surface',
+                route: '/nexus/os'),
+            _LabRow(
+                icon: Icons.account_balance_wallet_rounded,
+                label: 'Nexus · Wallet',
+                sub: 'Nexus iteration · wallet surface',
+                route: '/nexus/wallet'),
+            _LabRow(
+                icon: Icons.contact_page_rounded,
+                label: 'Nexus · Passport',
+                sub: 'Nexus iteration · passport surface',
+                route: '/nexus/passport'),
+          ]),
+          const SectionHeader(title: 'Brand iterations · Bible', dense: true),
+          _LabGroup(rows: [
+            _LabRow(
+                icon: Icons.lock_outline_rounded,
+                label: 'Bible · Lock',
+                sub: 'Liquid-glass lock screen',
+                route: '/bible/lock'),
+            _LabRow(
+                icon: Icons.home_filled,
+                label: 'Bible · Home',
+                sub: 'Liquid-glass home screen',
+                route: '/bible/home'),
+            _LabRow(
+                icon: Icons.flight_land_rounded,
+                label: 'Bible · Arrival',
+                sub: 'Liquid-glass arrival cinematic',
+                route: '/bible/arrival'),
+            _LabRow(
+                icon: Icons.weekend_rounded,
+                label: 'Bible · Lounge',
+                sub: 'Liquid-glass lounge surface',
+                route: '/bible/lounge'),
+            _LabRow(
+                icon: Icons.auto_stories_rounded,
+                label: 'Bible · Passport',
+                sub: 'Liquid-glass passport spread',
+                route: '/bible/passport'),
+          ]),
+          const SectionHeader(title: 'Cinematic ceremonies', dense: true),
+          _LabGroup(rows: [
+            _LabRow(
+                icon: Icons.approval_rounded,
+                label: 'Wallet · ledger seal',
+                sub: 'Phase 15a · 2.4s · gold seal stamping',
+                route: '/ceremony/ledger-seal'),
+            _LabRow(
+                icon: Icons.local_florist_rounded,
+                label: 'Trip · milestone bloom',
+                sub: 'Phase 15b · 2.8s · gold petal radial bloom',
+                route: '/ceremony/milestone-bloom'),
+            _LabRow(
+                icon: Icons.workspace_premium_rounded,
+                label: 'Identity · tier promotion',
+                sub: 'Phase 15c · 3.2s · ATELIER \u2192 PILOT coronation',
+                route: '/ceremony/tier-promotion'),
+            _LabRow(
+                icon: Icons.bookmark_added_rounded,
+                label: 'Discover · favorite lock-in',
+                sub: 'Phase 15d · 2.0s · coin flip · seal lock',
+                route: '/ceremony/favorite-lockin'),
+            _LabRow(
+                icon: Icons.support_agent_rounded,
+                label: 'Services · concierge handoff',
+                sub: 'Phase 15e · 2.6s · packet handoff · seal',
+                route: '/ceremony/concierge-handoff'),
+            _LabRow(
+                icon: Icons.savings_rounded,
+                label: 'Wallet · investment milestone',
+                sub: 'Phase 16a · 3.0s · bar rise · crown reveal',
+                route: '/ceremony/investment-milestone'),
+            _LabRow(
+                icon: Icons.movie_filter_rounded,
+                label: 'Cinema II · hub',
+                sub: 'Phase 15f · 5 ceremonies · invariants charter',
+                route: '/cinema2'),
+            _LabRow(
+                icon: Icons.movie_filter_outlined,
+                label: 'Cinematics hub',
+                sub: 'Five GlobeID-engineered ceremonies',
+                route: '/cinematics'),
+          ]),
+          const SectionHeader(title: 'Atelier · design system', dense: true),
+          _LabGroup(rows: [
+            _LabRow(
+                icon: Icons.collections_bookmark_rounded,
+                label: 'Atelier',
+                sub: 'Phase 14a · 19 primitives · 4 domains',
+                route: '/atelier'),
+            _LabRow(
+                icon: Icons.style_rounded,
+                label: 'Atelier · hub',
+                sub: 'Phase 14f · 5 modules · invariants charter',
+                route: '/atelier/hub'),
+            _LabRow(
+                icon: Icons.timeline_rounded,
+                label: 'Motion choreography',
+                sub: 'Phase 14b · 10 durations · 6 curves · live',
+                route: '/atelier/lab/motion'),
+            _LabRow(
+                icon: Icons.token_rounded,
+                label: 'Brand tokens · export',
+                sub: 'Phase 14c · 67 tokens · JSON',
+                route: '/atelier/lab/tokens'),
+            _LabRow(
+                icon: Icons.grid_view_rounded,
+                label: 'Visual regression',
+                sub: 'Phase 14d · 8 specimens · canonical sizing',
+                route: '/atelier/lab/regression'),
+            _LabRow(
+                icon: Icons.history_edu_rounded,
+                label: 'Brand DNA timeline',
+                sub: 'Phase 14e · 14 chapters · invariants',
+                route: '/atelier/lab/dna-timeline'),
+            _LabRow(
+                icon: Icons.auto_awesome_rounded,
+                label: 'Premium UI showcase',
+                sub: 'Magnetic · liquid · solari · sensor',
+                route: '/premium-showcase'),
+          ]),
+          const SectionHeader(title: 'Brand surfaces', dense: true),
+          _LabGroup(rows: [
+            _LabRow(
+                icon: Icons.menu_book_rounded,
+                label: 'Passport opening ceremony',
+                sub: '3s cinematic · foil sweep · bearer reveal',
+                route: '/lab/passport-ceremony'),
+            _LabRow(
+                icon: Icons.approval_rounded,
+                label: 'Visa stamp ceremony',
+                sub: '4-frame · ink load · arc · press · bleed',
+                route: '/lab/visa-stamp'),
+            _LabRow(
+                icon: Icons.print_outlined,
+                label: 'Boarding PRINTED reveal',
+                sub: 'Roller strikes · 6 px overshoot · ribbon',
+                route: '/lab/boarding-printed'),
+            _LabRow(
+                icon: Icons.folder_special_outlined,
+                label: 'Country DECLASSIFIED',
+                sub: 'Cover lift · 3 CLASSIFIED strikes · reveal',
+                route: '/lab/declassified'),
+            _LabRow(
+                icon: Icons.workspaces_outline,
+                label: 'Lounge velvet rope',
+                sub: 'Brass arm · rope lift · member reveal',
+                route: '/lab/velvet-rope'),
+            _LabRow(
+                icon: Icons.workspace_premium_outlined,
+                label: 'Cold-mount seal',
+                sub: 'Phase 12b · GlobeID seal stamp ceremony',
+                route: '/lab/seal-coldmount'),
+            _LabRow(
+                icon: Icons.diamond_outlined,
+                label: 'Identity signet',
+                sub: 'Phase 12c · STANDARD · ATELIER · PILOT',
+                route: '/lab/identity-signet'),
+            _LabRow(
+                icon: Icons.center_focus_strong_rounded,
+                label: 'Camera chrome',
+                sub: 'Phase 12d · 5 GlobeID-engineered scan modes',
+                route: '/lab/camera-chrome'),
+            _LabRow(
+                icon: Icons.receipt_long_rounded,
+                label: 'Receipts',
+                sub: 'Phase 12e · 5 GlobeID-engineered receipts',
+                route: '/lab/receipts'),
+            _LabRow(
+                icon: Icons.workspace_premium_rounded,
+                label: 'Brand surface gallery',
+                sub: 'Phase 12 capstone · all 5 brand surfaces',
+                route: '/lab/brand-gallery'),
+          ]),
+          const SectionHeader(title: 'Adapters · data', dense: true),
+          _LabGroup(rows: [
+            _LabRow(
+                icon: Icons.currency_exchange_rounded,
+                label: 'FX adapter',
+                sub: 'Frankfurter (ECB) · demo drift · STALE',
+                route: '/lab/fx-adapter'),
+            _LabRow(
+                icon: Icons.flight_takeoff_rounded,
+                label: 'Flight adapter',
+                sub: 'AeroAPI (FlightAware) · demo phase machine',
+                route: '/lab/flight-adapter'),
+            _LabRow(
+                icon: Icons.travel_explore_rounded,
+                label: 'Visa adapter',
+                sub: 'PassportIndex matrix · demo snapshot',
+                route: '/lab/visa-adapter'),
+            _LabRow(
+                icon: Icons.cloud_upload_rounded,
+                label: 'Telemetry sink',
+                sub: 'Buffer · Console · Sentry · fan-out',
+                route: '/lab/telemetry'),
+            _LabRow(
+                icon: Icons.history_toggle_off_rounded,
+                label: 'Offline-first cache',
+                sub: 'STALE chip ladder · TimestampedCache',
+                route: '/lab/offline-cache'),
+            _LabRow(
+                icon: Icons.verified_outlined,
+                label: 'Production readiness',
+                sub: 'Phase 10 capstone · live + idle + demo audit',
+                route: '/lab/production-readiness'),
+          ]),
+          const SectionHeader(title: 'Locale + Accessibility', dense: true),
+          _LabGroup(rows: [
+            _LabRow(
+                icon: Icons.tune_rounded,
+                label: 'Locale + Accessibility',
+                sub: 'Phase 13f · capstone hub · 5 modules',
+                route: '/lab/locale-a11y'),
+            _LabRow(
+                icon: Icons.translate_rounded,
+                label: 'Locale gallery',
+                sub: 'Phase 13a · 5 locales · brand chrome stays foil',
+                route: '/lab/locale-gallery'),
+            _LabRow(
+                icon: Icons.format_textdirection_r_to_l_rounded,
+                label: 'RTL audit',
+                sub: 'Phase 13b · brand chrome stays LTR Latin',
+                route: '/lab/rtl-audit'),
+            _LabRow(
+                icon: Icons.format_size_rounded,
+                label: 'Dynamic Type audit',
+                sub: 'Phase 13c · body scales · chrome capped at 1.35\u00d7',
+                route: '/lab/dynamic-type'),
+            _LabRow(
+                icon: Icons.motion_photos_paused_rounded,
+                label: 'Reduced motion audit',
+                sub: 'Phase 13d · structural · ambient · signature',
+                route: '/lab/reduced-motion'),
+            _LabRow(
+                icon: Icons.contrast_rounded,
+                label: 'WCAG contrast audit',
+                sub: 'Phase 13e · foil + chrome + accents vs OLED',
+                route: '/lab/wcag'),
+          ]),
+          const SectionHeader(title: 'Engineering', dense: true),
+          _LabGroup(rows: [
+            _LabRow(
+                icon: Icons.sensors_rounded,
+                label: 'Sensors lab',
+                sub: 'Tilt · gyro · proximity · barometer',
+                route: '/sensors-lab'),
+            _LabRow(
+                icon: Icons.bug_report_rounded,
+                label: 'Error log',
+                sub: 'Async sinks · debug log feed',
+                route: '/debug/errors'),
+          ]),
           const SizedBox(height: AppTokens.space9),
         ],
+      ),
+    );
+  }
+}
+
+class _LabRow {
+  const _LabRow({
+    required this.icon,
+    required this.label,
+    required this.sub,
+    required this.route,
+  });
+  final IconData icon;
+  final String label;
+  final String sub;
+  final String route;
+}
+
+class _LabGroup extends StatelessWidget {
+  const _LabGroup({required this.rows});
+  final List<_LabRow> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return AnimatedAppearance(
+      child: PremiumCard(
+        padding: const EdgeInsets.symmetric(
+            vertical: AppTokens.space2, horizontal: AppTokens.space4),
+        child: Column(
+          children: [
+            for (final row in rows)
+              Pressable(
+                scale: 0.99,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  context.push(row.route);
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: AppTokens.space3),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD4AF37).withValues(alpha: 0.20),
+                          borderRadius:
+                              BorderRadius.circular(AppTokens.radiusMd),
+                        ),
+                        child: Icon(row.icon,
+                            size: 18, color: const Color(0xFFD4AF37)),
+                      ),
+                      const SizedBox(width: AppTokens.space3),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(row.label,
+                                style: t.textTheme.bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.w700)),
+                            Text(row.sub,
+                                style: t.textTheme.bodySmall?.copyWith(
+                                    color: t.colorScheme.onSurface
+                                        .withValues(alpha: 0.60))),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right_rounded,
+                          color: t.colorScheme.onSurface
+                              .withValues(alpha: 0.32)),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
