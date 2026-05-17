@@ -448,21 +448,27 @@ class _TreasuryVaultHeroState extends State<_TreasuryVaultHero>
                   height: 220,
                   child: Stack(
             children: [
-              // Liquid pour layer.
-              AnimatedBuilder(
-                animation: _pour,
-                builder: (context, _) {
-                  return Positioned.fill(
-                    child: IgnorePointer(
-                      child: CustomPaint(
-                        painter: _LiquidPourPainter(
-                          progress: _pour.value,
-                          tone: Os2.walletTone,
-                        ),
-                      ),
+              // Liquid pour layer — wrapped in a RepaintBoundary so
+              // the continuous pour animation is isolated from the
+              // hero text/chip repaint zone. Critical for 120Hz feel
+              // on 6-8GB devices.
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: RepaintBoundary(
+                    child: AnimatedBuilder(
+                      animation: _pour,
+                      builder: (context, _) {
+                        return CustomPaint(
+                          painter: _LiquidPourPainter(
+                            progress: _pour.value,
+                            tone: Os2.walletTone,
+                          ),
+                          size: Size.infinite,
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.all(Os2.space5),
@@ -768,22 +774,27 @@ class _FxStripState extends State<_FxStrip>
           height: 44,
           child: Stack(
             children: [
-              AnimatedBuilder(
-                animation: _scroll,
-                builder: (context, _) {
-                  return Transform.translate(
-                    offset: Offset(
-                      -_scroll.value * (items.length * 156),
-                      0,
-                    ),
-                    child: Row(
-                      children: [
-                        for (final item in [...items, ...items])
-                          _FxTile(item: item),
-                      ],
-                    ),
-                  );
-                },
+              // Marquee track — wrapped in a RepaintBoundary so the
+              // 16ms-cadence scroll repaint doesn't bubble up into
+              // the surrounding chips, edge fades, and slab body.
+              RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _scroll,
+                  builder: (context, _) {
+                    return Transform.translate(
+                      offset: Offset(
+                        -_scroll.value * (items.length * 156),
+                        0,
+                      ),
+                      child: Row(
+                        children: [
+                          for (final item in [...items, ...items])
+                            _FxTile(item: item),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
               // Edge fade.
               Positioned.fill(
