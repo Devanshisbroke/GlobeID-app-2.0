@@ -32,6 +32,7 @@ class AppShell extends ConsumerStatefulWidget {
 class _AppShellState extends ConsumerState<AppShell>
     with WidgetsBindingObserver {
   bool _autoLockNavigating = false;
+  DateTime? _lastBackPressAt;
 
   @override
   void initState() {
@@ -106,6 +107,59 @@ class _AppShellState extends ConsumerState<AppShell>
         Icons.travel_explore_rounded, 'Discover', BibleTone.equatorTeal),
   ];
 
+  /// System back handler. The shell hosts five worlds; pressing
+  /// back from any non-Home world should drift the user toward
+  /// Home (Pulse) rather than abruptly close the app. On Home
+  /// itself we require a second tap inside a 2s window before we
+  /// let the platform pop, with a subtle haptic + snack-bar so the
+  /// behaviour is discoverable. Pushed routes always defer to
+  /// go_router's own pop.
+  Future<bool> _handleSystemBack() async {
+    final router = GoRouter.of(context);
+    if (router.canPop()) {
+      router.pop();
+      return false; // we handled it
+    }
+    final loc = GoRouterState.of(context).uri.toString();
+    if (loc != '/' && !_isOnRootWorld(loc, '/')) {
+      // Not on any tab root — defensive fallback to Home.
+      router.go('/');
+      HapticFeedback.selectionClick();
+      return false;
+    }
+    if (_isOnRootWorld(loc, '/') && loc == '/') {
+      // Already on Home. Require a 2s double-tap before exit.
+      final now = DateTime.now();
+      if (_lastBackPressAt != null &&
+          now.difference(_lastBackPressAt!) < const Duration(seconds: 2)) {
+        return true; // allow platform pop → exit
+      }
+      _lastBackPressAt = now;
+      HapticFeedback.selectionClick();
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      messenger
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Press back again to exit'),
+            duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      return false;
+    }
+    // On a non-Home root world — drift to Home.
+    router.go('/');
+    HapticFeedback.selectionClick();
+    return false;
+  }
+
+  bool _isOnRootWorld(String loc, String tabPath) {
+    if (tabPath == '/' && loc == '/') return true;
+    if (tabPath != '/' && loc == tabPath) return true;
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = GoRouterState.of(context).uri.toString();
@@ -116,7 +170,16 @@ class _AppShellState extends ConsumerState<AppShell>
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-      child: Scaffold(
+      child: PopScope<Object?>(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) async {
+          if (didPop) return;
+          final shouldPop = await _handleSystemBack();
+          if (shouldPop && mounted) {
+            SystemNavigator.pop();
+          }
+        },
+        child: Scaffold(
         extendBody: true,
         body: Stack(
           children: [
@@ -171,6 +234,7 @@ class _AppShellState extends ConsumerState<AppShell>
             context.go(_tabs[i].path);
           },
         ),
+      ),
       ),
     );
   }

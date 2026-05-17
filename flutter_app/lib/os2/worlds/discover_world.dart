@@ -126,12 +126,11 @@ class _DiscoverWorldState extends ConsumerState<DiscoverWorld> {
                   onTap: () => GoRouter.of(context).push('/explore'),
                 ),
                 Os2InfoEntry(
-                  icon: Icons.workspace_premium_rounded,
-                  label: 'PREMIUM',
-                  value: 'SHOWCASE',
+                  icon: Icons.insights_rounded,
+                  label: 'INTEL',
+                  value: 'BRIEFINGS',
                   tone: Os2.identityTone,
-                  onTap: () =>
-                      GoRouter.of(context).push('/premium-showcase'),
+                  onTap: () => GoRouter.of(context).push('/intelligence'),
                 ),
                 Os2InfoEntry(
                   icon: Icons.feed_rounded,

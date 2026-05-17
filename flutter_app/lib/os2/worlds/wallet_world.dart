@@ -589,13 +589,6 @@ class _TreasuryVaultHeroState extends State<_TreasuryVaultHero>
                             onTap: () => GoRouter.of(context)
                                 .push('/multi-currency'),
                           ),
-                          const SizedBox(width: 8),
-                          _StageChip(
-                            icon: Icons.account_balance_wallet_rounded,
-                            label: 'Nexus Wallet',
-                            onTap: () => GoRouter.of(context)
-                                .push('/nexus/wallet'),
-                          ),
                         ],
                       ),
                     ),
