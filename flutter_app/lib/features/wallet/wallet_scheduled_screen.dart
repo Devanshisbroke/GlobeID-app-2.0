@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../cinematic/sheets/apple_sheet.dart';
 import '../../cinematic/states/cinematic_states.dart';
 import '../../data/models/wallet_models.dart';
 import '../../os2/os2_tokens.dart';
@@ -194,7 +197,7 @@ class _ScheduledRow extends StatelessWidget {
       category: item.category,
     );
     return Os2Magnetic(
-      onTap: () {},
+      onTap: () => _showScheduledSheet(context, item, brand),
       child: Os2Slab(
         tone: Os2.walletTone,
         tier: Os2SlabTier.floor1,
@@ -272,6 +275,145 @@ class _ScheduledRow extends StatelessWidget {
     if (diff.inDays == 1) return 'Tomorrow';
     if (diff.inDays > 1 && diff.inDays < 7) return 'In ${diff.inDays}d';
     return '${months[d.month - 1]} ${d.day}';
+  }
+}
+
+void _showScheduledSheet(
+  BuildContext context,
+  _ScheduledItem item,
+  MerchantBrand brand,
+) {
+  HapticFeedback.selectionClick();
+  showAppleSheet<void>(
+    context: context,
+    title: item.merchant,
+    eyebrow: 'SCHEDULED',
+    tone: Os2.walletTone,
+    builder: (_) => SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+            Os2.space4, Os2.space2, Os2.space4, Os2.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: brand.tone.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: brand.tone.withValues(alpha: 0.32),
+                      width: Os2.strokeFine,
+                    ),
+                  ),
+                  child: Center(
+                      child:
+                          Icon(brand.icon, color: brand.tone, size: 20)),
+                ),
+                const SizedBox(width: Os2.space3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Os2Text.title(item.merchant,
+                          color: Os2.inkBright, size: 16),
+                      const SizedBox(height: 2),
+                      Os2Text.caption(
+                          '${item.category.toUpperCase()} · NEXT ${_formatLong(item.nextDate)}',
+                          color: Os2.inkLow),
+                    ],
+                  ),
+                ),
+                Os2Text.title(
+                    '${item.currency} ${item.amount.toStringAsFixed(2)}',
+                    color: Os2.inkBright,
+                    size: 16),
+              ],
+            ),
+            const SizedBox(height: Os2.space4),
+            Row(
+              children: [
+                Expanded(
+                  child: _SheetButton(
+                    label: 'OPEN RECEIPT',
+                    icon: Icons.receipt_long_rounded,
+                    tone: Os2.walletTone,
+                    onTap: () {
+                      Navigator.of(context, rootNavigator: true).pop();
+                      GoRouter.of(context).push('/receipt');
+                    },
+                  ),
+                ),
+                const SizedBox(width: Os2.space2),
+                Expanded(
+                  child: _SheetButton(
+                    label: 'STATEMENTS',
+                    icon: Icons.description_rounded,
+                    tone: Os2.travelTone,
+                    onTap: () {
+                      Navigator.of(context, rootNavigator: true).pop();
+                      GoRouter.of(context).push('/wallet/statements');
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+String _formatLong(DateTime d) {
+  const months = [
+    'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+    'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
+  ];
+  return '${months[d.month - 1]} ${d.day}';
+}
+
+class _SheetButton extends StatelessWidget {
+  const _SheetButton({
+    required this.label,
+    required this.icon,
+    required this.tone,
+    required this.onTap,
+  });
+  final String label;
+  final IconData icon;
+  final Color tone;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Os2Slab(
+        tone: tone,
+        tier: Os2SlabTier.floor1,
+        radius: Os2.rCard,
+        halo: Os2SlabHalo.none,
+        elevation: Os2SlabElevation.flat,
+        padding: const EdgeInsets.symmetric(
+            vertical: Os2.space3, horizontal: Os2.space3),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: tone, size: 16),
+            const SizedBox(width: Os2.space2),
+            Os2Text.caption(label, color: tone),
+          ],
+        ),
+      ),
+    );
   }
 }
 

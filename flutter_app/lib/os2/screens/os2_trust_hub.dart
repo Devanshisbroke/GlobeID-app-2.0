@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../os2_tokens.dart';
 import '../primitives/os2_action_card.dart';
@@ -435,11 +437,20 @@ class _Protocols extends StatelessWidget {
   const _Protocols();
   @override
   Widget build(BuildContext context) {
+    void open(String route) {
+      HapticFeedback.lightImpact();
+      GoRouter.of(context).push(route);
+    }
+
     final acts = <_PA>[
-      _PA('Re-seal vault', Icons.lock_rounded, Os2.identityTone),
-      _PA('Rotate keys', Icons.refresh_rounded, Os2.walletTone),
-      _PA('Rerun audit', Icons.fact_check_rounded, Os2.signalSettled),
-      _PA('Add issuer', Icons.add_link_rounded, Os2.travelTone),
+      _PA('Re-seal vault', Icons.lock_rounded, Os2.identityTone,
+          () => open('/vault')),
+      _PA('Rotate keys', Icons.refresh_rounded, Os2.walletTone,
+          () => open('/settings/security')),
+      _PA('Rerun audit', Icons.fact_check_rounded, Os2.signalSettled,
+          () => open('/audit-log')),
+      _PA('Add issuer', Icons.add_link_rounded, Os2.travelTone,
+          () => open('/vault/issuance')),
     ];
     return Os2Slab(
       tone: Os2.servicesTone,
@@ -465,7 +476,7 @@ class _Protocols extends StatelessWidget {
                   icon: acts[0].icon,
                   tone: acts[0].tone,
                   dense: true,
-                  onTap: () {},
+                  onTap: acts[0].onTap,
                 ),
               ),
               const SizedBox(width: Os2.space2),
@@ -475,7 +486,7 @@ class _Protocols extends StatelessWidget {
                   icon: acts[1].icon,
                   tone: acts[1].tone,
                   dense: true,
-                  onTap: () {},
+                  onTap: acts[1].onTap,
                 ),
               ),
             ],
@@ -489,7 +500,7 @@ class _Protocols extends StatelessWidget {
                   icon: acts[2].icon,
                   tone: acts[2].tone,
                   dense: true,
-                  onTap: () {},
+                  onTap: acts[2].onTap,
                 ),
               ),
               const SizedBox(width: Os2.space2),
@@ -499,7 +510,7 @@ class _Protocols extends StatelessWidget {
                   icon: acts[3].icon,
                   tone: acts[3].tone,
                   dense: true,
-                  onTap: () {},
+                  onTap: acts[3].onTap,
                 ),
               ),
             ],
@@ -511,8 +522,9 @@ class _Protocols extends StatelessWidget {
 }
 
 class _PA {
-  const _PA(this.title, this.icon, this.tone);
+  const _PA(this.title, this.icon, this.tone, this.onTap);
   final String title;
   final IconData icon;
   final Color tone;
+  final VoidCallback onTap;
 }
