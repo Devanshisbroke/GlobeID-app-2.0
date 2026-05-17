@@ -608,22 +608,26 @@ class _PassportHeroState extends State<_PassportHero>
           borderRadius: BorderRadius.circular(Os2.rHero),
           child: Stack(
             children: [
-              // Shimmer sweep.
-              AnimatedBuilder(
-                animation: _shimmer,
-                builder: (context, _) {
-                  final v = _shimmer.value;
-                  return Positioned.fill(
-                    child: IgnorePointer(
-                      child: CustomPaint(
-                        painter: _FoilShimmerPainter(
-                          progress: v,
-                          tone: Os2.identityTone,
-                        ),
-                      ),
+              // Shimmer sweep — wrapped in a RepaintBoundary so the
+              // ticking foil layer never repaints the rest of the
+              // hero slab. Critical for 120Hz feel on 6-8GB devices.
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: RepaintBoundary(
+                    child: AnimatedBuilder(
+                      animation: _shimmer,
+                      builder: (context, _) {
+                        return CustomPaint(
+                          painter: _FoilShimmerPainter(
+                            progress: _shimmer.value,
+                            tone: Os2.identityTone,
+                          ),
+                          size: Size.infinite,
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.all(Os2.space5),
